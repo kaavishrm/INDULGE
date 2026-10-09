@@ -278,21 +278,128 @@
     }
   });
 
-  /* ---------- room: presence by polling ---------- */
+  /* ---------- room: presence by polling, and Kaavish's live stage ----------
+     presence(p) merges into this page's own presence (a top-level null drops the key) and reaches the server
+     only when the uid or the page changes, plus the beat every 15 s (40 s hidden). The office's fields go
+     elsewhere: the owner's o3 (his walk) and say (his words) are put to the stage at most every PUT_MS, the
+     latest winning, again every HEART_MS while either is set, and a beacon says live: false when his tab goes
+     away. A page with the office open (o3w) polls the stage while it is visible, and every onPeers listener gets
+     it as one more peer. That peer has no presence.uid, so the list of who is online never counts it. */
   function makeRoom() {
-    let mine = null, fns = new Set(), timer = null;
+    /* the stage's pace, in one place (HOSTING.md has what it costs) */
+    const STAGE_LIVE_MS = 700;        /* a poll while Kaavish is live */
+    const STAGE_QUIET_MS = 1500;      /* live, with nothing new for QUIET_AFTER_MS */
+    const STAGE_IDLE_MS = 5000;       /* not live, and after a poll that failed */
+    const STAGE_WINDOW_MS = 45000;    /* a stage older than this is not live */
+    const QUIET_AFTER_MS = 120000;
+    const SAY_LATE_MS = 12000;        /* a page that first hears his words this late leaves them unshown */
+    const PUT_MS = 250, HEART_MS = 15000;
+    let mine = null, fns = new Set(), timer = null, peers = [], sent = '';
+    const owner = () => !!(meInfo && (meInfo.isOwner || meInfo.level === 3));
+    const hidden = () => document.visibilityState === 'hidden';
+
+    /* every listener hears the last presence peers, this page, and the stage */
+    let stage = null, stageSeq = 0, stagePeer = null, stageLive = false, changedAt = 0, okAt = 0, unheard = '';
+    function peerOfStage() {
+      if (!stage) return null;
+      const say = stageLive && stage.say && stage.say.id !== unheard ? stage.say : null;
+      return {peer: 'stage', by: stage.by, isMe: !!meInfo && stage.by === meInfo.uid, sameTab: false, kind: 'viewer', guest: false,
+        presence: {o3: stageLive ? stage.o3 || null : null, say}, updatedAt: stage.seen};
+    }
+    function deliver() {
+      stagePeer = peerOfStage();
+      const list = peers.concat(mine ? [{presence: mine, updatedAt: Date.now(), self: true}] : [], stagePeer ? [stagePeer] : []);
+      fns.forEach(fn => { try { fn({peers: list}); } catch (e) { /* page handler */ } });
+    }
     async function beat() {
       if (!mine) return;
       try {
         const r = await call('presence', {page: mine.page || ''});
-        const peers = (r.peers || []).concat([{presence: mine, updatedAt: Date.now(), self: true}]);
-        fns.forEach(fn => { try { fn({peers}); } catch (e) { /* page handler */ } });
+        peers = r.peers || [];
+        deliver();
       } catch (e) { if (e && e.status === 401) kick(); /* else offline */ }
     }
-    function schedule() { clearTimeout(timer); timer = setTimeout(() => { beat().finally(schedule); }, document.hidden ? 40000 : 15000); }
+    function schedule() { clearTimeout(timer); timer = setTimeout(() => { beat().finally(schedule); }, hidden() ? 40000 : 15000); }
+
+    /* the owner's side: his walk and words to the stage */
+    let lastPut = '', putAt = 0, putT = 0, heartT = 0, putting = false, shown = false;
+    const stageBody = () => { const o3 = (mine && mine.o3) || null, say = (mine && mine.say) || null; return o3 || say ? {o3, say} : {o3: null, say: null, live: false}; };
+    function queuePut() { clearTimeout(putT); putT = setTimeout(sendPut, Math.max(0, putAt + PUT_MS - Date.now())); }
+    async function sendPut() {
+      /* one put at a time; what changes meanwhile goes right after it */
+      if (!owner() || hidden() || putting) return;
+      putting = true; putAt = Date.now();
+      const body = stageBody();
+      lastPut = JSON.stringify(body);
+      try { await call('stage', {put: body}); shown = body.live !== false; } catch (e) { if (e && e.status === 401) kick(); lastPut = ''; }
+      putting = false;
+      clearTimeout(heartT);
+      if (body.live !== false) heartT = setTimeout(sendPut, HEART_MS);
+      if (lastPut !== JSON.stringify(stageBody())) queuePut();
+    }
+    function stagePut() { if (owner() && JSON.stringify(stageBody()) !== lastPut) queuePut(); }
+    function gone() {
+      if (!owner() || !shown) return;
+      clearTimeout(putT); clearTimeout(heartT);
+      shown = false;
+      lastPut = JSON.stringify({o3: null, say: null, live: false});
+      try { navigator.sendBeacon(API, new Blob([JSON.stringify({a: 'stage', put: {live: false}})], {type: 'application/json'})); } catch (e) { /* the stage ages out */ }
+    }
+
+    /* everyone's side: while this page watches the office (o3w) and can be seen, read the stage */
+    let pollT = 0, polling = 0, runs = 0;
+    function watch() {
+      const want = !!(mine && mine.o3w) && !hidden();
+      if (want && !polling) { polling = ++runs; poll(polling); }
+      if (!want && polling) {
+        polling = 0; clearTimeout(pollT); changedAt = 0;
+        if (stage) { stage = null; stageSeq = 0; stageLive = false; deliver(); }
+      }
+    }
+    async function poll(run) {
+      let wait = STAGE_IDLE_MS;
+      const was = stageLive, wasPeer = JSON.stringify(stagePeer);
+      try {
+        const r = await call('stage', {since: stageSeq});
+        if (polling !== run) return;
+        okAt = Date.now();
+        if (!r.same && r.st) {
+          const age = Math.max(0, (Number(r.now) || 0) - (Number(r.st.at) || 0));
+          const said = r.st.say && r.st.say.id;
+          if (said && said !== (stage && stage.say && stage.say.id) && !changedAt && age >= SAY_LATE_MS) unheard = said;
+          /* a heartbeat only keeps the stage fresh: the same walk and words are no news */
+          const news = !stage || JSON.stringify([stage.o3, stage.say, stage.live]) !== JSON.stringify([r.st.o3, r.st.say, r.st.live]);
+          stage = Object.assign({}, r.st, {seen: news ? Date.now() - age : stage.seen});
+          stageSeq = r.seq;
+          if (news) changedAt = Date.now();
+        }
+        stageLive = !!(stage && stage.live !== false && (Number(r.now) || 0) - (Number(stage.at) || 0) < STAGE_WINDOW_MS);
+        wait = !stageLive ? STAGE_IDLE_MS : Date.now() - changedAt > QUIET_AFTER_MS ? STAGE_QUIET_MS : STAGE_LIVE_MS;
+      } catch (e) {
+        if (e && e.status === 401) kick();
+        /* no news for a while: he is back at his desk */
+        if (stageLive && Date.now() - okAt > STAGE_WINDOW_MS) stageLive = false;
+      }
+      if (polling !== run) return;
+      if (stageLive !== was || JSON.stringify(peerOfStage()) !== wasPeer) deliver();
+      pollT = setTimeout(() => poll(run), wait);
+    }
+    document.addEventListener('visibilitychange', () => { if (hidden()) gone(); else stagePut(); watch(); });
+    window.addEventListener('pagehide', gone);
+
     return Object.freeze({
-      presence(p) { mine = Object.assign({}, p); beat(); schedule(); return Promise.resolve(); },
+      presence(p) {
+        const next = Object.assign({}, mine);
+        for (const k of Object.keys(p || {})) { if (p[k] === null || p[k] === undefined) delete next[k]; else next[k] = p[k]; }
+        mine = next;
+        const key = String(next.uid || '') + '|' + String(next.page || '');
+        if (key !== sent) { sent = key; beat(); schedule(); } else deliver();
+        stagePut();
+        watch();
+        return Promise.resolve();
+      },
       onPeers(fn) { fns.add(fn); return () => fns.delete(fn); },
+      peers: () => peers.concat(stagePeer ? [stagePeer] : []),
       emit: () => Promise.resolve(), on: () => () => {}
     });
   }
