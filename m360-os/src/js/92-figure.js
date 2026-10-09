@@ -252,9 +252,12 @@
           add(new T.CapsuleGeometry(t * 0.9, w * 2 - 2 * t, 1, Q.fine), p.frame, J.head, [x, HY + ey - hh, gz], [0, 0, Math.PI / 2]);
           for (const ix of [-1, 1]) add(new T.CapsuleGeometry(t * 0.9, hh * 2 - 2 * t, 1, Q.fine), p.frame, J.head, [x + ix * w, HY + ey, gz]);
         }
+        /* the temples follow the head; at LOD1 they are under a pixel, so the far crowd keeps its budget */
         const ty = HY + ey + 0.012, tz = gz - 0.006, tx = ex + (look.glasses === 'round' || look.glasses === 'shades' ? 0.041 : 0.047);
-        rod([sx * tx, ty, tz], [sx * RX * 0.96, ty, RZ * 0.42], 0.0042, p.frame, J.head);
-        rod([sx * RX * 0.96, ty, RZ * 0.42], [sx * RX * 1.0, ty - 0.01, -0.01], 0.0042, p.frame, J.head);
+        if (!lod) {
+          rod([sx * tx, ty, tz], [sx * RX * 0.96, ty, RZ * 0.42], 0.0042, p.frame, J.head);
+          rod([sx * RX * 0.96, ty, RZ * 0.42], [sx * RX * 1.0, ty - 0.01, -0.01], 0.0042, p.frame, J.head);
+        }
       }
       add(new T.CapsuleGeometry(0.0045, 0.03, 1, 4), p.frame, J.head, [0, HY + ey + 0.012, gz + 0.004], [0, 0, Math.PI / 2]);
     }
@@ -654,7 +657,9 @@
     const mesh = new T.Mesh(geo, materials.length > 1 ? materials : materials[0]);
     mesh.castShadow = true; mesh.receiveShadow = false;
     mesh.userData.people = items.length;
-    mesh.userData.dispose = () => { geo.dispose(); if (materials[1]) { materials[1].map.dispose(); materials[1].dispose(); } };
+    /* the stickers' texture goes with the geometry, so a caller that disposes only the crowd's geometry frees it too */
+    if (materials[1]) geo.addEventListener('dispose', () => { materials[1].map.dispose(); materials[1].dispose(); });
+    mesh.userData.dispose = () => geo.dispose();
     return mesh;
   }
   function crowd(T, items) {

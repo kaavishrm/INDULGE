@@ -90,11 +90,15 @@
       };
       O.load().then(T => {
         if (!alive || !el) return;
+        /* the shared renderer: acquire hands over {gl, canvas}, or null while the office holds it */
         const got = O.acquire(el, 'editor');
-        if (!got) { setFlat(true); return; }
-        const r = got.renderer || got;
+        const r = got && (got.gl || got.renderer || got);
+        if (!r || typeof r.render !== 'function') { if (got) O.release(el); setFlat(true); return; }
         const canvas = got.canvas || r.domElement;
         if (canvas && canvas.parentNode !== el) el.appendChild(canvas);
+        /* the stage is the one tab stop here; the office gets its canvas back focusable */
+        const tab = canvas ? canvas.tabIndex : 0;
+        if (canvas) canvas.tabIndex = -1;
         const scene = new T.Scene();
         const hemi = new T.HemisphereLight(undefined, undefined, 0.75);
         const sun = new T.DirectionalLight(undefined, 2.2);
@@ -106,7 +110,7 @@
         tint();
         const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(draw) : null;
         if (ro) ro.observe(el);
-        st.current.off = [M.theme.subscribe(() => setTimeout(tint, 0)), () => ro && ro.disconnect()];
+        st.current.off = [M.theme.subscribe(() => setTimeout(tint, 0)), () => ro && ro.disconnect(), () => { if (canvas) canvas.tabIndex = tab; }];
         el.dispatchEvent(new CustomEvent('cast:ready'));
       }).catch(() => setFlat(true));
       return () => {
@@ -249,16 +253,18 @@
     <//>`;
   }
 
-  /* office/cast: created once with set, then whole-map updates; null clears one lock */
+  /* office/cast: created once with set, then whole-map updates; null clears one lock. Before the doc is known
+     here, merge updates it or sets it when missing: writes to one path run in turn, so a second lock made while
+     the first is still on its way lands on the doc the first created */
   async function writeLocks(ctx, patch) {
     const cur = ctx.office && ctx.office.cast;
     const at = Date.now();
-    if (!cur && ctx.office && ctx.office.ready) {
+    if (!cur) {
       const locks = {};
       for (const k of Object.keys(patch)) if (patch[k]) locks[k] = patch[k];
-      return ctx.W.set('office/cast', {v: 1, at, locks});
+      return ctx.W.merge('office/cast', {v: 1, at, locks});
     }
-    const locks = {...((cur && cur.locks) || {}), ...patch};
+    const locks = {...(cur.locks || {}), ...patch};
     return ctx.W.update('office/cast', {v: 1, at, locks});
   }
 
@@ -290,12 +296,17 @@
     const ctx = M.useCtx();
     const [editing, setEditing] = useState(null);
     const [busy, setBusy] = useState('');
+    const going = useRef(false);
     const people = ctx && ctx.isOwner ? (ctx.activeMembers || []).filter(m => m.uid !== ctx.founderUid) : [];
     const ps = M.useProfiles(people.map(m => m.uid));
     if (!ctx || !ctx.isOwner || !M.cast) return null;
+    /* one lock write at a time: every row waits while one is on its way */
     const run = async (uid, patch) => {
+      if (going.current) return;
+      going.current = true;
       setBusy(uid);
       try { await writeLocks(ctx, patch); } catch (e) { /* the write toasted */ }
+      going.current = false;
       setBusy('');
     };
     return html`<${UI.Card} id="cast-admin" title="Characters">
@@ -309,8 +320,8 @@
           <div class="grow cast-admin-who"><div class="small"><${UI.Name} id=${m.uid}/></div><div class="tiny ink62">${state}</div></div>
           <div class="cast-actions">
             <${UI.Btn} kind="sec" sm=${true} onClick=${() => setEditing(m.uid)}>Restyle<//>
-            ${r.locked ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${busy === m.uid} onClick=${() => run(m.uid, {[m.uid]: null})}>Unlock<//>`
-              : r.src === 'own' ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${busy === m.uid} onClick=${() => run(m.uid, {[m.uid]: {look: {...M.cast.clean(r.look), pic: 'auto'}, at: Date.now()}})}>Lock this look<//>` : null}
+            ${r.locked ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${!!busy} onClick=${() => run(m.uid, {[m.uid]: null})}>Unlock<//>`
+              : r.src === 'own' ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${!!busy} onClick=${() => run(m.uid, {[m.uid]: {look: {...M.cast.clean(r.look), pic: 'auto'}, at: Date.now()}})}>Lock this look<//>` : null}
           </div>
         </div>`;
       })}</div>
