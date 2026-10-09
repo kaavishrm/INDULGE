@@ -158,6 +158,21 @@
 .office-bubble.big .ob-what b{-webkit-line-clamp:4}
 .office-under{min-height:0}
 .office-under:empty{display:none}
+/* v35: who speaks, as a micro label over the words, drawn from data-who (never part of the words themselves) */
+:is(.office-bubble,.office-say)[data-who]:not(.fold)::before{content:attr(data-who); display:block; margin-bottom:3px; padding-left:11px; font-size:11px; font-weight:400; letter-spacing:.14em;
+  text-transform:lowercase; color:var(--micro); line-height:1.2; background:radial-gradient(circle, var(--flame) 2.5px, transparent 3px) 0 50% / 6px 6px no-repeat}
+
+/* ---------- v35: Kaavish's words, ink on paper's place (inverted in dark), over his own point ---------- */
+.office-say{width:max-content; max-width:260px; padding:8px 12px 9px; border-radius:var(--r-sm); background:var(--ink); color:var(--on-ink); font-size:13px; line-height:1.36;
+  box-shadow:0 12px 28px -16px var(--shadow); text-align:left; pointer-events:none; overflow-wrap:anywhere}
+.office-say[data-who]:not(.fold)::before{color:var(--on-ink); opacity:.72; background-image:radial-gradient(circle, var(--on-ink) 2.5px, transparent 3px)}
+.office-say.fold{border-radius:999px; padding:5px 11px; max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.office-say.fold .os-what{overflow:hidden; text-overflow:ellipsis}
+.office-say.flat{position:absolute; z-index:2900; transform:translate(-50%, calc(-100% - 30px)) scale(var(--inv,1)); transform-origin:50% 100%}
+.office-say.big{max-width:none; width:auto; box-shadow:none; font-size:14px}
+.office-under .office-say + .office-bubble{margin-top:8px}
+.office-note{color:var(--ink62); margin:0}
+.office-rail.as-wide{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr)); align-items:start}
 .office-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 
 /* ---------- the text twin ---------- */
@@ -217,6 +232,8 @@
   .office .of-strokes path:nth-child(3){animation-delay:.6s}
   .office-bubble:not(.big){animation:of-rise .28s var(--ease) both}
   .office-bubble.fold{transition:padding .2s ease}
+  /* Kaavish walking on the floor plan: his face glides to each point he reaches */
+  .office-founder.live{transition:left .6s var(--ease), top .6s var(--ease)}
 }
 @keyframes of-bob{from{transform:translateY(0)} to{transform:translateY(-3px)}}
 @keyframes of-lit{0%{background:var(--paper)} 30%{background:var(--flame-deep); color:#fff; border-color:var(--flame-deep)} 100%{background:var(--paper)}}
