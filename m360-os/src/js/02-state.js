@@ -166,9 +166,10 @@
     const online = M.usePresence(room, realUid);
 
     /* the COO (M.coo): office/live for everyone; coo/now, the decisions, today's and yesterday's ledger and
-       its state for the founder only. IST days, as the COO keeps them; the collection is never subscribed whole */
+       its state for the founder only. IST days, as the COO keeps them; the coo collection is never subscribed
+       whole. The office collection is: live (the COO's feed), plan (Kaavish's layout) and cast (his locks) */
     const cooDays = [0, 1].map(n => new Date(now + 330 * 60000 - n * 86400000).toISOString().slice(0, 10));
-    const cooLive = M.useDoc(db, 'office/live');
+    const officeColl = M.useColl(db, 'office');
     const cooNow = M.useDoc(db, isFounder ? 'coo/now' : null);
     const cooDec = M.useDoc(db, isFounder ? 'coo/dec' : null);
     const cooL0 = M.useDoc(db, isFounder ? 'coo/L-' + cooDays[0] : null);
@@ -244,18 +245,44 @@
       const canSee = u => isFounder || u === uid || !!(M.lines && M.lines.managerFrom(members, founderUid, u) === uid);
 
       /* the COO's documents: the team-safe office feed for everyone, the rest for the founder alone */
-      const coo = {live: cooLive.data || null, ready: cooLive.ready};
+      const om = officeColl.map || {};
+      const coo = {live: om.live || null, ready: officeColl.ready};
+      const office = {live: om.live || null, plan: om.plan || null, cast: om.cast || null, ready: officeColl.ready};
       if (isFounder) Object.assign(coo, {now: cooNow.data, dec: cooDec.data, state: cooState.data, L: {[cooDays[0]]: cooL0.data, [cooDays[1]]: cooL1.data},
         ready: cooNow.ready && cooDec.ready && cooL0.ready && cooState.ready});
 
-      return {db, user, mcp, downloads, permissions, sample, room, me, uid, realUid, viewAs, W, coo, wfhMap,
+      return {db, user, mcp, downloads, permissions, sample, room, me, uid, realUid, viewAs, W, coo, office, wfhMap,
         priv: {state: privState, keeper: isFounder ? privKeeper : {ready: true, data: null}, finance: isFounder ? privFinance : {ready: true, data: null},
           prospects: viewAs ? {ready: true, data: null} : privPros},
         ready: rosterDoc.ready && settingsDoc.ready,
         roster, members, member, activeMembers, isFounder, isOwner: !viewAs && !!me.isOwner, founderUid, locked, remoteBase, baseOn,
         settings, holidays, coll, leaveMap, onLeave, isWorkingDay, startFor, canSee, now, online};
     }, [rosterDoc, settingsDoc, me, uid, realUid, viewAs, isFounder, locked, W, now, online, coll.join,
-      privState, privKeeper, privFinance, privPros, cooLive, cooNow, cooDec, cooL0, cooL1, cooState, ...COLLS.map(c => coll[c]), ...BOOK_COLLS.map(c => coll[c])]);
+      privState, privKeeper, privFinance, privPros, officeColl, cooNow, cooDec, cooL0, cooL1, cooState, ...COLLS.map(c => coll[c]), ...BOOK_COLLS.map(c => coll[c])]);
+
+    /* characters (M.cast): a styled look, or Kaavish's lock, draws a 2D head that avatars read from M.heads;
+       M.headPic carries each person's own choice of where it shows. A clay starter never makes a head. Rebuilt
+       only when the me collection, the office cast or the founder changes, as M.photos is */
+    const castDoc = (officeColl.map || {}).cast || null;
+    /* the COO rewrites office/live often; the heads only care when the locks themselves move */
+    const castKey = castDoc ? JSON.stringify(castDoc.locks || {}) : '';
+    React.useEffect(() => {
+      if (!M.cast) return;
+      const next = {}, pics = {};
+      const ids = new Set(Object.keys(coll.me.map || {}));
+      const locks = castDoc && castDoc.locks && typeof castDoc.locks === 'object' ? castDoc.locks : {};
+      for (const id of Object.keys(locks)) ids.add(id);
+      for (const id of ids) {
+        const r = M.cast.resolve({uid: id, me: coll.me.map[id] || {}, cast: castDoc, founderUid: ctx.founderUid});
+        if (r.src === 'starter') continue;
+        next[id] = M.cast.head2d(r.look, {founder: r.founder, size: 64}).url;
+        pics[id] = r.pic;
+      }
+      const same = (a, b) => { const ka = Object.keys(a || {}); return ka.length === Object.keys(b || {}).length && ka.every(k => a[k] === b[k]); };
+      if (same(M.heads, next) && same(M.headPic, pics)) return;
+      M.heads = next; M.headPic = pics;
+      if (M.profilesBump) M.profilesBump();
+    }, [coll.me, castKey, ctx.founderUid]);
 
     /* rules engine output, computed once per context (the context changes with every snapshot and each minute) */
     const flags = React.useMemo(() => (M.rules && M.rules.evaluate) ? M.rules.evaluate(ctx, new Date()) : [], [ctx]);

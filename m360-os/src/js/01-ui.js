@@ -306,8 +306,21 @@
       return html`<span class="av coo-av" style=${{width: s + 'px', height: s + 'px'}} title=${title || t}>${Face ? html`<${Face} size=${s} label=${t}/>` : null}</span>`;
     }
     return html`<img class="av" width=${s} height=${s} style=${{width: s + 'px', height: s + 'px'}}
-      src=${(M.photos && M.photos[id]) || (p ? p.avatarUrl : M.AV_FALLBACK)} alt=${p && p.name ? p.name : 'avatar'} title=${title || (p && p.name) || ''}/>`;
+      src=${avatarSrc(id, s, ctx, p)} alt=${p && p.name ? p.name : 'avatar'} title=${title || (p && p.name) || ''}/>`;
   };
+  /* what an avatar shows: the character head when the person chose it for their photo, else the photo, else
+     the head unless they chose the photo, else the profile picture. A clay starter never has a head (M.heads
+     holds styled looks only), so it never replaces a chip. Kaavish's flame detail is drawn at 40 px and up */
+  function avatarSrc(id, s, ctx, p) {
+    const photo = M.photos && M.photos[id];
+    let head = M.heads && M.heads[id];
+    const pic = (M.headPic && M.headPic[id]) || 'auto';
+    if (head && s < 40 && M.cast && ctx && ctx.coll && ctx.founderUid === id) head = M.cast.headUrl(ctx, id, {size: s});
+    if (head && pic === 'char') return head;
+    if (photo) return photo;
+    if (head && pic !== 'photo') return head;
+    return p ? p.avatarUrl : M.AV_FALLBACK;
+  }
   UI.AvatarRow = function AvatarRow({ids, size, max}) {
     const list = (ids || []).slice(0, max || 6);
     return html`<span class="av-row">${list.map(id => html`<${UI.Avatar} key=${id} id=${id} size=${size || 24}/>`)}
