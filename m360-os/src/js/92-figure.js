@@ -593,7 +593,7 @@
     }
     b = {pos, nrm, col: sk.col, idx: sk.idx, count: sk.count, sticker: st};
     posedCache.set(key, b);
-    if (posedCache.size > 160) posedCache.delete(posedCache.keys().next().value);
+    if (posedCache.size > 64) posedCache.delete(posedCache.keys().next().value);
     return b;
   }
   function assemble(T, items, baked) {
@@ -605,17 +605,17 @@
     const pos = new Float32Array((nv + sv) * 3), nrm = new Float32Array((nv + sv) * 3), col = new Float32Array((nv + sv) * 3), uv = new Float32Array((nv + sv) * 2);
     const idx = new Uint32Array(ni + stickers.length * 6);
     let v = 0, k = 0;
-    const xf = (it, x, y, z) => {
-      const a = (Number(it.h) || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
-      return [x * c + z * s + (Number(it.x) || 0) / 100, y, -x * s + z * c + (Number(it.y) || 0) / 100];
+    /* each figure's place: plan cm to metres, turned by its heading */
+    const placeOf = it => {
+      const a = (Number(it.h) || 0) * Math.PI / 180;
+      return {c: Math.cos(a), s: Math.sin(a), x: (Number(it.x) || 0) / 100, z: (Number(it.y) || 0) / 100};
     };
     baked.forEach((b, i) => {
-      const it = items[i];
-      const a = (Number(it.h) || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      const {c, s, x: ox, z: oz} = placeOf(items[i]);
       for (let q = 0; q < b.count; q++) {
         const o = q * 3, d = (v + q) * 3;
-        const w = xf(it, b.pos[o], b.pos[o + 1], b.pos[o + 2]);
-        pos[d] = w[0]; pos[d + 1] = w[1]; pos[d + 2] = w[2];
+        const x = b.pos[o], z = b.pos[o + 2];
+        pos[d] = x * c + z * s + ox; pos[d + 1] = b.pos[o + 1]; pos[d + 2] = -x * s + z * c + oz;
         const nx = b.nrm[o], nz = b.nrm[o + 2];
         nrm[d] = nx * c + nz * s; nrm[d + 1] = b.nrm[o + 1]; nrm[d + 2] = -nx * s + nz * c;
         col[d] = b.col[o]; col[d + 1] = b.col[o + 1]; col[d + 2] = b.col[o + 2];
@@ -635,12 +635,12 @@
       const atlas = stickerCanvas(stickers.map(x => x.b.sticker.initials), 64);
       stickers.forEach(({b, it}, i) => {
         const q = stickerQuad([0, 0, 0], i, atlas);
+        const {c, s, x: ox, z: oz} = placeOf(it);
         const base = v;
         for (let n = 0; n < 4; n++) {
-          const w = xf(it, b.sticker.at[0] + q.pos[n * 3], b.sticker.at[1] + q.pos[n * 3 + 1], b.sticker.at[2]);
-          pos[v * 3] = w[0]; pos[v * 3 + 1] = w[1]; pos[v * 3 + 2] = w[2];
-          const a = (Number(it.h) || 0) * Math.PI / 180;
-          nrm[v * 3] = Math.sin(a); nrm[v * 3 + 2] = Math.cos(a);
+          const x = b.sticker.at[0] + q.pos[n * 3], z = b.sticker.at[2];
+          pos[v * 3] = x * c + z * s + ox; pos[v * 3 + 1] = b.sticker.at[1] + q.pos[n * 3 + 1]; pos[v * 3 + 2] = -x * s + z * c + oz;
+          nrm[v * 3] = s; nrm[v * 3 + 2] = c;
           col[v * 3] = col[v * 3 + 1] = col[v * 3 + 2] = 1;
           uv[v * 2] = q.uv[n * 2]; uv[v * 2 + 1] = q.uv[n * 2 + 1];
           v++;
