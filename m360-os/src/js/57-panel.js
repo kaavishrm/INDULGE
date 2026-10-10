@@ -222,7 +222,8 @@
       if (acts.length) await M.chat.append(ctx, [{role: 'assistant', content: code === 'cancelled' || !mine ? 'Stopped.' : '', acts}]);
       /* stopped: the state is only put back when nothing new (listening, another turn) has taken over */
       if (code === 'cancelled' || !mine) { if (S.st.phase === 'thinking' && !S.ctl) S.set({phase: 'answer', live: '', acts: []}); return null; }
-      const off = M.ai.isOff(code) || code === 'rate_limited' || /limit|quota|cap/.test(code);
+      /* the AI is off, resting or used up for today (slow_down): the grammar still runs, so the chips say what does */
+      const off = M.ai.isOff(code) || code === 'rate_limited' || code === 'slow_down' || /limit|quota|cap/.test(code);
       const line = (e && e.text ? e.text + '\n\n' : '') + M.ai.errCopy(code) + (off ? ' ' + OFFLINE_LINE : '');
       S.set({phase: 'answer', live: '', acts: [], err: line, chips: off ? offline() : null, announce: line});
       done({text: line, via: o.via, dock: o.dock, err: true});

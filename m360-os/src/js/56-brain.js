@@ -1159,6 +1159,14 @@
   }
 
   /* ---------- the hello, once a day, from the data alone (no model call) ---------- */
+  /* every collection the hello reads has arrived: the tasks, the check-ins, the bots' and the inbox's
+     lists (ctx.ready is only the roster and the settings) */
+  function helloReady(ctx) {
+    if (!ctx || !ctx.ready || !ctx.coll) return false;
+    if (M.pm && M.pm.loaded && !M.pm.loaded(ctx)) return false;
+    if (M.inbox && M.inbox.loaded && !M.inbox.loaded(ctx)) return false;
+    return ['tasks', 'checkin', 'me'].every(k => !ctx.coll[k] || ctx.coll[k].ready !== false);
+  }
   function hello(ctx, nm) {
     const h = new Date().getHours();
     const greet = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
@@ -1180,7 +1188,9 @@
     /* the personal manager's clause: "Shreya's bot has 2 things for you: ..." */
     let pm = '';
     try { pm = M.pm && M.pm.helloLine ? String(M.pm.helloLine(ctx, nm) || '').trim() : ''; } catch (e) { pm = ''; }
-    return greet + ', ' + first + '. ' + bits.join('. ').replace(/^./, c => c.toUpperCase()) + '.' + (pm ? ' ' + pm : '');
+    /* each clause starts its own sentence, so each one starts with a capital (m360 keeps its own) */
+    const capOf = x => /^m360\b/.test(x) ? x : U.cap(x);
+    return greet + ', ' + first + '. ' + bits.map(capOf).join('. ') + '.' + (pm ? ' ' + capOf(pm) : '');
   }
 
   /* ---------- a long chat folds into a summary, so the thread never runs out of room ---------- */
@@ -1241,7 +1251,7 @@
     <//>`;
   }
 
-  M.brain = {lookUp, act, legacy, tools, catalog, areasFor, actionsFor, hello, compact, remember, forget, memoryOf, readAi, memoryLines, pending, hold, approve, drop, edit, findTask, findProject, findClient, dayLine, UNTRUSTED, COMPACT_AT};
+  M.brain = {lookUp, act, legacy, tools, catalog, areasFor, actionsFor, hello, helloReady, compact, remember, forget, memoryOf, readAi, memoryLines, pending, hold, approve, drop, edit, findTask, findProject, findClient, dayLine, UNTRUSTED, COMPACT_AT};
   M.parts.PendingActs = PendingActs;
   M.parts.BuddyPrefs = BuddyPrefs;
 })();

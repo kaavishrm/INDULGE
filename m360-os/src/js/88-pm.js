@@ -25,6 +25,13 @@
 
   /* ---------- the watcher: one bubble per due batch, wherever you are in m360 ---------- */
   let lead = null;
+  /* what leaves the page names nobody: a lock screen or a shared screen reads only this */
+  const AWAY = {title: 'm360', body: 'Something needs you in m360.'};
+  /* the first minutes of a device's day are for arriving: no check-in step rings inside them */
+  const ARRIVE = 5 * MIN;
+  const SELF = new Set(['1', '1b', '1m']), MGR = new Set(['2', '2b']);
+  /* what may sound and hop: a blocked step (someone waits on the viewer) and Kaavish's own "now" ask */
+  const urgent = x => !!x.now || x.item.kind === 'waiton' || (MGR.has(x.step) && !!x.item.ack && x.item.ack.how === 'blocked');
   function PmWatch() {
     const ctx = M.useCtx();
     const me = useRef({});
@@ -46,9 +53,14 @@
       if (!P.on && !asks) return;
       const uid = c.uid;
       const nowP = performance.now();
+      /* the last pass on this device, and when its day began here ("last:arrived"; a bare number is last) */
+      const pv = String(M.prefs.get('pmPass.' + uid, '0')).split(':').map(Number);
+      const lastPass = pv[0] || 0;
+      const arrived = lastPass && U.ymd(new Date(lastPass)) === U.ymd(new Date()) ? (pv[1] || 0) : Date.now();
       /* first pass on this device, or none for half an hour: what is waiting arrives as one bubble */
-      if (away.current == null) { const last = Number(M.prefs.get('pmPass.' + uid, '0')) || 0; away.current = !last || Date.now() - last > 30 * MIN; }
-      M.prefs.set('pmPass.' + uid, String(Date.now()));
+      if (away.current == null) away.current = !lastPass || Date.now() - lastPass > 30 * MIN;
+      M.prefs.set('pmPass.' + uid, Date.now() + ':' + arrived);
+      const arriving = Date.now() - arrived < ARRIVE;
       autoAck(c);
       const list = M.pm.forMe(c, {now: Date.now()});
       const dev = new Set(M.pm.devList(uid));
@@ -57,7 +69,7 @@
       /* due on two passes at least a pass apart; a hidden tab waits longer, so a visible device wins */
       const gap = (document.hidden ? 2.25 : 1) * M.pm.PASS;
       const ready = fresh.filter(x => nowP - seen.current.get(x.stepId) >= gap - 50);
-      const ring = ready.filter(x => x.ring);
+      const ring = ready.filter(x => x.ring && !(arriving && x.item.kind === 'noin' && SELF.has(x.step)));
       /* a blocked answer's step 2 rang as the note's direct message: listed, marked seen, never a second bubble */
       const chat = ready.filter(x => x.chat && !document.hidden);
       if (chat.length) M.pm.told(c, chat.map(x => x.stepId), true);
@@ -71,7 +83,9 @@
       const answers = ring.filter(x => x.step === 'r' || x.step === 't');
       const one = ring[0];
       const n = ring.length;
-      const botOf = x => x.step.startsWith('a.') ? M.pm.first(c, (x.item.asks.find(a => x.step === 'a.' + a.id) || x.item.asks[0] || {}).by) + ' asked m360' : x.item.botName || 'Your bot';
+      /* an ask is titled by who asked; the COO by its own title alone */
+      const askBy = x => (x.item.asks.find(a => x.step === 'a.' + a.id) || x.item.asks[0] || {}).by;
+      const botOf = x => x.step.startsWith('a.') ? M.pm.first(c, askBy(x)) + (M.coo && M.coo.isCoo(askBy(x)) ? '' : ' asked m360') : x.item.botName || 'Your bot';
       const lineOf = x => (x.step === '2' || x.step === '2b') ? x.item.mgrLine : x.step === 'r' || x.step === 't' || x.step === 'digest' ? x.item.line : x.item.line;
       let title, body;
       if (n === 1) { title = mgrSteps.length || one.step === 'digest' ? 'Your bot' : answers.length ? 'Answers to your ask' : botOf(one); body = lineOf(one); }
@@ -80,9 +94,12 @@
       else { title = botOf(one); body = away.current ? M.pm.COPY.away(n, botOf(one)) : M.pm.COPY.bundle(n, botOf(one)); }
       if (more) body += ', ' + M.pm.COPY.more(more);
       const href = mgrSteps.length === n ? '#people/' + one.item.rep : answers.length ? one.item.ref : '#home';
-      if (M.notices) M.notices.push({key: 'pm:' + one.stepId, title, body, hidden: 'Something new from your bot', href, bot: true, life: 12000});
-      M.sound.play('soft');
-      try { window.dispatchEvent(new CustomEvent('m360:pm', {detail: {type: answers.length === n ? 'answer' : one.step === 'digest' ? 'digest' : 'step', n}})); } catch (e) { /* old browser */ }
+      if (M.notices) M.notices.push({key: 'pm:' + one.stepId, title, body, hidden: 'Something new from your bot', away: AWAY, href, bot: true, life: 12000});
+      /* a quiet bubble: only a blocked step or Kaavish's now ask sounds, and only those hop the dock and fly the plane */
+      if (ring.some(urgent)) {
+        M.sound.play('soft');
+        try { window.dispatchEvent(new CustomEvent('m360:pm', {detail: {type: answers.length === n ? 'answer' : one.step === 'digest' ? 'digest' : 'step', n}})); } catch (e) { /* old browser */ }
+      }
       M.prefs.set('pmRing.' + uid, String(Date.now()));
       away.current = false;
       M.pm.told(c, ring.map(x => x.stepId));
@@ -171,16 +188,12 @@
     </div>`;
   }
 
-  /* the ladder line under a row: when the manager hears, or when they did */
-  function ladderLine(ctx, it, now) {
-    const mgr = M.pm.first(ctx, it.to2 || it.mgr);
-    if (it.source === 'ask') return it.asks[0] && it.asks[0].tellBy ? 'If there is no answer by ' + U.hhmm(it.asks[0].tellBy) + ', ' + M.pm.first(ctx, it.asks[0].by) + ' hears about it.' : M.pm.first(ctx, it.asks[0].by) + ' sees your answer.';
+  /* the line under a row: who can see it. No countdown to the manager and no time anyone was told */
+  function ladderLine(ctx, it) {
+    if (it.source === 'ask') return M.pm.first(ctx, it.asks[0].by) + ' sees your answer.';
     if (it.state === 'held') return M.pm.COPY.held;
     if (it.coach) return M.pm.COPY.coach({until: it.coachUntil ? U.fmtDay(it.coachUntil) : 'soon'});
-    if (it.toldMgrAt) return mgr + ' saw it at ' + U.hhmm(it.toldMgrAt) + '.';
-    if (it.mgrDueAt && it.mgrDueAt <= now) return mgr + ' was told at ' + U.hhmm(it.mgrDueAt) + '.';
-    if (it.hearsAt) return 'If there is no answer by ' + U.hhmm(it.hearsAt) + ', ' + mgr + ' hears about it.';
-    return mgr + ' can see this on Your team.';
+    return M.pm.first(ctx, it.to2 || it.mgr) + ' can see this on Your team.';
   }
 
   /* one row on the card: the line, why, the ladder, the one thing to do, the answers */
@@ -208,7 +221,7 @@
       ${sorted ? html`<div class="pm-sorted small">Sorted at ${U.hhmm(it.sortedAt || now)}${it.toldMgrAt ? '.' : ', before ' + mgrName + ' heard.'}</div>` : html`<${React.Fragment}>
         <div class="row pm-meta">
           ${it.why ? html`<button type="button" class="linky tiny pm-whybtn" aria-expanded=${why} onClick=${() => setWhy(!why)}>Why this</button>` : null}
-          <span class="pm-ladder tiny ink62">${ladderLine(ctx, it, now)}</span>
+          <span class="pm-ladder tiny ink62">${ladderLine(ctx, it)}</span>
         </div>
         ${why ? html`<div class="pm-why small ink62">${it.why}</div>` : null}
         ${it.state === 'held' || it.state === 'letgo' ? null : html`<div class="row pm-acts">
@@ -242,18 +255,16 @@
       if (ids.length) M.pm.told(ctx, ids, true);
     }, [ctx]);
     if (!list.length) return null;
-    const fresh = fm.filter(x => shown.has(x.item.K) && !x.told && x.step !== '0').length;
     const sources = new Set(list.map(it => it.source === 'ask' ? 'ask:' + it.asks[0].by : 'bot:' + it.mgr));
     const bots = Array.from(new Set(list.filter(it => it.source !== 'ask').map(it => it.botName)));
     const title = bots.length === 1 ? 'From ' + bots[0] : bots.length ? 'From your bots' : 'From ' + M.pm.first(ctx, list[0].asks[0].by);
     const open = list.filter(it => it.state === 'open').length;
-    const hot = list.some(it => it.hearsAt && it.hearsAt - now <= 15 * MIN && it.state === 'open');
-    const card = html`<section class="card pm-card" id="pm-card" aria-label=${title}>
+    /* still: no count of new rows and no beam; the rows say what is open */
+    return html`<section class="card pm-card" id="pm-card" aria-label=${title}>
       <div class="pm-head row nowrap">
         <span class="pm-bot"><${Bot} size=${32} state=${saving ? 'working' : open ? 'default' : 'sleeping'} label=${title}/></span>
         <h2 class="card-title grow">${title}</h2>
         ${saving ? html`<${M.fx.Orb} state="working" size=${20} label="saving"/>` : null}
-        ${fresh ? html`<${M.fx.MetalBadge}>${fresh + ' new'}<//>` : null}
       </div>
       <div class="pm-rows">${list.map(it => html`<${PmRow} key=${it.K} it=${it} onStatus=${onStatus} multi=${sources.size > 1} now=${now} onSaving=${setSaving}/>`)}</div>
       ${M.lines.managerOf(ctx, ctx.uid) ? html`<div class="row between pm-foot">
@@ -262,7 +273,6 @@
       </div>` : null}
       ${mirror ? html`<${PmMirror} uid=${ctx.uid} onClose=${() => setMirror(false)}/>` : null}
     </section>`;
-    return hot && M.fx && M.fx.Beam ? html`<${M.fx.Beam} on=${true}>${card}<//>` : card;
   }
 
   /* "See what Shreya sees": the same chips the manager's Home shows about you */
@@ -296,12 +306,8 @@
     if (it.status) return ['ink', 'status set'];
     if (it.mack && it.mack.how === 'mine') return ['ink', 'with you, you said'];
     if (s2 && (s2.state === 'due' || s2.state === 'told')) return ['flame', 'with ' + (it.to2 === ctx.uid ? 'you' : M.pm.first(ctx, it.to2)) + ' since ' + U.hhmm(s2.at)];
-    if (s1 && s1.told) return [s1.state === 'told' && now - s1.told > 30 * MIN ? 'flame' : 'warm', (now - s1.told > 30 * MIN ? 'no answer, seen ' : 'seen ') + U.hhmm(s1.told)];
-    if (s1 && s1.state === 'due') {
-      if (it.kind === 'noin' && !Object.keys((((ctx.coll.me.map[it.rep] || {}).act) || {})[it.ymd] || {}).length) return ['flame', 'not on m360 today'];
-      return ['warm', 'nudged ' + U.hhmm(s1.at)];
-    }
-    if (s1 && s1.state === 'waiting') return ['warm', 'nudge at ' + U.hhmm(s1.at)];
+    /* no read receipts and no times the bot spoke or will: an open item reads open */
+    if (s1) return ['warm', 'open'];
     if (it.source === 'ask') return ['warm', 'asked ' + U.hhmm(it.asks[0].at)];
     return null;
   }
@@ -652,16 +658,16 @@
           ${Object.keys(cfg.pause).filter(u => cfg.pause[u] >= U.todayStr()).map(u => html`<div class="row between small" key=${u}><span>${M.pm.first(ctx, u)}, paused until ${U.fmtDay(cfg.pause[u])}</span><button type="button" class="linky tiny" onClick=${() => set({pause: {[u]: null}})}>Resume</button></div>`)}
         </div>
         ${nx ? html`<div class="tiny ink62">From ${U.fmtDay(nx.from)}: ${nx.wait ? 'waits ' + nx.wait + ' minutes' : ''}${nx.wait && nx.kinds ? ', ' : ''}${nx.kinds ? 'also chases ' + Object.keys(nx.kinds).map(k => KIND_NAME[k]).join(', ') : ''}.</div>` : null}
-        <div class="tiny ink62">Shorter waits and new kinds start tomorrow, so nobody is caught out today. Your team sees every nudge your bot sends, and when you were told.</div>
+        <div class="tiny ink62">Shorter waits and new kinds start tomorrow, so nobody is caught out today. Your team sees every nudge your bot sends.</div>
       </div>` : null}
       ${mgr ? html`<div class="stack tight pm-me-rep" id="pm-me-bot">
         ${reps.length ? html`<div class="micro">${M.pm.botName(ctx, mgr)}</div>` : null}
-        <div class="small">It works for ${M.pm.first(ctx, mgr)}. ${chases.length ? 'Chases ' + chases.join(', ') + '. ' : ''}You get ${theirs.wait} minutes. At most ${P.perDay} bubbles a day, never outside your hours.</div>
+        <div class="small">It works for ${M.pm.first(ctx, mgr)}. ${chases.length ? 'Chases ' + chases.join(', ') + '. ' : ''}You get ${theirs.wait} minutes. At most ${P.perDay} bubbles a day of its own and ${P.askPerDay} for asks, inside your hours and silent unless someone is blocked on you.</div>
         ${standalone() ? html`<div class="row between fx-bell-row"><span>Email me when I am away</span>
           ${M.fx && M.fx.Bell ? html`<${M.fx.Bell} id="pm-mymail" size="sm" badge=${false} offLabel="No email" onLabel="Email when away" pressed=${meDoc.mail !== false} onChange=${v => M.pm.setMail(ctx, !!v).catch(() => {})}/>` : null}</div>`
           : html`<div class="tiny ink62" id="pm-mymail">Email when you are away works on the team site.</div>`}
         <div class="pm-me-log">${log.length ? log.map(d => html`<div key=${d.ymd} class="small"><span class="tiny ink62 num">${U.fmtDay(d.ymd)}</span> ${d.items.map(it => it.label).join(', ')}</div>`) : html`<div class="tiny ink62">Nothing from the bot in the last 8 days.</div>`}</div>
-        <div class="tiny ink62">Mute its sound and notices under Your m360. The card and the inbox still show.</div>
+        <div class="tiny ink62">An ask Kaavish sends now anyway can ring at any time. Sounds and previews for all of m360 are under Your m360.</div>
       </div>` : null}
     <//>`;
   }

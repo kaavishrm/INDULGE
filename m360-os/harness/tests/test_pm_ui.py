@@ -138,7 +138,7 @@ def test(h):
         want = ['u_m3:noin:-:' + today, 'u_m3:overdue:t_sw:' + today, 'u_m3:sentback:t_ny:' + today]
         check(sorted(keys) == sorted(want), '%s: one row per thing: %r' % (label, keys))
         card = pg.inner_text('#pm-card')
-        check("From Aanya's bot" in card and 'Aanya was told at 11:45.' in card and 'If there is no answer by 12:15, Aanya hears about it.' in card, '%s: the ladder lines: %r' % (label, card[:400]))
+        check("From Aanya's bot" in card and 'Aanya can see this on Your team.' in card and 'was told at' not in card and 'If there is no answer' not in card, '%s: the ladder lines: %r' % (label, card[:400]))  # RELIEF R12
         check('The Swisse reel cutdown was due ' in card and "Aanya sent the Nykaa carousel back at 11:20 and it has not moved since. Is it on today's list?" in card, '%s: the lines: %r' % (label, card[:600]))
         canv = pg.evaluate('() => { const c = document.querySelector("#pm-card .pm-bot canvas"); if (!c) return null; const r = c.getBoundingClientRect(); return [c.width, r.width, devicePixelRatio]; }')
         check(canv and abs(canv[0] - round(canv[1] * canv[2])) <= 1, '%s: the bot canvas is its CSS size times the DPR: %r' % (label, canv))

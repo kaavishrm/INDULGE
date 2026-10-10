@@ -184,6 +184,10 @@ def test(h):
     h.ready(p)
     p.wait_for_selector('#home-hero button:has-text("Check out")')
     p.click('#home-hero button:has-text("Check out")')
+    # RELIEF R14: check-out opens no takeover; the hero's How did it go? opens the day rating
+    p.wait_for_selector('#home-rate', timeout=15000)
+    check(p.locator('#dayrate').count() == 0, 'check-out opens no day rating')
+    p.click('#home-rate')
     p.wait_for_selector('#dayrate', timeout=15000)
     check(p.get_attribute('#dayrate', 'data-face') == 'okay', 'the meter starts in the middle, an okay face')
     check(p.locator('#dayrate-save').is_disabled(), 'nothing to save before a move')
@@ -241,6 +245,10 @@ def test(h):
     p.goto(h.url('founder', '#home', seed=True))
     h.ready(p)
     p.click('#home-hero button:has-text("Check out")')
+    # RELIEF R14: no takeover on check-out; open it from the hero and say Not now
+    p.wait_for_selector('#home-rate', timeout=15000)
+    check(p.locator('#dayrate').count() == 0, 'check-out opens no day rating')
+    p.click('#home-rate')
     p.wait_for_selector('#dayrate', timeout=15000)
     p.click('#dayrate-skip')
     p.wait_for_selector('#dayrate', state='detached')
@@ -288,6 +296,10 @@ def test(h):
     seed_in(h, big, 'u_m1')
     h.go(big, 'm1', hash='#home')
     big.click('#home-hero button:has-text("Check out")')
+    # RELIEF R14: the rating opens from the hero's button, never on check-out
+    big.wait_for_selector('#home-rate', timeout=15000)
+    check(big.locator('#dayrate').count() == 0, 'the laptop check-out opens no day rating')
+    big.click('#home-rate')
     big.wait_for_selector('#dayrate', timeout=15000)
     check(big.locator('.buddy-home.orb-home').count() == 0, 'the laptop keeps the pointer buddy, no orb')
     tr = big.locator('.dayrate-track').bounding_box()

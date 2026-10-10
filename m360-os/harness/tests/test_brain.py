@@ -139,6 +139,12 @@ def artifact_part(h):
     # the hello, once a day, after the tour is behind them
     p.evaluate('() => { localStorage.setItem("m360.forceHello", "1"); localStorage.setItem("m360.tourSeen", "1"); localStorage.removeItem("m360.buddyHelloDay"); }')
     h.go(p, 'founder', hash='#tasks', width=1280)
+    # RELIEF R13: the hello waits in the dock; it never opens the pop-up itself, so open the dock to read it
+    p.wait_for_function('() => !!localStorage.getItem("m360.buddyHelloDay")', timeout=10000)
+    # the day is marked just before the hello reads the names (an immediate promise here): once ours are in, it is set
+    p.evaluate('async () => { await M.ai.names(M.lastCtx); }')
+    check(p.locator('#buddy-hello').count() == 0 and not p.evaluate('() => M.buddy.state().open'), 'the hello never opens the pop-up by itself')
+    p.locator('#buddy-dock .buddy-home').click()
     p.wait_for_selector('#buddy-hello', timeout=8000)
     line = p.inner_text('#buddy-hello')
     check(line.startswith(('Morning, Kaavish', 'Afternoon, Kaavish', 'Evening, Kaavish')) and 'open' in line, 'the hello with their numbers: ' + line)
@@ -147,6 +153,11 @@ def artifact_part(h):
     h.go(p, 'founder', hash='#home', width=1280)
     p.wait_for_selector('.buddy-home'); p.wait_for_timeout(2200)
     check(p.locator('#buddy-hello').count() == 0, 'no second hello the same day')
+    # RELIEF R13: the hello only shows inside the dock, so open it: still none the same day
+    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => M.buddy.state().open')
+    check(p.locator('#buddy-hello').count() == 0, 'no second hello the same day, with the dock open')
+    p.keyboard.press('Escape'); p.wait_for_function('() => !M.buddy.state().open')
     # a member sees no founder-only area in the catalog, and cannot reassign
     h.go(p, 'm2', hash='#home', width=1280)
     p.wait_for_selector('.buddy-home')
