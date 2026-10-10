@@ -1,0 +1,138 @@
+/* ---------- v35: the 3D office (91-office3d.js, 91-office3d-world.js) ----------
+   The room's colours live here as tokens, each a mix of the house tokens, so the 3D code holds no colour of its
+   own: it reads these back (one 1x1 canvas) and sets one material per role. Dark mode redefines them; people,
+   wood, the COO and the pampas keep their physical colours. Every word on the scene is DOM in an overlay, so
+   it stays crisp at any density and reads to a screen reader. */
+:root{
+  --o3-back-c:color-mix(in srgb, var(--warm), var(--col) 35%);
+  --o3-back-e:color-mix(in srgb, var(--col), var(--ink) 6%);
+  --o3-floor:color-mix(in srgb, var(--col), var(--ink) 2%);
+  --o3-plinth:color-mix(in srgb, var(--col), var(--ink) 2.5%);
+  --o3-rug:color-mix(in srgb, var(--col), var(--warm) 25%);
+  --o3-rug-edge:color-mix(in srgb, var(--col), var(--ink) 4%);
+  --o3-shade:var(--ink);
+  --o3-wall:var(--paper);
+  --o3-cap:color-mix(in srgb, var(--col), var(--ink) 6%);
+  --o3-leg:color-mix(in srgb, var(--col), var(--ink) 36%);
+  --o3-seat:color-mix(in srgb, var(--col), var(--ink) 13%);
+  --o3-board:var(--paper);
+  --o3-cell:var(--col);
+  --o3-mark:color-mix(in srgb, var(--paper), var(--ink) 18%);
+  --o3-ink:color-mix(in srgb, var(--ink), var(--paper) 22%);
+  --o3-glass:color-mix(in srgb, var(--paper), var(--ink) 6%);
+  --o3-pot:var(--paper);
+  --o3-screen-off:color-mix(in srgb, var(--paper), var(--ink) 12%);
+  --o3-screen-on:color-mix(in srgb, var(--paper), var(--warm) 20%);
+  --o3-lamp:color-mix(in srgb, #FFFFFF, #F53901 10%);
+  --o3-pool:color-mix(in srgb, #FFFFFF, #F53901 12%);
+  --o3-pampas:color-mix(in srgb, #EFEDE7, #F53901 3.5%);
+  --o3-hemi-sky:var(--paper);
+  --o3-hemi-ground:var(--col);
+  --o3-key:var(--paper);
+  /* the stand-in people drawn until the characters arrive (14-cast.js, 92-figure.js): clay, and Kaavish in ink */
+  --o3-clay:color-mix(in srgb, #EFEDE7, #0E0E0E 24%);
+  --o3-suit:#0E0E0E;
+}
+:root[data-theme="dark"]{
+  --o3-back-c:color-mix(in srgb, var(--warm), var(--col) 55%);
+  --o3-back-e:var(--dark);
+  --o3-floor:color-mix(in srgb, var(--col), var(--ink) 10%);
+  --o3-plinth:color-mix(in srgb, var(--col), var(--ink) 12%);
+  --o3-rug:color-mix(in srgb, var(--col), var(--ink) 14%);
+  --o3-rug-edge:color-mix(in srgb, var(--col), var(--ink) 18%);
+  --o3-shade:var(--dark);
+  --o3-wall:color-mix(in srgb, var(--col), var(--ink) 22%);
+  --o3-cap:color-mix(in srgb, var(--col), var(--ink) 34%);
+  --o3-leg:color-mix(in srgb, var(--col), var(--ink) 46%);
+  --o3-seat:color-mix(in srgb, var(--col), var(--ink) 36%);
+  --o3-board:color-mix(in srgb, var(--col), var(--ink) 27%);
+  --o3-cell:color-mix(in srgb, var(--col), var(--ink) 34%);
+  --o3-mark:color-mix(in srgb, var(--col), var(--ink) 22%);
+  --o3-ink:var(--ink);
+  --o3-glass:color-mix(in srgb, var(--col), var(--ink) 40%);
+  --o3-pot:color-mix(in srgb, var(--col), var(--ink) 30%);
+  --o3-screen-off:color-mix(in srgb, var(--col), var(--ink) 18%);
+  --o3-screen-on:color-mix(in srgb, var(--ink), var(--warm) 30%);
+  --o3-hemi-sky:color-mix(in srgb, var(--col), #FFFFFF 15%);
+  --o3-hemi-ground:var(--col);
+  --o3-key:color-mix(in srgb, color-mix(in srgb, #FFFFFF, #EFEDE7 60%), #F53901 3.5%);
+}
+
+/* ---------- the scene ---------- */
+.office.o3 .office-view{position:relative; width:100%; overflow:hidden; border-radius:var(--r-card); border:1px solid var(--line); isolation:isolate; contain:paint;
+  background:radial-gradient(120% 90% at 50% 46%, var(--o3-back-c), var(--o3-back-e))}
+.office.o3.window .office-view{border-radius:16px}
+.o3-gl{position:absolute; inset:0; z-index:0}
+.o3-gl > canvas.office-gl{position:absolute; inset:0; width:100%; height:100%; display:block; outline:none; touch-action:none; cursor:grab}
+.o3-gl > canvas.office-gl:active{cursor:grabbing}
+.office.o3.window .o3-gl > canvas.office-gl{cursor:default}
+.o3-gl > canvas.office-gl:focus-visible{box-shadow:inset 0 0 0 2px var(--flame)}
+.office.o3 .office-overlay.o3-layer{position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden}
+.o3-layer > .o3-item{position:absolute; left:0; top:0; pointer-events:auto; will-change:transform; transform:translate3d(-9999px,-9999px,0)}
+.office.o3:not([data-office3d="ready"]) .o3-layer{visibility:hidden}
+
+/* stations: quiet labels on the furniture, a button each */
+.office.o3 .office-station{all:unset; box-sizing:border-box; position:absolute; left:0; top:0; pointer-events:auto; cursor:pointer; white-space:nowrap; font-size:11px; line-height:1; font-weight:400;
+  letter-spacing:.01em; color:var(--ink62); padding:4px 7px; border-radius:7px; transition:opacity .25s ease}
+.office.o3 .office-station:hover,.office.o3 .office-station:focus-visible{color:var(--ink); background:var(--paper); box-shadow:0 0 0 1px var(--line)}
+.office.o3 .office-station:focus-visible{outline:2px solid var(--flame); outline-offset:2px}
+.office.o3 .office-station.is-faded:not(:focus-visible):not(:hover){opacity:0}
+.office.o3 .office-station .os-count{position:absolute; right:-10px; top:-10px; transform:none}
+.office.o3 .office-station.late{color:var(--flame-text)}
+
+/* name tags: a paper pill; a person who is not at their desk is a quieter one */
+.office.o3 :is(.office-desk,.office-founder){all:unset; box-sizing:border-box; position:absolute; left:0; top:0; pointer-events:auto; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+  white-space:nowrap; font-size:11.5px; line-height:1; padding:5px 8px; border-radius:999px; color:var(--ink); background:var(--paper);
+  box-shadow:0 0 0 1px var(--line), 0 6px 14px -10px var(--shadow)}
+.office.o3 .office-desk b,.office.o3 .office-founder b{font-weight:500}
+.office.o3 .o3-st{color:var(--ink62); font-weight:400}
+.office.o3 .o3-ic{display:inline-grid; color:var(--ink62); margin-left:-1px}
+.office.o3 .o3-ic svg{width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linejoin:round}
+.office.o3 .office-desk.away{background:transparent; box-shadow:none; padding:3px 6px; color:var(--ink62)}
+.office.o3 .office-desk.away b{color:var(--ink)}
+.office.o3 .office-desk .od-hot{width:6px; height:6px; border-radius:999px; background:var(--flame); flex:none}
+.office.o3 .office-desk .od-late{border:1px solid var(--flame); color:var(--flame-text); border-radius:999px; padding:1px 5px; font-size:11px}
+.office.o3 .office-desk .od-new{position:static; transform:none; font-size:11px; padding:2px 6px}
+.office.o3 .office-desk.lit{animation:none}
+@media (prefers-reduced-motion:no-preference){ .office.o3 .office-desk.lit{animation:of-lit 1s var(--ease) both; animation-delay:var(--d,0ms)} }
+/* Kaavish: an ink pill, always shown (paper in dark, as ink flips) */
+.office.o3 .office-founder{background:var(--ink); color:var(--on-ink); box-shadow:0 8px 18px -10px var(--shadow); padding:6px 10px}
+.office.o3 :is(.office-desk,.office-founder):focus-visible{outline:2px solid var(--flame); outline-offset:2px}
+/* a tag with no room folds to a dot that opens on hover or focus */
+.office.o3 .is-folded:not(:hover):not(:focus-visible){width:7px; height:7px; padding:0; gap:0; border-radius:999px; overflow:hidden; background:var(--ink62); box-shadow:0 0 0 2px var(--paper); opacity:.6}
+.office.o3 .is-folded:not(:hover):not(:focus-visible) > *{display:none}
+
+/* the COO: a hit area over the droid, its orb and its flame dot */
+.office.o3 .office-mascot{position:absolute; left:0; top:0; bottom:auto; width:var(--bot,48px); height:var(--bot,48px); pointer-events:auto}
+.office.o3 .office-mascot .office-orb{right:-18px; bottom:auto; top:40%}
+.office.o3 .office-mascot .office-flamedot{right:-4px; bottom:auto; top:8px}
+
+/* bubbles: a card with a tail, placed off every face; the COO's in paper, Kaavish's in ink */
+.office.o3 .o3-b{position:absolute; left:0; top:0; bottom:auto; transform:translate3d(-9999px,-9999px,0); max-width:232px; width:max-content; border-radius:16px; padding:9px 13px 11px;
+  font-size:13px; line-height:1.36; box-shadow:0 0 0 1px var(--line), 0 18px 34px -18px var(--shadow); border:0; animation:none}
+.office.o3 .o3-b.fold{border-radius:999px; padding:5px 11px; max-width:220px}
+.office.o3 .o3-b::after{content:""; position:absolute; left:var(--tail,50%); bottom:-5px; width:11px; height:11px; margin-left:-5.5px; background:inherit;
+  transform:rotate(45deg); border-radius:0 0 3px 0; box-shadow:1px 1px 0 var(--line)}
+.office.o3 .office-bubble.o3-b{background:var(--paper)}
+.office.o3 .office-say.o3-b{background:var(--ink); color:var(--on-ink)}
+.office.o3 .office-say.o3-b::after{box-shadow:none}
+/* the speaker dot a phone shows on the scene: the words themselves sit under it */
+.office.o3 .o3-dot{width:9px; height:9px; border-radius:999px; background:var(--flame); box-shadow:0 0 0 2px var(--paper); pointer-events:none}
+.office.o3 .o3-dot.k{background:var(--ink)}
+.office.o3 .o3-flight .office-item{transform:translate(-50%,-50%)}
+.office.o3 .o3-flight{pointer-events:none}
+
+/* a beat at a station: a ring that opens once */
+.office.o3 .o3-beat{width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:999px; box-shadow:0 0 0 2px var(--flame); opacity:0; pointer-events:none}
+@media (prefers-reduced-motion:no-preference){ .office.o3:not([data-paused="1"]) .o3-beat{animation:o3-beat 1.2s var(--ease) both} }
+@keyframes o3-beat{0%{opacity:0; scale:.4} 30%{opacity:.9} 100%{opacity:0; scale:1.6}}
+
+/* the placeholder while three.js gets ready */
+.o3-wait .office-view{display:grid; place-items:center}
+.o3-wait .o3-wait-in{text-align:center; display:grid; gap:6px; justify-items:center}
+.o3-wait .micro{justify-content:center}
+
+/* the page around a 3D office: the scene full width, the rail below it */
+.o3-page .o3-stack{gap:14px}
+.office.o3.on-phone .office-view{border-radius:16px}
+.office.o3 .office-under{margin-top:10px; display:grid; gap:8px}

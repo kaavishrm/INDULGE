@@ -19,12 +19,29 @@ The wrappers in `src/js/01-z-fx.js` (`M.fx.Orb`, `Beam`, `Metal`, `Voice`, `Bot`
 house colours and theme and stand down to the plain child when the bundle is missing or the person asked
 for reduced motion.
 
+## three.js, for the 3D office (v35)
+
+`three` is pinned at exactly `0.186.1`. `three-entry.js` names the pieces the office uses and nothing else
+(the renderer, the lights and materials, the primitive geometries, canvas textures, the raycaster and the maths,
+plus `OrbitControls`, `RoomEnvironment`, `RoundedBoxGeometry`, `mergeGeometries` and `mergeVertices`): named
+imports only, never `import * as THREE` and never a loader. `build.sh` bundles it a second time with the same
+flags minus the React aliases and `--global-name=M3D` into `src/vendor/three.vendor.js` (about 615 KB, 156 KB
+gzipped; the budget is 640 KB and 170 KB). It refuses a bundle that holds `fetch(`, `import(`, `eval(`,
+`new Function` or a blocking dialog, and replaces em and en dashes as for the effects.
+
+The file lives in `src/vendor`, outside `src/js`, so it is never concatenated as a module. `build.py` inlines it
+in the artifact page as one function, `window.M360_3D = function () { ... return M3D; }`, so nothing of it runs
+until `M.office3d.load()` asks for it the first time a 3D office is drawn. `build_edgeone.py` ships the same
+function as `edgeone/public/vendor/three.<sha8>.js` and names it in the build stamp script
+(`M360_3D_SRC`, and its integrity in `M360_3D_SRI`), which the page's CSP already hashes; `edgeone.json` gains one
+immutable cache entry for that exact path.
+
 ## Rebuilding the bundle
 
 ```bash
 cd m360-os/fx
 npm install
-./build.sh          # writes ../src/js/00-a-fx.vendor.js
+./build.sh          # writes ../src/js/00-a-fx.vendor.js and ../src/vendor/three.vendor.js
 cd .. && python3 build.py && python3 harness/conformance.py
 ```
 

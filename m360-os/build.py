@@ -55,8 +55,19 @@ def font_face(path, urange, family='Space Grotesk', weight='300 700'):
             "src:url(data:font/woff2;base64,%s) format('woff2');unicode-range:%s;}" % (family, weight, b64(path), urange))
 
 
-def build(extra=(), out_path=None):
-    """extra: module paths added just before 99-app.js (the EdgeOne build adds the standalone module)."""
+# three.js for the 3D office (fx/build.sh writes it). It rides in the page as one function, so nothing of it runs
+# at load: M.office3d.load() calls window.M360_3D() once, the first time a 3D office is drawn.
+THREE_VENDOR = os.path.join(SRC, 'vendor', 'three.vendor.js')
+
+
+def three_js():
+    return 'window.M360_3D = function () {\n' + read(THREE_VENDOR) + '\nreturn M3D;\n};'
+
+
+def build(extra=(), out_path=None, three='inline'):
+    """extra: module paths added just before 99-app.js (the EdgeOne build adds the standalone module).
+    three: 'inline' puts the three.js function in the page; 'skip' leaves it out (the EdgeOne build ships it
+    as its own hashed file, vendor/three.<sha8>.js)."""
     css = read(os.path.join(SRC, 'css.css'))
     css_dir = os.path.join(SRC, 'css')
     if os.path.isdir(css_dir):
@@ -72,13 +83,21 @@ def build(extra=(), out_path=None):
         keep = set(CORE_FILES) | set(x.strip() for x in only.split(',') if x.strip())
         files = [f for f in files if f in keep]
     tag = os.environ.get('M360_TAG', '')
+    # an isolated build carries three only when it carries the 3D office
+    if only and '91-office3d.js' not in files:
+        three = 'skip'
     paths = [os.path.join(js_dir, f) for f in files]
     if extra:
         at = next((i for i, p in enumerate(paths) if p.endswith('99-app.js')), len(paths))
         paths[at:at] = list(extra)
     parts = []
+    wrapped = three != 'inline'
     for path in paths:
         f = os.path.basename(path)
+        # right after the effects bundle, or first when an isolated build has none
+        if not wrapped and f != '00-a-fx.vendor.js':
+            parts.append('/* ==== three.vendor.js ==== */\n' + three_js())
+            wrapped = True
         parts.append('/* ==== %s ==== */\n' % f + read(path))
         if f == '00-core.js':
             parts.append('M.MARK_SVG = %s;' % json.dumps(mark))

@@ -122,19 +122,46 @@ def csp_for(doc):
         "frame-ancestors 'none'",
         "upgrade-insecure-requests",
     ])
-def write_headers(doc):
-    """edgeone.json carries the headers the platform answers with; the page's CSP hashes come from this build."""
+THREE_RE = re.compile(r'^/vendor/three\.[0-9a-f]{8}\.js$')
+
+
+def write_three():
+    """three.js for the 3D office as its own file, named by its hash so a browser may keep it for a year: the
+    same window.M360_3D function the artifact page inlines, loaded only when a 3D office is drawn. Returns the
+    path the page asks for and its subresource integrity."""
+    import hashlib, base64
+    body = builder.three_js().encode('utf-8')
+    name = 'three.%s.js' % hashlib.sha256(body).hexdigest()[:8]
+    vend = os.path.join(PUB, 'vendor')
+    for old in os.listdir(vend):
+        if re.match(r'^three\.[0-9a-f]{8}\.js$', old) and old != name:
+            os.remove(os.path.join(vend, old))
+    with open(os.path.join(vend, name), 'wb') as f:
+        f.write(body)
+    return 'vendor/' + name, 'sha384-' + base64.b64encode(hashlib.sha384(body).digest()).decode('ascii')
+
+
+def write_headers(doc, three_src=None):
+    """edgeone.json carries the headers the platform answers with; the page's CSP hashes come from this build.
+    The three.js file gets one immutable entry of its own, and the entries of older three files go."""
     cfg_path = os.path.join(ROOT, 'edgeone', 'edgeone.json')
     cfg = json.load(open(cfg_path, encoding='utf-8'))
     csp = csp_for(doc)
     out = []
     for h in cfg.get('headers', []):
+        if THREE_RE.match(h.get('source', '')):
+            continue
+        if three_src and h.get('source') == '/*':
+            out.append({'source': '/' + three_src, 'headers': [{'key': 'Cache-Control', 'value': 'public, max-age=31536000, immutable'}]})
+            three_src = None
         keep = [x for x in h.get('headers', []) if x['key'] not in ('Content-Security-Policy',) and x['key'] not in [y['key'] for y in SEC_HEADERS]]
         if h['source'] in ('/', '/index.html'):
             keep = keep + [{'key': 'Content-Security-Policy', 'value': csp}] + SEC_HEADERS
         elif h['source'] == '/*':
             keep = keep + SEC_HEADERS
         out.append({'source': h['source'], 'headers': keep})
+    if three_src:
+        out.append({'source': '/' + three_src, 'headers': [{'key': 'Cache-Control', 'value': 'public, max-age=31536000, immutable'}]})
     if not any(h['source'] == '/*' for h in out):
         out.append({'source': '/*', 'headers': list(SEC_HEADERS)})
     cfg['headers'] = out
@@ -147,8 +174,10 @@ def main():
     tmp = os.path.join(builder.DIST, 'index.edgeone.html')
     sa = os.path.join(ROOT, 'src', 'standalone')
     extra = [os.path.join(sa, f) for f in sorted(os.listdir(sa)) if f.endswith('.js') and f != 'shim.js']
-    builder.build(extra=extra, out_path=tmp)
+    builder.build(extra=extra, out_path=tmp, three='skip')
     page = open(tmp, encoding='utf-8').read()
+    assert 'window.M360_3D = function' not in page, 'three.js must ship as its own file on the team site'
+    three_src, three_sri = write_three()
     for url, local in LOCAL.items():
         assert url in page, 'CDN tag missing: ' + url
         page = page.replace(builder.script_tag(url), '<script src="%s"></script>' % local)
@@ -160,7 +189,9 @@ def main():
     # the build stamp: the commit and the moment, shown in the app and written to version.json, so anyone can tell
     # which build a page runs and the page can say when a newer one is up
     build = build_stamp()
-    doc = HEAD + head_part + '<script>window.M360_BUILD = %s;</script><script>\n' % json.dumps(build) + shim + '\n</script></head><body>' + body_part + '</body></html>'
+    # the stamp script also names the three.js file and its integrity (csp_for hashes this script like the others)
+    stamp = 'window.M360_BUILD = %s; window.M360_3D_SRC = %s; window.M360_3D_SRI = %s;' % (json.dumps(build), json.dumps(three_src), json.dumps(three_sri))
+    doc = HEAD + head_part + '<script>' + stamp + '</script><script>\n' + shim + '\n</script></head><body>' + body_part + '</body></html>'
     with open(os.path.join(PUB, 'version.json'), 'w') as f:
         json.dump({'build': build}, f)
     assert first_script > 0
@@ -173,7 +204,7 @@ def main():
                 if name.endswith(('.json', '.js', '.md')): z.write(os.path.join(ext, name), 'm360-frame-helper/' + name)
     with open(os.path.join(PUB, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(doc)
-    write_headers(doc)
+    write_headers(doc, three_src)
     # a phone can install it: manifest, icons and a small service worker for the shell
     # the agency mark, black on white: the same mark the app shows, as the icon everywhere
     mark = open(os.path.join(ROOT, 'src', 'mark.svg'), encoding='utf-8').read().strip()
