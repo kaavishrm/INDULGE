@@ -14,9 +14,25 @@ const LEVEL_MS = 15000;
 const MAX_PTS = 16, MAX_SAY = 280, SPAN = 100000;   /* centimetres either way from the origin */
 const MODES = ['walk', 'pad', 'idle', 'sit'];
 const int = (x, lo, hi) => { const n = Math.round(Number(x)); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : 0; };
-/* control characters, the zero width and direction marks and the byte order mark become spaces */
-const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g, ' ')
-  .replace(/\s+/g, ' ').trim().slice(0, MAX_SAY);
+/* his words as plain text, as the page's room wants them: a control character or a line break is a space, and a
+   format or private use character (a soft hyphen, a direction mark, a zero width space) is dropped. A zero width
+   joiner or non joiner stays only between two characters, once, as emoji and Indic scripts need it, and the text
+   is cut by characters, never inside one */
+const SPACE = /[\s\p{Cc}\p{Zl}\p{Zp}]/u, HIDDEN = /[\p{Cf}\p{Co}]/u;
+const FILLER = [4447, 4448, 12644, 65440];      /* the Hangul fillers draw nothing */
+const JOINER = [8204, 8205];
+const gone = ch => HIDDEN.test(ch) || FILLER.includes(ch.codePointAt(0));
+const blank = ch => !ch || SPACE.test(ch) || gone(ch);
+function clean(s) {
+  const cs = Array.from(String(s || '').slice(0, MAX_SAY * 8)), out = [];
+  cs.forEach((ch, i) => {
+    if (JOINER.includes(ch.codePointAt(0))) { if (!blank(out[out.length - 1]) && !blank(cs[i + 1])) out.push(ch); return; }
+    if (!gone(ch)) out.push(SPACE.test(ch) ? ' ' : ch);
+  });
+  const cut = Array.from(out.join('').replace(/\s+/g, ' ').trim()).slice(0, MAX_SAY);
+  while (cut.length && JOINER.includes(cut[cut.length - 1].codePointAt(0))) cut.pop();
+  return cut.join('').trim();
+}
 
 export function officeActions({getJ, putJ, levelOf, ownerUid, LEVEL, HttpError}) {
   const levels = new Map();

@@ -321,20 +321,34 @@
     }
     function schedule() { clearTimeout(timer); timer = setTimeout(() => { beat().finally(schedule); }, hidden() ? 40000 : 15000); }
 
-    /* the owner's side: his walk and words to the stage */
-    let lastPut = '', putAt = 0, putT = 0, heartT = 0, putting = false, shown = false;
+    /* the owner's side: his walk and words to the stage. A tab of his that has put nothing live never puts
+       live: false (a page that opens, or a second tab, leaves the stage as it is), and a tab whose walk another tab
+       or device of his has since replaced (a higher o3.s on the stage) stays quiet: no heartbeat of its old walk,
+       no live: false over the newer one */
+    const OFF = JSON.stringify({o3: null, say: null, live: false});
+    let lastPut = OFF, putAt = 0, putT = 0, heartT = 0, putting = false, shown = false, putS = 0, top = null;
     const stageBody = () => { const o3 = (mine && mine.o3) || null, say = (mine && mine.say) || null; return o3 || say ? {o3, say} : {o3: null, say: null, live: false}; };
+    const taken = () => !!top && Date.now() - top.at < STAGE_WINDOW_MS && top.s > ((mine && mine.o3 && Number(mine.o3.s)) || putS);
     function queuePut() { clearTimeout(putT); putT = setTimeout(sendPut, Math.max(0, putAt + PUT_MS - Date.now())); }
+    /* the heartbeat keeps a live stage fresh; a walk ends in its own arrival put, so a beat never lands mid walk */
+    function heart(body) {
+      clearTimeout(heartT);
+      if (body.live !== false) heartT = setTimeout(() => { if (mine && mine.o3 && mine.o3.m === 'walk') heart(body); else sendPut(); }, HEART_MS);
+    }
     async function sendPut() {
       /* one put at a time; what changes meanwhile goes right after it */
       if (!owner() || hidden() || putting) return;
-      putting = true; putAt = Date.now();
       const body = stageBody();
+      if (!body.say && taken()) { lastPut = JSON.stringify(body); heart(body); return; }
+      putting = true; putAt = Date.now();
       lastPut = JSON.stringify(body);
-      try { await call('stage', {put: body}); shown = body.live !== false; } catch (e) { if (e && e.status === 401) kick(); lastPut = ''; }
+      try {
+        await call('stage', {put: body});
+        shown = body.live !== false;
+        if (body.o3) putS = Number(body.o3.s) || 0;
+      } catch (e) { if (e && e.status === 401) kick(); lastPut = ''; }
       putting = false;
-      clearTimeout(heartT);
-      if (body.live !== false) heartT = setTimeout(sendPut, HEART_MS);
+      heart(body);
       if (lastPut !== JSON.stringify(stageBody())) queuePut();
     }
     function stagePut() { if (owner() && JSON.stringify(stageBody()) !== lastPut) queuePut(); }
@@ -342,7 +356,8 @@
       if (!owner() || !shown) return;
       clearTimeout(putT); clearTimeout(heartT);
       shown = false;
-      lastPut = JSON.stringify({o3: null, say: null, live: false});
+      lastPut = OFF;
+      if (taken()) return;
       try { navigator.sendBeacon(API, new Blob([JSON.stringify({a: 'stage', put: {live: false}})], {type: 'application/json'})); } catch (e) { /* the stage ages out */ }
     }
 
@@ -374,7 +389,10 @@
           if (news) changedAt = Date.now();
         }
         stageLive = !!(stage && stage.live !== false && (Number(r.now) || 0) - (Number(stage.at) || 0) < STAGE_WINDOW_MS);
-        wait = !stageLive ? STAGE_IDLE_MS : Date.now() - changedAt > QUIET_AFTER_MS ? STAGE_QUIET_MS : STAGE_LIVE_MS;
+        /* the walk on the stage now, for the owner's other tabs (taken) */
+        if (!stageLive) top = null;
+        else if (stage.o3) top = {s: Number(stage.o3.s) || 0, at: Date.now()};
+        wait =!stageLive ? STAGE_IDLE_MS : Date.now() - changedAt > QUIET_AFTER_MS ? STAGE_QUIET_MS : STAGE_LIVE_MS;
       } catch (e) {
         if (e && e.status === 401) kick();
         /* no news for a while: he is back at his desk */

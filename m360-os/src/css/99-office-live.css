@@ -1,12 +1,22 @@
 /* office live (v35, src/js/93-office-live.js): Kaavish's composer under the scene, and Arrange over it.
    Paper, ink and one flame outline for a spot that will not take a prop. Tokens only, so night flips with them. */
 
-/* ---------- the composer: his words to the office ---------- */
-.ol-composer{display:flex; flex-direction:column; gap:6px; min-width:0}
-.ol-row{gap:8px; align-items:center; min-width:0}
-.ol-in{flex:1 1 auto; min-width:0; min-height:40px; border-radius:999px; padding:8px 16px}
-.ol-row .btn{flex:none}
-.ol-note{margin:0; padding-left:16px; color:var(--ink62)}
+/* ---------- the composer: his words to the office, one quiet pill (the mic an icon in it, Say at its end) ---------- */
+.ol-composer{display:flex; flex-direction:column; gap:6px; min-width:0; width:100%; max-width:620px; margin:0 auto}
+.ol-row{gap:4px; align-items:center; min-width:0; padding:4px 4px 4px 6px; border-radius:999px; background:var(--paper); border:1px solid var(--line2);
+  box-shadow:0 10px 28px -18px var(--shadow); transition:border-color .15s}
+.ol-row:focus-within{border-color:var(--ink)}
+.ol-in{flex:1 1 auto; min-width:0; min-height:38px; padding:6px 12px; border:0; border-radius:999px; background:transparent}
+.ol-row .ol-in:focus-visible{outline:none; box-shadow:none}
+.ol-row > *{flex:none}
+.ol-row > .ol-in{flex:1 1 auto}
+/* the mic keeps its words for a screen reader ("Say it"), and shows the icon alone */
+.ol-row .micbtn{width:36px; height:36px; padding:0; gap:0; font-size:0; border:0; border-radius:999px; background:transparent; justify-content:center}
+.ol-row .micbtn:hover{background:var(--col)}
+.ol-row .micbtn.live{background:var(--flame)}
+.ol-row .btn:not(.micbtn){height:36px; padding:0 18px; border-radius:999px}
+.ol-note{margin:0; padding-left:20px; color:var(--ink62)}
+@media (prefers-reduced-motion: reduce){ .ol-row{transition:none} }
 
 /* ---------- Arrange: the button at the top right, then one quiet toolbar across the top ---------- */
 .o3-arrange{position:absolute; top:12px; right:12px; z-index:3; display:flex; flex-direction:column; align-items:flex-end; gap:6px; max-width:calc(100% - 24px); pointer-events:none}

@@ -39,11 +39,23 @@
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   /* a heading in whole degrees: 0 faces down the plan (the front of the floor), a turn as the figures' own */
   const hdg = (dx, dy) => Math.round(Math.atan2(dx, dy) * DEG);
-  /* plain text: control and invisible characters become spaces (as the stage cleans his words), spaces fold, cut by characters */
-  const plain = (s, max) => Array.from(Array.from(String(s == null ? '' : s)).map(ch => {
-    const c = ch.codePointAt(0);
-    return c < 32 || c === 127 || (c >= 128 && c < 160) || (c >= 8203 && c <= 8207) || (c >= 8232 && c <= 8238) || (c >= 8288 && c <= 8303) || c === 65279 ? ' ' : ch;
-  }).join('').replace(/\s+/g, ' ').trim()).slice(0, max).join('').trim();
+  /* plain text, as the room wants it and the stage cleans his words: a control character or a line break is a space, a
+     format or private use character (a soft hyphen, a direction mark) is dropped, and a zero width joiner or non joiner
+     stays only between two characters, once, as emoji and Indic scripts need it. Spaces fold; cut by characters */
+  const SPACE = /[\s\p{Cc}\p{Zl}\p{Zp}]/u, HIDDEN = /[\p{Cf}\p{Co}]/u;
+  const FILLER = [4447, 4448, 12644, 65440], JOINER = [8204, 8205];
+  const gone = ch => HIDDEN.test(ch) || FILLER.indexOf(ch.codePointAt(0)) >= 0;
+  const blank = ch => !ch || SPACE.test(ch) || gone(ch);
+  function plain(s, max) {
+    const cs = Array.from(String(s == null ? '' : s)), out = [];
+    cs.forEach((ch, i) => {
+      if (JOINER.indexOf(ch.codePointAt(0)) >= 0) { if (!blank(out[out.length - 1]) && !blank(cs[i + 1])) out.push(ch); return; }
+      if (!gone(ch)) out.push(SPACE.test(ch) ? ' ' : ch);
+    });
+    const cut = Array.from(out.join('').replace(/\s+/g, ' ').trim()).slice(0, max);
+    while (cut.length && JOINER.indexOf(cut[cut.length - 1].codePointAt(0)) >= 0) cut.pop();
+    return cut.join('').trim();
+  }
 
   /* ---------- who may drive ---------- */
   const canDrive = ctx => !!(ctx && ctx.isOwner && !ctx.viewAs && ctx.uid && ctx.uid === ctx.founderUid);
@@ -181,6 +193,9 @@
     far.clear();
     if (room && typeof room.onPeers === 'function') { try { env.off = room.onPeers(onPeers, () => {}); } catch (e) { env.off = null; } }
     pick();
+    /* a room that came late, or a new one, hears that this page watches */
+    o3wSent = null;
+    watchSync();
   }
 
   /* ---------- this page, when it is his: the walk he is on, his words ---------- */
@@ -542,7 +557,7 @@
         ${Mic ? html`<${Mic} sm label="Say it" onText=${heard}/>` : null}
         <${UI.Btn} sm disabled=${!plain(text, SAY_MAX)} onClick=${send}>Say<//>
       </div>
-      ${roomless ? html`<p class="small ol-note" role="status">The team sees you at your desk right now. Live view comes back on its own.</p>` : null}
+      ${roomless || !(ctx && ctx.room) ? html`<p class="small ol-note" role="status">The team sees you at your desk right now. Live view comes back on its own.</p>` : null}
     </div>`;
   }
 
@@ -574,13 +589,16 @@
     }
     return out;
   }
+  /* null only when there is no plan yet: a read that fails stops the write, so a set() never replaces a plan it could not see */
   async function readPlan(ctx) {
-    try { const s = await ctx.db.doc('office/plan').get(); return s && s.exists ? U.dropNulls(s.data()) : null; } catch (e) { return null; }
+    let s;
+    try { s = await ctx.db.doc('office/plan').get(); } catch (e) { M.toast('That did not save. Try again in a moment.', true); throw e; }
+    return s && s.exists ? U.dropNulls(s.data()) : null;
   }
   const undo = [];                  /* this session's writes, newest last: the maps as they were */
   /* patch is {slots?, seats?, props?, labels?}, each a whole map, or a function of the plan as it is now */
   async function planWrite(ctx, patch0, back) {
-    if (!canDrive(ctx) || !patch0 || !ctx.W) return null;
+    if (!canDrive(ctx) || !canDrive(live()) || !patch0 || !ctx.W) return null;
     const cur0 = await readPlan(ctx);
     const patch = typeof patch0 === 'function' ? patch0(Object.fromEntries(MAPS.map(k => [k, cleanMap(k, cur0 && cur0[k])]))) : patch0;
     if (!patch || typeof patch !== 'object') return null;
@@ -692,12 +710,16 @@
     const saved = useRef(null);
     const queue = useRef(Promise.resolve());
 
-    /* one write at a time, each built from the plan as it stands when its turn comes */
+    /* one write at a time, each built from the plan as it stands when its turn comes. A bench or a seat is measured
+       on the floor as drawn, so nothing is picked up again until the last write is in and drawn (wrote: its rev) */
+    const pending = useRef(0), wrote = useRef(0);
     const write = (patch, back) => {
-      const run = () => planWrite(M.lastCtx || ctx, patch, back).then(r => { if (r) M.toast(SAVED); return r; }, () => null);
-      queue.current = queue.current.then(run, run).then(r => { bump(n => n + 1); return r; });
+      pending.current++;
+      const run = () => planWrite(M.lastCtx || ctx, patch, back).then(r => { if (r) { wrote.current = r; M.toast(SAVED); } return r; }, () => null);
+      queue.current = queue.current.then(run, run).then(r => { pending.current--; bump(n => n + 1); return r; });
       return queue.current;
     };
+    const busy = () => pending.current > 0 || (Number(plan.rev) || 0) < wrote.current;
     const slotsMap = m => { const out = {}; for (const b of m.slots) if (b.pod) out[b.slot] = b.pod; return out; };
     /* the plan's own seats, moved with their bench */
     function swapBenches(a, b) {
@@ -722,10 +744,13 @@
         return {seats};
       });
     }
+    /* p is the prop, null to remove it, or a function of the prop as it stands when the write's turn comes */
     function putProp(id, p) {
       return write(cur => {
         const props = {...cur.props};
-        if (p) props[id] = p; else delete props[id];
+        const next = typeof p === 'function' ? (props[id] ? p(props[id]) : null) : p;
+        if (typeof p === 'function' && !next) return null;
+        if (next) props[id] = next; else delete props[id];
         return {props};
       });
     }
@@ -793,25 +818,34 @@
       if (x.kind === 'b') { if (x.target.slot !== Number(x.id)) swapBenches(Number(x.id), x.target.slot); }
       else if (x.kind === 'u') swapSeats(x.id, x.target);
       else if (x.bad) M.toast(WALKWAY, true);
-      else { const p = box.current.model.props[x.id]; if (p && (p.x !== x.target.x || p.y !== x.target.y)) putProp(x.id, {...p, x: x.target.x, y: x.target.y}); }
+      else { const p = box.current.model.props[x.id], to = x.target; if (p && (p.x !== to.x || p.y !== to.y)) putProp(x.id, q => ({...q, x: to.x, y: to.y})); }
     }
     function pointer(e, key, el) {
       if (e.button !== 0) return;
       e.preventDefault(); e.stopPropagation();
+      if (busy()) return;
       const x = {kind: key[0], key, id: key.slice(2), at: null, target: null, moved: false, sx: e.clientX, sy: e.clientY};
       try { el.setPointerCapture(e.pointerId); } catch (err) { /* no capture */ }
       const move = ev => {
+        if (x.done) return;
         if (!x.moved && Math.hypot(ev.clientX - x.sx, ev.clientY - x.sy) < 4) return;
         x.moved = true; mv.current = x;
         const pt = box.current.api.floorHit(ev.clientX, ev.clientY);
         if (pt) aim(x, pt);
       };
-      const up = () => {
+      /* a drop is the release of a drag still in hand: a cancelled pointer, or Escape mid drag, writes nothing */
+      const esc = ev => { if (ev.key === 'Escape' && mv.current === x) { ev.preventDefault(); ev.stopPropagation(); mv.current = null; mark(); } };
+      const up = ev => {
         el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
-        if (x.moved) drop(x);
+        window.removeEventListener('keydown', esc, true);
+        const held0 = mv.current === x;
+        x.done = true;
+        if (ev.type === 'pointercancel') { if (held0) { mv.current = null; mark(); } return; }
+        if (x.moved) { if (held0) drop(x); }
         else if (x.kind === 'p') { setSel(x.id); box.current.sel = x.id; mark(); }
       };
       el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+      window.addEventListener('keydown', esc, true);
     }
     /* keyboard: Enter picks, the arrows move between neighbours (props by 25 cm), Enter drops, Escape puts it back */
     function keys(e, key) {
@@ -820,6 +854,7 @@
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (x && x.key === key) { drop(x); return; }
+        if (busy()) return;
         const h = homeOf(key);
         mv.current = {kind: key[0], key, id: key.slice(2), at: h, target: key[0] === 'p' ? {x: h.x, y: h.y} : key[0] === 'b' ? {key, slot: Number(key.slice(2))} : null, kb: true};
         if (key[0] === 'u') { const s = m.seats[key.slice(2)]; mv.current.target = {key, slot: s.slot, j: s.j}; }
@@ -904,7 +939,7 @@
             ${ADD.map(([k, label]) => html`<button key=${k} type="button" role="menuitem" class="o3-add-item" onClick=${() => add(k)}>${label}</button>`)}
           </div>` : null}
         </span>
-        ${prop ? html`<button type="button" class="chip" onClick=${() => putProp(sel, {...prop, r: (prop.r + 90) % 360})}>Turn</button>
+        ${prop ? html`<button type="button" class="chip" onClick=${() => putProp(sel, q => ({...q, r: (q.r + 90) % 360}))}>Turn</button>
           <button type="button" class="chip" onClick=${() => { const id = sel; setSel(''); putProp(id, null); }}>Remove</button>` : null}
         <button type="button" class=${'chip' + (naming ? ' on' : '')} aria-pressed=${naming} onClick=${() => setNaming(v => !v)}>Rename</button>
         <button type="button" class="chip" disabled=${!undo.length} onClick=${back}>Put back</button>
