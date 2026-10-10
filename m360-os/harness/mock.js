@@ -169,7 +169,7 @@
         if (JSON.stringify(body).length > 256 * 1024) return rej(err('invalid_argument', 'document over 256 KiB'));
         store[path] = body;
       }
-      window.__dbWrites.push({path, mode, at: Date.now()});
+      window.__dbWrites.push({path, mode, at: Date.now(), data: mode === 'delete' ? null : clone(data)});
       persistOne(path); notify(path); res();
     }, 8));
   }
@@ -482,18 +482,78 @@
   };
   sample.limits = () => Promise.resolve({maxPromptBytes: 65536, tools: {maxCount: 8}, ...(q.get('img') ? {images: {maxCount: 4, maxBytes: 5000000, mediaTypes: ['image/jpeg', 'image/png', 'image/webp']}} : {})});
 
-  /* ---------------- room: who else is online ---------------- */
+  /* ---------------- room: who else is online ----------------
+     Pages in one browser context meet on a BroadcastChannel, as viewers of one artifact do: presence merges
+     (a top-level null drops the key) and goes to every page with by (the sender's id), the peer id, isMe and
+     sameTab. onPeers fires on every change with joined, updated and left as each listener last saw them, so a
+     new listener (or a page that opens late) first hears everyone as joined. A page that closes says bye, and
+     one that goes quiet for 6 s is gone. The ?online= ids stay as peers with by null, for the older tests. */
   const others = (q.get('online') || '').split(',').filter(Boolean);
-  let mine = {};
+  const PEER = 'p' + Math.random().toString(36).slice(2, 10);
+  let mine = null, mineAt = 0;
+  const far = new Map();            /* peer id -> {by, presence, updatedAt, heard} of the other pages */
+  const peerFns = new Map();        /* listener -> the peer ids it has heard of */
+  const bc = typeof BroadcastChannel === 'function' ? new BroadcastChannel('m360room') : null;
+  const viewer = (peer, by, presence, at) => ({peer, by, isMe: by === ME.id, sameTab: peer === PEER, kind: 'viewer', guest: false, presence, updatedAt: at});
+  const extra = () => others.map((u, i) => ({peer: 'o' + i, by: null, isMe: false, sameTab: false, kind: 'viewer', guest: false, presence: {uid: u, page: 'work'}, updatedAt: Date.now()}));
+  const peerList = () => (mine ? [viewer(PEER, ME.id, mine, mineAt)] : []).concat(Array.from(far, ([p, x]) => viewer(p, x.by, x.presence, x.updatedAt)), extra());
+  function tell(fn, change) {
+    const seen = peerFns.get(fn);
+    if (!seen) return;
+    const peers = peerList(), ids = new Set(peers.map(p => p.peer));
+    const joined = peers.filter(p => !seen.has(p.peer));
+    const updated = (change.updated || []).filter(p => seen.has(p.peer) && ids.has(p.peer));
+    const left = (change.left || []).filter(p => seen.has(p.peer));
+    peerFns.set(fn, ids);
+    if (!joined.length && !updated.length && !left.length && !change.first) return;
+    try { fn({peers, joined, updated, left}); } catch (e) { /* page handler */ }
+  }
+  const told = change => peerFns.forEach((_, fn) => setTimeout(() => tell(fn, change), 0));
+  const announce = () => { if (bc && mine) bc.postMessage({t: 'p', peer: PEER, by: ME.id, presence: mine, updatedAt: mineAt}); };
+  if (bc) {
+    bc.onmessage = ev => {
+      const m = ev.data || {};
+      if (m.peer === PEER) return;
+      if (m.t === 'hello') { announce(); return; }
+      const x = far.get(m.peer);
+      if (m.t === 'bye') { if (x) { far.delete(m.peer); told({left: [viewer(m.peer, x.by, x.presence, x.updatedAt)]}); } return; }
+      if (m.t === 'p') {
+        const at = Number(m.updatedAt) || Date.now();
+        if (x && x.updatedAt === at) { x.heard = Date.now(); return; }
+        far.set(m.peer, {by: m.by || null, presence: m.presence || {}, updatedAt: at, heard: Date.now()});
+        told({updated: [viewer(m.peer, m.by || null, m.presence || {}, at)]});
+      }
+    };
+    bc.postMessage({t: 'hello', peer: PEER});
+    window.addEventListener('pagehide', () => { try { bc.postMessage({t: 'bye', peer: PEER}); } catch (e) { /* closing */ } });
+    setInterval(() => {
+      announce();
+      const gone = [];
+      for (const [p, x] of far) if (Date.now() - x.heard > 6000) { far.delete(p); gone.push(viewer(p, x.by, x.presence, x.updatedAt)); }
+      if (gone.length) told({left: gone});
+    }, 2000);
+  }
   const room = {
-    presence: patch => { mine = {...mine, ...patch}; window.__presence = mine; return Promise.resolve(); },
-    onPeers: (fn) => {
-      const peers = () => [{peer: 'me', by: null, isMe: true, sameTab: true, kind: 'viewer', presence: mine, updatedAt: Date.now()}]
-        .concat(others.map((u, i) => ({peer: 'p' + i, by: null, isMe: false, sameTab: false, kind: 'viewer', presence: {uid: u, page: 'work'}, updatedAt: Date.now()})));
-      setTimeout(() => { const p = peers(); fn({peers: p, joined: p, left: [], updated: []}); }, 20);
-      return () => {};
+    presence: patch => {
+      const next = {...(mine || {})};
+      for (const k of Object.keys(patch || {})) { if (patch[k] === null || patch[k] === undefined) delete next[k]; else next[k] = patch[k]; }
+      if (JSON.stringify(next).length > 4096) return Promise.reject(err('invalid_argument', 'presence over 4 KiB'));
+      /* two changes in one millisecond are still two changes */
+      mine = next; mineAt = Math.max(Date.now(), mineAt + 1);
+      window.__presence = mine;
+      window.__presenceCalls = (window.__presenceCalls || []).concat([{at: mineAt, patch: JSON.parse(JSON.stringify(patch || {}))}]).slice(-400);
+      announce();
+      told({updated: [viewer(PEER, ME.id, mine, mineAt)]});
+      return Promise.resolve();
     },
-    peers: () => [], emit: () => Promise.resolve(), on: () => () => {}
+    onPeers: fn => {
+      peerFns.set(fn, new Set());
+      setTimeout(() => tell(fn, {first: true}), 20);
+      return () => { peerFns.delete(fn); };
+    },
+    peers: () => peerList(),
+    emit: () => (ME.canEdit ? Promise.resolve() : Promise.reject(err('not_permitted', 'only editors emit'))),
+    on: () => () => {}
   };
 
   const caps = {db: q.get('nocap') === '1' ? null : db, user: q.get('nocap') === '1' ? null : user,

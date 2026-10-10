@@ -20,6 +20,8 @@
      r/<uid>~<ms>~<page>                 ""                            presence beacons
      x/pm/<ymd>/<uid>/<am|pm|esc>        {at, id, to, slot, keys, steps, sent}   the personal managers' mail ledger (pm.js)
      x/coo/...                           the m360 COO's slot claims, act keys, mail claims and heartbeat (coo.js)
+     x/stage                             {o3, say, live, by, at, seq}  Kaavish's live walk and words in the office (office.js); a blob,
+                                                                       never a document: no version, no log line, never synced or backed up
 */
 import {RULES} from './rules.js';
 import {SEED} from './seed.js';
@@ -38,6 +40,7 @@ import {fileActions} from './files.js';
 import {baseActions} from './base.js';
 import {pmDesk} from './pm.js';
 import {cooDesk} from './coo.js';
+import {officeActions} from './office.js';
 
 const LEVEL = {view: 0, interact: 1, admin: 2, owner: 3};
 const SESSION_DAYS = 180;
@@ -1204,6 +1207,8 @@ export function createApp({store, env = {}}) {
   Object.assign(actions, peekActions({store, env, getJ, putJ, levelOf, LEVEL, HttpError}));
   Object.assign(actions, handshakeActions({env, getJ, putJ, levelOf, LEVEL, HttpError, peek: (v, body) => actions.peek(v, body)}));
   Object.assign(actions, voiceActions({store, env, getJ, putJ, levelOf, LEVEL, HttpError, log}));
+  /* the office: Kaavish's live stage, put by the owner alone and polled by the team while the office is open */
+  Object.assign(actions, officeActions({getJ, putJ, levelOf, ownerUid, LEVEL, HttpError}));
   /* the personal managers' mail pass for people who are away, the outside pinger's tick, and the mail ledger */
   const pm = pmDesk({store, getJ, putJ, docKey, listAll, readColl, inventory, ownerUid, appSettings, mailOn: async () => !!(await mailConf()),
     sendMail, ymdIST, env, log, levelOf, LEVEL, HttpError});
