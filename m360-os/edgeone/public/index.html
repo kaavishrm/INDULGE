@@ -3529,7 +3529,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 @keyframes of-stroke{to{stroke-dashoffset:0}}
 @keyframes of-rise{from{opacity:0; margin-bottom:-6px} to{opacity:1; margin-bottom:0}}
 </style>
-<script>window.M360_BUILD = "8157b49.261008-2351";</script><script>
+<script>window.M360_BUILD = "9df5070.261010-1751";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -7767,12 +7767,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const sec = SECTIONS[r.s] || SECTIONS.home;
     const Page = M.pages[sec.page];
     const b = M.badges(ctx);
-    const inboxWas = React.useRef(b.inbox || 0);
+    /* the bell swings when a row that speaks arrives (silent rows only list), and never for the first full
+       snapshot of what was already there: the count is taken once every collection has arrived */
+    const loudReady = !!(M.inbox && M.inbox.loaded && M.inbox.loaded(ctx));
+    const loud = loudReady && M.inbox.loud ? M.inbox.loud(ctx) : 0;
+    const loudWas = React.useRef(null);
     React.useEffect(() => {
-      const n = b.inbox || 0;
-      if (n > inboxWas.current && M.fx && M.fx.ring) document.querySelectorAll('.bellbtn svg').forEach(el => M.fx.ring(el, {amplitude: 14, passes: 4, duration: 640}));
-      inboxWas.current = n;
-    }, [b.inbox]);
+      if (!loudReady) return;
+      const was = loudWas.current;
+      loudWas.current = {uid: ctx.uid, n: loud};
+      if (!was || was.uid !== ctx.uid) return;
+      if (loud > was.n && M.fx && M.fx.ring) document.querySelectorAll('.bellbtn svg').forEach(el => M.fx.ring(el, {amplitude: 14, passes: 4, duration: 640}));
+    }, [loud, loudReady, ctx.uid]);
     const go = k => { setMoreOpen(false); M.nav('#' + k); };
 
     const mainKeys = ['home', 'chat', 'work', 'accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me'];
@@ -7989,7 +7995,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     session_expired: 'Sign in to Claude again, then retry.', refused: 'Claude passed on that one. Try asking differently.',
     invalid_json: 'That came back scrambled. Tap to try again.', prompt_too_large: 'Too much at once. Ask about a smaller slice.',
     tools_unavailable: 'Actions are unavailable here. Answers still work.', empty_completion: 'Nothing came back. Try rephrasing.',
-    cancelled: 'Stopped.'
+    cancelled: 'Stopped.',
+    /* the team site's daily cap on AI turns per person */
+    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works."
   };
   const OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
 
@@ -8607,9 +8615,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         push('R06', u, 'low', n + ' WFH check-ins this week, cap is ' + cap);
       });
 
-      /* R07: open tasks past due, soonest due first */
+      /* R07: open tasks past due, soonest due first. Work in review waits on its reviewer, so it is not late */
       run('R07', () => {
-        const list = (tasksBy[u] || []).filter(x => x.d.status !== 'done' && x.d.due && x.d.due < today)
+        const list = (tasksBy[u] || []).filter(x => x.d.status !== 'done' && x.d.status !== 'review' && x.d.due && x.d.due < today)
           .sort((a, b) => (a.d.due < b.d.due ? -1 : a.d.due > b.d.due ? 1 : 0));
         for (const {id, d: t} of list) {
           const n = U.daysBetween(t.due, today);
@@ -9186,8 +9194,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* movement: anything of theirs created, moved, finished or commented on today */
     const ix = tasksBy(ctx.coll.tasks.map);
     const moved = (ix.moved[uid] || 0) >= dayStart;
+    /* work in review waits on its reviewer: open, never overdue on the owner */
     let overdue = 0, open = 0;
-    for (const t of (ix.owned[uid] || [])) if (t.status !== 'done') { open++; if (t.due && t.due < ymd) overdue++; }
+    for (const t of (ix.owned[uid] || [])) if (t.status !== 'done') { open++; if (t.status !== 'review' && t.due && t.due < ymd) overdue++; }
     if (!moved && a.in && mins > 14 * 60) out.push({k: 'idle', hot: true, at: atMin(14 * 60), text: 'nothing moved on their tasks today' + (open ? ' (' + open + ' open)' : ''), ref: ref});
     if (overdue) out.push({k: 'overdue', hot: overdue > 1, at: dayStart, text: overdue + (overdue === 1 ? ' overdue task' : ' overdue tasks'), ref: ref});
     /* quiet stretches (M.quiet): one flag per stretch, keyed by when it began so the inbox counts it once,
@@ -9794,6 +9803,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   /* ---------- small reads ---------- */
   const tasksOf = ctx => ((ctx.coll && ctx.coll.tasks) || {}).map || {};
   const open = t => !!t && !t.deleted && t.status !== 'done';
+  /* work its owner can be chased about: to do or doing. Work in review waits on its reviewer, so it is never late on the owner */
+  const chaseable = t => !!t && !t.deleted && (t.status === 'todo' || t.status === 'doing' || !t.status);
   const dayAt = (ymd, hm) => U.parseYmd(ymd).getTime() + U.minutes(String(hm || '0:00')) * MIN;
   const startOf = (ctx, u, ymd) => dayAt(ymd, ctx.startFor(u) || ctx.settings.start || '10:30');
   const graceMs = ctx => (Number(ctx.settings.grace) || 0) * MIN;
@@ -10049,7 +10060,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         const t = tmap[id];
         if (!t || t.owner !== rep || t.deleted) continue;
         if (bot && R07 && kindOn('overdue')) {
-          if (open(t) && t.due && t.due < ymd) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, facts: {title: t.title, due: dueDay(t.due), days: U.daysBetween(t.due, ymd)}});
+          if (chaseable(t) && t.due && t.due < ymd) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, facts: {title: t.title, due: dueDay(t.due), days: U.daysBetween(t.due, ymd)}});
           else if (t.status === 'done' && t.due && t.due < ymd && t.doneAt && U.ymd(new Date(t.doneAt)) === ymd && t.doneAt > start + 30 * MIN) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, holds: false, sortedAt: t.doneAt, facts: {title: t.title, due: dueDay(t.due)}});
         }
         if (bot && R07 && kindOn('sentback') && t.sentBackAt && t.sentBackBy && t.sentBackBy !== rep) {
@@ -10062,7 +10073,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           if (s1 !== Infinity && still) add({kind: 'sentback', sub: id, source: 'bot', s1, facts});
           else if (s1 !== Infinity && !still && (Number(t.updated) || 0) > s1 && U.ymd(new Date(Number(t.updated))) === ymd) add({kind: 'sentback', sub: id, source: 'bot', s1, holds: false, sortedAt: Number(t.updated), facts});
         }
-        if (bot && R07 && kindOn('chase') && open(t)) {
+        if (bot && R07 && kindOn('chase') && chaseable(t)) {
           for (const x of chainOf(ctx, rep)) {
             const c = (pmOf(ctx, x).chase || {})[id];
             if (!c || !c.at) continue;
@@ -10130,7 +10141,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           if (!t) continue;
           sub = ak.sub;
           facts = {title: t.title, due: dueDay(t.due)};
-          holds = open(t) && (kind === 'task' || (t.due && t.due < ymd));
+          holds = chaseable(t) && (kind === 'task' || (t.due && t.due < ymd));
           if (kind === 'overdue' && !holds && !(t.status === 'done')) continue;
         } else if (kind === 'custom') {
           sub = id;
@@ -10276,6 +10287,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const r = first(ctx, it.rep);
     const ack = it.ack, how = ack && ack.how;
     const nudged = (it.steps.find(s => s.step === '1') || {});
+    /* only a step that rang (a positive mark) reads as seen; one a card showed quietly never does */
+    const rang = !!nudged.id && Number(toldOf(ctx, it.rep)[nudged.id]) > 0;
     if (how === 'blocked') it.mgrLine = r + ' is blocked on ' + what + '. The note is in your messages.';
     else if (how === 'wrong') it.mgrLine = r + ' says this is not right and asked for a correction.';
     else if (how === 'onit' && typeof ack.eta === 'number' && ack.eta < now && it.holds) it.mgrLine = r + ' said ' + hm(ack.eta) + ' for ' + what + '. It is ' + hm(now) + ' and it is still open.';
@@ -10284,8 +10297,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     else if (how === 'leave') it.mgrLine = r + ' is off today. A leave request is on its way.';
     else if (it.status) it.mgrLine = r + ' set a status: ' + String(it.status.text || '').slice(0, 80) + '.';
     else if (it.sweep) it.mgrLine = 'From yesterday: no EOD line from ' + r + ' for ' + f.day + '.';
-    else if (kind === 'noin') it.mgrLine = r + (Object.keys((meOf(ctx, it.rep).act || {})[it.ymd] || {}).length ? ' has m360 open and has not checked in.' : ' has not opened m360 today.') + ' No check-in since the ' + (f.start || ctx.startFor(it.rep)) + ' start.' + (nudged.told ? ' Nudged at ' + hm(nudged.told) + '.' : '');
-    else if (nudged.told) it.mgrLine = r + ' saw the nudge about ' + what + ' at ' + hm(nudged.told) + ' and has not answered.' + (kind === 'overdue' && it.facts.days ? ' It is ' + it.facts.days + (it.facts.days === 1 ? ' day' : ' days') + ' overdue.' : '');
+    else if (kind === 'noin') it.mgrLine = r + ': no check-in since the ' + (f.start || ctx.startFor(it.rep)) + ' start.';
+    else if (rang) it.mgrLine = r + ' saw the nudge about ' + what + ' at ' + hm(nudged.told) + ' and has not answered.' + (kind === 'overdue' && it.facts.days ? ' It is ' + it.facts.days + (it.facts.days === 1 ? ' day' : ' days') + ' overdue.' : '');
     else if (kind === 'waiton') it.mgrLine = first(ctx, it.facts.r) + ' has been blocked on ' + what + ' since ' + f.t + ', waiting on ' + r + '.';
     else it.mgrLine = r + ': ' + (it.flag ? it.flag.text : what + (kind === 'overdue' ? ', due ' + f.due : '')) + '.';
     if (it.away) it.mgrLine += ' ' + first(ctx, it.mgr) + ' is on leave today.';
@@ -10356,13 +10369,28 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         }
       }
     }
-    /* the budget: the same set rings on every device, sorted by time then kind */
+    /* what never rings, only shows on the card, the inbox and the chips: a manager is never pinged on a timer
+       (step 2, 2b, the morning EOD sweep and the note up the line; Blocked reaches them as its message), a
+       quiet stretch never interrupts, and a step 1 about one piece of work rings once across days (an
+       earlier day's mark on the same rep:kind:sub). One step to a manager still rings: Blocked while the
+       direct manager is on leave, where the message went to them and the next one up is the one who can
+       unblock it */
+    const marks = toldOf(ctx, me);
+    const before = new Set();
+    for (const id of Object.keys(marks)) {
+      if (!Number(marks[id]) || !/#1$/.test(id)) continue;
+      const k = parseKey(id.slice(0, -2));
+      if (TASK_KINDS.has(k.kind) && k.ymd < ymd) before.add(k.rep + ':' + k.kind + ':' + k.sub);
+    }
+    const blockedUp = x => !!x.item.away && !!x.item.ack && x.item.ack.how === 'blocked';
+    const hush = x => (MGR_STEPS.has(x.step) && !blockedUp(x)) || x.step === 'digest' || (REP_STEPS.has(x.step) && x.item.kind === 'quiet') ||
+      (x.step === '1' && TASK_KINDS.has(x.item.kind) && before.has(x.item.rep + ':' + x.item.kind + ':' + x.item.sub));
+    const hushed = new Set(out.filter(hush).map(x => x.stepId));
+    /* the budget: the same set rings on every device, sorted by time then kind; what never rings takes no place in it */
     const pick = (list, n) => new Set(list.slice().sort((x, y) => x.at - y.at || ordOf(x.item.kind) - ordOf(y.item.kind) || (x.stepId < y.stepId ? -1 : 1)).slice(0, n).map(x => x.stepId));
-    const autoRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && x.item.kind !== 'quiet');
-    const quietRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && x.item.kind === 'quiet');
-    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(quietRep, Math.min(p.quietMax, p.perDay)),
-      ...pick(out.filter(x => MGR_STEPS.has(x.step)), p.mgrPerDay), ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay),
-      ...pick(out.filter(x => x.step === 'digest'), 1), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
+    const autoRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && !hushed.has(x.stepId));
+    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(out.filter(x => MGR_STEPS.has(x.step) && !hushed.has(x.stepId)), p.mgrPerDay),
+      ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
     const focus = focusOn();
     for (const x of out) {
       const ringNow = x.step.startsWith('a.') && x.item.asks.some(a => a.ringNow && isFounderUid(ctx, a.by) && x.step === 'a.' + a.id);
@@ -10371,9 +10399,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const chatRang = MGR_STEPS.has(x.step) && x.item.ack && x.item.ack.how === 'blocked' && !!M.rooms && !!ctx.coll.chat &&
         M.rooms.messagesOf(ctx, M.rooms.dmId(x.item.rep, me)).some(m => m.by === x.item.rep && m.pm === x.item.K);
       const win = ringNow || inWindow(ctx, me, now, x);
-      x.inBudget = okSet.has(x.stepId);
-      x.held = focus && win && x.inBudget && !x.told;
-      x.ring = !x.told && x.step !== '0' && x.inBudget && win && !focus && x.item.state !== 'sorted' && !chatRang;
+      const silent = hushed.has(x.stepId);
+      /* a step that never rings is not over the budget either: no "and N more" names it */
+      x.inBudget = silent || okSet.has(x.stepId);
+      x.held = focus && win && x.inBudget && !x.told && !silent;
+      x.ring = !x.told && x.step !== '0' && x.inBudget && win && !focus && x.item.state !== 'sorted' && !chatRang && !silent;
       x.chat = chatRang;
       x.now = ringNow;
       x.bundle = null;
@@ -10518,10 +10548,19 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const seen = new Set(), list = [];
     for (const x of mine) if (!seen.has(x.item.K)) { seen.add(x.item.K); list.push(x.item); }
     if (!list.length) return '';
-    const bot = list[0].source === 'ask' ? (nm ? nm(list[0].from) : first(ctx, list[0].from)) + ' asked m360' : list[0].botName;
-    const labels = list.slice(0, 3).map(it => it.label);
+    /* who speaks: the bot ("Aanya's bot has 2 things for you"), the COO ("The COO has 1 thing for you"), or
+       the person who asked ("Kaavish asked you 1 thing"), counting only what that person asked. The names
+       come as a map (the dock) or a function */
+    const by = list[0].source === 'ask' ? list[0].from : '';
+    const own = by ? list.filter(it => it.source === 'ask' && it.from === by) : list;
+    const named = by && (typeof nm === 'function' ? nm(by) : nm && nm[by]);
+    const asker = by && first(ctx, by) !== 'Someone' ? first(ctx, by) : U.firstName(String(named || '')) || 'Someone';
+    const things = own.length === 1 ? '1 thing' : own.length + ' things';
+    const head = !by ? list[0].botName + ' has ' + things + ' for you: ' : isCoo(by) ? 'The COO has ' + things + ' for you: '
+      : asker + ' asked you ' + things + ': ';
+    const labels = own.slice(0, 3).map(it => it.label);
     const joined = labels.length > 1 ? labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1] : labels[0];
-    return bot + (list.length === 1 ? ' has 1 thing for you: ' : ' has ' + list.length + ' things for you: ') + joined + '.';
+    return head + joined + '.';
   }
 
   /* ---------- the founder's audit: this week, per manager, and the checks that should read zero ---------- */
@@ -11641,7 +11680,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     undone_due: {f: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.', dm: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.'},
     undone_leave: {f: x => 'Kaavish took back the approval for ' + x.when + '.', dm: x => 'Kaavish took back the approval for ' + x.when + '. It is with him now.'},
     hello: {f: x => 'Said hello to ' + x.name + '.',
-      dm: x => 'Hi ' + x.name + ', I am ' + x.bot + ', a bot that helps Kaavish run the day. I ask short questions and I explain anything I change. Kaavish reads what you send me. What I can do: #coo'},
+      dm: x => 'Hi ' + x.name + ', I am ' + x.bot + '. I help Kaavish run the day, and Kaavish reads what you send me.'},
     waiting: {f: x => plural(x.n, 'thing needs', 'things need') + ' you.'},
     paused: {f: x => 'Paused by you until ' + x.untilT + '.'},
     off: {f: () => 'The COO is off. Admin, COO to switch it on.'},
@@ -11961,7 +12000,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   /* ---------- the COO's own words to one person: a line in its DM room ----------
      One merge per send, with every line this page has written there (the snapshot can lag a fast run).
-     The first line anyone gets from it is the hello */
+     The first line anyone gets from it carries the hello inside it: one message, never a hello a moment before */
   const chatSeen = {};
   async function say(ctx, u, text, xid, extra, R) {
     const c = fresh(ctx);
@@ -11973,15 +12012,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const have = snap.concat(mine.filter(m => !snap.some(s => s && s.id === m.id))).sort((a, b) => (a.at || 0) - (b.at || 0));
     const ids = new Set(have.map(m => m && m.id));
     if (xid && ids.has(xid)) return null;
-    const add = [];
-    if (!ids.has('hello.' + u) && !((cooState(c).hello || {})[u])) {
-      add.push({id: 'hello.' + u, at: Date.now(), text: copy('hello', {uid: u}, 'dm', c).line, mentions: [], via: 'coo'});
-      if (R) R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
-    }
-    const m = {id: xid || U.uid(), at: Date.now() + add.length, text: String(text).trim().slice(0, 4000), mentions: [], via: 'coo'};
+    const hello = !have.length && !((cooState(c).hello || {})[u]);
+    if (hello && R) R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
+    const line = (hello ? copy('hello', {uid: u}, 'dm', c).line + ' ' : '') + String(text).trim();
+    const m = {id: xid || U.uid(), at: Date.now(), text: line.slice(0, 4000), mentions: [], via: 'coo'};
     for (const k of ['ask', 'k']) if (extra && extra[k] != null && extra[k] !== '') m[k] = String(extra[k]).slice(0, 120);
-    add.push(m);
-    let msgs = have.concat(add);
+    let msgs = have.concat([m]);
     if (msgs.length > 300) msgs = msgs.slice(msgs.length - 160);
     const body = {msgs, room, by: UID, updated: Date.now()};
     guard('chat/' + key, body);
@@ -12112,14 +12148,19 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     await act(R, {job: 'J03', code: 'roll', kind: 'report', args: {n: out.in.length, wfh: out.wfh.length, leave: out.leave.length, notIn: out.notIn.length, uid: out.notIn[0] || ''}});
   };
 
+  /* today's EOD lines, read from the eod collection as it stands: the sweep and the close count the same way */
+  const eodCount = R => {
+    const ids = nonFounders(R).filter(u => !isOut(R.state, u, R.ymd));
+    const eod = mapOf(R.ctx, 'eod');
+    const missing = ids.filter(u => !(((eod[u] || {}).days || {})[R.ymd]));
+    return {in: ids.length - missing.length, of: ids.length, missing};
+  };
+
   /* J04: the EOD sweep */
   J.J04 = async R => {
-    const c = R.ctx;
-    const ids = nonFounders(R).filter(u => !isOut(R.state, u, R.ymd));
-    const eod = mapOf(c, 'eod');
-    const missing = ids.filter(u => !(((eod[u] || {}).days || {})[R.ymd]));
-    R.day.eod = {in: ids.length - missing.length, of: ids.length, missing, at: Date.now()};
-    await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: ids.length - missing.length, of: ids.length}});
+    const n = eodCount(R);
+    R.day.eod = {...n, at: Date.now()};
+    await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: n.in, of: n.of}});
   };
 
   /* J05: the close. The report, undo windows and old cards settled, the office lights down */
@@ -12165,7 +12206,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     if (Object.keys(holds).length) R.patch.holds = {...holds, ...(R.patch.holds || {})};
     if (Object.keys(cover).length) R.patch.cover = {...cover, ...(R.patch.cover || {})};
     if (Object.keys(seenLeave).length) R.patch.seen = {leave: {...seenLeave, ...(((R.patch.seen || {}).leave) || {})}};
-    const eod = R.day.eod || (((await read(c, 'coo/day-' + R.ymd)) || {}).eod) || {in: 0, of: 0};
+    /* counted now, at the close: lines posted after the 19:30 sweep count too */
+    const eod = R.work ? eodCount(R) : {in: 0, of: 0};
     const wait = openCards(c).filter(k => !patch[k.id]).length + R.cards.length;
     R.day.close = {at: now, eod: eod.in, of: eod.of, moves, until, wait, skipped: R.late.map(x => x.id)};
     await act(R, {job: 'J05', code: 'close', kind: 'report', args: {eod: eod.in, of: eod.of, moves, until, wait}});
@@ -12722,10 +12764,21 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   };
   /* the newest send row on a pitch (pitches/<id>.sent, written by the prospects module) */
   const latestSent = p => { const s = (p && p.sent) || {}; let best = null; for (const k of Object.keys(s)) { const r = s[k]; if (r && typeof r === 'object' && (!best || (Number(r.at) || 0) > (Number(best.at) || 0))) best = r; } return best; };
+  /* the pitch's owner has it: a COO ask to them about this pitch, under two working days old and not answered
+     since. A follow-up for Kaavish waits for them */
+  const ownerHas = (R, p, id) => !!p.owner && p.owner !== R.state.founder && Object.keys(cooAsks(R.ctx)).some(aid => {
+    const a = cooAsks(R.ctx)[aid];
+    if (!a || a.withdrawn || a.code !== 'pitch_ask' || (a.to || []).indexOf(p.owner) < 0 || (a.args || {}).pitch !== id) return false;
+    const day = ymdOf(Number(a.at) || 0);
+    if (workDaysIn(R.state, addDays(day, 1), R.ymd).length >= 2) return false;
+    const ack = M.pm && M.pm.key ? pmAcks(R.ctx, p.owner)[M.pm.key(p.owner, 'custom', aid, day)] : null;
+    return !(ack && (Number(ack.at) || 0) >= (Number(a.at) || 0));
+  });
   /* J41: follow-up drafts. A proposal 5 working days without a reply, and a live client with no work touch in
      21 days. One per client a week, drafts only: nothing leaves until Kaavish taps Send. A proposal whose next
-     date is still ahead, or whose latest send has a reply, waits; the days count from the later of the stage
-     move and the latest send, and the recipient is the latest send's Base contact, else the pitch's */
+     date is still ahead, whose latest send has a reply, or whose owner the COO asked about it lately (ownerHas),
+     waits; the days count from the later of the stage move and the latest send, and the recipient is the
+     latest send's Base contact, else the pitch's */
   J.J41 = async R => {
     const st = R.state;
     const c = R.ctx;
@@ -12734,6 +12787,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const p = st.pitches[id];
       if (!p || p.archived || p.stage !== 'proposal') continue;
       if (YMD.test(p.nextDate || '') && p.nextDate >= R.ymd) continue;
+      if (ownerHas(R, p, id)) continue;
       const ls = latestSent(p);
       if (ls && ls.reply) continue;
       const since = ymdOf(Math.max(Number(p.stageAt || p.created || R.now), Number((ls && ls.at) || 0)));
@@ -12861,7 +12915,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     if (s === 'r12') return ['J41', 'J43', 'J14', 'J38'].concat(dow === 1 ? ['J15'] : []);
     if (s === 'r15') return ['J30', 'J31', 'J14', 'J36'].concat(dow === 1 ? ['J15'] : []);
     if (s === 'r16') return ['J16', 'J42'].concat(dow === 5 ? ['J18'] : []);
-    if (s === 'r1730') return ['J37', 'J13'];
+    /* J37 is off: tomorrow's work is already on everyone's board, so nobody gets a due-tomorrow ask */
+    if (s === 'r1730') return ['J13'];
     if (s === 'eod') return ['J04'];
     if (s === 'close') return ['J19', 'J51', 'J05'];
     if (s === 'memo') return ['J06'];
@@ -19485,6 +19540,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           if (m.by === uid || Date.now() - (m.at || 0) > 90000) continue;
           /* an ask rings through the personal manager's watcher, once, with its own caps and hours */
           if (m.ask) continue;
+          /* the COO's other lines never ring here: its card or the inbox row is the one place for them */
+          if (isBot(m.by)) continue;
           const dm = isDm(room);
           const forMe = dm || mentionsMe(m, ctx, nameOf(uid));
           if (!forMe && !noticeAll()) continue;
@@ -27906,7 +27963,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setBusy(false);
       M.sound.play('done');
       M.toast('Checked out. See you tomorrow');
-      if (M.dayrate) M.dayrate.open();
+      /* the day rating waits on the hero's own button (How did it go?), never a takeover on check-out */
     }
     const rated = a.out && M.dayrate ? M.dayrate.todayOf(ctx, ctx.uid) : null;
     return html`<div class="row between" style=${{alignItems: 'flex-end'}}>
@@ -28620,7 +28677,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <${F} title="My week" summary="check-ins and EOD lines, Monday to Saturday" id="fold-week"><${MyWeek}/><//>
           <${F} title="Rule box" summary=${flagN ? n(flagN, 'flag on you', 'flags on you') : 'all clear'} hot=${flagN > 0} open=${flagN > 0} id="fold-rules"><${HeadsUp}/><//>
           <${Nudges}/>
-          ${M.parts.StudioNow ? html`<${F} title="The studio now" summary="the office, live" open=${ctx.isFounder} id="fold-studio"><${M.parts.StudioNow}/><//>` : null}
+          ${M.parts.StudioNow ? html`<${F} title="The studio now" summary="the office, live" open=${false} id="fold-studio"><${M.parts.StudioNow}/><//>` : null}
           <${F} title="Who's in today" summary=${inN + ' of ' + ctx.activeMembers.length + ' in'} id="fold-crew"><${Crew}/><//>
           ${Day ? html`<${F} title="Your day" summary="calendar, mail and files" id="fold-day"><${Day}/><//>` : null}
         </div>
@@ -30442,6 +30499,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- the hello, once a day, from the data alone (no model call) ---------- */
+  /* every collection the hello reads has arrived: the tasks, the check-ins, the bots' and the inbox's
+     lists (ctx.ready is only the roster and the settings) */
+  function helloReady(ctx) {
+    if (!ctx || !ctx.ready || !ctx.coll) return false;
+    if (M.pm && M.pm.loaded && !M.pm.loaded(ctx)) return false;
+    if (M.inbox && M.inbox.loaded && !M.inbox.loaded(ctx)) return false;
+    return ['tasks', 'checkin', 'me'].every(k => !ctx.coll[k] || ctx.coll[k].ready !== false);
+  }
   function hello(ctx, nm) {
     const h = new Date().getHours();
     const greet = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
@@ -30463,7 +30528,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* the personal manager's clause: "Shreya's bot has 2 things for you: ..." */
     let pm = '';
     try { pm = M.pm && M.pm.helloLine ? String(M.pm.helloLine(ctx, nm) || '').trim() : ''; } catch (e) { pm = ''; }
-    return greet + ', ' + first + '. ' + bits.join('. ').replace(/^./, c => c.toUpperCase()) + '.' + (pm ? ' ' + pm : '');
+    /* each clause starts its own sentence, so each one starts with a capital (m360 keeps its own) */
+    const capOf = x => /^m360\b/.test(x) ? x : U.cap(x);
+    return greet + ', ' + first + '. ' + bits.map(capOf).join('. ') + '.' + (pm ? ' ' + capOf(pm) : '');
   }
 
   /* ---------- a long chat folds into a summary, so the thread never runs out of room ---------- */
@@ -30524,7 +30591,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     <//>`;
   }
 
-  M.brain = {lookUp, act, legacy, tools, catalog, areasFor, actionsFor, hello, compact, remember, forget, memoryOf, readAi, memoryLines, pending, hold, approve, drop, edit, findTask, findProject, findClient, dayLine, UNTRUSTED, COMPACT_AT};
+  M.brain = {lookUp, act, legacy, tools, catalog, areasFor, actionsFor, hello, helloReady, compact, remember, forget, memoryOf, readAi, memoryLines, pending, hold, approve, drop, edit, findTask, findProject, findClient, dayLine, UNTRUSTED, COMPACT_AT};
   M.parts.PendingActs = PendingActs;
   M.parts.BuddyPrefs = BuddyPrefs;
 })();
@@ -32924,7 +32991,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (acts.length) await M.chat.append(ctx, [{role: 'assistant', content: code === 'cancelled' || !mine ? 'Stopped.' : '', acts}]);
       /* stopped: the state is only put back when nothing new (listening, another turn) has taken over */
       if (code === 'cancelled' || !mine) { if (S.st.phase === 'thinking' && !S.ctl) S.set({phase: 'answer', live: '', acts: []}); return null; }
-      const off = M.ai.isOff(code) || code === 'rate_limited' || /limit|quota|cap/.test(code);
+      /* the AI is off, resting or used up for today (slow_down): the grammar still runs, so the chips say what does */
+      const off = M.ai.isOff(code) || code === 'rate_limited' || code === 'slow_down' || /limit|quota|cap/.test(code);
       const line = (e && e.text ? e.text + '\n\n' : '') + M.ai.errCopy(code) + (off ? ' ' + OFFLINE_LINE : '');
       S.set({phase: 'answer', live: '', acts: [], err: line, chips: off ? offline() : null, announce: line});
       done({text: line, via: o.via, dock: o.dock, err: true});
@@ -33652,13 +33720,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (subs) subs.add(count);
       return () => { if (subs) subs.delete(count); };
     }, [ctx, cooOpen]);
-    /* the morning brief lands: one hop, once a day on this device; the pop-up shows it until it is read */
-    useEffect(() => {
-      if (!briefDay || pref('cooDigestHop', '') === briefDay) return;
-      M.prefs.set('cooDigestHop', briefDay);
-      setHop(n => n + 1); setIdle(false);
-    }, [briefDay]);
-    /* something new for you: one hop, and it wakes */
+    /* the morning brief makes no hop: the pop-up shows it, when they open it, until it is read */
+    /* something that cannot wait (a blocked step, Kaavish's now ask): one hop, and it wakes */
     useEffect(() => {
       const f = () => { setHop(n => n + 1); setIdle(false); lastInput.current = Date.now(); };
       window.addEventListener('m360:pm', f);
@@ -33856,7 +33919,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setClosing(false); closingRef.current = false;
       if (!openRef.current) { const a = document.activeElement; opener.current = a && a !== document.body && !a.closest('.agent-panel') ? a : null; }
       setOpen(phone ? 'sheet' : 'pop');
-      if (!o.keepIntro) setIntro(null);
+      /* a plain open shows the day's hello waiting there; an open with words in it starts clean */
+      if (!o.keepIntro) setIntro(x => x && x.kind === 'hello' && !text ? x : null);
       if (M.assistant.st.phase !== 'thinking' && M.assistant.st.phase !== 'listening' && M.assistant.st.phase !== 'hearing') M.assistant.set({phase: 'idle', err: '', chips: null});
       setInitial(text || '');
     }, [phone]);
@@ -33932,23 +33996,25 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       return () => window.removeEventListener('m360:tour', startTour);
     }, [startTour]);
 
-    /* once a day, the first time m360 is open: a hello with their numbers, no model call */
+    /* once a day, the first time m360 is open and the data it reads is in (ctx.ready is only the roster and
+       the settings): a hello with their numbers, no model call. It waits in the dock and is there when they
+       open it; it never opens the pop-up and never speaks */
+    const helloReady = !!(ctx.ready && (M.brain && M.brain.helloReady ? M.brain.helloReady(ctx) : true));
     useEffect(() => {
-      if (!ctx.ready || !ctx.member || open || step >= 0) return undefined;
+      if (!helloReady || !ctx.member || open || step >= 0) return undefined;
       if (pref('buddyHello', '1') === '0' || pref('buddyHelloDay', '') === U.todayStr()) return undefined;
       if (!M.tour.ready(ctx) || !M.tour.seen(ctx)) return undefined;    /* the welcome comes first, the hello from the next day */
       if (window.M360_WELCOME_OFF && pref('forceHello', '') !== '1') return undefined;
       const t = setTimeout(async () => {
         if (openRef.current || stepRef.current >= 0) return;
         M.prefs.set('buddyHelloDay', U.todayStr());
-        const nm = await M.ai.names(ctx).catch(() => ({}));
-        const line = M.brain ? M.brain.hello(ctx, nm) : '';
+        const nm = await M.ai.names(ctxRef.current).catch(() => ({}));
+        const line = M.brain ? M.brain.hello(ctxRef.current, nm) : '';
         if (!line || openRef.current) return;
-        openPanel('', {keepIntro: true}); setIntro({kind: 'hello', text: line});
-        if (voiceOn()) speak(line);
+        setIntro({kind: 'hello', text: line});
       }, 1500);
       return () => clearTimeout(t);
-    }, [ctx.ready, ctx.member, open, step]);
+    }, [helloReady, ctx.member, open, step]);
 
     /* a new person gets offered the tour once, on their first sign in */
     useEffect(() => {
@@ -34287,7 +34353,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     useEffect(() => {
       M.buddy = {
         tour: {start: startTour, next: () => showStep(step + 1), stop: () => finishTour('skipped'), step: () => step, count: () => stops.length},
-        ask: t => { openPanel(''); return M.assistant.send(ctx, t, {via: 'typed', size: phone ? 'sheet' : 'pop'}); },
+        ask: t => { openPanel(''); setIntro(null); return M.assistant.send(ctx, t, {via: 'typed', size: phone ? 'sheet' : 'pop'}); },
         open: openPanel, close: closePanel, reset, scan,
         conv: on => on ? startConv() : endConv('api'),
         state: () => ({mode, step, stops: stops.length, ring: !!ring, talking, followUp: follow, hidden: !showDock, flying: !!flight.current, pinned: pinned.current,
@@ -34397,7 +34463,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           onKeyDown=${e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapHome(); } }} onContextMenu=${e => e.preventDefault()}>
           <span key=${hop} class=${'dock-char' + (hop ? ' hop' : '') + (talking ? ' bob' : '')} style=${{'--sz': size + 'px'}}>
             ${live && M.fx && M.fx.VoicePill ? html`<${M.fx.VoicePill} live=${true}><span class="dock-glow"/><//>` : null}
-            ${Bot ? html`<${Bot} type="droid" size=${size} state=${botState} headphones=${live || conv} paused=${paused} jumpEvery=${dockState === 'idle' && !paused && !reduced() ? 45 : 0} interactive=${!reduced()} label="m360" className="dock-bot"/>`
+            ${Bot ? html`<${Bot} type="droid" size=${size} state=${botState} headphones=${live || conv} paused=${paused} jumpEvery=${0} interactive=${!reduced()} label="m360" className="dock-bot"/>`
               : html`<${M.Mark} width="40px"/>`}
           </span>
           <span class="dock-shadow" aria-hidden="true"/>
@@ -35498,7 +35564,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 'use strict';
 (function () {
   const {html, React, U, UI, icons} = M;
-  const {useState, useEffect, useMemo} = React;
+  const {useState, useEffect, useMemo, useRef} = React;
 
   const KEEP_DAYS = 21;
   /* a line with names in it: T`${nm(uid)} handed you ${title}` gives {el} for the drawer (names as
@@ -35529,21 +35595,34 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* tasks */
     const tmap = ctx.coll.tasks.map;
     const coo = by => !!(M.coo && M.coo.isCoo && M.coo.isCoo(by));
+    /* the COO's own lines to the viewer in its DM (asks aside), by time: a move it told them about there is
+       carried by that line, so its row here lists silently */
+    const cooSaid = (M.coo && M.coo.UID && M.rooms && ctx.coll.chat) ? M.rooms.messagesOf(ctx, M.rooms.dmId(M.coo.UID, me)).filter(m => coo(m.by) && !m.ask).map(m => Number(m.at) || 0) : [];
+    const carried = at => cooSaid.some(x => x >= (Number(at) || 0) - 60000 && x <= (Number(at) || 0) + 10 * 60000);
+    /* a review goes to its reviewer of record alone: the project's owner when that is someone else and
+       active, else the founder. The COO's rule (reviewerOf in 10-coo.js), which M.coo does not export, so
+       the same rule is written out here */
+    const activeU = u => !!u && !!(ctx.members || {})[u] && ctx.members[u].active !== false;
+    const reviewerOf = t => {
+      const p = t.project ? (ctx.coll.projects.map || {})[t.project] : null;
+      return p && p.owner && p.owner !== t.owner && activeU(p.owner) ? p.owner : ctx.founderUid;
+    };
     for (const id of Object.keys(tmap)) {
       const t = tmap[id];
       if (!t) continue;
       const mine = t.owner === me;
       if (mine && t.by && t.by !== me) push('assign:' + id, 'tasks', t.created || 0, T`${nm(t.by)} handed you ${t.title}`, '#tasks/' + id, t.by);
-      /* the COO's moves, to the people they touch: never silent, and never a reason (the task's note has it) */
+      /* the COO's moves, to the people they touch, never with a reason (the task's note has it); silent when
+         its DM to them carries the same move */
       for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) {
         if (!o || !coo(o.by)) continue;
-        if (o.to === me) push('coo:own:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed you ${t.title}${t.due ? ', due ' + U.fmtDay(t.due) : ''}`, '#tasks/' + id, o.by, true);
-        else if (o.from === me && o.to) push('coo:off:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed ${t.title} to ${nm(o.to)}`, '#tasks/' + id, o.by);
+        if (o.to === me) push('coo:own:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed you ${t.title}${t.due ? ', due ' + U.fmtDay(t.due) : ''}`, '#tasks/' + id, o.by, true, carried(o.at));
+        else if (o.from === me && o.to) push('coo:off:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed ${t.title} to ${nm(o.to)}`, '#tasks/' + id, o.by, false, carried(o.at));
       }
-      if (mine) for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && coo(d.by)) push('coo:due:' + id + ':' + d.at, 'coo', d.at || 0, T`${nm(d.by)} moved ${t.title} to ${d.to ? U.fmtDay(d.to) : 'no date'}`, '#tasks/' + id, d.by);
+      if (mine) for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && coo(d.by)) push('coo:due:' + id + ':' + d.at, 'coo', d.at || 0, T`${nm(d.by)} moved ${t.title} to ${d.to ? U.fmtDay(d.to) : 'no date'}`, '#tasks/' + id, d.by, false, carried(d.at));
       if (mine && t.status === 'done' && t.doneAt && t.approvedBy && t.approvedBy !== me) push('ok:' + id, 'review', t.doneAt, T`${nm(t.approvedBy)} approved ${t.title}`, '#tasks/' + id, t.approvedBy);
       if (mine && t.sentBackAt && t.sentBackBy && t.sentBackBy !== me) push('back:' + id, 'review', t.sentBackAt, T`${nm(t.sentBackBy)} sent ${t.title} back${t.sentBackNote ? ': ' + t.sentBackNote : ''}`, '#tasks/' + id, t.sentBackBy, true);
-      if (!mine && t.status === 'review' && t.reviewAt && (M.reviews ? M.reviews.canReview(ctx, t) : ctx.isFounder))
+      if (!mine && t.status === 'review' && t.reviewAt && reviewerOf(t) === me)
         push('rev:' + id, 'review', t.reviewAt, T`${nm(t.owner)} put ${t.title} up for review`, '#reviews', t.owner);
       const cs = t.comments || {};
       for (const cid of Object.keys(cs)) {
@@ -35553,40 +35632,41 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         if (mentioned || mine) push('cm:' + cid, 'feed', c.at || 0, T`${nm(c.by)}${mentioned ? ' mentioned you on ' : ' commented on '}${t.title}`, '#tasks/' + id, c.by, mentioned);
       }
     }
-    /* the founder's flags: what somebody did to the record that deserves a look. The COO's own moves list
-       here under its name, silently: its told card and the closing undo window are what ring */
+    /* the founder's flags: what somebody did to the record that deserves a look. Every one lists here
+       silently (the drawer is where they are read), and none is about the viewer's own act: a sign-off
+       they gave, a date they moved, a task they handed over or deleted */
     if (ctx.isFounder && M.tasks) {
       const founder = ctx.founderUid;
+      const self0 = u => u === founder || u === me;
       const since0 = M.tasks.SIGNOFF_SINCE || 0;
       const dayOf = ts => U.ymd(new Date(ts));
       for (const id of Object.keys(tmap)) {
         const t = tmap[id];
         if (!t || t.owner === founder) continue;
         const doneAt = Number(t.doneAt) || 0;
-        if (t.status === 'done' && doneAt >= since0 && !t.approvedBy && !M.tasks.signoffOn(ctx)) push('flag:unsigned:' + id, 'flag', doneAt, T`${nm(t.owner)} marked ${t.title} done with no sign-off`, '#tasks/' + id, t.owner, true);
-        if (t.status === 'done' && doneAt >= since0 && t.approvedBy && t.approvedBy !== founder) {
+        if (t.status === 'done' && doneAt >= since0 && !t.approvedBy && !M.tasks.signoffOn(ctx)) push('flag:unsigned:' + id, 'flag', doneAt, T`${nm(t.owner)} marked ${t.title} done with no sign-off`, '#tasks/' + id, t.owner, true, true);
+        if (t.status === 'done' && doneAt >= since0 && t.approvedBy && !self0(t.approvedBy)) {
           const self = t.approvedBy === t.by && t.by !== t.owner;
-          push('flag:signed:' + id, 'flag', Number(t.approvedAt) || doneAt, self ? T`${nm(t.approvedBy)} created ${t.title} for ${nm(t.owner)} and signed it off themselves` : T`${nm(t.approvedBy)} signed off ${t.title} for ${nm(t.owner)}`, '#tasks/' + id, t.approvedBy, self);
+          push('flag:signed:' + id, 'flag', Number(t.approvedAt) || doneAt, self ? T`${nm(t.approvedBy)} created ${t.title} for ${nm(t.owner)} and signed it off themselves` : T`${nm(t.approvedBy)} signed off ${t.title} for ${nm(t.owner)}`, '#tasks/' + id, t.approvedBy, self, true);
         }
-        if (t.status === 'done' && doneAt && t.due && dayOf(doneAt) > t.due) { const late = U.daysBetween(t.due, dayOf(doneAt)); push('flag:late:' + id, 'flag', doneAt, T`${nm(t.owner)} shipped ${t.title} ${late} ${late === 1 ? 'day' : 'days'} late`, '#tasks/' + id, t.owner); }
-        if (t.status === 'done' && doneAt && t.created && doneAt - t.created < 600000 && t.by === t.owner) push('flag:rushed:' + id, 'flag', doneAt, T`${nm(t.owner)} created and finished ${t.title} within ${Math.max(1, Math.round((doneAt - t.created) / 60000))} min`, '#tasks/' + id, t.owner, true);
-        for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && (d.by === t.owner || coo(d.by)) && d.to > d.from) push('flag:due:' + id + ':' + d.at, 'flag', d.at || 0, T`${nm(d.by)} moved the due date of ${t.title} from ${d.from ? U.fmtDate(d.from) : 'none'} to ${U.fmtDate(d.to)}`, '#tasks/' + id, d.by, true, coo(d.by));
-        for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) if (o && o.by !== founder) push('flag:owner:' + id + ':' + o.at, 'flag', o.at || 0, T`${nm(o.by)} handed ${t.title} ${o.to ? 'to ' : 'off'}${o.to ? nm(o.to) : ''}`, '#tasks/' + id, o.by, false, coo(o.by));
+        if (t.status === 'done' && doneAt && t.due && dayOf(doneAt) > t.due && t.approvedBy !== me) { const late = U.daysBetween(t.due, dayOf(doneAt)); push('flag:late:' + id, 'flag', doneAt, T`${nm(t.owner)} shipped ${t.title} ${late} ${late === 1 ? 'day' : 'days'} late`, '#tasks/' + id, t.owner, false, true); }
+        if (t.status === 'done' && doneAt && t.created && doneAt - t.created < 600000 && t.by === t.owner) push('flag:rushed:' + id, 'flag', doneAt, T`${nm(t.owner)} created and finished ${t.title} within ${Math.max(1, Math.round((doneAt - t.created) / 60000))} min`, '#tasks/' + id, t.owner, true, true);
+        for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && d.by !== me && (d.by === t.owner || coo(d.by)) && d.to > d.from) push('flag:due:' + id + ':' + d.at, 'flag', d.at || 0, T`${nm(d.by)} moved the due date of ${t.title} from ${d.from ? U.fmtDate(d.from) : 'none'} to ${U.fmtDate(d.to)}`, '#tasks/' + id, d.by, true, true);
+        for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) if (o && !self0(o.by)) push('flag:owner:' + id + ':' + o.at, 'flag', o.at || 0, T`${nm(o.by)} handed ${t.title} ${o.to ? 'to ' : 'off'}${o.to ? nm(o.to) : ''}`, '#tasks/' + id, o.by, false, true);
       }
       const trash = (ctx.coll.tasks && ctx.coll.tasks.trash) || {};
-      for (const id of Object.keys(trash)) { const t = trash[id]; if (t && t.deletedBy && t.deletedBy !== founder) push('flag:del:' + id, 'flag', Number(t.deletedAt) || 0, T`${nm(t.deletedBy)} deleted ${t.title}. It is in the bin on Admin`, '#admin', t.deletedBy, true); }
+      for (const id of Object.keys(trash)) { const t = trash[id]; if (t && t.deletedBy && !self0(t.deletedBy)) push('flag:del:' + id, 'flag', Number(t.deletedAt) || 0, T`${nm(t.deletedBy)} deleted ${t.title}. It is in the bin on Admin`, '#admin', t.deletedBy, true, true); }
     }
-    /* the manager's watch: each report's day, as flags; the founder gets whoever reports to them */
+    /* the manager's watch: each report's day, as flags; the founder gets whoever reports to them. They list
+       here silently: Your team shows them, and for the kinds the viewer's bot chases it makes first contact */
     if (M.lines) {
       const td = U.ymd(new Date(ctx.now || Date.now()));
-      /* while the viewer's bot chases a kind, it makes first contact: the flag still lists here, silently */
-      const chased = (r, k) => !!M.pm && M.lines.managerOf(ctx, r) === me && M.pm.chases(ctx, r, k, td);
-      for (const r of M.lines.board(ctx, me)) for (const f of r.flags) push('team:' + r.uid + ':' + (f.key || f.k) + ':' + td, 'flag', f.at || (ctx.now || Date.now()), T`${nm(r.uid)} ${f.text}`, f.ref, r.uid, f.hot, chased(r.uid, f.k));
+      for (const r of M.lines.board(ctx, me)) for (const f of r.flags) push('team:' + r.uid + ':' + (f.key || f.k) + ':' + td, 'flag', f.at || (ctx.now || Date.now()), T`${nm(r.uid)} ${f.text}`, f.ref, r.uid, f.hot, true);
     }
     /* the personal manager: steps due to the viewer, answers to their asks, the note up the line */
     if (M.pm && M.pm.loaded(ctx)) for (const it of M.pm.inboxItems(ctx)) push(it.id, 'pm', it.at, T`${it.line}`, it.ref, it.actor, it.hot, true, true);
-    /* the COO's lines for the founder: an urgent card, the morning brief, undo windows about to close */
-    if (M.cooUi && ctx.isFounder) for (const it of M.cooUi.founderItems(ctx)) push(it.id, 'coo', it.at, T`${it.line}`, it.ref, M.coo.UID, it.hot);
+    /* the COO's lines for the founder: an urgent card, the morning brief (silent), undo windows about to close */
+    if (M.cooUi && ctx.isFounder) for (const it of M.cooUi.founderItems(ctx)) push(it.id, 'coo', it.at, T`${it.line}`, it.ref, M.coo.UID, it.hot, it.silent);
     /* the viewer's own follow-ups, once due: silent here (FollowWatch rings them), hot when late. Nothing is
        stored. When the COO already holds an open card on the same pitch, the line says so and stays quiet. */
     if (M.prospects && M.prospects.inboxItems && !ctx.viewAs) {
@@ -35616,10 +35696,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (p && p.kind === 'announce' && author !== me) push('an:' + p.id, 'feed', p.at || 0, T`${nm(author)} announced: ${String(p.text).slice(0, 90)}`, '#feed', author, true);
       if (p && p.kind === 'poll' && author !== me && !((p.votes || {})[me]) && ((((ctx.coll.votes || {}).map || {})[me] || {}).polls || {})[author + ':' + p.id] === undefined) push('poll:' + p.id, 'feed', p.at || 0, T`${nm(author)} asked: ${String(p.text).slice(0, 80)}`, '#feed', author);
     }
-    /* chat: direct messages and mentions since the read mark */
+    /* chat: direct messages and mentions since the read mark. The COO's lines list silently: they ring
+       nowhere, this row is their one place */
     if (M.rooms && ctx.coll.chat) {
       const myName = ((ctx.coll.me.map[me] || {}).name) || '';
-      for (const it of M.rooms.inboxItems(ctx, myName)) push(it.id, 'chat', it.m.at || 0, T`${nm(it.m.by)}${it.dm ? '' : ' in #' + it.room}: ${String(it.m.text).slice(0, 90)}`, '#chat/' + it.room, it.m.by, it.dm);
+      for (const it of M.rooms.inboxItems(ctx, myName)) push(it.id, 'chat', it.m.at || 0, T`${nm(it.m.by)}${it.dm ? '' : ' in #' + it.room}: ${String(it.m.text).slice(0, 90)}`, '#chat/' + it.room, it.m.by, it.dm, coo(it.m.by));
     }
     /* founder: joins and leave requests */
     if (ctx.isFounder) {
@@ -35652,6 +35733,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   const seenAt = ctx => Number(((ctx.coll.me.map[ctx.uid] || {}).inboxSeen) || 0);
   const unread = ctx => items(ctx).filter(i => i.at > seenAt(ctx)).length;
+  /* the unread rows that speak (a bubble, a chat notice): the bell swings when this count rises */
+  const loud = ctx => items(ctx).filter(i => i.at > seenAt(ctx) && !i.silent).length;
+  /* every collection the list reads has arrived (ctx.ready is only the roster and the settings), so the
+     first full list is a snapshot of what was already there, never news */
+  const LOADS = ['tasks', 'me', 'projects', 'kudos', 'leave', 'leavedec', 'feed', 'chat', 'fixes', 'votes'];
+  const loaded = ctx => !!ctx && !!ctx.ready && !!ctx.coll && LOADS.every(k => !ctx.coll[k] || ctx.coll[k].ready !== false) && (!ctx.isFounder || !ctx.coo || ctx.coo.ready !== false);
 
   const KIND_ICON = {coo: 'bell', pm: 'bell', follow: 'bell', tasks: 'tasks', review: 'review', feed: 'feed', scores: 'scores', leave: 'leave', people: 'people', gift: 'gift', fix: 'fix', chat: 'send', books: 'log', flag: 'shield'};
 
@@ -35698,15 +35785,26 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const ids = useMemo(() => ctx.activeMembers.map(m => m.uid), [ctx.activeMembers]);
     const profs = M.useProfiles(ids);
     const nameOf = id => (M.cooUi && M.cooUi.isCoo(id) ? M.cooUi.titleOf(ctx) : '') || (profs[id] && profs[id].name) || (ctx.members[id] && ctx.members[id].name) || 'Someone';
+    /* a fresh move by the COO waits twenty seconds on this device for its DM, which lands just after the
+       task does and makes the row silent; then one more pass */
+    const firstSeen = useRef(new Map());
+    const holdT = useRef(0);
+    const [again, setAgain] = useState(0);
+    useEffect(() => () => clearTimeout(holdT.current), []);
     useEffect(() => {
       if (!uid || !ctx.ready || !M.notices) return;
       const key = 'inboxNotice.' + uid;
-      const now = Date.now();
+      const now = Date.now(), nowP = performance.now();
       /* chat lines and the bot's steps have watchers of their own; silent items never bubble */
-      const list = items(ctx).filter(i => i.kind !== 'chat' && i.kind !== 'pm' && !i.silent && i.at <= now + 120000);
+      const all = items(ctx).filter(i => i.kind !== 'chat' && i.kind !== 'pm' && !i.silent && i.at <= now + 120000);
+      const move = i => /^coo:(own|off|due):/.test(i.id) && i.at > now - 5 * 60000;
+      for (const i of all) if (move(i) && !firstSeen.current.has(i.id)) firstSeen.current.set(i.id, nowP);
+      const young = i => move(i) && nowP - firstSeen.current.get(i.id) < 20000;
+      if (all.some(young)) { clearTimeout(holdT.current); holdT.current = setTimeout(() => setAgain(n => n + 1), 20500); }
+      const list = all.filter(i => !young(i));
       const newest = list.reduce((m, i) => Math.max(m, Number(i.at) || 0), 0);
       const mark = Number(M.prefs.get(key, '0')) || 0;
-      if (!mark) { M.prefs.set(key, String(newest || now)); return; }
+      if (!mark) { M.prefs.set(key, String(all.reduce((m, i) => Math.max(m, Number(i.at) || 0), 0) || now)); return; }
       const seen = seenAt(ctx);
       /* announced ids, kept on this device: an item that syncs in late with an earlier time than the
          newest one already announced still gets its bubble, within ten minutes of the mark */
@@ -35749,12 +35847,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         M.notices.push({key: it.kind === 'coo' ? it.id : 'inbox:' + it.id, who: it.actor || null, title: who || (TITLE[it.kind] || 'm360'), body: c.body, hidden: 'Something new for you in m360', href: it.ref, life: 12000});
       }
       M.sound.play('soft');
-    }, [ctx, profs]);
+    }, [ctx, profs, again]);
     return null;
   }
   M.parts.InboxWatch = InboxWatch;
 
-  M.inbox = {items, unread, seenAt};
+  M.inbox = {items, unread, loud, loaded, seenAt};
   M.parts.Inbox = Inbox;
 })();
 
@@ -41547,6 +41645,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   /* ---------- the watcher: one bubble per due batch, wherever you are in m360 ---------- */
   let lead = null;
+  /* what leaves the page names nobody: a lock screen or a shared screen reads only this */
+  const AWAY = {title: 'm360', body: 'Something needs you in m360.'};
+  /* the first minutes of a device's day are for arriving: no check-in step rings inside them */
+  const ARRIVE = 5 * MIN;
+  const SELF = new Set(['1', '1b', '1m']), MGR = new Set(['2', '2b']);
+  /* what may sound and hop: a blocked step (someone waits on the viewer) and Kaavish's own "now" ask */
+  const urgent = x => !!x.now || x.item.kind === 'waiton' || (MGR.has(x.step) && !!x.item.ack && x.item.ack.how === 'blocked');
   function PmWatch() {
     const ctx = M.useCtx();
     const me = useRef({});
@@ -41568,9 +41673,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (!P.on && !asks) return;
       const uid = c.uid;
       const nowP = performance.now();
+      /* the last pass on this device, and when its day began here ("last:arrived"; a bare number is last) */
+      const pv = String(M.prefs.get('pmPass.' + uid, '0')).split(':').map(Number);
+      const lastPass = pv[0] || 0;
+      const arrived = lastPass && U.ymd(new Date(lastPass)) === U.ymd(new Date()) ? (pv[1] || 0) : Date.now();
       /* first pass on this device, or none for half an hour: what is waiting arrives as one bubble */
-      if (away.current == null) { const last = Number(M.prefs.get('pmPass.' + uid, '0')) || 0; away.current = !last || Date.now() - last > 30 * MIN; }
-      M.prefs.set('pmPass.' + uid, String(Date.now()));
+      if (away.current == null) away.current = !lastPass || Date.now() - lastPass > 30 * MIN;
+      M.prefs.set('pmPass.' + uid, Date.now() + ':' + arrived);
+      const arriving = Date.now() - arrived < ARRIVE;
       autoAck(c);
       const list = M.pm.forMe(c, {now: Date.now()});
       const dev = new Set(M.pm.devList(uid));
@@ -41579,7 +41689,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       /* due on two passes at least a pass apart; a hidden tab waits longer, so a visible device wins */
       const gap = (document.hidden ? 2.25 : 1) * M.pm.PASS;
       const ready = fresh.filter(x => nowP - seen.current.get(x.stepId) >= gap - 50);
-      const ring = ready.filter(x => x.ring);
+      const ring = ready.filter(x => x.ring && !(arriving && x.item.kind === 'noin' && SELF.has(x.step)));
       /* a blocked answer's step 2 rang as the note's direct message: listed, marked seen, never a second bubble */
       const chat = ready.filter(x => x.chat && !document.hidden);
       if (chat.length) M.pm.told(c, chat.map(x => x.stepId), true);
@@ -41593,7 +41703,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const answers = ring.filter(x => x.step === 'r' || x.step === 't');
       const one = ring[0];
       const n = ring.length;
-      const botOf = x => x.step.startsWith('a.') ? M.pm.first(c, (x.item.asks.find(a => x.step === 'a.' + a.id) || x.item.asks[0] || {}).by) + ' asked m360' : x.item.botName || 'Your bot';
+      /* an ask is titled by who asked; the COO by its own title alone */
+      const askBy = x => (x.item.asks.find(a => x.step === 'a.' + a.id) || x.item.asks[0] || {}).by;
+      const botOf = x => x.step.startsWith('a.') ? M.pm.first(c, askBy(x)) + (M.coo && M.coo.isCoo(askBy(x)) ? '' : ' asked m360') : x.item.botName || 'Your bot';
       const lineOf = x => (x.step === '2' || x.step === '2b') ? x.item.mgrLine : x.step === 'r' || x.step === 't' || x.step === 'digest' ? x.item.line : x.item.line;
       let title, body;
       if (n === 1) { title = mgrSteps.length || one.step === 'digest' ? 'Your bot' : answers.length ? 'Answers to your ask' : botOf(one); body = lineOf(one); }
@@ -41602,9 +41714,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       else { title = botOf(one); body = away.current ? M.pm.COPY.away(n, botOf(one)) : M.pm.COPY.bundle(n, botOf(one)); }
       if (more) body += ', ' + M.pm.COPY.more(more);
       const href = mgrSteps.length === n ? '#people/' + one.item.rep : answers.length ? one.item.ref : '#home';
-      if (M.notices) M.notices.push({key: 'pm:' + one.stepId, title, body, hidden: 'Something new from your bot', href, bot: true, life: 12000});
-      M.sound.play('soft');
-      try { window.dispatchEvent(new CustomEvent('m360:pm', {detail: {type: answers.length === n ? 'answer' : one.step === 'digest' ? 'digest' : 'step', n}})); } catch (e) { /* old browser */ }
+      if (M.notices) M.notices.push({key: 'pm:' + one.stepId, title, body, hidden: 'Something new from your bot', away: AWAY, href, bot: true, life: 12000});
+      /* a quiet bubble: only a blocked step or Kaavish's now ask sounds, and only those hop the dock and fly the plane */
+      if (ring.some(urgent)) {
+        M.sound.play('soft');
+        try { window.dispatchEvent(new CustomEvent('m360:pm', {detail: {type: answers.length === n ? 'answer' : one.step === 'digest' ? 'digest' : 'step', n}})); } catch (e) { /* old browser */ }
+      }
       M.prefs.set('pmRing.' + uid, String(Date.now()));
       away.current = false;
       M.pm.told(c, ring.map(x => x.stepId));
@@ -41693,16 +41808,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     </div>`;
   }
 
-  /* the ladder line under a row: when the manager hears, or when they did */
-  function ladderLine(ctx, it, now) {
-    const mgr = M.pm.first(ctx, it.to2 || it.mgr);
-    if (it.source === 'ask') return it.asks[0] && it.asks[0].tellBy ? 'If there is no answer by ' + U.hhmm(it.asks[0].tellBy) + ', ' + M.pm.first(ctx, it.asks[0].by) + ' hears about it.' : M.pm.first(ctx, it.asks[0].by) + ' sees your answer.';
+  /* the line under a row: who can see it. No countdown to the manager and no time anyone was told */
+  function ladderLine(ctx, it) {
+    if (it.source === 'ask') return M.pm.first(ctx, it.asks[0].by) + ' sees your answer.';
     if (it.state === 'held') return M.pm.COPY.held;
     if (it.coach) return M.pm.COPY.coach({until: it.coachUntil ? U.fmtDay(it.coachUntil) : 'soon'});
-    if (it.toldMgrAt) return mgr + ' saw it at ' + U.hhmm(it.toldMgrAt) + '.';
-    if (it.mgrDueAt && it.mgrDueAt <= now) return mgr + ' was told at ' + U.hhmm(it.mgrDueAt) + '.';
-    if (it.hearsAt) return 'If there is no answer by ' + U.hhmm(it.hearsAt) + ', ' + mgr + ' hears about it.';
-    return mgr + ' can see this on Your team.';
+    return M.pm.first(ctx, it.to2 || it.mgr) + ' can see this on Your team.';
   }
 
   /* one row on the card: the line, why, the ladder, the one thing to do, the answers */
@@ -41730,7 +41841,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${sorted ? html`<div class="pm-sorted small">Sorted at ${U.hhmm(it.sortedAt || now)}${it.toldMgrAt ? '.' : ', before ' + mgrName + ' heard.'}</div>` : html`<${React.Fragment}>
         <div class="row pm-meta">
           ${it.why ? html`<button type="button" class="linky tiny pm-whybtn" aria-expanded=${why} onClick=${() => setWhy(!why)}>Why this</button>` : null}
-          <span class="pm-ladder tiny ink62">${ladderLine(ctx, it, now)}</span>
+          <span class="pm-ladder tiny ink62">${ladderLine(ctx, it)}</span>
         </div>
         ${why ? html`<div class="pm-why small ink62">${it.why}</div>` : null}
         ${it.state === 'held' || it.state === 'letgo' ? null : html`<div class="row pm-acts">
@@ -41764,18 +41875,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (ids.length) M.pm.told(ctx, ids, true);
     }, [ctx]);
     if (!list.length) return null;
-    const fresh = fm.filter(x => shown.has(x.item.K) && !x.told && x.step !== '0').length;
     const sources = new Set(list.map(it => it.source === 'ask' ? 'ask:' + it.asks[0].by : 'bot:' + it.mgr));
     const bots = Array.from(new Set(list.filter(it => it.source !== 'ask').map(it => it.botName)));
     const title = bots.length === 1 ? 'From ' + bots[0] : bots.length ? 'From your bots' : 'From ' + M.pm.first(ctx, list[0].asks[0].by);
     const open = list.filter(it => it.state === 'open').length;
-    const hot = list.some(it => it.hearsAt && it.hearsAt - now <= 15 * MIN && it.state === 'open');
-    const card = html`<section class="card pm-card" id="pm-card" aria-label=${title}>
+    /* still: no count of new rows and no beam; the rows say what is open */
+    return html`<section class="card pm-card" id="pm-card" aria-label=${title}>
       <div class="pm-head row nowrap">
         <span class="pm-bot"><${Bot} size=${32} state=${saving ? 'working' : open ? 'default' : 'sleeping'} label=${title}/></span>
         <h2 class="card-title grow">${title}</h2>
         ${saving ? html`<${M.fx.Orb} state="working" size=${20} label="saving"/>` : null}
-        ${fresh ? html`<${M.fx.MetalBadge}>${fresh + ' new'}<//>` : null}
       </div>
       <div class="pm-rows">${list.map(it => html`<${PmRow} key=${it.K} it=${it} onStatus=${onStatus} multi=${sources.size > 1} now=${now} onSaving=${setSaving}/>`)}</div>
       ${M.lines.managerOf(ctx, ctx.uid) ? html`<div class="row between pm-foot">
@@ -41784,7 +41893,6 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       </div>` : null}
       ${mirror ? html`<${PmMirror} uid=${ctx.uid} onClose=${() => setMirror(false)}/>` : null}
     </section>`;
-    return hot && M.fx && M.fx.Beam ? html`<${M.fx.Beam} on=${true}>${card}<//>` : card;
   }
 
   /* "See what Shreya sees": the same chips the manager's Home shows about you */
@@ -41818,12 +41926,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     if (it.status) return ['ink', 'status set'];
     if (it.mack && it.mack.how === 'mine') return ['ink', 'with you, you said'];
     if (s2 && (s2.state === 'due' || s2.state === 'told')) return ['flame', 'with ' + (it.to2 === ctx.uid ? 'you' : M.pm.first(ctx, it.to2)) + ' since ' + U.hhmm(s2.at)];
-    if (s1 && s1.told) return [s1.state === 'told' && now - s1.told > 30 * MIN ? 'flame' : 'warm', (now - s1.told > 30 * MIN ? 'no answer, seen ' : 'seen ') + U.hhmm(s1.told)];
-    if (s1 && s1.state === 'due') {
-      if (it.kind === 'noin' && !Object.keys((((ctx.coll.me.map[it.rep] || {}).act) || {})[it.ymd] || {}).length) return ['flame', 'not on m360 today'];
-      return ['warm', 'nudged ' + U.hhmm(s1.at)];
-    }
-    if (s1 && s1.state === 'waiting') return ['warm', 'nudge at ' + U.hhmm(s1.at)];
+    /* no read receipts and no times the bot spoke or will: an open item reads open */
+    if (s1) return ['warm', 'open'];
     if (it.source === 'ask') return ['warm', 'asked ' + U.hhmm(it.asks[0].at)];
     return null;
   }
@@ -42174,16 +42278,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${Object.keys(cfg.pause).filter(u => cfg.pause[u] >= U.todayStr()).map(u => html`<div class="row between small" key=${u}><span>${M.pm.first(ctx, u)}, paused until ${U.fmtDay(cfg.pause[u])}</span><button type="button" class="linky tiny" onClick=${() => set({pause: {[u]: null}})}>Resume</button></div>`)}
         </div>
         ${nx ? html`<div class="tiny ink62">From ${U.fmtDay(nx.from)}: ${nx.wait ? 'waits ' + nx.wait + ' minutes' : ''}${nx.wait && nx.kinds ? ', ' : ''}${nx.kinds ? 'also chases ' + Object.keys(nx.kinds).map(k => KIND_NAME[k]).join(', ') : ''}.</div>` : null}
-        <div class="tiny ink62">Shorter waits and new kinds start tomorrow, so nobody is caught out today. Your team sees every nudge your bot sends, and when you were told.</div>
+        <div class="tiny ink62">Shorter waits and new kinds start tomorrow, so nobody is caught out today. Your team sees every nudge your bot sends.</div>
       </div>` : null}
       ${mgr ? html`<div class="stack tight pm-me-rep" id="pm-me-bot">
         ${reps.length ? html`<div class="micro">${M.pm.botName(ctx, mgr)}</div>` : null}
-        <div class="small">It works for ${M.pm.first(ctx, mgr)}. ${chases.length ? 'Chases ' + chases.join(', ') + '. ' : ''}You get ${theirs.wait} minutes. At most ${P.perDay} bubbles a day, never outside your hours.</div>
+        <div class="small">It works for ${M.pm.first(ctx, mgr)}. ${chases.length ? 'Chases ' + chases.join(', ') + '. ' : ''}You get ${theirs.wait} minutes. At most ${P.perDay} bubbles a day of its own and ${P.askPerDay} for asks, inside your hours and silent unless someone is blocked on you.</div>
         ${standalone() ? html`<div class="row between fx-bell-row"><span>Email me when I am away</span>
           ${M.fx && M.fx.Bell ? html`<${M.fx.Bell} id="pm-mymail" size="sm" badge=${false} offLabel="No email" onLabel="Email when away" pressed=${meDoc.mail !== false} onChange=${v => M.pm.setMail(ctx, !!v).catch(() => {})}/>` : null}</div>`
           : html`<div class="tiny ink62" id="pm-mymail">Email when you are away works on the team site.</div>`}
         <div class="pm-me-log">${log.length ? log.map(d => html`<div key=${d.ymd} class="small"><span class="tiny ink62 num">${U.fmtDay(d.ymd)}</span> ${d.items.map(it => it.label).join(', ')}</div>`) : html`<div class="tiny ink62">Nothing from the bot in the last 8 days.</div>`}</div>
-        <div class="tiny ink62">Mute its sound and notices under Your m360. The card and the inbox still show.</div>
+        <div class="tiny ink62">An ask Kaavish sends now anyway can ring at any time. Sounds and previews for all of m360 are under Your m360.</div>
       </div>` : null}
     <//>`;
   }
@@ -43068,14 +43172,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   M.adminCards.push(AdminCard);
 
   /* ---------- Home: the studio now, and the founder's digest ---------- */
+  /* closed until someone looks in, Kaavish too, and anyone can close it again */
   function StudioNow() {
-    const ctx = M.useCtx();
     const inFold = useContext(UI.FoldCtx);
-    const [open, setOpen] = useState(() => ctx.isFounder || M.prefs.get('studioOpen', '0') === '1');
+    const [open, setOpen] = useState(() => M.prefs.get('studioOpen', '0') === '1');
     const show = open || inFold;
     return html`<section class="card coo-studio" id="studio-now">
       <div class="card-head"><h2 class="card-title">The studio now</h2>
-        ${show && !inFold && !ctx.isFounder ? html`<button type="button" class="linky small" onClick=${() => { M.prefs.set('studioOpen', '0'); setOpen(false); }}>Close</button>` : null}
+        ${show && !inFold ? html`<button type="button" class="linky small" id="studio-close" onClick=${() => { M.prefs.set('studioOpen', '0'); setOpen(false); }}>Close</button>` : null}
         ${!show ? html`<button type="button" class="linky small" id="studio-look" onClick=${() => { M.prefs.set('studioOpen', '1'); setOpen(true); }}>Look in</button>` : null}</div>
       ${show ? html`<${OfficeSlot} mode="home"/>` : html`<div class="small ink62">The office, live: who is in, and what the COO is doing.</div>`}
     </section>`;
@@ -43096,7 +43200,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- for the inbox, the dock and the week ---------- */
-  /* the founder's ringing lines: an urgent card, the morning brief once, undo windows closing within the hour */
+  /* the founder's lines: an urgent card and undo windows closing within the hour ring; the morning brief
+     lists silently (the Home digest and the dock carry it) */
   function founderItems(ctx) {
     if (!has() || !ctx.isFounder) return [];
     const out = [];
@@ -43109,7 +43214,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     }
     for (const c of cards) if (c.urgent) out.push({id: 'coo:' + c.id, at: Number(c.at) || now, line: c.title || say(ctx, c).line, ref: '#coo', hot: true});
     const b = briefOf(ctx, rows);
-    if (b) out.push({id: 'coo:brief:' + ymdIST(b.at), at: Number(b.at), line: say(ctx, b).line, ref: '#coo', hot: false});
+    if (b) out.push({id: 'coo:brief:' + ymdIST(b.at), at: Number(b.at), line: say(ctx, b).line, ref: '#coo', hot: false, silent: true});
     const closing = rows.filter(r => r.status === 'done' && undoBy(r) > now && undoBy(r) - now <= 3600000);
     if (closing.length) {
       const first = Math.min(...closing.map(undoBy));
