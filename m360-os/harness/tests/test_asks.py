@@ -18,9 +18,10 @@ Part 1, 20:45, with the personal managers still off (they ship off):
 Part 2, the morning, with the founder switching the bots on in Admin:
 - Kaavish presses the Admin switch; settings/app.pm.on is true.
 - 11:20: Prarthana has an overdue task. Shreya's bot tells Prarthana first (her card and one bubble);
-  Shreya hears nothing yet. The chip on Shreya's Your team reads the nudge.
+  Shreya hears nothing yet. The chip on Shreya's Your team reads open, with no read receipt.
 - 11:45: Prarthana's quiet stretch (nothing since 10:40, a 60 minute threshold) is on her card too.
-- 12:16: the hour is up on the overdue task; Shreya's bot tells Shreya, once.
+- 12:16: the hour is up on the overdue task; Shreya's step 2 is due and silent: no bubble, a manager is
+  never pinged on a timer (v36 relief R3).
 - Shreya cannot switch her bot off: the Me switch is held, the engine and the agent refuse.
 
 Screenshots go to $ASKS_SHOTS (default harness/shots/asks).
@@ -42,6 +43,11 @@ SHOTS = os.environ.get('ASKS_SHOTS') or os.path.join(ROOT, 'harness', 'shots', '
 SENTENCE = "flag the people who haven't checked out from office and ask them why"
 SPY = '''() => { window.__pmBubbles = window.__pmBubbles || []; if (M.notices.__spy) return; M.notices.__spy = true;
   const push = M.notices.push; M.notices.push = n => { if (String(n.key || "").startsWith("pm:")) window.__pmBubbles.push(n); return push(n); }; }'''
+# the watcher's own passes: PmWatch reads M.pm.devList once a pass and nothing else does, so once its passes
+# span two PASS lengths, whatever was due has had its chance to ring
+PASSES = '''() => { window.__pmPassAt = []; if (M.pm.__passSpy) return; M.pm.__passSpy = true;
+  const d = M.pm.devList; M.pm.devList = u => { window.__pmPassAt.push(performance.now()); return d(u); }; }'''
+PASSED = '() => { const t = window.__pmPassAt || []; return t.length >= 2 && t[t.length - 1] - t[0] >= 2 * M.pm.PASS; }'
 
 
 def test(h):
@@ -262,7 +268,7 @@ def test(h):
     p.wait_for_selector('#pm-card .pm-row[data-k="%s"]' % ko)
     card = p.inner_text('#pm-card')
     check("From Shreya's bot" in card and 'Tanishq carousel' in card, 'the card from Shreya\'s bot: %r' % card[:240])
-    check('If there is no answer by 12:15, Shreya hears about it.' in card, 'the window first: %r' % card)
+    check('Shreya can see this on Your team.' in card and 'If there is no answer' not in card, 'who can see it, no countdown: %r' % card)  # RELIEF R12
     p.wait_for_function('() => window.__pmBubbles.length >= 1', timeout=25000)
     bub = p.evaluate('() => window.__pmBubbles[0]')
     check(bub['title'] == "Shreya's bot" and 'Tanishq carousel' in bub['body'], 'one bubble from Shreya\'s bot: %r' % bub)
@@ -274,9 +280,9 @@ def test(h):
     check(not early, 'Shreya hears nothing inside the window: %r' % early)
     p.wait_for_selector('#team-u_pr .pm-chip[data-k="%s"]' % ko)
     chip = p.inner_text('#team-u_pr .pm-chip[data-k="%s"]' % ko)
-    check(chip.startswith(('nudged', 'seen')), "Shreya's chip reads the nudge: %r" % chip)
+    check(chip == 'open', "Shreya's chip reads no receipt: %r" % chip)  # RELIEF R12
     p.locator('#team-u_pr').scroll_into_view_if_needed()
-    shot(p, '14-shreya-chip-nudged')
+    shot(p, '14-shreya-chip-open')
 
     # 11:45, the quiet stretch since 10:40
     c2.clock.set_fixed_time(at(11, 45))
@@ -292,13 +298,16 @@ def test(h):
     c2.clock.set_fixed_time(at(12, 16))
     be(p, 'sh', '#home')
     due = p.evaluate('() => M.pm.forMe(M.lastCtx).map(x => [x.stepId, x.ring])')
-    check([ko + '#2', True] in due, "Shreya's bot tells Shreya at 12:15: %r" % due)
-    p.wait_for_function('() => window.__pmBubbles.length >= 1', timeout=25000)
-    p.wait_for_timeout(2500)
+    # RELIEF R3: the step 2 is due at 12:15 and silent: Shreya's card, inbox and chips show it, nothing pings her
+    check([ko + '#2', False] in due, "Shreya's step 2 is due at 12:15 and does not ring: %r" % due)
+    row = p.evaluate('k => (M.pm.inboxItems(M.lastCtx).find(i => i.id === "pm:" + k) || {}).silent', ko + '#2')
+    check(row is True, 'it lists in her inbox, silently: %r' % row)
+    p.evaluate(PASSES)
+    p.wait_for_function(PASSED, timeout=25000)
     bb = p.evaluate('() => window.__pmBubbles')
-    check(len(bb) == 1 and bb[0]['title'] == 'Your bot' and 'Prarthana' in bb[0]['body'], 'one escalation bubble: %r' % bb)
-    p.wait_for_selector('.notice[data-key^="pm:"]')
-    shot(p, '16-shreya-escalation')
+    check(bb == [], 'no escalation bubble: a manager is not pinged on a timer: %r' % bb)
+    check(p.locator('.notice[data-key^="pm:"]').count() == 0, 'and no pm notice on her screen')
+    shot(p, '16-shreya-no-bubble')
 
     # Shreya cannot switch her bot off
     be(p, 'sh', '#me')

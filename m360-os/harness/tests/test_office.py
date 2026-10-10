@@ -187,6 +187,11 @@ def test(h):
     # ---- Home: the studio window pauses off screen ----
     p.goto(h.url('founder', '#home'))
     h.ready(p)
+    # RELIEF R14: the studio fold starts closed for Kaavish too; he looks in
+    p.wait_for_selector('#studio-look')
+    check(p.locator('#studio-now .office-window').count() == 0, 'the studio starts closed on Home')
+    p.click('#studio-look')
+    p.wait_for_selector('#studio-now .office-window')
     p.wait_for_timeout(800)
     win = p.evaluate('() => !!document.querySelector(".office-window")')
     if win:

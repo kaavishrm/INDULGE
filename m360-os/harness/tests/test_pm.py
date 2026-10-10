@@ -10,10 +10,11 @@ clock pinned and moved:
   reads the warm line; two pages of m3 in one browser bring exactly one bubble, and told is written once.
 - m3 answers "On it, in 30 minutes": the ack lands, m2's chip reads "on it, by 11:16", the DM shows the
   derived row and the coded answer. The eta passes with no check-in: step 1b comes due at 11:16.
-- 11:46 on the m2 path: m1 (no check-in, no answer) brings Kaavish's escalation (step 2 to the founder)
-  exactly once; a manager may not hear inside the window (none at 11:44).
-- mine on an item stops step 3; the 17:30 digest reaches the founder once for what m1 left open
-  (m3 under m2 under m1 under the founder).
+- 11:46 on the m2 path: m1 (no check-in, no answer) brings Kaavish's step 2 due, and silent: it lists on
+  his Home and in his inbox, and no bubble comes (v36 relief R3); a manager may not hear inside the
+  window (none at 11:44).
+- mine on an item stops step 3; the 17:30 digest lists for the founder once, silently, for what m1 left
+  open (m3 under m2 under m1 under the founder).
 - noeod: the card heads-up at 19:00 (step 0, never rings), step 1 at 19:30, the morning sweep to the
   manager next day at start plus grace.
 - Rings are held over lunch and while a focus timer runs.
@@ -98,6 +99,14 @@ def test(h):
     def ev(expr, arg=None):
         return pg.evaluate('(a) => { const ctx = M.lastCtx; return (%s); }' % expr, arg)
 
+    def passed(p=None):
+        # the watcher's own passes: PmWatch reads M.pm.devList once a pass and nothing else does, so once its
+        # passes span two PASS lengths, whatever was due has had its chance to ring (a check that nothing rang)
+        p = p or pg
+        p.evaluate('''() => { window.__pmPassAt = []; if (M.pm.__passSpy) return; M.pm.__passSpy = true;
+          const d = M.pm.devList; M.pm.devList = u => { window.__pmPassAt.push(performance.now()); return d(u); }; }''')
+        p.wait_for_function('() => { const t = window.__pmPassAt || []; return t.length >= 2 && t[t.length - 1] - t[0] >= 2 * M.pm.PASS; }', timeout=20000)
+
     pg.wait_for_function('() => !!window.__db.get("roster/team")')
     pg.wait_for_timeout(300)
     h.roster(pg, [M1, M2, M3], extra={M2: {'reportsTo': M1}, M3: {'reportsTo': M2}})
@@ -143,7 +152,7 @@ def test(h):
     pg.wait_for_selector('#pm-card .pm-row[data-k="%s"]' % k3)
     card = pg.inner_text('#pm-card')
     check("From Aanya's bot" in card and 'Morning Ishaan' in card, 'the card on Home: %r' % card[:200])
-    check('If there is no answer by 11:45, Aanya hears about it.' in card, 'the ladder line: %r' % card)
+    check('Aanya can see this on Your team.' in card and 'If there is no answer' not in card, 'the ladder line: %r' % card)  # RELIEF R12
     check(pg.locator('#quiet-nudge').count() == 0, 'the card takes the quiet nudge\'s place')
     pg2 = ctx.new_page()
     pg2.on('pageerror', lambda e: h.console.append(('pageerror', str(e))))
@@ -152,6 +161,7 @@ def test(h):
     pg2.evaluate('() => { M.pm.PASS = 800; }')
     for p in (pg, pg2):
         p.evaluate('() => { window.__pmBubbles = []; const push = M.notices.push; M.notices.push = n => { if (String(n.key || "").startsWith("pm:")) window.__pmBubbles.push(n); return push(n); }; }')
+    pg.evaluate('t => localStorage.setItem("m360.pmPass.u_m3", t + ":" + t)', ms(10, 40))  # RELIEF R11: this device arrived at 10:40, past the arrival grace
     pg.wait_for_function('() => (((window.__db.get("me/u_m3") || {}).pm || {}).told || {})[%r] > 0' % (k3 + '#1'), timeout=20000)
     pg.wait_for_timeout(2500)
     b1 = pg.evaluate('() => window.__pmBubbles')
@@ -204,11 +214,13 @@ def test(h):
     be('founder')
     pg.evaluate('() => { M.pm.PASS = 800; window.__pmBubbles = []; const push = M.notices.push; M.notices.push = n => { if (String(n.key || "").startsWith("pm:")) window.__pmBubbles.push(n); return push(n); }; }')
     mine = ev('M.pm.forMe(ctx).map(x => [x.stepId, x.ring])')
-    check([k1 + '#2', True] in mine, 'the founder has step 2 on m1 due and ringing: %r' % mine)
-    pg.wait_for_function('() => (((window.__db.get("me/u_founder") || {}).pm || {}).told || {})[%r] > 0' % (k1 + '#2'), timeout=20000)
-    pg.wait_for_timeout(2500)
+    # RELIEF R3: a manager is never pinged on a timer: the step is due and silent
+    check([k1 + '#2', False] in mine, 'the founder has step 2 on m1 due, and it does not ring: %r' % mine)
+    passed()
+    told1 = pg.evaluate('k => (((window.__db.get("me/u_founder") || {}).pm || {}).told || {})[k] || 0', k1 + '#2')
+    check(told1 <= 0, 'and nothing marks it as rung: %r' % told1)
     bb = pg.evaluate('() => window.__pmBubbles')
-    check(len(bb) == 1 and bb[0]['title'] == 'Your bot' and bb[0]['body'].startswith('Durvesh'), 'one escalation bubble: %r' % bb)
+    check(bb == [], 'no escalation bubble: %r' % bb)
 
     # ---- m3 is quiet too; m2 on m2's own page gets m3's 2b later; and mine stops step 3 ----
     ctx.clock.set_fixed_time(at(11, 50))
@@ -226,8 +238,14 @@ def test(h):
     check(dg['text'].startswith("1 thing on Durvesh's team is still open. Aanya: no check-in yet, with Durvesh since 11:45."), 'the note reads: %r' % dg['text'])
     check(ev('M.pm.digest(ctx, "u_m1")') is None or ev('M.pm.digest(ctx, "u_m1").rows.length') == 0, 'm1 gets no note about m3: mine stopped it')
     pg.evaluate('() => { M.pm.PASS = 800; }')
-    pg.wait_for_function('() => (((window.__db.get("me/u_founder") || {}).pm || {}).told || {})[%r] > 0' % ('digest:u_founder:' + today), timeout=20000)
-    check(True, 'the digest reached the founder')
+    # RELIEF R3: the note up the line lists silently: due, never rung, in the inbox as a silent row
+    dgr = ev('M.pm.forMe(ctx).filter(x => x.step === "digest").map(x => [x.stepId, x.ring])')
+    check(dgr == [['digest:u_founder:' + today, False]], 'the digest is due for the founder and does not ring: %r' % dgr)
+    row = ev('(M.pm.inboxItems(ctx).find(i => i.id === a) || {}).silent', 'pm:digest:u_founder:' + today)
+    check(row is True, 'it lists in his inbox, silently: %r' % row)
+    passed()
+    toldd = pg.evaluate('k => (((window.__db.get("me/u_founder") || {}).pm || {}).told || {})[k] || 0', 'digest:u_founder:' + today)
+    check(toldd <= 0, 'and it never rings: %r' % toldd)
     n_before = ev('M.pm.forMe(ctx).filter(x => x.step === "digest").length')
     check(n_before == 1, 'one digest a day: %r' % n_before)
 
@@ -359,7 +377,7 @@ def test(h):
     pg.wait_for_timeout(2500)
     bb = pg.evaluate('() => window.__pmBubbles')
     check(len(bb) == 1 and ('6 things' in bb[0]['body']), 'six steps due together ring as one bubble: %r' % bb)
-    check(pg.evaluate('() => window.__pmEv') == [{'type': 'step', 'n': 6}], 'and one m360:pm event: %r' % pg.evaluate('() => window.__pmEv'))
+    check(pg.evaluate('() => window.__pmEv') == [], 'and no m360:pm event: %r' % pg.evaluate('() => window.__pmEv'))  # RELIEF R11
     merge_doc('me/' + M2, {'pm': {'chase': {'t_od0': {'rep': M3, 'at': ms(11, 25, 2)}}}})
     ctx.clock.set_fixed_time(at(11, 31, 2))
     pg.wait_for_timeout(3500)
@@ -503,7 +521,8 @@ def test(h):
     au = ev('M.pm.audit(ctx)')
     check(au['zero'] == {'hours': 0, 'budget': 0, 'early': 0, 'offday': 0, 'ruleoff': 0}, 'the zero checks: %r %r' % (au['zero'], au['bad']))
     rows = {r['uid']: r for r in au['rows']}
-    check(rows[M2]['nudges'] >= 1 and rows[F]['mgr'] >= 1, 'the week counts nudges and what reached the manager: %r' % rows)
+    # RELIEF R3: nothing reaches a manager on a timer, so the week counts no manager rings
+    check(rows[M2]['nudges'] >= 1 and rows[F]['mgr'] == 0, 'the week counts nudges, and none reached the manager: %r' % rows)
     be('founder', '#admin')
     pg.wait_for_selector('#pm-admin')
     pg.locator('#pm-admin .pm-audit-wrap .linky').click()

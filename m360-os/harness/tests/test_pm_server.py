@@ -7,24 +7,26 @@ IST, people sign in by sessions written straight into the store (no password any
 stand-in that records each mail. Aanya reports to Kaavish; Ishaan, Prathna, Rohan, Ekta, Sana and Vir report
 to Aanya; Neel's manager Maya switched her bot's mail off; Lata is on approved leave.
 
-Checks:
-- at 11:40 both instances tick at once: Ishaan (no check-in, away, s1 10:45) gets exactly one mail, claimed
-  in x/pm/<ymd>/u_i/am and marked sent; ticking again sends nothing more;
+Checks (v36 relief R7: only an ask goes by mail; an automatic step stays on the page, and no manager is
+ever mailed about a report):
+- at 11:40 both instances tick at once: Ishaan (no check-in, away, s1 10:45) has only the bot's automatic
+  check-in step, so he gets no mail and nothing is claimed in x/pm/<ymd>/u_i/am; ticking again sends nothing;
 - a present person (beacon 30 s old) and one who saved 10 minutes ago are not mailed; an answer on K, a told
   mark on the step, mail switched off by the person, a manager's cfg.mail off and approved leave each stop it;
-- the words: the subject and body from spec Part E, the site link, no dashes or exclamation marks;
+- the words, on an ask mail ("Kaavish asked about your check-out"): the lead "Hi Ishaan, m360 has 1 thing for
+  you today.", the site link, who reads the answers, how often it mails, no dashes or exclamation marks;
 - tick needs no sign-in and runs the pass: Ishaan checks in at 12:20, and at 20:00 a signed-out tick sends
-  his evening mail (the EOD line, not the check-in again), and Aanya, in the office but away from m360, her
-  one 'esc' mail for the step 2 items nobody answered (a told mark written as shown without a sound still
-  reads "Nudged at"); a later tick sends no third mail to Ishaan and no second 'esc';
+  him no evening mail for his EOD line, and Aanya, in the office but away from m360, no 'esc' mail for the
+  step 2 items nobody answered ("The nudge has not been seen yet." is nowhere); Kaavish's ask to Ishaan at
+  20:05 goes at 20:30, his one mail of the day, in the pm slot;
 - pmmail is scoped: Ishaan sees his own rows, Aanya sees her reports' and her own, Kaavish sees all, Prathna
   sees only hers; pmstatus is the founder's only and counts the mails;
 - no mail and no claim without mail set up, or with settings.pm.mail off; with the bots off (pm.on false)
   nothing automatic goes, and a voice ask still mails ("Kaavish asked about your check-out");
 - a told-only write of me/<self> keeps no version and no log line; a write mixing told with an answer, a
   told value that is not a time, and the founder writing someone else's told marks keep both;
-- the ring window, as on the page: nothing over lunch, nothing after someone checked out, and before a
-  check-in only the check-in itself;
+- the ring window, as on the page: nothing over lunch, nothing after someone checked out, and after lunch
+  neither Ishaan's overdue task nor Ekta's missing check-in is mailed, both being automatic steps;
 - asks count only from someone with the right: a peer's hand-written ask, and a manager asking someone
   outside their line about attendance, are never mailed; ringNow lifts the window for the founder only; a
   pending leave request holds even the founder's ask; a check-out ask waits for the watch's 20:30.
@@ -70,6 +72,7 @@ function world(opts) {
     return new Response('', {status: 404});
   };
   globalThis.fetch = fetcher;
+  allMail.push(sent);
   const env = {fetch: fetcher, PM_RECHECK_MS: '0', SITE_URL: 'https://m360.example.com'};
   const apps = [createApp({store, env}), createApp({store, env})];
   const put = (k, v) => data.set(k, JSON.stringify(v));
@@ -101,6 +104,8 @@ function world(opts) {
 const to = (sent, u) => sent.filter(m => (m.to || [])[0] === u.slice(2) + '@example.com');
 const ledger = data => [...data.keys()].filter(k => k.startsWith('x/pm/' + TODAY + '/')).sort();
 const out = {today: TODAY};
+/* every mail any world sent, for the words that must appear nowhere */
+const allMail = [];
 const K = (u, kind, sub) => u + ':' + kind + ':' + (sub || '-') + ':' + TODAY;
 
 /* ---------- A. the morning: who is mailed, and only once across two instances ---------- */
@@ -252,17 +257,20 @@ for (const [name, opts] of [['nomail', {mail: false}], ['mailoff', {pm: {mail: f
 {
   NOW = at(11, 40);
   const w = world({});
+  /* only an ask is mailed: Kaavish asked Ishaan about his check-in at 11:00, and Ishaan is away */
+  w.put('d/me~u_f', {name: 'Kaavish Ramchandani', pm: {asks: {h1: {kind: 'noin', to: ['u_i'], ask: 'why', at: at(11, 0), via: 'voice'}}}});
   const store = {getJ: async k => { await lag(); const v = w.data.get(k); return v == null ? null : JSON.parse(v); },
     putJ: async (k, v) => { await lag(); w.data.set(k, JSON.stringify(v)); },
     listAll: async pre => { await lag(); return [...w.data.keys()].filter(k => k.startsWith(pre)).sort().map(key => ({key})); }};
   const mails = [];
   const desk = () => pmDesk({...store, docKey: p => 'd/' + p.split('/').join('~'), ownerUid: async () => 'u_f',
     appSettings: async () => JSON.parse(w.data.get('d/settings~app')), mailOn: async () => true,
-    sendMail: async (to, subject) => { mails.push(to + ' ' + subject); return true; }, env: {PM_RECHECK_MS: '0'}});
+    sendMail: async (to, subject, text, html) => { mails.push(to + ' ' + subject); allMail.push([{subject, text, html}]); return true; }, env: {PM_RECHECK_MS: '0'}});
   const a = desk(), b = desk();
   await Promise.all([a.run('https://m360.example.com'), b.run('https://m360.example.com')]);
   out.race = mails.sort();
 }
+out.allText = allMail.flat().map(m => (m.subject || '') + '\n' + (m.text || '') + '\n' + (m.html || ''));
 console.log(JSON.stringify(out));
 '''
 
@@ -289,7 +297,8 @@ def main():
 
     check(all(s == 200 and b == {'ok': True} for s, b in out['tick']), 'tick answers ok with no sign-in: %r' % out['tick'])
     mo = out['morning']
-    check(mo['ishaan'] == 1, 'Ishaan, away with no check-in, gets exactly one mail across two instances: %r' % mo)
+    # RELIEF R7: an automatic step stays on the page; only an ask goes by mail
+    check(mo['ishaan'] == 0, 'Ishaan, away with only the bot\'s check-in step, gets no mail on either instance: %r' % mo)
     check(mo['prathna'] == 0, 'someone on m360 right now is not mailed: %r' % mo)
     check(mo['rohan'] == 0, 'someone who saved ten minutes ago is not mailed: %r' % mo)
     check(mo['ekta'] == 0, 'an answer on K stops the mail: %r' % mo)
@@ -298,38 +307,42 @@ def main():
     check(mo['neel'] == 0, "a manager's cfg.mail off stops mail to their team: %r" % mo)
     check(mo['lata'] == 0, 'approved leave stops it: %r' % mo)
     check(mo['aanya'] == 0, 'no step 2 mail before the wait has passed: %r' % mo)
-    check('x/pm/%s/u_i/am' % today in mo['ledger'], 'the mail is claimed in the ledger: %r' % mo['ledger'])
+    check(mo['ledger'] == [], 'nothing is claimed in the ledger for an automatic step: %r' % mo['ledger'])
     check(not any('/u_p/' in k or '/u_e/' in k or '/u_v/' in k for k in mo['ledger']), 'nothing is claimed for people not mailed: %r' % mo['ledger'])
     r = out['row']
-    check(r and r['to'] == 'u_i' and r['slot'] == 'am' and r['sent'] and r['keys'] == ['u_i:noin:-:' + today] and r['steps'] == ['u_i:noin:-:%s#1' % today],
-          'the ledger row carries the keys and step ids the page uses: %r' % r)
-    m = out['mail']
-    check(m['subject'] == "1 thing from Aanya's bot", 'the subject: %r' % m['subject'])
-    check(m['text'].startswith("Hi Ishaan, Aanya's bot in m360 has 1 thing for you today.") and '1. No check-in yet. Your day started at 10:30.' in m['text'],
+    check(r is None, 'and no ledger row: %r' % r)
+    check(out['mail'].get('subject') is None and not out['mail'].get('text'), 'no mail words went: %r' % out['mail'])
+    # the words, on an ask mail: Kaavish's check-out ask to Ishaan with the bots off (world E)
+    m = out['botsOff']
+    check(m['subject'] == 'Kaavish asked about your check-out', 'the subject: %r' % m['subject'])
+    check(m['text'].startswith('Hi Ishaan, m360 has 1 thing for you today.') and '1. Kaavish asked m360 to check with you, 20:10.' in m['text'],
           'the body opens with the line from spec Part E: %r' % m['text'])
-    check('https://m360.example.com/#home' in m['text'] and 'Aanya reads your answers there.' in m['text'] and 'at most twice a day' in m['text'] and 'Turn it off under Me.' in m['text'],
+    check('https://m360.example.com/#home' in m['text'] and 'Kaavish reads your answers there.' in m['text'] and 'at most twice a day' in m['text'] and 'Turn it off under Me.' in m['text'],
           'the body links home and says how often it mails: %r' % m['text'])
     for s in (m['subject'], m['text']):
-        check(not re.search('[–—!]', s), 'no dashes or exclamation marks in the mail: %r' % s)
+        check(not re.search('[\u2013\u2014!]', s), 'no dashes or exclamation marks in the mail: %r' % s)
     check(out['again'] == mo['total'], 'ticking again sends nothing new: %r vs %r' % (out['again'], mo['total']))
 
     ev = out['evening']
     check(ev['status'] == 200 and ev['body'] == {'ok': True}, 'a signed-out tick runs the pass: %r' % ev)
-    check(len(ev['ishaan']) == 2 and 'x/pm/%s/u_i/pm' % today in ev['ledger'], 'the evening slot sends Ishaan a second mail: %r' % ev)
-    check("EOD line is not in" in ev['ishaanText'] and 'No check-in yet' not in ev['ishaanText'], 'the evening mail carries the EOD line and not the check-in again: %r' % ev['ishaanText'])
-    check(len(ev['aanya']) == 1 and ev['aanya'][0].startswith('Your bot: ') and ev['aanya'][0].endswith('it could not settle'), "Aanya's one 'esc' mail: %r" % ev['aanya'])
-    check('No check-in from Prathna since the 10:30 start. The nudge has not been seen yet.' in ev['aanyaText'] and 'No check-in from Sana since the 10:30 start. Nudged at 10:46.' in ev['aanyaText'] and 'Ekta said 12:00 for the check-in. It is 20:00 and there is no check-in yet.' in ev['aanyaText'], 'the manager mail names the report and the start: %r' % ev['aanyaText'])
+    # RELIEF R7: no evening mail for an automatic EOD step, and no manager is mailed about a report
+    check(ev['ishaan'] == [] and 'x/pm/%s/u_i/pm' % today not in ev['ledger'], 'the evening slot sends Ishaan no mail for the bot\'s EOD step: %r' % ev)
+    check(ev['ishaanText'] == '', 'no evening text: %r' % ev['ishaanText'])
+    check(ev['aanya'] == [], "Aanya gets no 'esc' mail: %r" % ev['aanya'])
+    check(ev['aanyaText'] == '' and not any(k.endswith('/esc') for k in ev['ledger']), 'no esc mail exists: %r' % ev)
+    check(not any('has not been seen' in x for x in out['allText']), '"The nudge has not been seen yet." appears in no mail: %r' % [x for x in out['allText'] if 'has not been seen' in x][:1])
+    with open(PM, encoding='utf-8') as f:
+        check('has not been seen' not in f.read(), '"The nudge has not been seen yet." is gone from edgeone/server/pm.js')
     check('Ishaan' not in ev['aanyaText'], 'a check-in that came late is sorted and never reaches the manager: %r' % ev['aanyaText'])
     e = out['esc']
-    check(e and e['sent'] and 'u_p:noin:-:%s#2' % today in e['steps'] and 'u_e:noin:-:%s#2b' % today in e['steps'],
-          'the esc row holds step 2 for Prathna and 2b for Ekta, whose time passed: %r' % e)
-    check('u_s:noin:-:%s#2' % today in e['steps'], 'a step shown to the report still reaches the manager when unanswered: %r' % e)
-    check(not any(s.startswith('u_n:') for s in e['steps']), "another manager's report is not in Aanya's mail: %r" % e)
-    check(out['capped'] == {'ishaan': 2, 'aanya': 1}, 'at most two mails a person a day and one esc: %r' % out['capped'])
+    check(e is None, 'the esc row is None: %r' % e)
+    check(not (e and any(s.startswith('u_n:') for s in e['steps'])), "another manager's report is not in Aanya's mail: %r" % e)
+    # Kaavish's 20:05 ask to Ishaan still goes, in the pm slot: his one mail of the day
+    check(out['capped'] == {'ishaan': 1, 'aanya': 0}, 'only the ask is mailed, and no esc: %r' % out['capped'])
 
     pm = out['pmmail']
-    check(pm['ishaan'] == ['u_i/am', 'u_i/pm'], 'Ishaan reads his own rows: %r' % pm)
-    check('u_a/esc' in pm['aanya'] and 'u_i/am' in pm['aanya'] and all(x.split('/')[0] in ('u_a', 'u_i', 'u_p', 'u_r', 'u_e', 'u_s', 'u_v', 'u_l') for x in pm['aanya']),
+    check(pm['ishaan'] == ['u_i/pm'], 'Ishaan reads his own rows: %r' % pm)
+    check(pm['aanya'] == ['u_i/pm'] and 'u_a/esc' not in pm['aanya'] and 'u_i/am' not in pm['aanya'] and all(x.split('/')[0] in ('u_a', 'u_i', 'u_p', 'u_r', 'u_e', 'u_s', 'u_v', 'u_l') for x in pm['aanya']),
           "Aanya reads her own and her reports' rows: %r" % pm)
     check(set(pm['founder']) >= set(pm['aanya']) and len(pm['founder']) >= len(pm['aanya']), 'Kaavish reads every row: %r' % pm)
     check(all(x.startswith('u_p/') for x in pm['prathna']) and all(x.startswith('u_n/') for x in pm['neel']), 'a report sees only their own rows: %r' % pm)
@@ -356,9 +369,10 @@ def main():
           'two passes at the same moment, both past the "no claim yet" look, still send each mail once: %r' % race)
     check(out['lunch'] == [], 'nothing is mailed over lunch: %r' % out['lunch'])
     al = out['afterLunch']
-    check('e@example.com' in al['to'] and 'i@example.com' in al['to'] and 'r@example.com' not in al['to'], 'after lunch Ishaan and Ekta are mailed, Rohan who checked out is not: %r' % al['to'])
-    check('Swisse reel cutdown' in al['ishaan'], "Ishaan's mail carries his overdue task: %r" % al['ishaan'])
-    check('No check-in yet' in al['ekta'] and 'Tanishq' not in al['ekta'], 'before a check-in only the check-in is mailed: %r' % al['ekta'])
+    # RELIEF R7: an overdue task and a missing check-in are automatic steps: they stay on the page
+    check('e@example.com' not in al['to'] and 'i@example.com' not in al['to'] and 'r@example.com' not in al['to'], 'after lunch Ishaan and Ekta are not mailed, nor Rohan who checked out: %r' % al['to'])
+    check(al['ishaan'] == '' and 'Swisse reel cutdown' not in al['ishaan'], 'no mail with the overdue task: %r' % al['ishaan'])
+    check(al['ekta'] == '' and 'No check-in yet' not in al['ekta'], 'no check-in mail: %r' % al['ekta'])
     check(out['rights'] == ['r@example.com'], "a manager's ask to her own report goes; a peer's hand-written ask, an attendance ask outside the line and an ask during a pending leave request never do: %r" % out['rights'])
     check(out['ringNow'] == ['s@example.com'], "past the window only the founder's ringNow ask goes, never a manager's: %r" % out['ringNow'])
     return checks

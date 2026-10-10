@@ -281,6 +281,7 @@ def test(h):
           window.addEventListener('m360:pm', () => { window.__pmEvents++; }); }'''
         for p in (p1, p2):
             p.evaluate(hook)
+        p1.evaluate('t => localStorage.setItem("m360.pmPass.u_m3", t + ":" + t)', ms(10, 40))  # RELIEF R11: this device arrived at 10:40
         for _ in range(4):
             for p in (p1, p2):
                 p.clock.run_for(12000)
@@ -295,7 +296,7 @@ def test(h):
         check(row.count() == 1, 'the card carries the noin row keyed by K')
         check('Aanya' in p1.inner_text('#pm-card'), "the card is from Aanya's bot: %r" % p1.inner_text('#pm-card')[:200])
         lad = row.locator('.pm-ladder')
-        check(lad.count() == 1 and 'Aanya' in lad.inner_text() and '11:45' in lad.inner_text(), 'the ladder says when Aanya hears: %r' % (lad.inner_text() if lad.count() else ''))
+        check(lad.count() == 1 and lad.inner_text() == 'Aanya can see this on Your team.', 'the ladder says who can see it: %r' % (lad.inner_text() if lad.count() else ''))  # RELIEF R12
         hows = row.locator('button[data-how]').evaluate_all('bs => bs.map(b => b.dataset.how)')
         check('onit' in hows and 'wrong' in hows and 'reply' in hows, 'the check-in chips: on it (running late), not right and reply: %r' % hows)
         row.locator('button[data-how="onit"]').first.click()
@@ -318,7 +319,7 @@ def test(h):
         chip = p.locator('#team-u_m3 .pm-chip[data-k="%s"]' % K3)
         check(chip.count() == 1, "m3's noin flag carries the bot's chip")
         if chip.count():
-            states = ('on it', 'nudged', 'seen', 'no answer', 'not on m360 today', 'with you since')
+            states = ('on it', 'open', 'with you since')  # RELIEF R12
             check(any(x in chip.inner_text().lower() for x in states), 'the chip reads one of the D2 states: %r' % chip.inner_text())
             chip.click()
             p.wait_for_timeout(300)
