@@ -327,7 +327,8 @@
        no live: false over the newer one */
     const OFF = JSON.stringify({o3: null, say: null, live: false});
     let lastPut = OFF, putAt = 0, putT = 0, heartT = 0, putting = false, shown = false, putS = 0, top = null;
-    const stageBody = () => { const o3 = (mine && mine.o3) || null, say = (mine && mine.say) || null; return o3 || say ? {o3, say} : {o3: null, say: null, live: false}; };
+    /* his office open and seen counts as live too, so the team's pages already read at the live pace when he takes his first step */
+    const stageBody = () => { const o3 = (mine && mine.o3) || null, say = (mine && mine.say) || null, here = !!(mine && mine.o3w); return o3 || say || here ? {o3, say} : {o3: null, say: null, live: false}; };
     const taken = () => !!top && Date.now() - top.at < STAGE_WINDOW_MS && top.s > ((mine && mine.o3 && Number(mine.o3.s)) || putS);
     function queuePut() { clearTimeout(putT); putT = setTimeout(sendPut, Math.max(0, putAt + PUT_MS - Date.now())); }
     /* the heartbeat keeps a live stage fresh; a walk ends in its own arrival put, so a beat never lands mid walk */
