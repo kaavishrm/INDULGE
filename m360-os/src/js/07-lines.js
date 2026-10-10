@@ -71,8 +71,9 @@
     /* movement: anything of theirs created, moved, finished or commented on today */
     const ix = tasksBy(ctx.coll.tasks.map);
     const moved = (ix.moved[uid] || 0) >= dayStart;
+    /* work in review waits on its reviewer: open, never overdue on the owner */
     let overdue = 0, open = 0;
-    for (const t of (ix.owned[uid] || [])) if (t.status !== 'done') { open++; if (t.due && t.due < ymd) overdue++; }
+    for (const t of (ix.owned[uid] || [])) if (t.status !== 'done') { open++; if (t.status !== 'review' && t.due && t.due < ymd) overdue++; }
     if (!moved && a.in && mins > 14 * 60) out.push({k: 'idle', hot: true, at: atMin(14 * 60), text: 'nothing moved on their tasks today' + (open ? ' (' + open + ' open)' : ''), ref: ref});
     if (overdue) out.push({k: 'overdue', hot: overdue > 1, at: dayStart, text: overdue + (overdue === 1 ? ' overdue task' : ' overdue tasks'), ref: ref});
     /* quiet stretches (M.quiet): one flag per stretch, keyed by when it began so the inbox counts it once,

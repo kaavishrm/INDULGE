@@ -236,9 +236,9 @@
         push('R06', u, 'low', n + ' WFH check-ins this week, cap is ' + cap);
       });
 
-      /* R07: open tasks past due, soonest due first */
+      /* R07: open tasks past due, soonest due first. Work in review waits on its reviewer, so it is not late */
       run('R07', () => {
-        const list = (tasksBy[u] || []).filter(x => x.d.status !== 'done' && x.d.due && x.d.due < today)
+        const list = (tasksBy[u] || []).filter(x => x.d.status !== 'done' && x.d.status !== 'review' && x.d.due && x.d.due < today)
           .sort((a, b) => (a.d.due < b.d.due ? -1 : a.d.due > b.d.due ? 1 : 0));
         for (const {id, d: t} of list) {
           const n = U.daysBetween(t.due, today);
