@@ -231,7 +231,10 @@
     /* the bench places nobody sits at yet are drawn as spare desks, so the floor reads as a real one */
     const spare = [];
     for (let i = 0; i < rows * 2; i++) if (!taken[i]) spare.push({...slotAt(i), slot: i, ids: []});
-    const out = {W: PLAN_W, H: PLAN_H + grow, grow, rows, benches, spare, seats, founder: fu, plan, props: plan ? plan.props : {}};
+    /* props stand on the floor there is today: one left on a row that has since gone is not drawn off its edge */
+    const props = {};
+    if (plan) for (const id of Object.keys(plan.props)) if (plan.props[id].y <= PLAN_H + grow) props[id] = plan.props[id];
+    const out = {W: PLAN_W, H: PLAN_H + grow, grow, rows, benches, spare, seats, founder: fu, plan, props};
     if (fu) out.seats[fu] = {uid: fu, x: 1450, y: 712 + grow, top: true, bench: -1, pod: '', cabin: true, room: 200};
     layoutMemo.set(key, out);
     return out;
@@ -1582,7 +1585,7 @@
     const cam3 = cam === 'follow' || cam === 'kaavish' ? cam : (phone ? 'floor-phone' : 'floor');
     const scene = look === '3d' ? html`<${M.office3d.Scene3D} data=${data} mode="page" phone=${phone} cam=${cam3} focusKey=${pick}
         onCam=${v => { setCam(v); M.prefs.set('office.cam', v); }} drawers=${dr} onSay=${setNow} onOpenStation=${openStation}/>`
-      : look === 'pending' ? html`<${M.office3d.Placeholder} mode="page" phone=${phone}/>`
+      : look === 'pending' ? html`<${M.office3d.Placeholder} mode="page" phone=${phone} scope=${data.scope}/>`
       : html`<${Scene} data=${data} mode="page" follow=${!whole} phone=${phone} whole=${whole} focusKey=${pick}
       onSay=${setNow} onOpenStation=${openStation} onOpenDesk=${dr.desk} onOpenCoo=${() => dr.coo(now)}/>`;
     const Comp = M.officeLive && M.officeLive.Composer;
@@ -1594,9 +1597,13 @@
     /* drawn flat because this device was too slow: say so, and offer 3D again */
     const g = !three && M.office3d && M.office3d.can ? M.office3d.can() : null;
     const slow = g && g.why === 'slow' ? html`<p class="office-note small">The office is drawn flat on this device. <button type="button" class="linky" onClick=${() => M.office3d.retry()}>Try 3D again</button></p>` : null;
+    /* the line under the scene: how Kaavish walks (desktop), or for everyone else who moves things here; never
+       the team's line to Kaavish himself */
     const owner = drive && M.officeLive && M.officeLive.walkTo;
-    const hint = three && mode === 'office' && !(owner && phone) ? html`<p class="office-note small">${owner ? 'Click the floor to walk, or use W A S D. Click a desk or a station to walk there and open it.'
-      : 'Kaavish moves things here. Drag to look around, and tap anything to see it.'}</p>` : null;
+    const self = !!(data.ctx.isOwner && !data.ctx.viewAs && data.ctx.uid === data.ctx.founderUid);
+    const line = owner ? (phone ? '' : 'Click the floor to walk, or use W A S D. Click a desk or a station to walk there and open it.')
+      : self ? '' : 'Kaavish moves things here. Drag to look around, and tap anything to see it.';
+    const hint = three && mode === 'office' && line ? html`<p class="office-note small">${line}</p>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
@@ -1629,7 +1636,7 @@
     const dr = useDrawers(data);
     return html`<div class="office-window" data-mode=${mode || 'hq'}>
       ${look === '3d' ? html`<${M.office3d.Scene3D} data=${data} mode=${mode || 'hq'} phone=${phone} cam="follow" drawers=${dr} onSay=${setNow} onFrame=${setOff}/>`
-        : look === 'pending' ? html`<${M.office3d.Placeholder} mode=${mode || 'hq'} phone=${phone}/>`
+        : look === 'pending' ? html`<${M.office3d.Placeholder} mode=${mode || 'hq'} phone=${phone} scope=${data.scope}/>`
         : html`<${Scene} data=${data} mode=${mode || 'hq'} follow=${true} phone=${phone} whole=${false} onSay=${setNow} onFrame=${setOff}
         onOpenStation=${dr.station} onOpenDesk=${dr.desk} onOpenCoo=${() => dr.coo(now)}/>`}
       <div class="office-foot">

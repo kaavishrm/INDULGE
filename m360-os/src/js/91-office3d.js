@@ -118,8 +118,8 @@
     useMQ('(prefers-reduced-motion: reduce)');
     const phone = useMQ('(max-width: 700px)');
     useEffect(() => { const f = () => bump(n => n + 1); subs.add(f); return () => { subs.delete(f); }; }, []);
-    let ok = can().ok;
-    if (kind === 'window' && (phone || M.prefs.get('office.window3d', '1') === '0')) ok = false;
+    /* a window on a phone, or one turned off, is flat before anything is probed */
+    const ok = !(kind === 'window' && (phone || M.prefs.get('office.window3d', '1') === '0')) && can().ok;
     const [T, setT] = useState(three);
     useEffect(() => {
       if (!ok || T) return undefined;
@@ -388,6 +388,8 @@
     const ticks = new Set();
     const items = o.items;       /* the scene's overlay elements, by key (the component keeps the map) */
     const extras = new Map();    /* elements others add through the api */
+    /* every way in from outside (an effect, the theme, an observer, a key) runs guarded: a throw lands on the flat office */
+    const safe = f => function () { if (dead) return undefined; try { return f.apply(this, arguments); } catch (e) { fail(e); return undefined; } };
     const col = () => tokens();
     const dark = () => (M.theme ? M.theme.resolved() === 'dark' : false);
 
@@ -685,12 +687,12 @@
         if (dead || gen !== crowdGen) return;
         const F = FIG();
         const fallback = () => { try { return stub.crowd(T, crowdIn(items2)); } catch (x) { return null; } };
-        if (F.crowd.async && crowdKey) { F.crowd.async(T, crowdIn(items2), {budget: 8}).then(swapIn, () => swapIn(fallback())); return; }
+        if (F.crowd.async && crowdKey) { F.crowd.async(T, crowdIn(items2), {budget: 8}).then(safe(swapIn), safe(() => swapIn(fallback()))); return; }
         let mesh = null;
         try { mesh = F.crowd(T, crowdIn(items2)); } catch (e) { mesh = fallback(); }
         swapIn(mesh);
       };
-      if (!crowdKey) build(); else crowdTimer = setTimeout(() => later(build), 500);
+      if (!crowdKey) build(); else crowdTimer = setTimeout(() => later(safe(build)), 500);
     }
 
     /* ---------- the COO ---------- */
@@ -781,7 +783,7 @@
     }
 
     /* ---------- Kaavish ---------- */
-    let kRig = null, kBlob = null, kPool = null, kLook = '', blinkAt = 0, blinkOn = false;
+    let kRig = null, kBlob = null, kPool = null, kLook = '', blinkAt = 0, blinkOn = false, blinkT = 0;
     const kav = {x: 14.5, z: 7.1, px: 14.5, pz: 7.1, h: 0, mode: 'sit', seat: 'cabin', dist: 0, live: false, talking: false, seq: 0};
     function makeKaavish() {
       const look = data ? lookOf(data.ctx, data.L.founder) : null;
@@ -824,14 +826,16 @@
         kRig.setPose(kav.mode === 'sit' ? 'sit' : kav.mode === 'walk' ? 'walk' : talking ? 'talk' : 'stand', now / 1000, {dist: kav.dist, seat: kav.seat === 'lounge' ? 0.42 : 0.46});
         if (kRig.talk) kRig.talk(talking ? 0.6 + 0.4 * Math.sin(now / 90) : 0);
       } catch (e) { /* a rig's own pose */ }
-      /* a blink is two single frames every 4.2 s, only while he drives or talks */
+      /* a blink is two single frames every 4.2 s, only while he drives or talks: a timer asks for each one, so a
+         still floor draws nothing in between */
       const blinking = (live || talking) && !doze;
+      clearTimeout(blinkT);
       if (blinking && kRig.blink) {
         if (!blinkAt) blinkAt = now + 4200;
-        if (!blinkOn && now >= blinkAt) { kRig.blink(true); blinkOn = true; blinkAt = now + 110; anim = true; }
-        else if (blinkOn && now >= blinkAt) { kRig.blink(false); blinkOn = false; blinkAt = now + 4200; anim = true; }
-        else if (talking || live) anim = anim || talking;
-      }
+        if (!blinkOn && now >= blinkAt) { kRig.blink(true); blinkOn = true; blinkAt = now + 110; }
+        else if (blinkOn && now >= blinkAt) { kRig.blink(false); blinkOn = false; blinkAt = now + 4200; }
+        blinkT = setTimeout(() => invalidate(1), Math.max(16, blinkAt - now));
+      } else if (blinkOn) { try { kRig.blink(false); } catch (e) { /* a rig's own eyes */ } blinkOn = false; blinkAt = 0; }
       kBlob.position.set(kav.x, 0.004, kav.z);
       kBlob.visible = kav.mode !== 'sit';
       kPool.visible = OF().driving(K);
@@ -1001,8 +1005,8 @@
       invalidate(2);
     }
     function refit() { if (!userCam) setCam(camKind, true); else size(); }
-    controls.addEventListener('start', () => { userCam = true; tween = null; poke(); });
-    controls.addEventListener('change', () => invalidate(1));
+    controls.addEventListener('start', safe(() => { userCam = true; tween = null; poke(); }));
+    controls.addEventListener('change', safe(() => invalidate(1)));
 
     /* ---------- the loop: on demand, capped, paused when nobody can see it ---------- */
     let lastPoke = Date.now();
@@ -1019,7 +1023,8 @@
     function setDpr(r) { if (Math.abs(gl.getPixelRatio() - r) < 0.01) return; gl.setPixelRatio(r); const v = o.view; gl.setSize(Math.max(1, v.clientWidth), Math.max(1, v.clientHeight), false); st.dpr = r; }
     function frame(now) {
       raf = 0;
-      if (dead || paused() || Rr.lost) return;
+      /* paused mid motion: the time away is not a frame, so neither the density step nor the watchdog sees it */
+      if (dead || paused() || Rr.lost) { last = 0; return; }
       if (last && now - last < 1000 / FPS - 2) { raf = requestAnimationFrame(frame); return; }
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0.016;
       const gap = last ? now - last : 0;
@@ -1285,15 +1290,22 @@
 
     /* ---------- life ---------- */
     ticks.add(cooTick); ticks.add(kTick); ticks.add(walkTick); ticks.add(camTick);
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { if (dead) return; const v = o.view; gl.setSize(Math.max(1, v.clientWidth), Math.max(1, v.clientHeight), false); backdrop(); refit(); measure(); invalidate(2); }) : null;
+    /* a new size clears the canvas: it is drawn again at once, even behind a drawer, so it never stands blank */
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(safe(() => {
+      const v = o.view;
+      gl.setSize(Math.max(1, v.clientWidth), Math.max(1, v.clientHeight), false);
+      backdrop(); refit(); measure();
+      if (st.ready && visible && !Rr.lost) draw();
+      invalidate(2);
+    })) : null;
     if (ro) ro.observe(o.view);
-    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(es => { onScreen = es.some(e => e.isIntersecting); if (o.onScreen) o.onScreen(onScreen); if (onScreen) invalidate(2); }, {threshold: 0.02}) : null;
+    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(safe(es => { onScreen = es.some(e => e.isIntersecting); if (o.onScreen) o.onScreen(onScreen); if (onScreen) invalidate(2); }), {threshold: 0.02}) : null;
     if (io) io.observe(o.host);
-    const onVis = () => { visible = document.visibilityState !== 'hidden'; if (visible) { last = 0; invalidate(2); } };
+    const onVis = safe(() => { visible = document.visibilityState !== 'hidden'; if (visible) { last = 0; invalidate(2); } });
     document.addEventListener('visibilitychange', onVis);
-    const offTheme = M.theme && M.theme.subscribe ? M.theme.subscribe(() => { if (!dead && st.ready) { tok = null; paint(); } }) : null;
-    Rr.onRestored = () => { if (dead) return; gl.shadowMap.needsUpdate = true; invalidate(2); };
-    const onKey = e => {
+    const offTheme = M.theme && M.theme.subscribe ? M.theme.subscribe(safe(() => { if (st.ready) { tok = null; paint(); } })) : null;
+    Rr.onRestored = safe(() => { gl.shadowMap.needsUpdate = true; invalidate(2); });
+    const onKey = safe(e => {
       if (e.ctrlKey || e.metaKey || e.altKey || win) return;
       if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') {
         e.preventDefault();
@@ -1303,11 +1315,12 @@
         userCam = true;
         invalidate(2);
       }
-    };
+    });
+    const onPoke = safe(poke);
     canvas.addEventListener('keydown', onKey);
-    canvas.addEventListener('pointerdown', poke);
-    canvas.addEventListener('wheel', poke, {passive: true});
-    canvas.addEventListener('focus', poke);
+    canvas.addEventListener('pointerdown', onPoke);
+    canvas.addEventListener('wheel', onPoke, {passive: true});
+    canvas.addEventListener('focus', onPoke);
 
     function fail(e) {
       if (dead) return;
@@ -1350,8 +1363,9 @@
           if (o.onReady) o.onReady();
           invalidate(1);
         };
+        const go = safe(first);
         const p = gl.compileAsync ? gl.compileAsync(scene, camera) : null;
-        if (p && p.then) p.then(first, first); else first();
+        if (p && p.then) p.then(go, go); else go();
       });
     }
     function setData(d) {
@@ -1389,22 +1403,25 @@
       hushed = !!p.hushed;
       const dz = !!p.doze;
       doze = dz;
-      if (!paused()) invalidate(1);
+      if (!paused()) invalidate(1); else last = 0;
     }
     function disposeAll() {
       dead = true;
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
       clearTimeout(crowdTimer);
+      clearTimeout(blinkT);
       if (ro) ro.disconnect();
       if (io) io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
       if (offTheme) offTheme();
       canvas.removeEventListener('keydown', onKey);
-      canvas.removeEventListener('pointerdown', poke);
-      canvas.removeEventListener('wheel', poke);
-      canvas.removeEventListener('focus', poke);
+      canvas.removeEventListener('pointerdown', onPoke);
+      canvas.removeEventListener('wheel', onPoke);
+      canvas.removeEventListener('focus', onPoke);
       controls.dispose();
+      /* the key light's shadow maps live on the shared renderer: they go with the scene, not with the renderer */
+      try { key.dispose(); } catch (e) { /* gone */ }
       for (const m of meshes) m.geometry.dispose();
       if (crowd) crowd.geometry.dispose();
       if (dropMesh) dropMesh.geometry.dispose();
@@ -1426,8 +1443,9 @@
         kaavish: {mode: kav.mode, x: Math.round(kav.x * 100), y: Math.round(kav.z * 100), seq: K ? K.seq || 0 : 0, say: K && K.say ? K.say : null, live: kav.live},
         plan: data && data.L.plan ? data.L.plan.rev : 0, cam: camKind, paused: paused(), doze, moving, building, busy: (st.why || []).slice()};
     }
-    return {start, setData, setView, setKaavish, setPause, setCam, invalidate, measure, overlay: overlayUpdate, flight, beat, cooWalk, look, api, state, dispose: disposeAll,
-      get ready() { return st.ready; }, anchorOf, poke};
+    return {start: safe(start), setData: safe(setData), setView: safe(setView), setKaavish: safe(setKaavish), setPause: safe(setPause), setCam: safe(setCam),
+      invalidate: safe(invalidate), measure: safe(measure), overlay: safe(overlayUpdate), flight: safe(flight), beat: safe(beat), cooWalk, look: safe(look), api, state,
+      dispose: disposeAll, get ready() { return st.ready; }, anchorOf: safe(anchorOf), poke: safe(poke)};
   }
 
   /* ---------- the stage in 3D: the director's walk, fly, fade and fx ---------- */
@@ -1476,15 +1494,29 @@
   }
   const viewStyle = (mode, phone) => (mode === 'page' ? {aspectRatio: phone ? '3 / 4' : '16 / 10', maxHeight: phone ? '78vh' : '80vh'} : {aspectRatio: '16 / 9'});
 
-  function Placeholder({mode, phone}) {
-    return html`<div class=${'office o3 o3-wait' + (mode === 'page' ? '' : ' window') + (phone ? ' on-phone' : '')} role="region" aria-label="The office" data-render="3d" data-office3d="pending" data-mode=${mode}>
+  function Placeholder({mode, phone, scope}) {
+    return html`<div class=${'office o3 o3-wait' + (mode === 'page' ? '' : ' window') + (phone ? ' on-phone' : '')} role="region" aria-label="The office" data-render="3d" data-office3d="pending"
+      data-scope=${scope || undefined} data-mode=${mode}>
       <div class="office-view" style=${viewStyle(mode, phone)}>
         <div class="o3-wait-in"><div class="micro">the office</div><p class="sub small">Setting up the office.</p></div>
       </div>
     </div>`;
   }
 
-  function Scene3D(props) {
+  /* a throw while the scene renders (its own parts, or one it hosts) is caught here: flat for the session, and the
+     page around it stays up */
+  class Guard extends React.Component {
+    constructor(p) { super(p); this.state = {bad: false}; }
+    static getDerivedStateFromError() { return {bad: true}; }
+    componentDidCatch(e) {
+      try { console.warn('The 3D office stopped:', e && e.message ? e.message : e); } catch (x) { /* quiet */ }
+      setFlag('error');
+    }
+    render() { return this.state.bad ? null : this.props.children; }
+  }
+  const Scene3D = props => html`<${Guard}><${SceneIn} ...${props}/><//>`;
+
+  function SceneIn(props) {
     const {data, mode, phone, cam, drawers, onSay, onFrame, focusKey, onOpenStation} = props;
     const {ctx, L, D, scope, founder, day, rest} = data;
     const O = OF();
@@ -1566,8 +1598,11 @@
         release(h);
         return undefined;
       }
-      /* not ready in 8 s (30 s when forced): flat for the session */
-      const slowT = setTimeout(() => { if (!e.ready) setFlag('start'); }, forced() ? 30000 : 8000);
+      /* not ready in 8 s (30 s when forced): flat for the session. A hidden tab builds slowly, so the wait holds
+         until it is shown again */
+      let slowT = 0;
+      const slowly = () => { if (e.ready) return; if (document.visibilityState === 'hidden') { slowT = setTimeout(slowly, 2000); return; } setFlag('start'); };
+      slowT = setTimeout(slowly, forced() ? 30000 : 8000);
       return () => { clearTimeout(slowT); e.dispose(); if (cur === e) cur = null; eng.current = null; release(h); };
     }, []);
     useEffect(() => { if (eng.current) eng.current.setData(data); });
@@ -1582,6 +1617,8 @@
     }, [focusKey, ready]);
     /* after every render: the overlay's sizes and places */
     useLayoutEffect(() => { if (eng.current && eng.current.ready) { eng.current.measure(); eng.current.overlay(); } });
+    /* the keyboard's stop in each pod: a hook, so it stays above the flat return below */
+    const [rove, setRove] = useState({});
     /* the canvas's own words */
     useEffect(() => {
       const c = R.canvas;
@@ -1613,7 +1650,6 @@
     const stationKeys = O.shownStations(ctx, scope);
     const late = founder ? !!(data.health && data.health.stale) : false;
     /* keyboard: the stations, then one stop a pod with the arrows inside it, then the COO, then the floor */
-    const [rove, setRove] = useState({});
     const pods = {};
     D.forEach(d => { const k = d.cabin ? 'cabin' : d.pod; (pods[k] = pods[k] || []).push(d.uid); });
     const keyDesk = (d, ev) => {
@@ -1642,7 +1678,7 @@
       <div class="office-view" ref=${viewEl} style=${viewStyle(mode, phone)}>
         <div class="office-overlay o3-layer" ref=${layer}>
           ${stationKeys.map(k => html`<button key=${'st' + k} ref=${reg('st:' + k)} type="button" class=${'office-station o3-item' + (k === 'clock' && late ? ' late' : '')} data-key=${k} data-ai="station"
-            aria-label=${O.stationAria(data, k, counts)} onClick=${() => open('station', k)}>${O.labelOf(ctx, k)}
+            aria-label=${O.stationAria(data, k, counts)} onClick=${() => open('station', k)}><span class="o3-label">${O.labelOf(ctx, k)}</span>
             ${k === 'tray' && data.dec.length ? html`<span class="os-count"><span class="pill flame">${data.dec.length}</span></span>` : null}</button>`)}
           ${D.map((d, i) => {
             const word = tagWord(d, founder);
