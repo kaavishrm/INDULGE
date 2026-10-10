@@ -699,7 +699,9 @@
     /* what never rings, only shows on the card, the inbox and the chips: a manager is never pinged on a timer
        (step 2, 2b, the morning EOD sweep and the note up the line; Blocked reaches them as its message), a
        quiet stretch never interrupts, and a step 1 about one piece of work rings once across days (an
-       earlier day's mark on the same rep:kind:sub) */
+       earlier day's mark on the same rep:kind:sub). One step to a manager still rings: Blocked while the
+       direct manager is on leave, where the message went to them and the next one up is the one who can
+       unblock it */
     const marks = toldOf(ctx, me);
     const before = new Set();
     for (const id of Object.keys(marks)) {
@@ -707,13 +709,15 @@
       const k = parseKey(id.slice(0, -2));
       if (TASK_KINDS.has(k.kind) && k.ymd < ymd) before.add(k.rep + ':' + k.kind + ':' + k.sub);
     }
-    const hush = x => MGR_STEPS.has(x.step) || x.step === 'digest' || (REP_STEPS.has(x.step) && x.item.kind === 'quiet') ||
+    const blockedUp = x => !!x.item.away && !!x.item.ack && x.item.ack.how === 'blocked';
+    const hush = x => (MGR_STEPS.has(x.step) && !blockedUp(x)) || x.step === 'digest' || (REP_STEPS.has(x.step) && x.item.kind === 'quiet') ||
       (x.step === '1' && TASK_KINDS.has(x.item.kind) && before.has(x.item.rep + ':' + x.item.kind + ':' + x.item.sub));
     const hushed = new Set(out.filter(hush).map(x => x.stepId));
     /* the budget: the same set rings on every device, sorted by time then kind; what never rings takes no place in it */
     const pick = (list, n) => new Set(list.slice().sort((x, y) => x.at - y.at || ordOf(x.item.kind) - ordOf(y.item.kind) || (x.stepId < y.stepId ? -1 : 1)).slice(0, n).map(x => x.stepId));
     const autoRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && !hushed.has(x.stepId));
-    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
+    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(out.filter(x => MGR_STEPS.has(x.step) && !hushed.has(x.stepId)), p.mgrPerDay),
+      ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
     const focus = focusOn();
     for (const x of out) {
       const ringNow = x.step.startsWith('a.') && x.item.asks.some(a => a.ringNow && isFounderUid(ctx, a.by) && x.step === 'a.' + a.id);
@@ -871,10 +875,19 @@
     const seen = new Set(), list = [];
     for (const x of mine) if (!seen.has(x.item.K)) { seen.add(x.item.K); list.push(x.item); }
     if (!list.length) return '';
-    const bot = list[0].source === 'ask' ? (nm ? nm(list[0].from) : first(ctx, list[0].from)) + ' asked m360' : list[0].botName;
-    const labels = list.slice(0, 3).map(it => it.label);
+    /* who speaks: the bot ("Aanya's bot has 2 things for you"), the COO ("The COO has 1 thing for you"), or
+       the person who asked ("Kaavish asked you 1 thing"), counting only what that person asked. The names
+       come as a map (the dock) or a function */
+    const by = list[0].source === 'ask' ? list[0].from : '';
+    const own = by ? list.filter(it => it.source === 'ask' && it.from === by) : list;
+    const named = by && (typeof nm === 'function' ? nm(by) : nm && nm[by]);
+    const asker = by && first(ctx, by) !== 'Someone' ? first(ctx, by) : U.firstName(String(named || '')) || 'Someone';
+    const things = own.length === 1 ? '1 thing' : own.length + ' things';
+    const head = !by ? list[0].botName + ' has ' + things + ' for you: ' : isCoo(by) ? 'The COO has ' + things + ' for you: '
+      : asker + ' asked you ' + things + ': ';
+    const labels = own.slice(0, 3).map(it => it.label);
     const joined = labels.length > 1 ? labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1] : labels[0];
-    return bot + (list.length === 1 ? ' has 1 thing for you: ' : ' has ' + list.length + ' things for you: ') + joined + '.';
+    return head + joined + '.';
   }
 
   /* ---------- the founder's audit: this week, per manager, and the checks that should read zero ---------- */
