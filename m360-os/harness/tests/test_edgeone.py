@@ -7,6 +7,12 @@ them in, live sync between the two, private data, sign-in links, invites that as
 password, devices and remote sign out, the lock and the join policy, password sign-in with the generic refusal
 and the wait after six misses, changing a password from Me, reset codes by email and from the founder, the
 founder setting a password for someone, the server activity log, AI through the server with tools, and sign out.
+v35, the office stage: a member reads x/stage (a second read at the same seq is {same: 1}); only the owner puts
+it (a member and a second roster founder get 403 "Only Kaavish moves in the office."), an outsider reads nothing,
+and a put is cleaned and bounded; x/stage never shows in a sync, a snapshot, a backup, the history or the log; the
+shim's presence merges (uid and page survive an o3w patch) and its stage poll waits 700 ms while the stage is
+live, 1500 ms after two quiet minutes, 5 s when it is not live, and stops without o3w (a stubbed timer); under
+the site's real CSP the 3D office (forced) loads vendor/three.<sha8>.js with its integrity and reaches ready.
 Every password here is made up for the test.
 
 Run: cd m360-os && python3 harness/tests/test_edgeone.py
@@ -77,7 +83,9 @@ def main():
     try:
         with sync_playwright() as pw:
             exe = os.environ.get('PW_CHROMIUM')
-            browser = pw.chromium.launch(executable_path=exe) if exe else pw.chromium.launch()
+            # SwiftShader keeps WebGL2 for the 3D office check (the office is flat everywhere else here)
+            args = ['--enable-unsafe-swiftshader']
+            browser = pw.chromium.launch(executable_path=exe, args=args) if exe else pw.chromium.launch(args=args)
 
             def device(width=1280):
                 c = browser.new_context(viewport={'width': width, 'height': 900}, locale='en-IN', timezone_id='Asia/Kolkata')
@@ -567,7 +575,14 @@ def main():
             d.wait_for_selector('.pal-item.ai')
             d.keyboard.press('Enter')
             d.wait_for_selector('.buddy-bubble[role="dialog"], #orb-screen, .drawer:has-text("Ask m360")')
-            d.wait_for_function('n => fetch("/__store").then(r => r.json()).then(s => Object.keys(s).filter(k => k.startsWith("d/tasks~")).length > n)', arg=before, timeout=15000)
+            # the agent's write lands in the store: read it from here (a page predicate returning a fetch promise is truthy at once)
+            added = False
+            for _ in range(150):
+                if len([k for k in json.loads(urllib.request.urlopen(base + '__store').read()) if k.startswith('d/tasks~')]) > before:
+                    added = True
+                    break
+                time.sleep(0.1)
+            check(added, 'the agent did not add the task')
 
             # ---- sign out ----
             d.keyboard.press('Escape')
@@ -628,6 +643,98 @@ def main():
             ov = m.evaluate('() => document.documentElement.scrollWidth - document.documentElement.clientWidth')
             check(ov <= 0, 'phone overflow on Me %d' % ov)
             m.screenshot(path=os.path.join(ROOT, 'harness', 'shots', 'edgeone-me-390.png'), full_page=False)
+
+            # ---- v35: Kaavish's stage, read by the team, put by him alone, never a document ----
+            put = {'o3': {'s': 7, 'm': 'walk', 'p': [[1450, 712], [1140, 662], [940, 478]], 'v': 140, 'x': 940, 'y': 478, 'h': 0, 'to': 'desk:' + muid, 'lv': 0},
+                   'say': {'id': 'sv35a', 't': 'Morning, team'}}
+            r = f.evaluate('b => window.M360_API("stage", {put: b})', put)
+            st = store_doc('x/stage')
+            check(r.get('seq') and st and st['by'] == fuid and st['o3']['x'] == 940 and st['say']['t'] == 'Morning, team' and st['live'] is True and st['seq'] == r['seq'],
+                  'the owner puts the stage: %r' % [r, st])
+            r1 = m.evaluate('() => window.M360_API("stage", {since: 0})')
+            r2 = m.evaluate('s => window.M360_API("stage", {since: s})', r1.get('seq'))
+            check(r1.get('seq') == r['seq'] and (r1.get('st') or {}).get('o3', {}).get('to') == 'desk:' + muid and r2.get('same') == 1 and 'st' not in r2,
+                  'a member reads the stage, and a read at the same seq is two words: %r' % [r1.get('seq'), r2])
+            r3 = m.evaluate('b => window.M360_API("stage", {put: b}).then(() => "put", e => [e.status, e.code, e.message])', put)
+            check(r3 == [403, 'not_permitted', 'Only Kaavish moves in the office.'], 'a member cannot put the stage: %r' % r3)
+            auid = store_doc('e/arjun%40mask360.agency')['uid']
+            f.evaluate('u => window.M360_API("write", {op: "update", path: "roster/team", data: {members: {[u]: {role: "founder"}}}})', auid)
+            check(store_doc('d/roster~team')['members'][auid]['role'] == 'founder', 'Arjun is a founder on the roster')
+            r4 = ap.evaluate('b => window.M360_API("stage", {put: b}).then(() => "put", e => [e.status, e.code, e.message])', put)
+            check(r4 == [403, 'not_permitted', 'Only Kaavish moves in the office.'], 'a second roster founder cannot put the stage: %r' % r4)
+            check((ap.evaluate('() => window.M360_API("stage", {since: 0})') or {}).get('seq') == r['seq'], 'and reads it like anyone on the team')
+            st_, j = api({'a': 'stage', 'since': 0})
+            check(st_ == 401, 'an outsider reads nothing: %d %r' % (st_, j))
+            check(store_doc('x/stage')['seq'] == r['seq'], 'the refused puts changed nothing')
+            # never a document: not in a sync or a snapshot, a backup, the history or the log
+            snaps = [f.evaluate('() => window.M360_API("snapshot")'), m.evaluate('() => window.M360_API("snapshot")'), f.evaluate('() => window.M360_API("sync", {have: {}})')]
+            check(not any('Morning, team' in json.dumps(x) or 'x/stage' in json.dumps(x) for x in snaps) and not any(c in x['colls'] for x in snaps for c in ('x', 'stage')),
+                  'x/stage is in no sync or snapshot')
+            f.evaluate('() => window.M360_API("backup", {force: true})')
+            every = json.loads(urllib.request.urlopen(base + '__store').read())
+            check([k for k in every if 'stage' in k] == ['x/stage'] and not [k for k, v in every.items() if k != 'x/stage' and 'Morning, team' in v],
+                  'the stage is one blob: no backup, version or marker holds it: %r' % [k for k in every if 'stage' in k])
+            hist = f.evaluate('() => window.M360_API("history", {path: "x/stage"}).then(r => r.versions.length, e => e.code)')
+            check(hist in (0, 'invalid_argument'), 'no history for the stage: %r' % hist)
+            today2 = time.strftime('%Y-%m-%d', time.gmtime(time.time() + 19800))
+            flog = f.evaluate('d => window.M360_API("logs", {from: d, to: d}).then(r => r.docs)', today2)
+            check(not [x for doc in flog.values() for x in (doc.get('e') or {}).values() if x['a'] == 'stage' or 'stage' in x['p']], 'no log line for the stage')
+            # a put is cleaned and bounded: words for modes and targets, numbers inside the floor, plain words, nothing else kept
+            wild = {'o3': {'s': 8, 'm': 'fly', 'p': [[i, -i] for i in range(40)], 'x': 10 ** 9, 'y': -10 ** 9, 'h': 999, 'v': 9999, 'to': '<b>x</b>', 'name': 'Kaavish'},
+                    'say': {'id': 'a b<c>', 't': '  Hello​\n team ' + 'x' * 400}, 'name': 'Kaavish', 'email': 'kaavish@mask360.agency'}
+            f.evaluate('b => window.M360_API("stage", {put: b})', wild)
+            st = store_doc('x/stage')
+            check(st['o3']['m'] == 'idle' and len(st['o3']['p']) == 16 and st['o3']['x'] == 100000 and st['o3']['y'] == -100000 and st['o3']['h'] == 360
+                  and st['o3']['v'] == 600 and st['o3']['to'] == '' and 'name' not in st['o3'] and st['say']['id'] == 'abc' and st['say']['t'].startswith('Hello team x')
+                  and len(st['say']['t']) == 280 and set(st) == {'o3', 'say', 'live', 'by', 'at', 'seq'}, 'a put is cleaned and bounded: %r' % {k: st[k] for k in ('say', 'live')})
+
+            # ---- the shim's room: presence merges ----
+            merged = f.evaluate('''async () => { const room = M.lastCtx.room, seen = [];
+              const off = room.onPeers(ch => { const me = (ch.peers || []).find(p => p.self); if (me) seen.push(JSON.parse(JSON.stringify(me.presence))); });
+              await room.presence({o3w: 1}); const a = seen[seen.length - 1];
+              await room.presence({o3w: null}); const b = seen[seen.length - 1];
+              off(); return [a, b]; }''')
+            check(merged[0].get('uid') == fuid and merged[0].get('page') and merged[0].get('o3w') == 1 and merged[1].get('uid') == fuid
+                  and merged[1].get('page') == merged[0]['page'] and 'o3w' not in merged[1], 'the shim merges presence: uid and page survive, null drops the key: %r' % merged)
+
+            # ---- the stage poll's pace, read from a stubbed timer: 700 ms live, 1500 ms after two quiet minutes, 5 s not live ----
+            mq = mc.new_page()
+            mq.on('pageerror', lambda e: errors.append(str(e)))
+            mq.add_init_script('''(() => { const st = window.setTimeout; window.__pollWaits = []; window.__stageCalls = 0; window.__shift = 0;
+              window.setTimeout = function (fn, ms, ...a) { try { if (typeof fn === 'function' && /\\bpoll\\(run\\)/.test(String(fn))) window.__pollWaits.push(Number(ms) || 0); } catch (e) { /* any timer */ } return st.call(this, fn, ms, ...a); };
+              const now = Date.now; Date.now = () => now() + window.__shift;
+              const f = window.fetch; window.fetch = function (u, o) { try { if (o && /"a":"stage"/.test(String(o.body))) window.__stageCalls++; } catch (e) { /* any call */ } return f.apply(this, arguments); }; })();''')
+            mq.goto(base + '#me')
+            mq.wait_for_selector('.tabbar')
+            f.evaluate('b => window.M360_API("stage", {put: b})', put)
+            mq.evaluate('() => M.lastCtx.room.presence({o3w: 1})')
+            mq.wait_for_function('() => window.__pollWaits.includes(700)', timeout=15000)
+            n0 = mq.evaluate('() => window.__pollWaits.length')
+            mq.evaluate('() => { window.__shift = 121000; }')
+            mq.wait_for_function('n => window.__pollWaits.slice(n).includes(1500)', arg=n0, timeout=15000)
+            f.evaluate('() => window.M360_API("stage", {put: {live: false}})')
+            n1 = mq.evaluate('() => window.__pollWaits.length')
+            mq.wait_for_function('n => window.__pollWaits.slice(n).includes(5000)', arg=n1, timeout=15000)
+            waits = mq.evaluate('() => window.__pollWaits.slice()')
+            check(waits[:waits.index(1500)].count(700) >= 1 and set(waits) <= {700, 1500, 5000}, 'the stage poll waits 700 ms live, 1500 ms after two quiet minutes, 5 s not live: %r' % waits)
+            mq.evaluate('() => M.lastCtx.room.presence({o3w: null})')
+            c0 = mq.evaluate('() => window.__stageCalls')
+            mq.wait_for_timeout(6000)
+            check(mq.evaluate('() => window.__stageCalls') == c0, 'without o3w the page never polls the stage')
+            mq.close()
+
+            # ---- under the site's real CSP, the 3D office loads three with its integrity and reaches ready ----
+            o3p = fc.new_page()
+            o3p.on('pageerror', lambda e: errors.append(str(e)))
+            o3p.on('console', lambda m_: errors.append(m_.text) if m_.type == 'error' and 'favicon' not in m_.text else None)
+            o3p.add_init_script("localStorage.setItem('m360.office.mode','3d'); window.__csp = []; document.addEventListener('securitypolicyviolation', e => window.__csp.push(e.violatedDirective + ' ' + e.blockedURI));")
+            o3p.goto(base + '#office')
+            o3p.wait_for_function('() => !!document.querySelector(\'.office[data-render="3d"][data-office3d="ready"]\')', timeout=60000, polling=250)
+            tag = o3p.evaluate('() => { const s = document.querySelector(\'script[src*="vendor/three."]\'); return s && [s.getAttribute("src"), s.integrity, s.crossOrigin, window.M360_3D_SRI]; }')
+            check(tag and tag[0] == o3p.evaluate('() => window.M360_3D_SRC') and tag[1] == tag[3] and tag[1].startswith('sha384-') and tag[2] == 'anonymous',
+                  'the 3D office loads %r with its integrity under the site\'s CSP' % (tag and tag[0]))
+            check(o3p.evaluate('() => window.__csp') == [], 'no CSP violation: %r' % o3p.evaluate('() => window.__csp'))
+            o3p.close()
 
             # ---- taken off the roster: every device of theirs is signed out at once ----
             f.goto(base + '#admin')

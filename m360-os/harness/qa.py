@@ -8,11 +8,11 @@ import time
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from harness.lib import run  # noqa: E402
+from harness.lib import run, FORCE_3D  # noqa: E402
 
 F, M1, M2, M3 = 'u_founder', 'u_m1', 'u_m2', 'u_m3'
 PAGES = ['#home', '#work', '#projects', '#projects/p1', '#week', '#accounts', '#pitches', '#vibe', '#people',
-         '#people/u_m1', '#voice', '#scores', '#music', '#me', '#notes', '#leave', '#handbook', '#hiring', '#hq', '#command', '#admin']
+         '#people/u_m1', '#voice', '#scores', '#music', '#me', '#notes', '#leave', '#handbook', '#hiring', '#office', '#hq', '#command', '#admin']
 MEMBER_PAGES = [p for p in PAGES if p not in ('#hq', '#command', '#admin')]
 
 
@@ -209,8 +209,10 @@ def qa(h):
                 text = page.evaluate('document.body.innerText').strip()
                 if len(text) < 40:
                     problems.append('%s %s %dpx rendered almost nothing' % (ident, hsh, w))
-                # real names must resolve: an unresolved profile falls back to "Someone"
-                if 'Someone' in text:
+                # real names must resolve: an unresolved profile falls back to "Someone" (the day's thought on Home
+                # is a quote, and one of them says "Someone has already made the normal one")
+                quote = page.evaluate("() => { const q = document.querySelector('#quote-line'); return q ? q.innerText : ''; }")
+                if 'Someone' in (text.replace(quote, '') if quote else text):
                     problems.append('%s %s %dpx shows an unresolved name' % (ident, hsh, w))
                 ov = h.overflow(page)
                 if ov > 0:
@@ -244,6 +246,38 @@ def qa(h):
         page.wait_for_timeout(300)
         if not page.locator('.side-item.active', has_text=label).count():
             problems.append('old link %s did not open %s' % (old_hash, label))
+
+    # the office drawn flat (the harness default): its shots beside the walk above
+    for ident, w, name in (('founder', 390, 'qa-office-flat-390'), ('m1', 1280, 'qa-office-flat-m1')):
+        h.go(page, ident, hash='#office', width=w, seed=True, online='u_m2')
+        page.wait_for_selector('.office[data-render="flat"]')
+        h.shot(page, name)
+
+    # v35: the office in 3D (forced, SwiftShader), founder and member, desktop and phone, light and dark
+    c = h.context(width=1280, height=900, init=[FORCE_3D])
+    p3 = h.page(c, timeout=45000)
+    p3.goto(h.url('founder', '#today', reset=True, seed=True))
+    h.ready(p3)
+    seed(h, p3)
+    for ident, w, dark, name in (('founder', 1280, False, 'qa-office-3d'), ('founder', 1280, True, 'qa-office-3d-dark'),
+                                 ('founder', 390, False, 'qa-office-3d-390'), ('m1', 1280, False, 'qa-office-3d-m1'), ('m1', 390, True, 'qa-office-3d-m1-390-dark')):
+        p3.emulate_media(color_scheme='dark' if dark else 'light')
+        h.go(p3, ident, hash='#office', width=w, seed=True, online='u_m2')
+        try:
+            p3.wait_for_function('() => !!document.querySelector(\'.office[data-render="3d"][data-office3d="ready"]\')', timeout=45000, polling=250)
+        except Exception:
+            problems.append('%s #office %dpx never drew in 3D' % (ident, w))
+            continue
+        p3.evaluate('() => document.querySelector(".office").scrollIntoView({block: "start"})')
+        p3.wait_for_timeout(600)
+        ov = h.overflow(p3)
+        if ov > 0:
+            problems.append('%s #office 3D %dpx overflow %dpx' % (ident, w, ov))
+        st = h.small_text(p3)
+        if st:
+            problems.append('%s #office 3D %dpx small text %r' % (ident, w, st[:2]))
+        h.shot(p3, name)
+    p3.emulate_media(color_scheme='light')
 
     for e in h.errors():
         problems.append('console %s: %s' % (e[0], str(e[1])[:200]))

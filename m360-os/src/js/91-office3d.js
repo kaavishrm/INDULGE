@@ -662,7 +662,7 @@
     function makeKaavish() {
       const look = lookOf(data, data.L.founder);
       const h = lookHash(look);
-      if (kRig && kLook === h) return;
+      if (kRig && kLook === h) return false;
       if (kRig) { actors.remove(kRig.root); try { kRig.dispose(); } catch (e) { /* gone */ } }
       kRig = M.figure.build(T, look, {founder: true, lod: 0, live: true});
       kLook = h;
@@ -671,6 +671,7 @@
         kBlob = new T.Mesh(new T.CircleGeometry(0.42, 32), mats.blob); kBlob.rotation.x = -Math.PI / 2; kBlob.renderOrder = 1; decals.add(kBlob);
         kPool = new T.Mesh(new T.CircleGeometry(0.75, 40), mats.kpool); kPool.rotation.x = -Math.PI / 2; kPool.renderOrder = 1; kPool.position.y = 0.003; decals.add(kPool);
       }
+      return true;
     }
     function kTick(dt, now) {
       if (!kRig || !data || !world) return false;
@@ -725,12 +726,14 @@
     /* ---------- walk-ins: a check-in under two minutes old walks from the door, past attendance ---------- */
     const walkins = new Map();
     function syncWalkins() {
-      if (!data || !world) return;
+      if (!data || !world) return false;
       const now = performance.now();
       const want = new Set((data.D || []).filter(x => x.arrival && x.state === 'office' && x.place === 'desk' && world.seats[x.uid]).map(x => x.uid));
-      for (const [u, w] of walkins) if (!want.has(u)) { actors.remove(w.rig.root); try { w.rig.dispose(); } catch (e) { /* gone */ } decals.remove(w.blob); walkins.delete(u); crowdKey = crowdKey + '+'; }
+      let changed = false;
+      for (const [u, w] of walkins) if (!want.has(u)) { actors.remove(w.rig.root); try { w.rig.dispose(); } catch (e) { /* gone */ } decals.remove(w.blob); walkins.delete(u); crowdKey = crowdKey + '+'; changed = true; }
       for (const u of want) {
         if (walkins.has(u)) continue;
+        changed = true;
         const rig = M.figure.build(T, lookOf(data, u), {founder: false, lod: 1});
         const blob = new T.Mesh(new T.CircleGeometry(0.34, 24), mats.blob); blob.rotation.x = -Math.PI / 2; blob.renderOrder = 1;
         decals.add(blob); actors.add(rig.root);
@@ -739,6 +742,7 @@
         walkins.set(u, {rig, blob, pts, t0: now, seat: s});
       }
       syncCrowd();
+      return changed;
     }
     function walkTick(dt, now) {
       let anim = false;
@@ -1247,10 +1251,12 @@
       if (!world || !st.ready) return;
       if (signature(d) !== worldKey) rebuild(d);
       if (!prev || prev.day.night !== d.day.night) paint();
-      makeKaavish();
-      syncWalkins();
+      /* the app's data moves every minute and with every change anywhere: that alone draws nothing. The world, the
+         paint and the crowd ask for their own frames; a new rig for him or a walk-in asks here */
+      const rig = makeKaavish();
+      const walk = syncWalkins();
       syncCrowd();
-      invalidate(1);
+      if (rig || walk) invalidate(1);
     }
     /* the rig's state, from the director's view: walking, asleep on its pad, on its pad at its desk, working, or hovering */
     let rigState = '';
@@ -1272,11 +1278,12 @@
       invalidate(1);
     }
     function setKaavish(k, ex) { K = k; extra.typing = !!(ex && ex.typing); invalidate(1); }
+    /* back from behind a drawer: one frame. Dozing off only stops the blink, so it draws nothing */
     function setPause(p) {
+      const was = paused();
       hushed = !!p.hushed;
-      const dz = !!p.doze;
-      doze = dz;
-      if (!paused()) invalidate(1); else last = 0;
+      doze = !!p.doze;
+      if (paused()) last = 0; else if (was) invalidate(1);
     }
     function disposeAll() {
       dead = true;
@@ -1485,7 +1492,9 @@
       return () => { clearTimeout(slowT); e.dispose(); if (cur === e) cur = null; eng.current = null; release(h); };
     }, []);
     useEffect(() => { if (eng.current) eng.current.setData(data); });
-    useEffect(() => { if (eng.current) eng.current.setView(view, rest, listening); }, [view, rest, listening]);
+    /* rest is made again on every render: the scene hears it when where or how the COO rests has changed */
+    const restKey = [rest.station, rest.state, rest.asleep ? 1 : 0, rest.seat === false ? 0 : 1].join('|');
+    useEffect(() => { if (eng.current) eng.current.setView(view, rest, listening); }, [view, restKey, listening]);
     useEffect(() => { if (eng.current) eng.current.setKaavish(K, {typing: !!(said && said.typing)}); }, [K, said && said.typing]);
     useEffect(() => { if (eng.current && ready) eng.current.setCam(cam); }, [cam, ready]);
     useEffect(() => { if (eng.current) eng.current.setPause({hushed, doze}); }, [hushed, doze, visible, onScreen]);

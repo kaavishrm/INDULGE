@@ -36,6 +36,24 @@ WRAP_HEAD = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
              '<script src="/harness/mock.js"></script></head><body>')
 WRAP_TAIL = '</body></html>'
 
+# v35: the office draws in 3D only where a device can (a software renderer is flat), so the harness runs flat
+# unless a test asks. Add one of these to a context with context.add_init_script before its first page
+FORCE_3D = "localStorage.setItem('m360.office.mode','3d')"
+PIN_FLAT = "localStorage.setItem('m360.office.mode','flat')"
+
+
+def travel(when):
+    """An init script that moves the page's clock to `when` (an aware datetime) and lets it run from there in
+    real time. Timers, animation frames and performance.now stay real, so a software-rendered scene keeps its
+    pace (Playwright's own clock queues page timers behind slow frames). Every page of a context that gets the
+    same script reads the same time."""
+    import time
+    off = int(when.timestamp() * 1000) - int(time.time() * 1000)
+    return '''(() => { const RD = Date, OFF = %d;
+      function D(...a) { if (!new.target) return new RD(RD.now() + OFF).toString(); return a.length ? new RD(...a) : new RD(RD.now() + OFF); }
+      D.prototype = RD.prototype; D.now = () => RD.now() + OFF; D.parse = RD.parse; D.UTC = RD.UTC;
+      window.Date = D; })();''' % off
+
 
 def build_all():
     out = builder.build()
@@ -54,6 +72,51 @@ def build_all():
 def out_name():
     tag = os.environ.get('M360_TAG', '')
     return 'index%s.html' % ('.' + tag if tag else '')
+
+
+def office_row(i, job, code, station, args, refs, at, status='done'):
+    """One COO ledger row, as test_office.py writes them."""
+    return {'at': at, 'slot': 'w1100', 'job': job, 'cap': None, 'rung': 'alone', 'code': code, 'station': station, 'subject': 'x:' + i,
+            'args': args, 'refs': refs, 'why': {'code': '', 'args': {}}, 'checks': [], 'facts': [], 'before': {}, 'after': {}, 'told': [], 'status': status}
+
+
+def office_world(h, page, day):
+    """test_office.py's working morning on `day` (a date), for the v35 office checks: the founder and four members
+    in two pods (Durvesh in, Aanya at home, Ishaan on leave, Ekta in late), the COO on with every slot of the day
+    settled (so no page runner adds rows of its own), and the morning's three ledger rows. Opens the founder's Home
+    with a fresh store first. The page's clock should read that day (travel) before this runs."""
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    ist = ZoneInfo('Asia/Kolkata')
+
+    def ms(hh, mm, plus=0):
+        return int((datetime(day.year, day.month, day.day, hh, mm, tzinfo=ist) + timedelta(days=plus)).timestamp() * 1000)
+    today = day.isoformat()
+    F, M1, M2, M3, M4 = 'u_founder', 'u_m1', 'u_m2', 'u_m3', 'u_m4'
+    page.goto(h.url('founder', '#home', reset=True, seed=True))
+    h.ready(page)
+    page.wait_for_function('() => !!window.__db.get("roster/team")')
+    h.roster(page, [M1, M2, M3, M4], extra={M1: {'pod': 'Pod 1'}, M2: {'pod': 'Pod 1'}, M3: {'pod': 'Pod 2'}, M4: {'pod': 'Pod 2', 'title': 'Ekta Shah'}})
+    office = {'lat': 19.076, 'lng': 72.8777, 'acc': 24, 'dist': 8, 'verified': True, 'place': 'Mumbai office', 'src': 'gps'}
+    h.seed_doc(page, 'checkin/' + M1, {'days': {today: {'in': ms(10, 22), 'out': None, 'mode': 'office', 'loc': office, 'outLoc': None}}})
+    h.seed_doc(page, 'checkin/' + M2, {'days': {today: {'in': ms(10, 30), 'out': None, 'mode': 'wfh', 'loc': None, 'outLoc': None}}})
+    h.seed_doc(page, 'checkin/' + M4, {'days': {today: {'in': ms(11, 5), 'out': None, 'mode': 'office', 'loc': office, 'outLoc': None}}})
+    h.seed_doc(page, 'leave/' + M3, {'reqs': [{'id': 'L1', 'from': today, 'to': today, 'type': 'casual', 'at': ms(9, 0, -3)}]})
+    h.seed_doc(page, 'leavedec/' + M3, {'d': {'L1': {'status': 'approved', 'at': ms(9, 0, -2), 'by': F}}})
+    page.wait_for_function('() => !!(window.M && M.coo && M.coo.plan && M.lastCtx && M.lastCtx.activeMembers.length > 3)')
+    page.evaluate('''d => { const P = M.coo.plan; const ids = P.slotList(P.stateOf(M.lastCtx, Date.now()).slots).map(x => x.id);
+      window.__db.set('coo/slots-' + d, Object.fromEntries(ids.map(id => [id, {state: 'done', at: Date.now(), acts: 0}]))); }''', today)
+    s = page.evaluate('() => window.__db.get("settings/app") || {}')
+    s['coo'] = {'on': True, 'title': 'm360 COO', 'signedAt': ms(9, 0, -9), 'signedBy': F, 'practiceUntil': None, 'pausedUntil': None}
+    h.seed_doc(page, 'settings/app', s)
+    h.seed_doc(page, 'coo/L-' + today, {'acts': {
+        'r_open': office_row('r_open', 'J01', 'open', 'clock', {}, {}, ms(9, 0)),
+        'r_roll': office_row('r_roll', 'J03', 'roll', 'attendance', {'n': 3, 'wfh': 1, 'leave': 1, 'notIn': 0}, {}, ms(10, 45)),
+        'r_leave': office_row('r_leave', 'J10', 'leave_ok', 'calendar', {'uid': M3, 'd1': today, 'd2': today, 'left': 5, 'out': 1, 'type': 'casual'}, {'uid': M3, 'req': 'L1'}, ms(10, 50))}})
+    h.seed_doc(page, 'office/live', {'v': 1, 'state': 'idle', 'job': '', 'station': 'desk', 'at': ms(11, 0), 'next': {'slot': 'w1130', 'at': ms(11, 30)}, 'pass': {'at': ms(11, 15), 'by': 'page'}, 'seq': 1})
+    h.seed_doc(page, 'coo/now', {'state': 'idle', 'job': '', 'station': 'desk', 'at': ms(11, 15), 'pass': {'at': ms(11, 15), 'slot': 'w1115', 'by': 'page'}, 'recent': []})
+    page.wait_for_timeout(400)
+    return today
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -119,6 +182,24 @@ class Harness:
         page.goto(self.url(ident, hash, **params))
         if wait:
             self.ready(page)
+        return page
+
+    def context(self, width=720, height=480, dsf=1, init=(), dark=False, reduced=False):
+        """A bare browser context (the v35 3D checks): small, at a device pixel ratio of 1, with init scripts
+        (FORCE_3D, PIN_FLAT, travel(...)) added before any page opens."""
+        c = self.browser.new_context(viewport={'width': width, 'height': height}, device_scale_factor=dsf, locale='en-IN', timezone_id='Asia/Kolkata',
+                                     color_scheme='dark' if dark else 'light', reduced_motion='reduce' if reduced else 'no-preference')
+        self.contexts.append(c)
+        for s in init:
+            c.add_init_script(s)
+        return c
+
+    def page(self, context, timeout=30000):
+        """A new page in that context, its console errors collected with the rest."""
+        page = context.new_page()
+        page.set_default_timeout(timeout)
+        page.on('console', lambda m: self.console.append((m.type, m.text)) if m.type in ('error', 'warning') else None)
+        page.on('pageerror', lambda e: self.console.append(('pageerror', str(e) + (' @@ ' + (e.stack or '')[:600] if os.environ.get('PAGE_STACK') else ''))))
         return page
 
     def roster(self, page, uids=('u_m1', 'u_m2', 'u_m3'), extra=None):
@@ -196,7 +277,10 @@ def run(fn, headless=True, build=True):
         t.start()
         with sync_playwright() as p:
             exe = os.environ.get('PW_CHROMIUM')
-            browser = p.chromium.launch(headless=headless, executable_path=exe) if exe else p.chromium.launch(headless=headless)
+            # SwiftShader keeps WebGL2 in headless Chromium (and quiet about it): the 3D office is drawn only when
+            # a test forces it (FORCE_3D), since the office reads a software renderer as flat
+            args = ['--enable-unsafe-swiftshader']
+            browser = p.chromium.launch(headless=headless, executable_path=exe, args=args) if exe else p.chromium.launch(headless=headless, args=args)
             h = Harness(port, browser)
             try:
                 return fn(h)

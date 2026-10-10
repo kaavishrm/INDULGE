@@ -60,6 +60,7 @@ def test(h):
 
     def new_page():
         c = h.browser.new_context(viewport={'width': 1280, 'height': 900}, locale='en-IN', timezone_id='Asia/Kolkata')
+        c.add_init_script("localStorage.setItem('m360.office.mode','flat')")
         h.contexts.append(c)
         c.clock.set_fixed_time(datetime(tue.year, tue.month, tue.day, 15, 20, tzinfo=IST))
         p = c.new_page()

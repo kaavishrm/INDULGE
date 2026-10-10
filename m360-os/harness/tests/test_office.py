@@ -60,6 +60,7 @@ def test(h):
     def ctx_page(dsf=1, width=1280, height=900, reduced=False, clock=(11, 20)):
         c = h.browser.new_context(viewport={'width': width, 'height': height}, device_scale_factor=dsf, locale='en-IN', timezone_id='Asia/Kolkata',
                                   reduced_motion='reduce' if reduced else 'no-preference')
+        c.add_init_script("localStorage.setItem('m360.office.mode','flat')")
         h.contexts.append(c)
         c.clock.set_fixed_time(datetime(tue.year, tue.month, tue.day, clock[0], clock[1], tzinfo=IST))
         p = c.new_page()

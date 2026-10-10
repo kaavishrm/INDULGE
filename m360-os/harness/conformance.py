@@ -83,6 +83,10 @@ for f, s in JS.items():
     for m in re.finditer(r'#[0-9a-fA-F]{6}\b', s):
         if m.group(0) not in ALLOWED_HEX and m.group(0).upper() not in ALLOWED_HEX:
             bad('unexpected hex in %s: %s' % (f, m.group(0)))
+    # v35: the 3D office reads every colour back from the CSS tokens (or the natural palette above), so a
+    # three.js style 0xRRGGBB colour never appears in the app's own code. Hashes and byte marks are longer or shorter
+    for m in re.finditer(r'\b0[xX][0-9a-fA-F]{6}\b', s):
+        bad('a 0x colour literal in %s: %s' % (f, m.group(0)))
 
 TOKENS = {'--paper': '#FFFFFF', '--warm': '#F7F6F2', '--col': '#EFEDE7', '--dark': '#0A0A0A',
           '--ink': '#0E0E0E', '--ink62': 'rgba(14,14,14,.62)', '--micro': 'rgba(14,14,14,.64)',
