@@ -130,6 +130,8 @@
   /* ---------- small reads ---------- */
   const tasksOf = ctx => ((ctx.coll && ctx.coll.tasks) || {}).map || {};
   const open = t => !!t && !t.deleted && t.status !== 'done';
+  /* work its owner can be chased about: to do or doing. Work in review waits on its reviewer, so it is never late on the owner */
+  const chaseable = t => !!t && !t.deleted && (t.status === 'todo' || t.status === 'doing' || !t.status);
   const dayAt = (ymd, hm) => U.parseYmd(ymd).getTime() + U.minutes(String(hm || '0:00')) * MIN;
   const startOf = (ctx, u, ymd) => dayAt(ymd, ctx.startFor(u) || ctx.settings.start || '10:30');
   const graceMs = ctx => (Number(ctx.settings.grace) || 0) * MIN;
@@ -385,7 +387,7 @@
         const t = tmap[id];
         if (!t || t.owner !== rep || t.deleted) continue;
         if (bot && R07 && kindOn('overdue')) {
-          if (open(t) && t.due && t.due < ymd) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, facts: {title: t.title, due: dueDay(t.due), days: U.daysBetween(t.due, ymd)}});
+          if (chaseable(t) && t.due && t.due < ymd) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, facts: {title: t.title, due: dueDay(t.due), days: U.daysBetween(t.due, ymd)}});
           else if (t.status === 'done' && t.due && t.due < ymd && t.doneAt && U.ymd(new Date(t.doneAt)) === ymd && t.doneAt > start + 30 * MIN) add({kind: 'overdue', sub: id, source: 'bot', s1: start + 30 * MIN, holds: false, sortedAt: t.doneAt, facts: {title: t.title, due: dueDay(t.due)}});
         }
         if (bot && R07 && kindOn('sentback') && t.sentBackAt && t.sentBackBy && t.sentBackBy !== rep) {
@@ -398,7 +400,7 @@
           if (s1 !== Infinity && still) add({kind: 'sentback', sub: id, source: 'bot', s1, facts});
           else if (s1 !== Infinity && !still && (Number(t.updated) || 0) > s1 && U.ymd(new Date(Number(t.updated))) === ymd) add({kind: 'sentback', sub: id, source: 'bot', s1, holds: false, sortedAt: Number(t.updated), facts});
         }
-        if (bot && R07 && kindOn('chase') && open(t)) {
+        if (bot && R07 && kindOn('chase') && chaseable(t)) {
           for (const x of chainOf(ctx, rep)) {
             const c = (pmOf(ctx, x).chase || {})[id];
             if (!c || !c.at) continue;
@@ -466,7 +468,7 @@
           if (!t) continue;
           sub = ak.sub;
           facts = {title: t.title, due: dueDay(t.due)};
-          holds = open(t) && (kind === 'task' || (t.due && t.due < ymd));
+          holds = chaseable(t) && (kind === 'task' || (t.due && t.due < ymd));
           if (kind === 'overdue' && !holds && !(t.status === 'done')) continue;
         } else if (kind === 'custom') {
           sub = id;
@@ -612,6 +614,8 @@
     const r = first(ctx, it.rep);
     const ack = it.ack, how = ack && ack.how;
     const nudged = (it.steps.find(s => s.step === '1') || {});
+    /* only a step that rang (a positive mark) reads as seen; one a card showed quietly never does */
+    const rang = !!nudged.id && Number(toldOf(ctx, it.rep)[nudged.id]) > 0;
     if (how === 'blocked') it.mgrLine = r + ' is blocked on ' + what + '. The note is in your messages.';
     else if (how === 'wrong') it.mgrLine = r + ' says this is not right and asked for a correction.';
     else if (how === 'onit' && typeof ack.eta === 'number' && ack.eta < now && it.holds) it.mgrLine = r + ' said ' + hm(ack.eta) + ' for ' + what + '. It is ' + hm(now) + ' and it is still open.';
@@ -620,8 +624,8 @@
     else if (how === 'leave') it.mgrLine = r + ' is off today. A leave request is on its way.';
     else if (it.status) it.mgrLine = r + ' set a status: ' + String(it.status.text || '').slice(0, 80) + '.';
     else if (it.sweep) it.mgrLine = 'From yesterday: no EOD line from ' + r + ' for ' + f.day + '.';
-    else if (kind === 'noin') it.mgrLine = r + (Object.keys((meOf(ctx, it.rep).act || {})[it.ymd] || {}).length ? ' has m360 open and has not checked in.' : ' has not opened m360 today.') + ' No check-in since the ' + (f.start || ctx.startFor(it.rep)) + ' start.' + (nudged.told ? ' Nudged at ' + hm(nudged.told) + '.' : '');
-    else if (nudged.told) it.mgrLine = r + ' saw the nudge about ' + what + ' at ' + hm(nudged.told) + ' and has not answered.' + (kind === 'overdue' && it.facts.days ? ' It is ' + it.facts.days + (it.facts.days === 1 ? ' day' : ' days') + ' overdue.' : '');
+    else if (kind === 'noin') it.mgrLine = r + ': no check-in since the ' + (f.start || ctx.startFor(it.rep)) + ' start.';
+    else if (rang) it.mgrLine = r + ' saw the nudge about ' + what + ' at ' + hm(nudged.told) + ' and has not answered.' + (kind === 'overdue' && it.facts.days ? ' It is ' + it.facts.days + (it.facts.days === 1 ? ' day' : ' days') + ' overdue.' : '');
     else if (kind === 'waiton') it.mgrLine = first(ctx, it.facts.r) + ' has been blocked on ' + what + ' since ' + f.t + ', waiting on ' + r + '.';
     else it.mgrLine = r + ': ' + (it.flag ? it.flag.text : what + (kind === 'overdue' ? ', due ' + f.due : '')) + '.';
     if (it.away) it.mgrLine += ' ' + first(ctx, it.mgr) + ' is on leave today.';
@@ -692,13 +696,24 @@
         }
       }
     }
-    /* the budget: the same set rings on every device, sorted by time then kind */
+    /* what never rings, only shows on the card, the inbox and the chips: a manager is never pinged on a timer
+       (step 2, 2b, the morning EOD sweep and the note up the line; Blocked reaches them as its message), a
+       quiet stretch never interrupts, and a step 1 about one piece of work rings once across days (an
+       earlier day's mark on the same rep:kind:sub) */
+    const marks = toldOf(ctx, me);
+    const before = new Set();
+    for (const id of Object.keys(marks)) {
+      if (!Number(marks[id]) || !/#1$/.test(id)) continue;
+      const k = parseKey(id.slice(0, -2));
+      if (TASK_KINDS.has(k.kind) && k.ymd < ymd) before.add(k.rep + ':' + k.kind + ':' + k.sub);
+    }
+    const hush = x => MGR_STEPS.has(x.step) || x.step === 'digest' || (REP_STEPS.has(x.step) && x.item.kind === 'quiet') ||
+      (x.step === '1' && TASK_KINDS.has(x.item.kind) && before.has(x.item.rep + ':' + x.item.kind + ':' + x.item.sub));
+    const hushed = new Set(out.filter(hush).map(x => x.stepId));
+    /* the budget: the same set rings on every device, sorted by time then kind; what never rings takes no place in it */
     const pick = (list, n) => new Set(list.slice().sort((x, y) => x.at - y.at || ordOf(x.item.kind) - ordOf(y.item.kind) || (x.stepId < y.stepId ? -1 : 1)).slice(0, n).map(x => x.stepId));
-    const autoRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && x.item.kind !== 'quiet');
-    const quietRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && x.item.kind === 'quiet');
-    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(quietRep, Math.min(p.quietMax, p.perDay)),
-      ...pick(out.filter(x => MGR_STEPS.has(x.step)), p.mgrPerDay), ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay),
-      ...pick(out.filter(x => x.step === 'digest'), 1), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
+    const autoRep = out.filter(x => REP_STEPS.has(x.step) && x.step !== '0' && !hushed.has(x.stepId));
+    const okSet = new Set([...pick(autoRep, p.perDay), ...pick(out.filter(x => x.step.startsWith('a.')), p.askPerDay), ...out.filter(x => x.step === 'r' || x.step === 't').map(x => x.stepId)]);
     const focus = focusOn();
     for (const x of out) {
       const ringNow = x.step.startsWith('a.') && x.item.asks.some(a => a.ringNow && isFounderUid(ctx, a.by) && x.step === 'a.' + a.id);
@@ -707,9 +722,11 @@
       const chatRang = MGR_STEPS.has(x.step) && x.item.ack && x.item.ack.how === 'blocked' && !!M.rooms && !!ctx.coll.chat &&
         M.rooms.messagesOf(ctx, M.rooms.dmId(x.item.rep, me)).some(m => m.by === x.item.rep && m.pm === x.item.K);
       const win = ringNow || inWindow(ctx, me, now, x);
-      x.inBudget = okSet.has(x.stepId);
-      x.held = focus && win && x.inBudget && !x.told;
-      x.ring = !x.told && x.step !== '0' && x.inBudget && win && !focus && x.item.state !== 'sorted' && !chatRang;
+      const silent = hushed.has(x.stepId);
+      /* a step that never rings is not over the budget either: no "and N more" names it */
+      x.inBudget = silent || okSet.has(x.stepId);
+      x.held = focus && win && x.inBudget && !x.told && !silent;
+      x.ring = !x.told && x.step !== '0' && x.inBudget && win && !focus && x.item.state !== 'sorted' && !chatRang && !silent;
       x.chat = chatRang;
       x.now = ringNow;
       x.bundle = null;

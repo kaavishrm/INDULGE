@@ -751,7 +751,7 @@ const COPY = {
   undone_due: {f: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.', dm: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.'},
   undone_leave: {f: x => 'Kaavish took back the approval for ' + x.when + '.', dm: x => 'Kaavish took back the approval for ' + x.when + '. It is with him now.'},
   hello: {f: x => 'Said hello to ' + x.name + '.',
-    dm: x => 'Hi ' + x.name + ', I am ' + x.bot + ', a bot that helps Kaavish run the day. I ask short questions and I explain anything I change. Kaavish reads what you send me. What I can do: #coo'},
+    dm: x => 'Hi ' + x.name + ', I am ' + x.bot + '. I help Kaavish run the day, and Kaavish reads what you send me.'},
   waiting: {f: x => plural(x.n, 'thing needs', 'things need') + ' you.'},
   paused: {f: x => 'Paused by you until ' + x.untilT + '.'},
   off: {f: () => 'The COO is off. Admin, COO to switch it on.'},
@@ -1093,7 +1093,8 @@ async function cooWrite(R, path, fields, note) {
 }
 
 /* ---------- the COO's own words to one person: a line in its DM room ----------
-   The first line anyone gets from it is the hello. Each line carries an id, so a retry adds nothing */
+   The first line anyone gets from it carries the hello inside it: one message, never a hello a moment before.
+   Each line carries an id, so a retry adds nothing */
 async function say(R, u, text, xid, extra) {
   if (!u || isCoo(u) || !String(text || '').trim()) return null;
   const room = 'dm.' + [UID, u].sort().join('.');
@@ -1102,15 +1103,12 @@ async function say(R, u, text, xid, extra) {
   const have = Array.isArray(cur.msgs) ? cur.msgs : [];
   const ids = new Set(have.map(m => m && m.id));
   if (xid && ids.has(xid)) return null;
-  const add = [];
-  if (!ids.has('hello.' + u) && !((cooState(R.ctx).hello || {})[u]) && !((R.patch.hello || {})[u])) {
-    add.push({id: 'hello.' + u, at: Date.now(), text: copy('hello', {uid: u}, 'dm', R.ctx).line, mentions: [], via: 'coo'});
-    R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
-  }
-  const m = {id: xid || newId(), at: Date.now() + add.length, text: String(text).trim().slice(0, 4000), mentions: [], via: 'coo'};
+  const hello = !have.length && !((cooState(R.ctx).hello || {})[u]) && !((R.patch.hello || {})[u]);
+  if (hello) R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
+  const line = (hello ? copy('hello', {uid: u}, 'dm', R.ctx).line + ' ' : '') + String(text).trim();
+  const m = {id: xid || newId(), at: Date.now(), text: line.slice(0, 4000), mentions: [], via: 'coo'};
   for (const k of ['ask', 'k']) if (extra && extra[k] != null && extra[k] !== '') m[k] = String(extra[k]).slice(0, 120);
-  add.push(m);
-  let msgs = have.concat(add);
+  let msgs = have.concat([m]);
   if (msgs.length > 300) msgs = msgs.slice(msgs.length - 160);
   await cooWrite(R, 'chat/' + key, {msgs, room, by: UID, updated: Date.now()}, 'coo dm ' + m.id);
   return m;
@@ -1294,13 +1292,19 @@ J.J03 = async R => {
   await act(R, {job: 'J03', code: 'roll', kind: 'report', args: {n: out.in.length, wfh: out.wfh.length, leave: out.leave.length, notIn: out.notIn.length, uid: out.notIn[0] || ''}});
 };
 
-/* J04: the EOD sweep */
-J.J04 = async R => {
+/* today's EOD lines, read from the eod collection as it stands: the sweep and the close count the same way */
+const eodCount = R => {
   const ids = nonFounders(R).filter(u => !isOut(R.state, u, R.ymd));
   const eod = mapOf(R.ctx, 'eod');
   const missing = ids.filter(u => !(((eod[u] || {}).days || {})[R.ymd]));
-  R.day.eod = {in: ids.length - missing.length, of: ids.length, missing, at: Date.now()};
-  await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: ids.length - missing.length, of: ids.length}});
+  return {in: ids.length - missing.length, of: ids.length, missing};
+};
+
+/* J04: the EOD sweep */
+J.J04 = async R => {
+  const n = eodCount(R);
+  R.day.eod = {...n, at: Date.now()};
+  await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: n.in, of: n.of}});
 };
 
 /* J05: the close. The report, undo windows and old cards settled, the ledger past 90 days pruned, the close
@@ -1348,7 +1352,8 @@ J.J05 = async R => {
   if (Object.keys(holds).length) R.patch.holds = {...holds, ...(R.patch.holds || {})};
   if (Object.keys(cover).length) R.patch.cover = {...cover, ...(R.patch.cover || {})};
   if (Object.keys(seenLeave).length) R.patch.seen = {leave: {...seenLeave, ...(((R.patch.seen || {}).leave) || {})}};
-  const eod = R.day.eod || (((await R.io.read('coo/day-' + R.ymd)) || {}).eod) || {in: 0, of: 0};
+  /* counted now, at the close: lines posted after the 19:30 sweep count too */
+  const eod = R.work ? eodCount(R) : {in: 0, of: 0};
   const wait = openCards(c).filter(k => !patch[k.id]).length + R.cards.length;
   R.day.close = {at: now, eod: eod.in, of: eod.of, moves, until, wait, skipped: R.late.map(x => x.id)};
   await act(R, {job: 'J05', code: 'close', kind: 'report', args: {eod: eod.in, of: eod.of, moves, until, wait}});
@@ -1380,12 +1385,14 @@ J.J06 = async R => {
       options: [{label: 'Post to Feed', action: 'post_to_feed', input: {kind: 'update', text: 'This week at Mask360. ' + lines.join(' ')}}, {label: 'Keep private', action: 'coo.ack', input: {}}]}});
 };
 
-/* J07 (team site): the away mail. Cards open over two hours and Kaavish away from m360: one mail, claimed */
+/* J07 (team site): the away mail. Urgent cards open over two hours and Kaavish away from m360: one mail,
+   claimed. Everything else waits for him in m360 */
 J.J07 = async R => {
   if (R.practice) return;
-  const old = openCards(R.ctx).filter(k => (k.status === 'open' || k.status === 'sending') && (Number(k.at) || 0) < R.now - 2 * HOUR);
+  const urgent = openCards(R.ctx).filter(k => k.urgent);
+  const old = urgent.filter(k => (k.status === 'open' || k.status === 'sending') && (Number(k.at) || 0) < R.now - 2 * HOUR);
   if (!old.length) return;
-  const n = openCards(R.ctx).length;
+  const n = urgent.length;
   await R.io.founderMail(R, R.slot, plural(n, 'thing waits', 'things wait') + ' for you in m360. ' + old.slice(0, 3).map(k => String(k.title || '').trim()).filter(Boolean).join(' '), n, true);
 };
 
@@ -1906,11 +1913,22 @@ const contactMail = (R, id) => { const c = contactOf(R, id); return c ? String(c
 const firstOf = (R, id) => { const c = contactOf(R, id); return c ? String(c.first || c.name || '').split(' ')[0] : ''; };
 /* the newest send row on a pitch (pitches/<id>.sent, written by the page's prospects module) */
 const latestSent = p => { const s = (p && p.sent) || {}; let best = null; for (const k of Object.keys(s)) { const r = s[k]; if (r && typeof r === 'object' && (!best || (Number(r.at) || 0) > (Number(best.at) || 0))) best = r; } return best; };
+/* the pitch's owner has it: a COO ask to them about this pitch, under two working days old and not answered
+   since. A follow-up for Kaavish waits for them */
+const ownerHas = (R, p, id) => !!p.owner && p.owner !== R.state.founder && Object.keys(cooAsks(R.ctx)).some(aid => {
+  const a = cooAsks(R.ctx)[aid];
+  if (!a || a.withdrawn || a.code !== 'pitch_ask' || (a.to || []).indexOf(p.owner) < 0 || (a.args || {}).pitch !== id) return false;
+  const day = ymdOf(Number(a.at) || 0);
+  if (workDaysIn(R.state, addDays(day, 1), R.ymd).length >= 2) return false;
+  const ack = pmAcks(R.ctx, p.owner)[pmKey(p.owner, 'custom', aid, day)];
+  return !(ack && (Number(ack.at) || 0) >= (Number(a.at) || 0));
+});
 /* J41: follow-up drafts. A proposal 5 working days without a reply, and a live client with no work touch in
    21 days. One per client a week, drafts only: nothing leaves until Kaavish taps Send. The model may reword a
    draft afterwards (the desk's drafts step); the template stands when it cannot. A proposal whose next date
-   is still ahead, or whose latest send has a reply, waits; the days count from the later of the stage move
-   and the latest send, and the recipient is the latest send's Base contact, else the pitch's */
+   is still ahead, whose latest send has a reply, or whose owner the COO asked about it lately (ownerHas),
+   waits; the days count from the later of the stage move and the latest send, and the recipient is the
+   latest send's Base contact, else the pitch's */
 J.J41 = async R => {
   const st = R.state;
   const bucket = Math.floor(daysBetween('2026-01-05', R.ymd) / 7);
@@ -1926,6 +1944,7 @@ J.J41 = async R => {
     const p = st.pitches[id];
     if (!p || p.archived || p.stage !== 'proposal' || (p.client && drafted.has(p.client))) continue;
     if (YMD.test(p.nextDate || '') && p.nextDate >= R.ymd) continue;
+    if (ownerHas(R, p, id)) continue;
     const ls = latestSent(p);
     if (ls && ls.reply) continue;
     const since = ymdOf(Math.max(Number(p.stageAt || p.created || R.now), Number((ls && ls.at) || 0)));
@@ -2049,7 +2068,8 @@ function jobsFor(R) {
   if (s === 'm1230') return ['J07'];
   if (s === 'r15') return ['J30', 'J31', 'J14', 'J36'].concat(dow === 1 ? ['J15'] : []);
   if (s === 'r16') return ['J16', 'J42'].concat(dow === 5 ? ['J18'] : []);
-  if (s === 'r1730') return ['J37', 'J13', 'J07'];
+  /* J37 is off: tomorrow's work is already on everyone's board, so nobody gets a due-tomorrow ask */
+  if (s === 'r1730') return ['J13', 'J07'];
   if (s === 'eod') return ['J04'];
   if (s === 'close') return ['J19', 'J51', 'J05'];
   if (s === 'memo') return ['J06'];

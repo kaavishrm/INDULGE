@@ -750,7 +750,7 @@
     undone_due: {f: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.', dm: x => 'Kaavish put ' + x.title + ' back to ' + x.dueTxt + '.'},
     undone_leave: {f: x => 'Kaavish took back the approval for ' + x.when + '.', dm: x => 'Kaavish took back the approval for ' + x.when + '. It is with him now.'},
     hello: {f: x => 'Said hello to ' + x.name + '.',
-      dm: x => 'Hi ' + x.name + ', I am ' + x.bot + ', a bot that helps Kaavish run the day. I ask short questions and I explain anything I change. Kaavish reads what you send me. What I can do: #coo'},
+      dm: x => 'Hi ' + x.name + ', I am ' + x.bot + '. I help Kaavish run the day, and Kaavish reads what you send me.'},
     waiting: {f: x => plural(x.n, 'thing needs', 'things need') + ' you.'},
     paused: {f: x => 'Paused by you until ' + x.untilT + '.'},
     off: {f: () => 'The COO is off. Admin, COO to switch it on.'},
@@ -1070,7 +1070,7 @@
 
   /* ---------- the COO's own words to one person: a line in its DM room ----------
      One merge per send, with every line this page has written there (the snapshot can lag a fast run).
-     The first line anyone gets from it is the hello */
+     The first line anyone gets from it carries the hello inside it: one message, never a hello a moment before */
   const chatSeen = {};
   async function say(ctx, u, text, xid, extra, R) {
     const c = fresh(ctx);
@@ -1082,15 +1082,12 @@
     const have = snap.concat(mine.filter(m => !snap.some(s => s && s.id === m.id))).sort((a, b) => (a.at || 0) - (b.at || 0));
     const ids = new Set(have.map(m => m && m.id));
     if (xid && ids.has(xid)) return null;
-    const add = [];
-    if (!ids.has('hello.' + u) && !((cooState(c).hello || {})[u])) {
-      add.push({id: 'hello.' + u, at: Date.now(), text: copy('hello', {uid: u}, 'dm', c).line, mentions: [], via: 'coo'});
-      if (R) R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
-    }
-    const m = {id: xid || U.uid(), at: Date.now() + add.length, text: String(text).trim().slice(0, 4000), mentions: [], via: 'coo'};
+    const hello = !have.length && !((cooState(c).hello || {})[u]);
+    if (hello && R) R.patch.hello = {...(R.patch.hello || {}), [u]: Date.now()};
+    const line = (hello ? copy('hello', {uid: u}, 'dm', c).line + ' ' : '') + String(text).trim();
+    const m = {id: xid || U.uid(), at: Date.now(), text: line.slice(0, 4000), mentions: [], via: 'coo'};
     for (const k of ['ask', 'k']) if (extra && extra[k] != null && extra[k] !== '') m[k] = String(extra[k]).slice(0, 120);
-    add.push(m);
-    let msgs = have.concat(add);
+    let msgs = have.concat([m]);
     if (msgs.length > 300) msgs = msgs.slice(msgs.length - 160);
     const body = {msgs, room, by: UID, updated: Date.now()};
     guard('chat/' + key, body);
@@ -1221,14 +1218,19 @@
     await act(R, {job: 'J03', code: 'roll', kind: 'report', args: {n: out.in.length, wfh: out.wfh.length, leave: out.leave.length, notIn: out.notIn.length, uid: out.notIn[0] || ''}});
   };
 
+  /* today's EOD lines, read from the eod collection as it stands: the sweep and the close count the same way */
+  const eodCount = R => {
+    const ids = nonFounders(R).filter(u => !isOut(R.state, u, R.ymd));
+    const eod = mapOf(R.ctx, 'eod');
+    const missing = ids.filter(u => !(((eod[u] || {}).days || {})[R.ymd]));
+    return {in: ids.length - missing.length, of: ids.length, missing};
+  };
+
   /* J04: the EOD sweep */
   J.J04 = async R => {
-    const c = R.ctx;
-    const ids = nonFounders(R).filter(u => !isOut(R.state, u, R.ymd));
-    const eod = mapOf(c, 'eod');
-    const missing = ids.filter(u => !(((eod[u] || {}).days || {})[R.ymd]));
-    R.day.eod = {in: ids.length - missing.length, of: ids.length, missing, at: Date.now()};
-    await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: ids.length - missing.length, of: ids.length}});
+    const n = eodCount(R);
+    R.day.eod = {...n, at: Date.now()};
+    await act(R, {job: 'J04', code: 'eod', kind: 'report', args: {n: n.in, of: n.of}});
   };
 
   /* J05: the close. The report, undo windows and old cards settled, the office lights down */
@@ -1274,7 +1276,8 @@
     if (Object.keys(holds).length) R.patch.holds = {...holds, ...(R.patch.holds || {})};
     if (Object.keys(cover).length) R.patch.cover = {...cover, ...(R.patch.cover || {})};
     if (Object.keys(seenLeave).length) R.patch.seen = {leave: {...seenLeave, ...(((R.patch.seen || {}).leave) || {})}};
-    const eod = R.day.eod || (((await read(c, 'coo/day-' + R.ymd)) || {}).eod) || {in: 0, of: 0};
+    /* counted now, at the close: lines posted after the 19:30 sweep count too */
+    const eod = R.work ? eodCount(R) : {in: 0, of: 0};
     const wait = openCards(c).filter(k => !patch[k.id]).length + R.cards.length;
     R.day.close = {at: now, eod: eod.in, of: eod.of, moves, until, wait, skipped: R.late.map(x => x.id)};
     await act(R, {job: 'J05', code: 'close', kind: 'report', args: {eod: eod.in, of: eod.of, moves, until, wait}});
@@ -1831,10 +1834,21 @@
   };
   /* the newest send row on a pitch (pitches/<id>.sent, written by the prospects module) */
   const latestSent = p => { const s = (p && p.sent) || {}; let best = null; for (const k of Object.keys(s)) { const r = s[k]; if (r && typeof r === 'object' && (!best || (Number(r.at) || 0) > (Number(best.at) || 0))) best = r; } return best; };
+  /* the pitch's owner has it: a COO ask to them about this pitch, under two working days old and not answered
+     since. A follow-up for Kaavish waits for them */
+  const ownerHas = (R, p, id) => !!p.owner && p.owner !== R.state.founder && Object.keys(cooAsks(R.ctx)).some(aid => {
+    const a = cooAsks(R.ctx)[aid];
+    if (!a || a.withdrawn || a.code !== 'pitch_ask' || (a.to || []).indexOf(p.owner) < 0 || (a.args || {}).pitch !== id) return false;
+    const day = ymdOf(Number(a.at) || 0);
+    if (workDaysIn(R.state, addDays(day, 1), R.ymd).length >= 2) return false;
+    const ack = M.pm && M.pm.key ? pmAcks(R.ctx, p.owner)[M.pm.key(p.owner, 'custom', aid, day)] : null;
+    return !(ack && (Number(ack.at) || 0) >= (Number(a.at) || 0));
+  });
   /* J41: follow-up drafts. A proposal 5 working days without a reply, and a live client with no work touch in
      21 days. One per client a week, drafts only: nothing leaves until Kaavish taps Send. A proposal whose next
-     date is still ahead, or whose latest send has a reply, waits; the days count from the later of the stage
-     move and the latest send, and the recipient is the latest send's Base contact, else the pitch's */
+     date is still ahead, whose latest send has a reply, or whose owner the COO asked about it lately (ownerHas),
+     waits; the days count from the later of the stage move and the latest send, and the recipient is the
+     latest send's Base contact, else the pitch's */
   J.J41 = async R => {
     const st = R.state;
     const c = R.ctx;
@@ -1843,6 +1857,7 @@
       const p = st.pitches[id];
       if (!p || p.archived || p.stage !== 'proposal') continue;
       if (YMD.test(p.nextDate || '') && p.nextDate >= R.ymd) continue;
+      if (ownerHas(R, p, id)) continue;
       const ls = latestSent(p);
       if (ls && ls.reply) continue;
       const since = ymdOf(Math.max(Number(p.stageAt || p.created || R.now), Number((ls && ls.at) || 0)));
@@ -1970,7 +1985,8 @@
     if (s === 'r12') return ['J41', 'J43', 'J14', 'J38'].concat(dow === 1 ? ['J15'] : []);
     if (s === 'r15') return ['J30', 'J31', 'J14', 'J36'].concat(dow === 1 ? ['J15'] : []);
     if (s === 'r16') return ['J16', 'J42'].concat(dow === 5 ? ['J18'] : []);
-    if (s === 'r1730') return ['J37', 'J13'];
+    /* J37 is off: tomorrow's work is already on everyone's board, so nobody gets a due-tomorrow ask */
+    if (s === 'r1730') return ['J13'];
     if (s === 'eod') return ['J04'];
     if (s === 'close') return ['J19', 'J51', 'J05'];
     if (s === 'memo') return ['J06'];
