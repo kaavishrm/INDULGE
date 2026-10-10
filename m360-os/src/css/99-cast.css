@@ -1,0 +1,65 @@
+/* ---------- v35: characters (71-z-character.js) ----------
+   Me > Your character, the sheet that styles it and Admin > Characters. Tokens only: the swatches carry the
+   characters' own colours inline (M.cast), everything around them follows the theme. */
+
+/* the card on Me */
+.cast-card{display:flex; align-items:center; gap:16px; min-width:0}
+.cast-card-head{width:72px; height:72px; border-radius:999px; background:var(--warm); flex:none; display:block}
+
+/* the sheet */
+.cast-sheet{display:flex; flex-direction:column; gap:14px; min-width:0}
+.cast-note{padding:10px 12px; border-radius:var(--r-sm); background:var(--warm); color:var(--ink)}
+.cast-preview{position:relative; min-width:0}
+.cast-stage{position:relative; height:280px; border-radius:var(--r-card); background:var(--warm); display:flex; align-items:center; justify-content:center; overflow:hidden}
+.cast-stage .cast-big{width:176px; height:176px; border-radius:999px; background:var(--paper); display:block}
+.cast-3d{cursor:grab; touch-action:none; outline:none}
+.cast-3d:active{cursor:grabbing}
+.cast-3d:focus-visible{box-shadow:0 0 0 2px var(--ink) inset}
+.cast-3d canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.cast-tools{position:absolute; right:10px; bottom:10px; display:flex; gap:6px}
+/* all twelve parts in view: the tabs wrap */
+.cast-sheet .seg{align-self:flex-start; flex-wrap:wrap; overflow:visible}
+.cast-row-label{margin-top:4px}
+
+/* tiles: the person's own head with one part changed */
+.cast-tiles{display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:8px}
+.cast-tile{display:flex; flex-direction:column; align-items:center; gap:4px; padding:7px 4px 6px; min-width:0; border-radius:var(--r-sm); border:1px solid var(--line); background:var(--paper); color:var(--ink62); font:inherit; font-size:11px; line-height:1.2; cursor:pointer}
+.cast-tile img{width:52px; height:52px; border-radius:999px; background:var(--warm); display:block}
+.cast-tile span{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cast-tile:hover:not(:disabled){border-color:var(--line2)}
+.cast-tile.on{border-color:var(--ink); box-shadow:0 0 0 1px var(--ink) inset; color:var(--ink)}
+.cast-tile:disabled{cursor:default}
+.cast-tile:disabled:not(.on){opacity:.5}
+
+/* words, where a head cannot show the part */
+.cast-words{display:flex; flex-wrap:wrap; gap:8px}
+.cast-word{height:34px; padding:0 14px; border-radius:999px; border:1px solid var(--line2); background:var(--paper); color:var(--ink62); font:inherit; font-size:13px; cursor:pointer}
+.cast-word.on{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+.cast-word:disabled{cursor:default}
+.cast-word:disabled:not(.on){opacity:.5}
+
+/* swatches under the shapes */
+.cast-swatches{display:flex; flex-wrap:wrap; gap:10px}
+.cast-sw{width:30px; height:30px; padding:0; border-radius:999px; border:1px solid var(--line2); cursor:pointer; flex:none}
+.cast-sw.on{box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink)}
+.cast-sw:disabled{cursor:default}
+.cast-ro{pointer-events:none; opacity:.6}
+
+.cast-foot{display:flex; align-items:center; gap:12px; flex-wrap:wrap; width:100%}
+
+/* Admin > Characters */
+.cast-admin{display:flex; flex-direction:column; margin-top:10px}
+.cast-admin-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line); min-width:0}
+.cast-admin-row img{width:40px; height:40px; border-radius:999px; background:var(--warm); flex:none; display:block}
+.cast-admin-who{min-width:0}
+.cast-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+
+@media (max-width:700px){
+  .cast-stage{height:220px}
+  .cast-stage .cast-big{width:150px; height:150px}
+  .cast-tools{position:static; justify-content:flex-end; margin-top:8px}
+  .cast-tiles{grid-template-columns:repeat(auto-fill, minmax(62px, 1fr)); gap:6px}
+  .cast-tile img{width:46px; height:46px}
+  .cast-admin-row{flex-wrap:wrap}
+  .cast-actions{width:100%; justify-content:flex-start; padding-left:52px}
+}

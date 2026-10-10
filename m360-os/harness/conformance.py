@@ -64,7 +64,22 @@ for m in COLOUR.finditer(CSS):
         bad('forbidden colour word in css: %s' % tok)
     if tok.startswith('#') and tok not in ALLOWED_HEX and tok.upper() not in ALLOWED_HEX:
         bad('unexpected hex in css: %s' % tok)
+# v35: the natural palette (skin, hair, frames, oak, walnut, the bindi) lives once, in 14-cast.js between its
+# markers. It is exempt from the house hexes and held to its own rule: a warm hue (under 50 or over 330 degrees)
+# or near grey (saturation under 12 percent), so it can never hold green, blue or yellow
+NATURAL = re.compile(r'/\* natural palette: start \*/(.*?)/\* natural palette: end \*/', re.S)
 for f, s in JS.items():
+    blocks = NATURAL.findall(s)
+    if blocks and (f != '14-cast.js' or len(blocks) != 1):
+        bad('a natural palette block outside 14-cast.js or more than one: %s' % f)
+    if f == '14-cast.js' and len(blocks) == 1:
+        import colorsys
+        for m in re.finditer(r'#[0-9a-fA-F]{6}\b', blocks[0]):
+            r_, g_, b_ = (int(m.group(0)[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            h_, l_, s_ = colorsys.rgb_to_hls(r_, g_, b_)
+            if not (h_ * 360 < 50 or h_ * 360 > 330 or s_ < 0.12):
+                bad('natural palette colour %s is not a warm hue or a near grey (hue %d, saturation %d%%)' % (m.group(0), h_ * 360, s_ * 100))
+        s = NATURAL.sub('', s)
     for m in re.finditer(r'#[0-9a-fA-F]{6}\b', s):
         if m.group(0) not in ALLOWED_HEX and m.group(0).upper() not in ALLOWED_HEX:
             bad('unexpected hex in %s: %s' % (f, m.group(0)))
