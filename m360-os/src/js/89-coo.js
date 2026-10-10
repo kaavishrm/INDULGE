@@ -860,14 +860,14 @@
   M.adminCards.push(AdminCard);
 
   /* ---------- Home: the studio now, and the founder's digest ---------- */
+  /* closed until someone looks in, Kaavish too, and anyone can close it again */
   function StudioNow() {
-    const ctx = M.useCtx();
     const inFold = useContext(UI.FoldCtx);
-    const [open, setOpen] = useState(() => ctx.isFounder || M.prefs.get('studioOpen', '0') === '1');
+    const [open, setOpen] = useState(() => M.prefs.get('studioOpen', '0') === '1');
     const show = open || inFold;
     return html`<section class="card coo-studio" id="studio-now">
       <div class="card-head"><h2 class="card-title">The studio now</h2>
-        ${show && !inFold && !ctx.isFounder ? html`<button type="button" class="linky small" onClick=${() => { M.prefs.set('studioOpen', '0'); setOpen(false); }}>Close</button>` : null}
+        ${show && !inFold ? html`<button type="button" class="linky small" id="studio-close" onClick=${() => { M.prefs.set('studioOpen', '0'); setOpen(false); }}>Close</button>` : null}
         ${!show ? html`<button type="button" class="linky small" id="studio-look" onClick=${() => { M.prefs.set('studioOpen', '1'); setOpen(true); }}>Look in</button>` : null}</div>
       ${show ? html`<${OfficeSlot} mode="home"/>` : html`<div class="small ink62">The office, live: who is in, and what the COO is doing.</div>`}
     </section>`;
@@ -888,7 +888,8 @@
   }
 
   /* ---------- for the inbox, the dock and the week ---------- */
-  /* the founder's ringing lines: an urgent card, the morning brief once, undo windows closing within the hour */
+  /* the founder's lines: an urgent card and undo windows closing within the hour ring; the morning brief
+     lists silently (the Home digest and the dock carry it) */
   function founderItems(ctx) {
     if (!has() || !ctx.isFounder) return [];
     const out = [];
@@ -901,7 +902,7 @@
     }
     for (const c of cards) if (c.urgent) out.push({id: 'coo:' + c.id, at: Number(c.at) || now, line: c.title || say(ctx, c).line, ref: '#coo', hot: true});
     const b = briefOf(ctx, rows);
-    if (b) out.push({id: 'coo:brief:' + ymdIST(b.at), at: Number(b.at), line: say(ctx, b).line, ref: '#coo', hot: false});
+    if (b) out.push({id: 'coo:brief:' + ymdIST(b.at), at: Number(b.at), line: say(ctx, b).line, ref: '#coo', hot: false, silent: true});
     const closing = rows.filter(r => r.status === 'done' && undoBy(r) > now && undoBy(r) - now <= 3600000);
     if (closing.length) {
       const first = Math.min(...closing.map(undoBy));

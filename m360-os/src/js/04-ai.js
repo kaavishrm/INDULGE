@@ -53,7 +53,9 @@
     session_expired: 'Sign in to Claude again, then retry.', refused: 'Claude passed on that one. Try asking differently.',
     invalid_json: 'That came back scrambled. Tap to try again.', prompt_too_large: 'Too much at once. Ask about a smaller slice.',
     tools_unavailable: 'Actions are unavailable here. Answers still work.', empty_completion: 'Nothing came back. Try rephrasing.',
-    cancelled: 'Stopped.'
+    cancelled: 'Stopped.',
+    /* the team site's daily cap on AI turns per person */
+    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works."
   };
   const OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
 

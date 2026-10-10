@@ -368,6 +368,8 @@
           if (m.by === uid || Date.now() - (m.at || 0) > 90000) continue;
           /* an ask rings through the personal manager's watcher, once, with its own caps and hours */
           if (m.ask) continue;
+          /* the COO's other lines never ring here: its card or the inbox row is the one place for them */
+          if (isBot(m.by)) continue;
           const dm = isDm(room);
           const forMe = dm || mentionsMe(m, ctx, nameOf(uid));
           if (!forMe && !noticeAll()) continue;
