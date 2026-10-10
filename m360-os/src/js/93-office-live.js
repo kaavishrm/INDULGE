@@ -79,22 +79,17 @@
   function cooSpot() {
     try { const el = document.querySelector('.office .office-mascot[data-spot]'); return (el && el.getAttribute('data-spot')) || 'desk'; } catch (e) { return 'desk'; }
   }
-  const toward = (p, via, d) => { const len = dist(p, via); return len > 1 ? {x: Math.round(p.x + (via.x - p.x) / len * Math.min(d, len)), y: Math.round(p.y + (via.y - p.y) / len * Math.min(d, len))} : null; };
   function stationAt(L, k) {
     const s = (O().STATION_POS || {})[k] || (O().SPOTS || {})[k];
     if (!s) return null;
     const via = s.via || [s.x, s.y];
     return {x: s.x, y: sy(L, s.y), via: {x: via[0], y: sy(L, via[1])}};
   }
+  /* where he stands to reach it: the office's own rule (M.office.standPoint), the COO resolved where it is now */
   function standAt(L, target) {
     if (target && typeof target === 'object') return {x: Math.round(target.x), y: Math.round(target.y)};
     const t = String(target || '');
-    if (O().standPoint) { try { return O().standPoint(L, t, t === 'coo' ? cooSpot() : undefined); } catch (e) { return null; } }
-    if (t === 'cabin') return seatOf(L);
-    if (t.indexOf('desk:') === 0) { const s = L.seats && L.seats[t.slice(5)]; return s ? (s.cabin ? {x: s.x, y: s.y} : {x: s.x, y: s.y + (s.top ? -60 : 60)}) : null; }
-    const s = stationAt(L, t === 'coo' ? cooSpot() : t);
-    if (!s) return null;
-    return toward(s, s.via, t === 'coo' ? 90 : 70) || {x: s.x, y: s.y + (t === 'coo' ? 90 : 70)};
+    try { return O().standPoint(L, t, t === 'coo' ? cooSpot() : undefined); } catch (e) { return null; }
   }
   /* what he turns to face on arrival */
   function faceOf(L, to, at) {
@@ -111,13 +106,7 @@
     pts = pts.map(p => ({x: Math.round(p.x), y: Math.round(p.y)}));
     return pts.length > MAX_PTS ? pts.slice(0, MAX_PTS - 1).concat([pts[pts.length - 1]]) : pts;
   }
-  function aislesOf(L) {
-    if (O().aisles) { try { return O().aisles(L); } catch (e) { /* the office's own shape below */ } }
-    const hs = [200];
-    for (let r = 0; r < (L.rows || 2) - 1; r++) hs.push(460 + r * 260);
-    hs.push(780 + (L.grow || 0));
-    return {hs, vs: [250, 710, 1140], top: 200, bottom: 780 + (L.grow || 0), left: 250, right: 1140};
-  }
+  const aislesOf = L => O().aisles(L);
   /* the scene's recorded furniture, [x0, y0, x1, y1] in plan centimetres */
   const collidersOf = api => { try { return ((api && api.colliders && api.colliders()) || []).filter(r => Array.isArray(r) && r.length >= 4); } catch (e) { return []; } };
   const inRect = (r, x, y, pad) => x > Math.min(r[0], r[2]) - pad && x < Math.max(r[0], r[2]) + pad && y > Math.min(r[1], r[3]) - pad && y < Math.max(r[1], r[3]) + pad;
@@ -565,8 +554,8 @@
   const MAPS = ['slots', 'seats', 'props', 'labels'];
   const PROP_WORD = {plant: 'Plant', screen: 'Screen', sofa: 'Sofa', shelf: 'Shelf', lamp: 'Lamp'};
   const ADD = [['plant', 'Add a plant'], ['screen', 'Add a screen'], ['sofa', 'Add a sofa'], ['shelf', 'Add a shelf'], ['lamp', 'Add a lamp']];
-  const ROOM = {cabin: 'Kaavish\'s cabin', studio: 'Studio', pantry: 'Pantry', lounge: 'Lounge'};
-  const labelKeys = () => Object.keys(O().STATION_LABEL || O().STATION_POS || {}).concat(Object.keys(ROOM));
+  const ROOM = () => O().ROOM_LABEL || {};
+  const labelKeys = () => Object.keys(O().STATION_LABEL || {}).concat(Object.keys(ROOM()));
   const onGrid = v => { const n = num(v); return n != null && Math.round(n) % GRID === 0 ? Math.round(n) : null; };
   function cleanMap(k, m) {
     const out = {};
@@ -618,17 +607,19 @@
     if (!back) undo.push(before);
     return rev;
   }
+  /* the plan as drawn (M.office.planOf); the doc read here only while the app's own copy has not arrived */
   const planOf = (ctx, doc) => {
-    if (O().planOf) { try { const p = O().planOf(ctx); if (p) return p; } catch (e) { /* read it here */ } }
-    const raw = (ctx && ctx.office && ctx.office.plan) || doc || null;
+    const drawn = O().planOf(ctx);
+    if (drawn) return drawn;
+    const raw = doc || null;
     if (!raw) return {rev: 0, slots: {}, seats: {}, props: {}, labels: {}};
     const p = U.dropNulls(raw);
     return {rev: Math.max(0, Math.round(Number(p.rev) || 0)), slots: cleanMap('slots', p.slots), seats: cleanMap('seats', p.seats), props: cleanMap('props', p.props), labels: cleanMap('labels', p.labels)};
   };
 
   /* ---------- Arrange: benches, seats, props and labels, by pointer and by keyboard ---------- */
-  const BENCH_W = 360, BENCH_H = 160, DESK_W = 120;
-  const SEAT_AT = [[0, true], [1, false], [2, true], [0, false], [1, true], [2, false]];   /* the office's seat order: column, top side */
+  /* the benches as the office lays them out: their size, a desk's width, the seat order (column, top side) */
+  const PLAN = () => O().PLAN;
   function modelOf(L, plan) {
     const benches = (L.benches || []).map((b, i) => ({slot: b.slot != null ? b.slot : i, x: b.x, y: b.y, pod: b.pod, ids: b.ids || []}));
     const spare = (L.spare || []).map((b, i) => ({slot: b.slot != null ? b.slot : benches.length + i, x: b.x, y: b.y, pod: '', ids: []}));
@@ -641,12 +632,12 @@
     }
     return {slots, seats, props: (plan && plan.props) || {}, plan};
   }
-  const benchHome = b => ({x: b.x + BENCH_W / 2, y: b.y + BENCH_H / 2, h: .8});
+  const benchHome = b => ({x: b.x + PLAN().BENCH_W / 2, y: b.y + PLAN().BENCH_H / 2, h: .8});
   function seatPlaces(model, pod) {
-    const out = [];
+    const out = [], P = PLAN();
     for (const b of model.slots) {
       if (b.pod !== pod) continue;
-      SEAT_AT.forEach(([col, top], j) => out.push({slot: b.slot, j, x: b.x + col * DESK_W + DESK_W / 2, y: top ? b.y - 8 : b.y + BENCH_H + 8}));
+      P.SEAT_ORDER.forEach(([col, top], j) => out.push({slot: b.slot, j, x: b.x + col * P.DESK_W + P.DESK_W / 2, y: top ? b.y - 8 : b.y + P.BENCH_H + 8}));
     }
     return out;
   }
@@ -951,15 +942,16 @@
   }
   /* the rooms and stations by their names: Enter saves one */
   function Names({ctx, plan, onSave}) {
-    const keys = (O().shownStations ? O().shownStations(ctx, 'owner') : Object.keys(O().STATION_POS || {})).concat(Object.keys(ROOM));
-    const word = k => (plan.labels && plan.labels[k]) || (O().STATION_LABEL || {})[k] || ROOM[k] || k;
+    const keys = O().shownStations(ctx, 'owner').concat(Object.keys(ROOM()));
+    const def = k => O().STATION_LABEL[k] || ROOM()[k] || k;
+    const word = k => (plan.labels && plan.labels[k]) || def(k);
     const save = (k, v) => {
-      const t = plain(v, LABEL_MAX), def = (O().STATION_LABEL || {})[k] || ROOM[k] || '';
-      onSave(was => { const labels = {...was}; if (!t || t === def) delete labels[k]; else labels[k] = t; return labels; });
+      const t = plain(v, LABEL_MAX);
+      onSave(was => { const labels = {...was}; if (!t || t === def(k)) delete labels[k]; else labels[k] = t; return labels; });
     };
     return html`<div class="o3-names">${keys.map(k => html`<label key=${k} class="o3-name">
-      <span class="tiny ink62">${(O().STATION_LABEL || {})[k] || ROOM[k] || k}</span>
-      <input class="input" maxlength=${LABEL_MAX} defaultValue=${word(k)} data-key=${k} aria-label=${'Rename ' + ((O().STATION_LABEL || {})[k] || ROOM[k] || k)}
+      <span class="tiny ink62">${def(k)}</span>
+      <input class="input" maxlength=${LABEL_MAX} defaultValue=${word(k)} data-key=${k} aria-label=${'Rename ' + def(k)}
         onKeyDown=${e => { if (e.key === 'Enter') { e.preventDefault(); save(k, e.target.value); } }}/>
     </label>`)}</div>`;
   }

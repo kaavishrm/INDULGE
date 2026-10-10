@@ -10,8 +10,10 @@
 .ol-row .ol-in:focus-visible{outline:none; box-shadow:none}
 .ol-row > *{flex:none}
 .ol-row > .ol-in{flex:1 1 auto}
-/* the mic keeps its words for a screen reader ("Say it"), and shows the icon alone */
-.ol-row .micbtn{width:36px; height:36px; padding:0; gap:0; font-size:0; border:0; border-radius:999px; background:transparent; justify-content:center}
+/* the mic keeps its words for a screen reader ("Say it") at their own size, set past the edge of the circle, and
+   shows the icon alone */
+.ol-row .micbtn{width:36px; height:36px; padding:0 0 0 9px; gap:24px; border:0; border-radius:999px; background:transparent; justify-content:flex-start; overflow:hidden; white-space:nowrap}
+.ol-row .micbtn svg{flex:none}
 .ol-row .micbtn:hover{background:var(--col)}
 .ol-row .micbtn.live{background:var(--flame)}
 .ol-row .btn:not(.micbtn){height:36px; padding:0 18px; border-radius:999px}

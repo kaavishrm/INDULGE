@@ -1500,8 +1500,12 @@
   const ANSWER = {onit: 'on it', blocked: 'blocked', wrong: 'not right', leave: 'off today', reply: 'replied in the messages'};
   function DeskDrawer({uid, data, onClose}) {
     const {ctx, D, profs, founder, scope} = data;
+    const [styling, setStyling] = useState(false);
     const d = D.find(x => x.uid === uid);
     if (!d) return null;
+    /* the owner restyles anyone from their desk: the character sheet takes the drawer's place */
+    const Sheet = ctx.isOwner && !ctx.viewAs ? M.parts.CharacterSheet : null;
+    if (Sheet && styling) return html`<${Sheet} uid=${uid} onClose=${onClose}/>`;
     const name = ((profs[uid] || {}).name) || 'Someone';
     const see = viewerOf(ctx, scope).see(uid);
     let open = 0, over = 0;
@@ -1518,7 +1522,8 @@
     }
     return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${name}
       footer=${html`<div class="row"><${UI.Btn} kind="sec" onClick=${() => { onClose(); M.nav('#people/' + uid); }}>Open profile<//>
-        ${uid !== ctx.uid && M.assistant && M.assistant.open ? html`<${UI.Btn} kind="sec" onClick=${() => { onClose(); M.assistant.open('Ask ' + first + ' '); }}>Ask<//>` : null}</div>`}>
+        ${uid !== ctx.uid && M.assistant && M.assistant.open ? html`<${UI.Btn} kind="sec" onClick=${() => { onClose(); M.assistant.open('Ask ' + first + ' '); }}>Ask<//>` : null}
+        ${Sheet ? html`<${UI.Btn} kind="sec" onClick=${() => setStyling(true)}>Character<//>` : null}</div>`}>
       <div class="stack office-drawer" data-uid=${uid}>
         <div class="row"><${UI.Avatar} id=${uid} size=${44}/><div class="grow"><b>${capital(stateWord(d))}</b>${d.focus ? html`<div class="sub small">In focus. Best not to interrupt.</div>` : null}</div></div>
         ${see && (founder || uid !== ctx.uid) ? html`<ul class="office-list">
@@ -1564,6 +1569,24 @@
   const useLook = kind => (M.office3d && M.office3d.useMode ? M.office3d.useMode(kind) : 'flat');
   const canDrive = ctx => !!(M.officeLive && M.officeLive.canDrive && M.officeLive.canDrive(ctx));
 
+  /* Kaavish, until he styles his character: one quiet card under the office that opens the sheet */
+  function StyleCard({ctx}) {
+    const [open, setOpen] = useState(false);
+    const Sheet = M.parts.CharacterSheet;
+    const r = M.cast.resolveFor(ctx, ctx.uid);
+    return html`<section class="card or-card office-style" data-ai="style your character">
+      <div class="cast-card">
+        <img class="cast-card-head" src=${M.cast.head2d(r.look, {founder: true, size: 72}).url} alt="" width="72" height="72"/>
+        <div class="stack tight grow">
+          <${UI.Micro}>character<//>
+          <div class="small">You are clay for now. Style your character to step in.</div>
+          <div><${UI.Btn} kind="sec" sm=${true} onClick=${() => setOpen(true)}>Style your character<//></div>
+        </div>
+      </div>
+      ${open ? html`<${Sheet} uid=${ctx.uid} onClose=${() => setOpen(false)}/>` : null}
+    </section>`;
+  }
+
   /* ---------- the #office page ---------- */
   function Office({scope}) {
     const data = useData(scope);
@@ -1604,6 +1627,7 @@
     const line = owner ? (phone ? '' : 'Click the floor to walk, or use W A S D. Click a desk or a station to walk there and open it.')
       : self ? '' : 'Kaavish moves things here. Drag to look around, and tap anything to see it.';
     const hint = three && mode === 'office' && line ? html`<p class="office-note small">${line}</p>` : null;
+    const style = self && mode === 'office' && M.parts.CharacterSheet && M.cast && M.cast.resolveFor(data.ctx, data.ctx.uid).src === 'starter' ? html`<${StyleCard} ctx=${data.ctx}/>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
@@ -1617,11 +1641,11 @@
       ${mode === 'list' ? html`<${Rail} data=${data} now=${now} id="office-run" list=${true}/>` : phone ? html`<div class="stack">
           <div class="office-chips" role="toolbar" aria-label="Stations">${chips.map(k => html`<button key=${k} type="button" class=${'chip office-chip' + (pick === k ? ' active' : '')} data-key=${k}
             onClick=${() => { setPick(k); dr.station(k); }}>${labelOf(data.ctx, k).replace(/^The /, '')}${data.founder && (k === 'tray' ? data.dec.length : counts[k]) ? html`<b class="num">${k === 'tray' ? data.dec.length : counts[k]}</b>` : null}</button>`)}</div>
-          ${scene}${composer}${hint}${slow}
+          ${scene}${composer}${hint}${slow}${style}
           ${data.founder ? html`<section class="card or-card"><div class="card-head"><h2 class="card-title">Today's run</h2></div><${RunList} data=${data} limit=${20}/></section>` : null}
           <section class="card or-card"><div class="card-head"><h2 class="card-title">Desks</h2></div><${DeskList} data=${data}/></section>
-        </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}<${Rail} data=${data} now=${now} wide=${true}/></div>`
-        : html`<div class="office-grid">${composer || slow ? html`<div class="stack">${scene}${composer}${slow}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
+        </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
+        : html`<div class="office-grid">${composer || slow || style ? html`<div class="stack">${scene}${composer}${slow}${style}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
       ${dr.node}
     </div>`;
   }

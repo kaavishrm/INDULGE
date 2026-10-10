@@ -9,7 +9,7 @@
    idle slices of at most 8 ms. Nothing here holds a colour: the engine reads them from the CSS tokens.
 
      M.office3d.world.build(T, o)        a generator: yields, then returns the world
-     M.office3d.world.run(gen)           the same, all at once (tests, and the stand-in when idle time is short)
+     M.office3d.world.run(gen)           the same, all at once (for checks)
      M.office3d.world.slab(L)            the plinth's extent, in metres
      M.office3d.world.floorTexture / grainTexture / radial / dropShadowTexture / backdropTexture  (canvas textures) */
 'use strict';

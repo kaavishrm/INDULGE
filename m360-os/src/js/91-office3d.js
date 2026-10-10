@@ -167,7 +167,6 @@
   }
   const setCol = (T, c, b) => c.setRGB(b[0] / 255, b[1] / 255, b[2] / 255, T.SRGBColorSpace);
   const bytesOf = s => { const m = /^#?([0-9a-f]{6})$/i.exec(String(s || '')); if (!m) return null; const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-  const mixB = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
   /* desk tops: oak by day, walnut by night, from the natural palette in 14-cast.js; the board tone without it */
   function wood(col, dark) {
     const N = M.cast && M.cast.NATURAL;
@@ -234,132 +233,10 @@
     if (R.onRestored) R.onRestored();
   }
 
-  /* ---------- stand-in figures, until the characters arrive (M.figure, 92-figure.js) ----------
-     Clay people of primitives and the flame droid, coloured from the tokens; the same calls as M.figure */
-  function stubKit(T) {
-    const K = WD().kit(T, false);
-    const paint = (g, b) => { const n = g.attributes.position.count, a = new Float32Array(n * 3), c = setCol(T, new T.Color(), b); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } g.setAttribute('color', new T.BufferAttribute(a, 3)); return g; };
-    const piece = (g, b, at, rot, scl) => paint(K.place(K.prep(g), at, rot, scl), b);
-    /* one clay person, feet at y 0, facing +z, about 1.3 m; seated on a 47 cm seat when sit */
-    function body(look, sit, founder) {
-      const col = tokens();
-      const skin = mixB(col.clay, col.paper, 0.35), cloth = founder ? col.suit : col.clay;
-      const out = [];
-      const hip = sit ? 0.47 : 0.55, chest = hip + 0.36, head = chest + 0.27;
-      out.push(piece(K.seg([0, hip + 0.04, 0], [0, chest, 0], 0.16, [3, 10]), cloth));
-      out.push(piece(K.ball(0.21, 16, 12), skin, [0, head, 0.01]));
-      for (const s of [-1, 1]) {
-        if (sit) {
-          out.push(piece(K.seg([s * 0.08, hip, 0], [s * 0.09, hip, 0.36], 0.065, [2, 8]), cloth));
-          out.push(piece(K.seg([s * 0.09, hip, 0.36], [s * 0.09, 0.06, 0.38], 0.055, [2, 8]), cloth));
-          out.push(piece(K.seg([s * 0.19, chest - 0.02, 0], [s * 0.17, chest - 0.2, 0.22], 0.045, [2, 8]), cloth));
-          out.push(piece(K.seg([s * 0.17, chest - 0.2, 0.22], [s * 0.12, TOP() + 0.03, 0.42], 0.04, [2, 8]), skin));
-        } else {
-          out.push(piece(K.seg([s * 0.08, hip, 0], [s * 0.08, 0.06, 0.01], 0.065, [2, 8]), cloth));
-          out.push(piece(K.seg([s * 0.2, chest - 0.02, 0], [s * 0.23, hip - 0.04, 0.02], 0.045, [2, 8]), cloth));
-        }
-      }
-      if (founder) out.push(piece(K.rbox(0.06, 0.035, 0.02, 0.006, 1), col.flame, [-0.08, chest - 0.05, 0.15]));
-      return T.mergeGeometries(out, false);
-    }
-    const TOP = () => 0.74;
-    return {body, paint, piece, K};
-  }
-  let stubMat = null;
-  const stubMaterial = T => stubMat || (stubMat = new T.MeshStandardMaterial({vertexColors: true, roughness: 0.6, metalness: 0}));
-  const stub = {
-    build(T, look, o) {
-      const S = stubKit(T), founder = !!(o && o.founder);
-      const mat = stubMaterial(T);
-      const stand = new T.Mesh(S.body(look, false, founder), mat), sit = new T.Mesh(S.body(look, true, founder), mat);
-      const root = new T.Group();
-      root.add(stand, sit);
-      sit.visible = false;
-      return {root, tris: (stand.geometry.index.count + sit.geometry.index.count) / 3, calls: 1,
-        setPose(name, t, p) {
-          const seated = name === 'sit' || name === 'type';
-          stand.visible = !seated; sit.visible = seated;
-          stand.position.y = name === 'walk' ? 0.018 * Math.abs(Math.sin(((p && p.dist) || 0) * 5.7)) : 0;
-        },
-        blink() {}, talk() {},
-        dispose() { stand.geometry.dispose(); sit.geometry.dispose(); }};
-    },
-    /* items as M.figure.crowd takes them: plan cm, the heading in degrees */
-    crowd(T, items) {
-      const S = stubKit(T);
-      const list = items.map(it => {
-        const g = S.body(it.look, it.pose === 'sit' || it.pose === 'type', !!it.founder);
-        const m = new T.Matrix4().compose(new T.Vector3(cm(it.x), 0, cm(it.y)), new T.Quaternion().setFromEuler(new T.Euler(0, (it.h || 0) * DEG, 0)), new T.Vector3(1, 1, 1));
-        g.applyMatrix4(m);
-        return g;
-      });
-      if (!list.length) return null;
-      const mesh = new T.Mesh(T.mergeGeometries(list, false), stubMaterial(T));
-      list.forEach(g => g.dispose());
-      return mesh;
-    },
-    /* the plush droid: a flame head with square glasses and a bow tie; three draw calls. Its root stands on
-       the floor and it keeps its own height, as M.figure.coo does: on the pad at its desk, else hovering */
-    coo(T, o) {
-      const S = stubKit(T), K = S.K, col = tokens();
-      const plush = new T.MeshPhysicalMaterial({roughness: 0.85, metalness: 0, sheen: 1, sheenRoughness: 0.55});
-      setCol(T, plush.color, col.flame);
-      setCol(T, plush.sheenColor, mixB(col.flame, [255, 255, 255], 0.35));
-      const ink = new T.MeshStandardMaterial({roughness: 0.45, metalness: 0});
-      const root = new T.Group(), body = new T.Group();
-      root.add(body);
-      const Wd = 0.44, Ht = 0.39, Dp = 0.32;
-      const head = [K.place(K.prep(new T.RoundedBoxGeometry(Wd, Ht, Dp, 4, 0.3 * Ht)), [0, 0, 0])];
-      for (const x of [-1, 1]) head.push(K.place(K.prep(K.ball(0.045, 14, 10)), [x * 0.25, -0.01, 0]));
-      head.push(K.place(K.prep(K.cyl(0.012, 0.012, 0.1, 8)), [0, Ht / 2 + 0.05, 0]));
-      head.push(K.place(K.prep(K.ball(0.045, 14, 10)), [0, Ht / 2 + 0.12, 0]));
-      const pm = new T.Mesh(T.mergeGeometries(head, false), plush);
-      body.add(pm);
-      const fz = Dp / 2 + 0.002, bits = [];
-      for (const x of [-1, 1]) {
-        const cx = x * 0.085, w = 0.065, h = 0.055, t = 0.008, gz = fz + 0.012;
-        bits.push(K.place(K.prep(K.seg([cx - w, h, gz], [cx + w, h, gz], t, [2, 6])), [0, 0, 0]));
-        bits.push(K.place(K.prep(K.seg([cx - w, -h, gz], [cx + w, -h, gz], t, [2, 6])), [0, 0, 0]));
-        bits.push(K.place(K.prep(K.seg([cx - w, -h, gz], [cx - w, h, gz], t, [2, 6])), [0, 0, 0]));
-        bits.push(K.place(K.prep(K.seg([cx + w, -h, gz], [cx + w, h, gz], t, [2, 6])), [0, 0, 0]));
-      }
-      bits.push(K.place(K.prep(new T.TorusGeometry(0.03, 0.006, 6, 12, Math.PI * 0.5)), [0, -0.09, fz - 0.002], [0, 0, Math.PI * 1.25]));
-      const by = -Ht / 2 - 0.02, bz = Dp * 0.25;
-      for (const x of [-1, 1]) bits.push(K.place(K.prep(new T.ConeGeometry(0.045, 0.08, 4)), [x * 0.045, by, bz], [0, 0, x * Math.PI / 2], [1, 1, 0.55]));
-      bits.push(K.place(K.prep(K.ball(0.02, 10, 8)), [0, by, bz + 0.004]));
-      const im = new T.Mesh(T.mergeGeometries(bits, false), ink);
-      body.add(im);
-      const eyes = [];
-      for (const x of [-1, 1]) eyes.push(K.place(K.prep(K.ball(0.034, 14, 10)), [x * 0.085, 0, fz - 0.004], null, [1, 1.15, 0.45]));
-      const em = new T.Mesh(T.mergeGeometries(eyes, false), ink);
-      body.add(em);
-      const PAD = 0.76 + Ht / 2, HOVER = 1.15;
-      const s = {y: PAD, target: PAD, bob: 0, t: 0};
-      body.position.y = s.y;
-      const rig = {root, body, calls: 3,
-        setState(v) { s.target = v === 'desk' || v === 'sleeping' ? PAD : HOVER; if (v === 'working') s.bob = 4; em.scale.y = v === 'sleeping' ? 0.15 : 1; },
-        setYaw(r) { root.rotation.y = r; },
-        setAccent() { setCol(T, ink.color, tokens().ink); },
-        listen() {},
-        sleep(on) { em.scale.y = on ? 0.15 : 1; },
-        update(dt) {
-          const d = Math.min(0.1, Math.max(0, dt || 0));
-          s.t += d;
-          let moving = false;
-          if (Math.abs(s.target - s.y) > 0.0005) { s.y += (s.target - s.y) * Math.min(1, d * 6); moving = true; } else s.y = s.target;
-          let bob = 0;
-          if (s.bob > 0) { s.bob = Math.max(0, s.bob - d); bob = Math.sin(s.t * Math.PI) * 0.03 * Math.min(1, s.bob); moving = true; }
-          body.position.y = s.y + bob;
-          return moving;
-        },
-        dispose() { [pm, im, em].forEach(m => m.geometry.dispose()); plush.dispose(); ink.dispose(); }};
-      rig.setAccent(!!(o && o.dark));
-      return rig;
-    }
-  };
-  const FIG = () => (M.figure && M.figure.build && M.figure.crowd && M.figure.coo ? M.figure : stub);
-  const lookOf = (ctx, uid) => { try { return M.cast && M.cast.lookOf ? M.cast.lookOf(ctx, uid) : null; } catch (e) { return null; } };
-  const lookHash = look => { try { return look && M.cast && M.cast.hash ? M.cast.hash(look) : ''; } catch (e) { return ''; } };
+  /* ---------- the people: M.figure draws them (92-figure.js), M.cast says how each looks (14-cast.js) ----------
+     The name is only for a starter's initials on its chest sticker, so the sticker is part of what a figure is */
+  const lookOf = (d, uid) => M.cast.lookOf(d.ctx, uid, ((d.profs || {})[uid] || {}).name || '');
+  const lookHash = look => (look ? M.cast.hash(look, look.starter ? 'S' + M.cast.sticker(look.initials) : '') : '');
 
   /* ---------- the overlay: DOM over the canvas, projected through the same camera ---------- */
   function rectHit(a, b, pad) { return !(a.x1 + pad < b.x0 || b.x1 + pad < a.x0 || a.y1 + pad < b.y0 || b.y1 + pad < a.y0); }
@@ -630,7 +507,7 @@
         g.save(); g.translate(x, y);
         let drawn = false;
         try {
-          const look = data ? lookOf(data.ctx, u) : null;
+          const look = data ? lookOf(data, u) : null;
           if (look && M.cast && M.cast.head2d) { const hd = M.cast.head2d(look, {founder: false, size: px}); if (hd && hd.draw) { g.translate(px * 0.1, px * 0.06); g.scale(0.8, 0.8); hd.draw(g, px); drawn = true; } }
         } catch (e) { drawn = false; }
         if (!drawn) {
@@ -659,7 +536,7 @@
         else if (x.place === 'meeting') p = {x: cm(x.x), y: cm(x.y), h: Math.atan2(14.0 - cm(x.x), 3.67 - cm(x.y)), pose: 'sit', seat: 0.46};
         else if (x.place === 'lunch') { const lz = cm(O.sy(L, 890)); const near = Math.hypot(cm(x.x) - 10.7, cm(x.y) - lz) < 0.8; p = {x: cm(x.x), y: cm(x.y), h: near ? Math.atan2(10.7 - cm(x.x), lz - cm(x.y)) : 0, pose: 'sit', seat: 0.49}; }
         if (!p) continue;
-        const look = lookOf(d.ctx, x.uid);
+        const look = lookOf(d, x.uid);
         out.push(Object.assign(p, {uid: x.uid, look, founder: false, acc: x.focus ? ['headphones'] : [], lod: 1, hash: lookHash(look), state: x.state}));
       }
       return out;
@@ -685,12 +562,9 @@
       /* the old crowd stays until the new one is ready; the characters build one figure an idle slice */
       const build = () => {
         if (dead || gen !== crowdGen) return;
-        const F = FIG();
-        const fallback = () => { try { return stub.crowd(T, crowdIn(items2)); } catch (x) { return null; } };
-        if (F.crowd.async && crowdKey) { F.crowd.async(T, crowdIn(items2), {budget: 8}).then(safe(swapIn), safe(() => swapIn(fallback()))); return; }
-        let mesh = null;
-        try { mesh = F.crowd(T, crowdIn(items2)); } catch (e) { mesh = fallback(); }
-        swapIn(mesh);
+        const F = M.figure;
+        if (F.crowd.async && crowdKey) { F.crowd.async(T, crowdIn(items2), {budget: 8}).then(safe(swapIn), fail); return; }
+        swapIn(F.crowd(T, crowdIn(items2)));
       };
       if (!crowdKey) build(); else crowdTimer = setTimeout(() => later(safe(build)), 500);
     }
@@ -699,7 +573,7 @@
     let cooRig = null, cooBlob = null;
     const coo = {x: 4.1, z: 8.62, y: 0.95, yaw: 0, walk: null, landed: 0, hop: 0, lift: 0, spot: 'desk', state: 'default', listening: false};
     function makeCoo() {
-      try { cooRig = FIG().coo(T, {lod: phone ? 1 : 0, dark: dark()}); } catch (e) { cooRig = stub.coo(T, {dark: dark()}); }
+      cooRig = M.figure.coo(T, {lod: phone ? 1 : 0, dark: dark()});
       actors.add(cooRig.root);
       cooBlob = new T.Mesh(new T.CircleGeometry(0.36, 32), mats.blob);
       cooBlob.rotation.x = -Math.PI / 2; cooBlob.renderOrder = 1;
@@ -786,11 +660,11 @@
     let kRig = null, kBlob = null, kPool = null, kLook = '', blinkAt = 0, blinkOn = false, blinkT = 0;
     const kav = {x: 14.5, z: 7.1, px: 14.5, pz: 7.1, h: 0, mode: 'sit', seat: 'cabin', dist: 0, live: false, talking: false, seq: 0};
     function makeKaavish() {
-      const look = data ? lookOf(data.ctx, data.L.founder) : null;
-      const h = lookHash(look) || 'stub';
+      const look = lookOf(data, data.L.founder);
+      const h = lookHash(look);
       if (kRig && kLook === h) return;
       if (kRig) { actors.remove(kRig.root); try { kRig.dispose(); } catch (e) { /* gone */ } }
-      try { kRig = FIG().build(T, look, {founder: true, lod: 0, live: true}); } catch (e) { kRig = stub.build(T, look, {founder: true}); }
+      kRig = M.figure.build(T, look, {founder: true, lod: 0, live: true});
       kLook = h;
       actors.add(kRig.root);
       if (!kBlob) {
@@ -857,8 +731,7 @@
       for (const [u, w] of walkins) if (!want.has(u)) { actors.remove(w.rig.root); try { w.rig.dispose(); } catch (e) { /* gone */ } decals.remove(w.blob); walkins.delete(u); crowdKey = crowdKey + '+'; }
       for (const u of want) {
         if (walkins.has(u)) continue;
-        let rig = null;
-        try { rig = FIG().build(T, lookOf(data.ctx, u), {founder: false, lod: 1}); } catch (e) { rig = stub.build(T, null, {}); }
+        const rig = M.figure.build(T, lookOf(data, u), {founder: false, lod: 1});
         const blob = new T.Mesh(new T.CircleGeometry(0.34, 24), mats.blob); blob.rotation.x = -Math.PI / 2; blob.renderOrder = 1;
         decals.add(blob); actors.add(rig.root);
         const s = world.seats[u], L = data.L;
@@ -1569,6 +1442,12 @@
     const {view} = dir;
     const bubble = view.bubble || (rest.bubble ? {...rest.bubble, fold: true, id: 'rest'} : null);
     useEffect(() => { if (onSay) onSay(bubble); }, [bubble && bubble.line, bubble && bubble.fold]);
+    /* the drawers a tap or Kaavish's arrival opens: one handle for the scene's life, reading this render's drawers;
+       the COO's opens on what it is saying now */
+    const drawNow = useRef(null);
+    drawNow.current = {drawers, bubble, station: onOpenStation || drawers.station};
+    const dr = useRef({station: k => drawNow.current.station(k), desk: u => drawNow.current.drawers.desk(u),
+      coo: b => drawNow.current.drawers.coo(b || drawNow.current.bubble)}).current;
     useEffect(() => { if (onFrame) onFrame(false); }, []);
     const K = O.useKaavish(ctx);
     const said = O.useSay(K.say);
@@ -1588,7 +1467,7 @@
       if (!Rr) { setBusy(true); return undefined; }
       let e = null;
       try {
-        e = makeEngine(T, Rr, {host: h, view: viewEl.current, slot: slot.current, layer: layer.current, kind: mode === 'page' ? 'page' : 'window', phone, cam, items, drawers,
+        e = makeEngine(T, Rr, {host: h, view: viewEl.current, slot: slot.current, layer: layer.current, kind: mode === 'page' ? 'page' : 'window', phone, cam, items, drawers: dr,
           onScreen: v => setOnScreen(v), onReady: () => { setReady(true); setApi(e.api); }});
         eng.current = e; cur = e;
         e.start(dataRef.current);
@@ -1628,16 +1507,16 @@
     if (busy) {
       /* another scene holds the renderer: this one is flat */
       return html`<${O.Scene} data=${data} mode=${mode} follow=${mode !== 'page' || cam === 'follow'} phone=${phone} whole=${mode === 'page' && cam !== 'follow'}
-        onSay=${onSay} onFrame=${onFrame} onOpenStation=${onOpenStation || drawers.station} onOpenDesk=${drawers.desk} onOpenCoo=${() => drawers.coo(bubble)}/>`;
+        onSay=${onSay} onFrame=${onFrame} onOpenStation=${dr.station} onOpenDesk=${dr.desk} onOpenCoo=${() => dr.coo()}/>`;
     }
 
     const open = (kind, k) => {
       wake();
       const target = kind === 'desk' ? 'desk:' + k : kind === 'station' ? k : 'coo';
       if (drive && L3 && L3.walkTo) { try { if (L3.walkTo(target)) return; } catch (e) { /* opens it here */ } }
-      if (kind === 'station') (onOpenStation || drawers.station)(k);
-      else if (kind === 'desk') drawers.desk(k);
-      else drawers.coo(bubble);
+      if (kind === 'station') dr.station(k);
+      else if (kind === 'desk') dr.desk(k);
+      else dr.coo();
       const e = eng.current;
       if (e && e.ready && mode === 'page') { const a = e.anchorOf(kind === 'station' ? 'st:' + k : kind === 'desk' ? 'desk:' + k : 'coo'); if (a) e.look(a); }
     };
@@ -1731,5 +1610,5 @@
   }
   const apiNow = () => (cur ? cur.api : null);
 
-  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry, stub});
+  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry});
 })();
