@@ -261,8 +261,10 @@
       privState, privKeeper, privFinance, privPros, officeColl, cooNow, cooDec, cooL0, cooL1, cooState, ...COLLS.map(c => coll[c]), ...BOOK_COLLS.map(c => coll[c])]);
 
     /* characters (M.cast): a styled look, or Kaavish's lock, draws a 2D head that avatars read from M.heads;
-       M.headPic carries each person's own choice of where it shows. A clay starter never makes a head. Rebuilt
-       only when the me collection, the office cast or the founder changes, as M.photos is */
+       M.headPic carries each person's own choice of where it shows. A clay starter never makes a head, and a
+       saved look still in clay (only the pose changed, say) takes a chip only when the person asked for it
+       with 'Show my character where my photo goes'. Rebuilt only when the me collection, the office cast or
+       the founder changes, as M.photos is */
     const castDoc = (officeColl.map || {}).cast || null;
     /* the COO rewrites office/live often; the heads only care when the locks themselves move */
     const castKey = castDoc ? JSON.stringify(castDoc.locks || {}) : '';
@@ -274,7 +276,7 @@
       for (const id of Object.keys(locks)) ids.add(id);
       for (const id of ids) {
         const r = M.cast.resolve({uid: id, me: coll.me.map[id] || {}, cast: castDoc, founderUid: ctx.founderUid});
-        if (r.src === 'starter') continue;
+        if (r.src === 'starter' || (r.look.skin === 'clay' && r.pic !== 'char')) continue;
         next[id] = M.cast.head2d(r.look, {founder: r.founder, size: 64}).url;
         pics[id] = r.pic;
       }

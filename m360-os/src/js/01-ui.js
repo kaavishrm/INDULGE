@@ -309,8 +309,9 @@
       src=${avatarSrc(id, s, ctx, p)} alt=${p && p.name ? p.name : 'avatar'} title=${title || (p && p.name) || ''}/>`;
   };
   /* what an avatar shows: the character head when the person chose it for their photo, else the photo, else
-     the head unless they chose the photo, else the profile picture. A clay starter never has a head (M.heads
-     holds styled looks only), so it never replaces a chip. Kaavish's flame detail is drawn at 40 px and up */
+     the head unless they chose the photo, else the profile picture. Clay never has a head here unless the
+     person chose it for their photo (M.heads holds styled looks only), so it never replaces a chip on its own.
+     Kaavish's flame detail is drawn at 40 px and up */
   function avatarSrc(id, s, ctx, p) {
     const photo = M.photos && M.photos[id];
     let head = M.heads && M.heads[id];

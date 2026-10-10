@@ -57,7 +57,7 @@
       return [d[0], d[1], d[2]];
     } catch (e) { return null; }
   }
-  function Turntable({look, founder}) {
+  function Turntable({look, founder, label}) {
     const host = useRef(null);
     const st = useRef(null);
     const [flat, setFlat] = useState(false);
@@ -138,7 +138,7 @@
     const drag = useRef(null);
     const turn = d => { const s = st.current; if (s) { s.yaw += d; s.draw(); } };
     if (flat) return html`<${Head2d} look=${look} founder=${founder}/>`;
-    return html`<div class="cast-stage cast-3d" ref=${host} tabIndex="0" role="img" aria-label="Your character"
+    return html`<div class="cast-stage cast-3d" ref=${host} tabIndex="0" role="img" aria-label=${label || 'Your character'}
       onPointerDown=${e => { drag.current = e.clientX; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* old browser */ } }}
       onPointerMove=${e => { if (drag.current == null) return; turn((e.clientX - drag.current) * 0.012); drag.current = e.clientX; }}
       onPointerUp=${() => { drag.current = null; }} onPointerCancel=${() => { drag.current = null; }}
@@ -147,10 +147,10 @@
   function Head2d({look, founder}) {
     return html`<div class="cast-stage"><img class="cast-big" src=${M.cast.head2d(look, {founder, size: 176}).url} alt="" width="176" height="176"/></div>`;
   }
-  function Preview({look, founder}) {
+  function Preview({look, founder, label}) {
     const O = M.office3d;
     const mode = O && O.useMode && M.figure ? O.useMode('editor') : 'flat';
-    return mode === '3d' ? html`<${Turntable} look=${look} founder=${founder}/>` : html`<${Head2d} look=${look} founder=${founder}/>`;
+    return mode === '3d' ? html`<${Turntable} look=${look} founder=${founder} label=${label}/>` : html`<${Head2d} look=${look} founder=${founder}/>`;
   }
 
   /* ---------- the parts ---------- */
@@ -241,7 +241,7 @@
         ${own && !ro ? html`<div class="small ink62">Pick what feels like you. You can change it any time.</div>` : own ? null : html`<${UI.Micro}>character<//>`}
         ${note ? html`<div class="cast-note small" id="cast-note">${note}</div>` : null}
         <div class="cast-preview">
-          <${Preview} look=${draft} founder=${founder}/>
+          <${Preview} look=${draft} founder=${founder} label=${own ? 'Your character' : (name || 'character')}/>
           ${ro ? null : html`<div class="cast-tools">
             <${UI.Btn} kind="sec" sm=${true} id="cast-shuffle" onClick=${() => { touched.current = true; setDraft(d => C.shuffle(Math.random, d)); }}>Shuffle<//>
             <${UI.Btn} kind="ghost" sm=${true} id="cast-undo" disabled=${!dirty} onClick=${() => { touched.current = false; setDraft(base); }}>Undo changes<//>

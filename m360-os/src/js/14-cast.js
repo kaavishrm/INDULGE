@@ -150,15 +150,17 @@
        1. 'lock'     Kaavish's lock (office/cast.locks[uid]); never for Kaavish himself
        2. 'own'      the person's own look
        3. 'starter'  nothing saved yet: clay, with initials
-     pic always comes from the person's own look, never from a lock */
+     pic always comes from the person's own look, never from a lock. A look that is not a plain object (a list,
+     a string) counts as no look at all, so it never draws the default parts as if someone had chosen them */
+  const isLook = x => !!x && typeof x === 'object' && !Array.isArray(x);
   function resolve(o) {
     const opts = o || {};
     const uid = opts.uid, me = opts.me || {}, cast = opts.cast || {};
     const founder = !!uid && !!opts.founderUid && uid === opts.founderUid;
-    const own = me.look && typeof me.look === 'object' ? clean(me.look) : null;
+    const own = isLook(me.look) ? clean(me.look) : null;
     const pic = own ? own.pic : 'auto';
-    const locks = cast.locks && typeof cast.locks === 'object' ? cast.locks : {};
-    const lk = !founder && uid && locks[uid] && locks[uid].look && typeof locks[uid].look === 'object' ? clean(locks[uid].look) : null;
+    const locks = isLook(cast.locks) ? cast.locks : {};
+    const lk = !founder && uid && isLook(locks[uid]) && isLook(locks[uid].look) ? clean(locks[uid].look) : null;
     if (lk) return {look: {...lk, pic}, src: 'lock', locked: true, pending: !!own && !same(own, lk), founder, by: lk.by || null, pic};
     if (own) return {look: own, src: 'own', locked: false, pending: false, founder, by: own.by || null, pic};
     return {look: starter({pod: opts.member && opts.member.pod, name: opts.name, founder}), src: 'starter', locked: false, pending: false, founder, by: null, pic};
