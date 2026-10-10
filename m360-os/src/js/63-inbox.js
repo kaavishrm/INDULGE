@@ -4,7 +4,7 @@
 'use strict';
 (function () {
   const {html, React, U, UI, icons} = M;
-  const {useState, useEffect, useMemo} = React;
+  const {useState, useEffect, useMemo, useRef} = React;
 
   const KEEP_DAYS = 21;
   /* a line with names in it: T`${nm(uid)} handed you ${title}` gives {el} for the drawer (names as
@@ -35,21 +35,34 @@
     /* tasks */
     const tmap = ctx.coll.tasks.map;
     const coo = by => !!(M.coo && M.coo.isCoo && M.coo.isCoo(by));
+    /* the COO's own lines to the viewer in its DM (asks aside), by time: a move it told them about there is
+       carried by that line, so its row here lists silently */
+    const cooSaid = (M.coo && M.coo.UID && M.rooms && ctx.coll.chat) ? M.rooms.messagesOf(ctx, M.rooms.dmId(M.coo.UID, me)).filter(m => coo(m.by) && !m.ask).map(m => Number(m.at) || 0) : [];
+    const carried = at => cooSaid.some(x => x >= (Number(at) || 0) - 60000 && x <= (Number(at) || 0) + 10 * 60000);
+    /* a review goes to its reviewer of record alone: the project's owner when that is someone else and
+       active, else the founder. The COO's rule (reviewerOf in 10-coo.js), which M.coo does not export, so
+       the same rule is written out here */
+    const activeU = u => !!u && !!(ctx.members || {})[u] && ctx.members[u].active !== false;
+    const reviewerOf = t => {
+      const p = t.project ? (ctx.coll.projects.map || {})[t.project] : null;
+      return p && p.owner && p.owner !== t.owner && activeU(p.owner) ? p.owner : ctx.founderUid;
+    };
     for (const id of Object.keys(tmap)) {
       const t = tmap[id];
       if (!t) continue;
       const mine = t.owner === me;
       if (mine && t.by && t.by !== me) push('assign:' + id, 'tasks', t.created || 0, T`${nm(t.by)} handed you ${t.title}`, '#tasks/' + id, t.by);
-      /* the COO's moves, to the people they touch: never silent, and never a reason (the task's note has it) */
+      /* the COO's moves, to the people they touch, never with a reason (the task's note has it); silent when
+         its DM to them carries the same move */
       for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) {
         if (!o || !coo(o.by)) continue;
-        if (o.to === me) push('coo:own:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed you ${t.title}${t.due ? ', due ' + U.fmtDay(t.due) : ''}`, '#tasks/' + id, o.by, true);
-        else if (o.from === me && o.to) push('coo:off:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed ${t.title} to ${nm(o.to)}`, '#tasks/' + id, o.by);
+        if (o.to === me) push('coo:own:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed you ${t.title}${t.due ? ', due ' + U.fmtDay(t.due) : ''}`, '#tasks/' + id, o.by, true, carried(o.at));
+        else if (o.from === me && o.to) push('coo:off:' + id + ':' + o.at, 'coo', o.at || 0, T`${nm(o.by)} handed ${t.title} to ${nm(o.to)}`, '#tasks/' + id, o.by, false, carried(o.at));
       }
-      if (mine) for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && coo(d.by)) push('coo:due:' + id + ':' + d.at, 'coo', d.at || 0, T`${nm(d.by)} moved ${t.title} to ${d.to ? U.fmtDay(d.to) : 'no date'}`, '#tasks/' + id, d.by);
+      if (mine) for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && coo(d.by)) push('coo:due:' + id + ':' + d.at, 'coo', d.at || 0, T`${nm(d.by)} moved ${t.title} to ${d.to ? U.fmtDay(d.to) : 'no date'}`, '#tasks/' + id, d.by, false, carried(d.at));
       if (mine && t.status === 'done' && t.doneAt && t.approvedBy && t.approvedBy !== me) push('ok:' + id, 'review', t.doneAt, T`${nm(t.approvedBy)} approved ${t.title}`, '#tasks/' + id, t.approvedBy);
       if (mine && t.sentBackAt && t.sentBackBy && t.sentBackBy !== me) push('back:' + id, 'review', t.sentBackAt, T`${nm(t.sentBackBy)} sent ${t.title} back${t.sentBackNote ? ': ' + t.sentBackNote : ''}`, '#tasks/' + id, t.sentBackBy, true);
-      if (!mine && t.status === 'review' && t.reviewAt && (M.reviews ? M.reviews.canReview(ctx, t) : ctx.isFounder))
+      if (!mine && t.status === 'review' && t.reviewAt && reviewerOf(t) === me)
         push('rev:' + id, 'review', t.reviewAt, T`${nm(t.owner)} put ${t.title} up for review`, '#reviews', t.owner);
       const cs = t.comments || {};
       for (const cid of Object.keys(cs)) {
@@ -59,40 +72,41 @@
         if (mentioned || mine) push('cm:' + cid, 'feed', c.at || 0, T`${nm(c.by)}${mentioned ? ' mentioned you on ' : ' commented on '}${t.title}`, '#tasks/' + id, c.by, mentioned);
       }
     }
-    /* the founder's flags: what somebody did to the record that deserves a look. The COO's own moves list
-       here under its name, silently: its told card and the closing undo window are what ring */
+    /* the founder's flags: what somebody did to the record that deserves a look. Every one lists here
+       silently (the drawer is where they are read), and none is about the viewer's own act: a sign-off
+       they gave, a date they moved, a task they handed over or deleted */
     if (ctx.isFounder && M.tasks) {
       const founder = ctx.founderUid;
+      const self0 = u => u === founder || u === me;
       const since0 = M.tasks.SIGNOFF_SINCE || 0;
       const dayOf = ts => U.ymd(new Date(ts));
       for (const id of Object.keys(tmap)) {
         const t = tmap[id];
         if (!t || t.owner === founder) continue;
         const doneAt = Number(t.doneAt) || 0;
-        if (t.status === 'done' && doneAt >= since0 && !t.approvedBy && !M.tasks.signoffOn(ctx)) push('flag:unsigned:' + id, 'flag', doneAt, T`${nm(t.owner)} marked ${t.title} done with no sign-off`, '#tasks/' + id, t.owner, true);
-        if (t.status === 'done' && doneAt >= since0 && t.approvedBy && t.approvedBy !== founder) {
+        if (t.status === 'done' && doneAt >= since0 && !t.approvedBy && !M.tasks.signoffOn(ctx)) push('flag:unsigned:' + id, 'flag', doneAt, T`${nm(t.owner)} marked ${t.title} done with no sign-off`, '#tasks/' + id, t.owner, true, true);
+        if (t.status === 'done' && doneAt >= since0 && t.approvedBy && !self0(t.approvedBy)) {
           const self = t.approvedBy === t.by && t.by !== t.owner;
-          push('flag:signed:' + id, 'flag', Number(t.approvedAt) || doneAt, self ? T`${nm(t.approvedBy)} created ${t.title} for ${nm(t.owner)} and signed it off themselves` : T`${nm(t.approvedBy)} signed off ${t.title} for ${nm(t.owner)}`, '#tasks/' + id, t.approvedBy, self);
+          push('flag:signed:' + id, 'flag', Number(t.approvedAt) || doneAt, self ? T`${nm(t.approvedBy)} created ${t.title} for ${nm(t.owner)} and signed it off themselves` : T`${nm(t.approvedBy)} signed off ${t.title} for ${nm(t.owner)}`, '#tasks/' + id, t.approvedBy, self, true);
         }
-        if (t.status === 'done' && doneAt && t.due && dayOf(doneAt) > t.due) { const late = U.daysBetween(t.due, dayOf(doneAt)); push('flag:late:' + id, 'flag', doneAt, T`${nm(t.owner)} shipped ${t.title} ${late} ${late === 1 ? 'day' : 'days'} late`, '#tasks/' + id, t.owner); }
-        if (t.status === 'done' && doneAt && t.created && doneAt - t.created < 600000 && t.by === t.owner) push('flag:rushed:' + id, 'flag', doneAt, T`${nm(t.owner)} created and finished ${t.title} within ${Math.max(1, Math.round((doneAt - t.created) / 60000))} min`, '#tasks/' + id, t.owner, true);
-        for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && (d.by === t.owner || coo(d.by)) && d.to > d.from) push('flag:due:' + id + ':' + d.at, 'flag', d.at || 0, T`${nm(d.by)} moved the due date of ${t.title} from ${d.from ? U.fmtDate(d.from) : 'none'} to ${U.fmtDate(d.to)}`, '#tasks/' + id, d.by, true, coo(d.by));
-        for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) if (o && o.by !== founder) push('flag:owner:' + id + ':' + o.at, 'flag', o.at || 0, T`${nm(o.by)} handed ${t.title} ${o.to ? 'to ' : 'off'}${o.to ? nm(o.to) : ''}`, '#tasks/' + id, o.by, false, coo(o.by));
+        if (t.status === 'done' && doneAt && t.due && dayOf(doneAt) > t.due && t.approvedBy !== me) { const late = U.daysBetween(t.due, dayOf(doneAt)); push('flag:late:' + id, 'flag', doneAt, T`${nm(t.owner)} shipped ${t.title} ${late} ${late === 1 ? 'day' : 'days'} late`, '#tasks/' + id, t.owner, false, true); }
+        if (t.status === 'done' && doneAt && t.created && doneAt - t.created < 600000 && t.by === t.owner) push('flag:rushed:' + id, 'flag', doneAt, T`${nm(t.owner)} created and finished ${t.title} within ${Math.max(1, Math.round((doneAt - t.created) / 60000))} min`, '#tasks/' + id, t.owner, true, true);
+        for (const d of (Array.isArray(t.dueLog) ? t.dueLog : [])) if (d && d.by !== me && (d.by === t.owner || coo(d.by)) && d.to > d.from) push('flag:due:' + id + ':' + d.at, 'flag', d.at || 0, T`${nm(d.by)} moved the due date of ${t.title} from ${d.from ? U.fmtDate(d.from) : 'none'} to ${U.fmtDate(d.to)}`, '#tasks/' + id, d.by, true, true);
+        for (const o of (Array.isArray(t.ownerLog) ? t.ownerLog : [])) if (o && !self0(o.by)) push('flag:owner:' + id + ':' + o.at, 'flag', o.at || 0, T`${nm(o.by)} handed ${t.title} ${o.to ? 'to ' : 'off'}${o.to ? nm(o.to) : ''}`, '#tasks/' + id, o.by, false, true);
       }
       const trash = (ctx.coll.tasks && ctx.coll.tasks.trash) || {};
-      for (const id of Object.keys(trash)) { const t = trash[id]; if (t && t.deletedBy && t.deletedBy !== founder) push('flag:del:' + id, 'flag', Number(t.deletedAt) || 0, T`${nm(t.deletedBy)} deleted ${t.title}. It is in the bin on Admin`, '#admin', t.deletedBy, true); }
+      for (const id of Object.keys(trash)) { const t = trash[id]; if (t && t.deletedBy && !self0(t.deletedBy)) push('flag:del:' + id, 'flag', Number(t.deletedAt) || 0, T`${nm(t.deletedBy)} deleted ${t.title}. It is in the bin on Admin`, '#admin', t.deletedBy, true, true); }
     }
-    /* the manager's watch: each report's day, as flags; the founder gets whoever reports to them */
+    /* the manager's watch: each report's day, as flags; the founder gets whoever reports to them. They list
+       here silently: Your team shows them, and for the kinds the viewer's bot chases it makes first contact */
     if (M.lines) {
       const td = U.ymd(new Date(ctx.now || Date.now()));
-      /* while the viewer's bot chases a kind, it makes first contact: the flag still lists here, silently */
-      const chased = (r, k) => !!M.pm && M.lines.managerOf(ctx, r) === me && M.pm.chases(ctx, r, k, td);
-      for (const r of M.lines.board(ctx, me)) for (const f of r.flags) push('team:' + r.uid + ':' + (f.key || f.k) + ':' + td, 'flag', f.at || (ctx.now || Date.now()), T`${nm(r.uid)} ${f.text}`, f.ref, r.uid, f.hot, chased(r.uid, f.k));
+      for (const r of M.lines.board(ctx, me)) for (const f of r.flags) push('team:' + r.uid + ':' + (f.key || f.k) + ':' + td, 'flag', f.at || (ctx.now || Date.now()), T`${nm(r.uid)} ${f.text}`, f.ref, r.uid, f.hot, true);
     }
     /* the personal manager: steps due to the viewer, answers to their asks, the note up the line */
     if (M.pm && M.pm.loaded(ctx)) for (const it of M.pm.inboxItems(ctx)) push(it.id, 'pm', it.at, T`${it.line}`, it.ref, it.actor, it.hot, true, true);
-    /* the COO's lines for the founder: an urgent card, the morning brief, undo windows about to close */
-    if (M.cooUi && ctx.isFounder) for (const it of M.cooUi.founderItems(ctx)) push(it.id, 'coo', it.at, T`${it.line}`, it.ref, M.coo.UID, it.hot);
+    /* the COO's lines for the founder: an urgent card, the morning brief (silent), undo windows about to close */
+    if (M.cooUi && ctx.isFounder) for (const it of M.cooUi.founderItems(ctx)) push(it.id, 'coo', it.at, T`${it.line}`, it.ref, M.coo.UID, it.hot, it.silent);
     /* the viewer's own follow-ups, once due: silent here (FollowWatch rings them), hot when late. Nothing is
        stored. When the COO already holds an open card on the same pitch, the line says so and stays quiet. */
     if (M.prospects && M.prospects.inboxItems && !ctx.viewAs) {
@@ -122,10 +136,11 @@
       if (p && p.kind === 'announce' && author !== me) push('an:' + p.id, 'feed', p.at || 0, T`${nm(author)} announced: ${String(p.text).slice(0, 90)}`, '#feed', author, true);
       if (p && p.kind === 'poll' && author !== me && !((p.votes || {})[me]) && ((((ctx.coll.votes || {}).map || {})[me] || {}).polls || {})[author + ':' + p.id] === undefined) push('poll:' + p.id, 'feed', p.at || 0, T`${nm(author)} asked: ${String(p.text).slice(0, 80)}`, '#feed', author);
     }
-    /* chat: direct messages and mentions since the read mark */
+    /* chat: direct messages and mentions since the read mark. The COO's lines list silently: they ring
+       nowhere, this row is their one place */
     if (M.rooms && ctx.coll.chat) {
       const myName = ((ctx.coll.me.map[me] || {}).name) || '';
-      for (const it of M.rooms.inboxItems(ctx, myName)) push(it.id, 'chat', it.m.at || 0, T`${nm(it.m.by)}${it.dm ? '' : ' in #' + it.room}: ${String(it.m.text).slice(0, 90)}`, '#chat/' + it.room, it.m.by, it.dm);
+      for (const it of M.rooms.inboxItems(ctx, myName)) push(it.id, 'chat', it.m.at || 0, T`${nm(it.m.by)}${it.dm ? '' : ' in #' + it.room}: ${String(it.m.text).slice(0, 90)}`, '#chat/' + it.room, it.m.by, it.dm, coo(it.m.by));
     }
     /* founder: joins and leave requests */
     if (ctx.isFounder) {
@@ -158,6 +173,12 @@
 
   const seenAt = ctx => Number(((ctx.coll.me.map[ctx.uid] || {}).inboxSeen) || 0);
   const unread = ctx => items(ctx).filter(i => i.at > seenAt(ctx)).length;
+  /* the unread rows that speak (a bubble, a chat notice): the bell swings when this count rises */
+  const loud = ctx => items(ctx).filter(i => i.at > seenAt(ctx) && !i.silent).length;
+  /* every collection the list reads has arrived (ctx.ready is only the roster and the settings), so the
+     first full list is a snapshot of what was already there, never news */
+  const LOADS = ['tasks', 'me', 'projects', 'kudos', 'leave', 'leavedec', 'feed', 'chat', 'fixes', 'votes'];
+  const loaded = ctx => !!ctx && !!ctx.ready && !!ctx.coll && LOADS.every(k => !ctx.coll[k] || ctx.coll[k].ready !== false) && (!ctx.isFounder || !ctx.coo || ctx.coo.ready !== false);
 
   const KIND_ICON = {coo: 'bell', pm: 'bell', follow: 'bell', tasks: 'tasks', review: 'review', feed: 'feed', scores: 'scores', leave: 'leave', people: 'people', gift: 'gift', fix: 'fix', chat: 'send', books: 'log', flag: 'shield'};
 
@@ -204,15 +225,26 @@
     const ids = useMemo(() => ctx.activeMembers.map(m => m.uid), [ctx.activeMembers]);
     const profs = M.useProfiles(ids);
     const nameOf = id => (M.cooUi && M.cooUi.isCoo(id) ? M.cooUi.titleOf(ctx) : '') || (profs[id] && profs[id].name) || (ctx.members[id] && ctx.members[id].name) || 'Someone';
+    /* a fresh move by the COO waits twenty seconds on this device for its DM, which lands just after the
+       task does and makes the row silent; then one more pass */
+    const firstSeen = useRef(new Map());
+    const holdT = useRef(0);
+    const [again, setAgain] = useState(0);
+    useEffect(() => () => clearTimeout(holdT.current), []);
     useEffect(() => {
       if (!uid || !ctx.ready || !M.notices) return;
       const key = 'inboxNotice.' + uid;
-      const now = Date.now();
+      const now = Date.now(), nowP = performance.now();
       /* chat lines and the bot's steps have watchers of their own; silent items never bubble */
-      const list = items(ctx).filter(i => i.kind !== 'chat' && i.kind !== 'pm' && !i.silent && i.at <= now + 120000);
+      const all = items(ctx).filter(i => i.kind !== 'chat' && i.kind !== 'pm' && !i.silent && i.at <= now + 120000);
+      const move = i => /^coo:(own|off|due):/.test(i.id) && i.at > now - 5 * 60000;
+      for (const i of all) if (move(i) && !firstSeen.current.has(i.id)) firstSeen.current.set(i.id, nowP);
+      const young = i => move(i) && nowP - firstSeen.current.get(i.id) < 20000;
+      if (all.some(young)) { clearTimeout(holdT.current); holdT.current = setTimeout(() => setAgain(n => n + 1), 20500); }
+      const list = all.filter(i => !young(i));
       const newest = list.reduce((m, i) => Math.max(m, Number(i.at) || 0), 0);
       const mark = Number(M.prefs.get(key, '0')) || 0;
-      if (!mark) { M.prefs.set(key, String(newest || now)); return; }
+      if (!mark) { M.prefs.set(key, String(all.reduce((m, i) => Math.max(m, Number(i.at) || 0), 0) || now)); return; }
       const seen = seenAt(ctx);
       /* announced ids, kept on this device: an item that syncs in late with an earlier time than the
          newest one already announced still gets its bubble, within ten minutes of the mark */
@@ -255,11 +287,11 @@
         M.notices.push({key: it.kind === 'coo' ? it.id : 'inbox:' + it.id, who: it.actor || null, title: who || (TITLE[it.kind] || 'm360'), body: c.body, hidden: 'Something new for you in m360', href: it.ref, life: 12000});
       }
       M.sound.play('soft');
-    }, [ctx, profs]);
+    }, [ctx, profs, again]);
     return null;
   }
   M.parts.InboxWatch = InboxWatch;
 
-  M.inbox = {items, unread, seenAt};
+  M.inbox = {items, unread, loud, loaded, seenAt};
   M.parts.Inbox = Inbox;
 })();

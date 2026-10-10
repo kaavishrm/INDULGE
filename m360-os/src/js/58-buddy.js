@@ -297,13 +297,8 @@
       if (subs) subs.add(count);
       return () => { if (subs) subs.delete(count); };
     }, [ctx, cooOpen]);
-    /* the morning brief lands: one hop, once a day on this device; the pop-up shows it until it is read */
-    useEffect(() => {
-      if (!briefDay || pref('cooDigestHop', '') === briefDay) return;
-      M.prefs.set('cooDigestHop', briefDay);
-      setHop(n => n + 1); setIdle(false);
-    }, [briefDay]);
-    /* something new for you: one hop, and it wakes */
+    /* the morning brief makes no hop: the pop-up shows it, when they open it, until it is read */
+    /* something that cannot wait (a blocked step, Kaavish's now ask): one hop, and it wakes */
     useEffect(() => {
       const f = () => { setHop(n => n + 1); setIdle(false); lastInput.current = Date.now(); };
       window.addEventListener('m360:pm', f);
@@ -501,7 +496,8 @@
       setClosing(false); closingRef.current = false;
       if (!openRef.current) { const a = document.activeElement; opener.current = a && a !== document.body && !a.closest('.agent-panel') ? a : null; }
       setOpen(phone ? 'sheet' : 'pop');
-      if (!o.keepIntro) setIntro(null);
+      /* a plain open shows the day's hello waiting there; an open with words in it starts clean */
+      if (!o.keepIntro) setIntro(x => x && x.kind === 'hello' && !text ? x : null);
       if (M.assistant.st.phase !== 'thinking' && M.assistant.st.phase !== 'listening' && M.assistant.st.phase !== 'hearing') M.assistant.set({phase: 'idle', err: '', chips: null});
       setInitial(text || '');
     }, [phone]);
@@ -577,23 +573,25 @@
       return () => window.removeEventListener('m360:tour', startTour);
     }, [startTour]);
 
-    /* once a day, the first time m360 is open: a hello with their numbers, no model call */
+    /* once a day, the first time m360 is open and the data it reads is in (ctx.ready is only the roster and
+       the settings): a hello with their numbers, no model call. It waits in the dock and is there when they
+       open it; it never opens the pop-up and never speaks */
+    const helloReady = !!(ctx.ready && (M.brain && M.brain.helloReady ? M.brain.helloReady(ctx) : true));
     useEffect(() => {
-      if (!ctx.ready || !ctx.member || open || step >= 0) return undefined;
+      if (!helloReady || !ctx.member || open || step >= 0) return undefined;
       if (pref('buddyHello', '1') === '0' || pref('buddyHelloDay', '') === U.todayStr()) return undefined;
       if (!M.tour.ready(ctx) || !M.tour.seen(ctx)) return undefined;    /* the welcome comes first, the hello from the next day */
       if (window.M360_WELCOME_OFF && pref('forceHello', '') !== '1') return undefined;
       const t = setTimeout(async () => {
         if (openRef.current || stepRef.current >= 0) return;
         M.prefs.set('buddyHelloDay', U.todayStr());
-        const nm = await M.ai.names(ctx).catch(() => ({}));
-        const line = M.brain ? M.brain.hello(ctx, nm) : '';
+        const nm = await M.ai.names(ctxRef.current).catch(() => ({}));
+        const line = M.brain ? M.brain.hello(ctxRef.current, nm) : '';
         if (!line || openRef.current) return;
-        openPanel('', {keepIntro: true}); setIntro({kind: 'hello', text: line});
-        if (voiceOn()) speak(line);
+        setIntro({kind: 'hello', text: line});
       }, 1500);
       return () => clearTimeout(t);
-    }, [ctx.ready, ctx.member, open, step]);
+    }, [helloReady, ctx.member, open, step]);
 
     /* a new person gets offered the tour once, on their first sign in */
     useEffect(() => {
@@ -932,7 +930,7 @@
     useEffect(() => {
       M.buddy = {
         tour: {start: startTour, next: () => showStep(step + 1), stop: () => finishTour('skipped'), step: () => step, count: () => stops.length},
-        ask: t => { openPanel(''); return M.assistant.send(ctx, t, {via: 'typed', size: phone ? 'sheet' : 'pop'}); },
+        ask: t => { openPanel(''); setIntro(null); return M.assistant.send(ctx, t, {via: 'typed', size: phone ? 'sheet' : 'pop'}); },
         open: openPanel, close: closePanel, reset, scan,
         conv: on => on ? startConv() : endConv('api'),
         state: () => ({mode, step, stops: stops.length, ring: !!ring, talking, followUp: follow, hidden: !showDock, flying: !!flight.current, pinned: pinned.current,
@@ -1042,7 +1040,7 @@
           onKeyDown=${e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapHome(); } }} onContextMenu=${e => e.preventDefault()}>
           <span key=${hop} class=${'dock-char' + (hop ? ' hop' : '') + (talking ? ' bob' : '')} style=${{'--sz': size + 'px'}}>
             ${live && M.fx && M.fx.VoicePill ? html`<${M.fx.VoicePill} live=${true}><span class="dock-glow"/><//>` : null}
-            ${Bot ? html`<${Bot} type="droid" size=${size} state=${botState} headphones=${live || conv} paused=${paused} jumpEvery=${dockState === 'idle' && !paused && !reduced() ? 45 : 0} interactive=${!reduced()} label="m360" className="dock-bot"/>`
+            ${Bot ? html`<${Bot} type="droid" size=${size} state=${botState} headphones=${live || conv} paused=${paused} jumpEvery=${0} interactive=${!reduced()} label="m360" className="dock-bot"/>`
               : html`<${M.Mark} width="40px"/>`}
           </span>
           <span class="dock-shadow" aria-hidden="true"/>

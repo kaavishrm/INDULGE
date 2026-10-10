@@ -123,7 +123,7 @@
       setBusy(false);
       M.sound.play('done');
       M.toast('Checked out. See you tomorrow');
-      if (M.dayrate) M.dayrate.open();
+      /* the day rating waits on the hero's own button (How did it go?), never a takeover on check-out */
     }
     const rated = a.out && M.dayrate ? M.dayrate.todayOf(ctx, ctx.uid) : null;
     return html`<div class="row between" style=${{alignItems: 'flex-end'}}>
@@ -837,7 +837,7 @@
           <${F} title="My week" summary="check-ins and EOD lines, Monday to Saturday" id="fold-week"><${MyWeek}/><//>
           <${F} title="Rule box" summary=${flagN ? n(flagN, 'flag on you', 'flags on you') : 'all clear'} hot=${flagN > 0} open=${flagN > 0} id="fold-rules"><${HeadsUp}/><//>
           <${Nudges}/>
-          ${M.parts.StudioNow ? html`<${F} title="The studio now" summary="the office, live" open=${ctx.isFounder} id="fold-studio"><${M.parts.StudioNow}/><//>` : null}
+          ${M.parts.StudioNow ? html`<${F} title="The studio now" summary="the office, live" open=${false} id="fold-studio"><${M.parts.StudioNow}/><//>` : null}
           <${F} title="Who's in today" summary=${inN + ' of ' + ctx.activeMembers.length + ' in'} id="fold-crew"><${Crew}/><//>
           ${Day ? html`<${F} title="Your day" summary="calendar, mail and files" id="fold-day"><${Day}/><//>` : null}
         </div>

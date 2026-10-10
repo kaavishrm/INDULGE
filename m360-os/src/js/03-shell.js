@@ -339,12 +339,18 @@
     const sec = SECTIONS[r.s] || SECTIONS.home;
     const Page = M.pages[sec.page];
     const b = M.badges(ctx);
-    const inboxWas = React.useRef(b.inbox || 0);
+    /* the bell swings when a row that speaks arrives (silent rows only list), and never for the first full
+       snapshot of what was already there: the count is taken once every collection has arrived */
+    const loudReady = !!(M.inbox && M.inbox.loaded && M.inbox.loaded(ctx));
+    const loud = loudReady && M.inbox.loud ? M.inbox.loud(ctx) : 0;
+    const loudWas = React.useRef(null);
     React.useEffect(() => {
-      const n = b.inbox || 0;
-      if (n > inboxWas.current && M.fx && M.fx.ring) document.querySelectorAll('.bellbtn svg').forEach(el => M.fx.ring(el, {amplitude: 14, passes: 4, duration: 640}));
-      inboxWas.current = n;
-    }, [b.inbox]);
+      if (!loudReady) return;
+      const was = loudWas.current;
+      loudWas.current = {uid: ctx.uid, n: loud};
+      if (!was || was.uid !== ctx.uid) return;
+      if (loud > was.n && M.fx && M.fx.ring) document.querySelectorAll('.bellbtn svg').forEach(el => M.fx.ring(el, {amplitude: 14, passes: 4, duration: 640}));
+    }, [loud, loudReady, ctx.uid]);
     const go = k => { setMoreOpen(false); M.nav('#' + k); };
 
     const mainKeys = ['home', 'chat', 'work', 'accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me'];
