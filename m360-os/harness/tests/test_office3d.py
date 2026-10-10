@@ -329,6 +329,10 @@ def test(h):
         until(fl, swapped, '10. the flat page never laid the benches out swapped', arg=want, timeout=20000)
         until(fl, '([u, x]) => document.querySelector(`.office-desk[data-uid="${u}"]`).style.left !== x', '10. the flat page never moved the desks', arg=[M1, flat0], timeout=20000)
         check(True, '10. and a flat page moves the desks with their bench: %s -> %s' % (flat0, fl.evaluate('u => document.querySelector(`.office-desk[data-uid="${u}"]`).style.left', M1)))
+        # his own floor is rebuilt with the swap, and his view stays near top down while he arranges
+        polar = '() => { const a = M.office3d.api(), c = a.camera.position, t = a.controls.target; return Math.round(Math.acos((c.y - t.y) / Math.hypot(c.x - t.x, c.y - t.y, c.z - t.z)) * 180 / Math.PI); }'
+        until(p, 'r => M.office3d.state().plan === r && !M.office3d.state().building', '10. his own page never drew plan rev %d' % (rev0 + 1), arg=rev0 + 1, timeout=60000, polling=250)
+        check(p.evaluate(polar) <= 22, '10. after the drop his view is still near top down: %d degrees' % p.evaluate(polar))
         p.click('.o3-arr-done')
         fl.close()
     # the pages above stop drawing, so the checks below have the renderer's time to themselves

@@ -276,17 +276,18 @@
       plinth: std(0.9), floor: std(0.92), wall: std(0.95), cap: std(0.9), top: std(0.55), leg: std(0.5, 0.1), seat: std(0.9), board: std(0.85),
       cell: std(0.85), mark: std(0.8), ink: std(0.6), pot: std(0.8), pampas: std(0.95),
       glass: new T.MeshStandardMaterial({roughness: 0.2, metalness: 0, transparent: true, opacity: 0.14, depthWrite: false}),
-      screen: new T.MeshBasicMaterial(), lampOn: std(0.5), lampOff: std(0.6),
+      screen: new T.MeshBasicMaterial(), lampOn: std(0.5), lampOff: std(0.6), cabOn: std(0.5),
       drop: new T.MeshBasicMaterial({transparent: true, depthWrite: false, toneMapped: false}),
       pool: new T.MeshBasicMaterial({transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3}),
       focus: new T.MeshBasicMaterial({transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2}),
       blob: new T.MeshBasicMaterial({transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3}),
       kpool: new T.MeshBasicMaterial({transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2}),
+      cpool: new T.MeshBasicMaterial({transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3}),
       home: new T.MeshBasicMaterial()
     };
     const tex = {grain: WD().grainTexture(T), soft: WD().radial(T, [[0, 1], [0.35, 0.55], [0.7, 0.14], [1, 0]]), drop: WD().dropShadowTexture(T), floor: null, back: null, home: null};
     mats.top.map = tex.grain;
-    mats.drop.map = tex.drop; mats.pool.map = tex.soft; mats.focus.map = tex.soft; mats.blob.map = tex.soft; mats.kpool.map = tex.soft;
+    mats.drop.map = tex.drop; mats.pool.map = tex.soft; mats.focus.map = tex.soft; mats.blob.map = tex.soft; mats.kpool.map = tex.soft; mats.cpool.map = tex.soft;
 
     /* lights: a hemisphere and one high key from the front left, the way a product is lit */
     const hemi = new T.HemisphereLight();
@@ -322,6 +323,11 @@
       const glow = dk || night;
       setCol(T, mats.lampOn.emissive, c.lamp);
       mats.lampOn.emissiveIntensity = glow ? 1.1 : 0;
+      /* the cabin lamp says Kaavish is here, so it reads as lit by day too: a paper warm dome and a soft pool */
+      setCol(T, mats.cabOn.color, c.pot); setCol(T, mats.cabOn.emissive, c.lamp);
+      mats.cabOn.emissiveIntensity = glow ? 1.1 : 0.95;
+      setCol(T, mats.cpool.color, glow ? c.lamp : c.pool);
+      mats.cpool.blending = glow ? T.AdditiveBlending : T.NormalBlending; mats.cpool.opacity = glow ? (dk ? 0.42 : 0.3) : 0.45; mats.cpool.needsUpdate = true;
       setCol(T, mats.screen.color, glow ? c['screen-on'] : c['screen-off']);
       mats.floor.color.setRGB(1, 1, 1);
       setCol(T, mats.drop.color, c.shade); mats.drop.opacity = dk ? 0.62 : 0.2;
@@ -360,7 +366,7 @@
     }
 
     /* ---------- the world: built in idle slices, swapped in whole ---------- */
-    const pools = {lamp: null, focus: null};
+    const pools = {lamp: null, focus: null, cab: null};
     const meshes = [];
     function signature(d) {
       const D = d.D || [];
@@ -419,27 +425,31 @@
         meshes.push(m);
       }
       /* lamp domes: lit for whoever is at the desk, at night and in dark */
-      const on = [], off = [];
+      const on = [], off = [], cabin = [];
       for (const l of w.lamps) {
         const s = l.floor ? 2.2 : 1;
         const gd = new T.SphereGeometry(0.085 * s, phone ? 14 : 24, phone ? 6 : 10, 0, Math.PI * 2, 0, Math.PI / 2);
         gd.deleteAttribute('uv'); gd.scale(1, 0.8, 1); gd.translate(l.x, l.y, l.z);
-        (l.on ? on : off).push(gd);
+        (l.on ? (l.cabin ? cabin : on) : off).push(gd);
       }
       if (on.length) { const m = new T.Mesh(T.mergeGeometries(on, false), mats.lampOn); m.castShadow = true; meshes.push(m); }
       if (off.length) { const m = new T.Mesh(T.mergeGeometries(off, false), mats.lampOff); m.castShadow = true; meshes.push(m); }
-      on.concat(off).forEach(x => x.dispose());
-      /* pools: a soft light on the desk under each lit lamp (the cabin's too); a wider one on the floor round a focus desk */
+      if (cabin.length) { const m = new T.Mesh(T.mergeGeometries(cabin, false), mats.cabOn); m.castShadow = true; meshes.push(m); }
+      on.concat(off, cabin).forEach(x => x.dispose());
+      /* pools: a soft light on the desk under each lit lamp (at night and in dark), the cabin's own while he is online,
+         and a wider one on the floor round a focus desk */
       const plane = (x, y, z, s) => { const g = new T.PlaneGeometry(s, s); g.rotateX(-Math.PI / 2); g.translate(x, y, z); g.deleteAttribute('normal'); return g; };
-      const lit = w.lamps.filter(l => l.on && !l.floor).map(l => plane(l.x, 0.743, l.z - 0.05, 1.0));
-      const cab = w.lamps.find(l => l.cabin && l.on);
-      if (cab) lit.push(plane(cab.x - 0.3, 0.004, cab.z - 0.2, 3.0));
+      const lit = w.lamps.filter(l => l.on && !l.floor && !l.cabin).map(l => plane(l.x, 0.743, l.z - 0.05, 1.0));
       pools.lamp = lit.length ? new T.Mesh(T.mergeGeometries(lit, false), mats.pool) : null;
       lit.forEach(x => x.dispose());
+      const cab = w.lamps.find(l => l.cabin && l.on);
+      const cp = cab ? [plane(cab.x, 0.743, cab.z - 0.05, 1.0), plane(cab.x - 0.3, 0.004, cab.z - 0.2, 3.0)] : [];
+      pools.cab = cp.length ? new T.Mesh(T.mergeGeometries(cp, false), mats.cpool) : null;
+      cp.forEach(x => x.dispose());
       const fp = w.pools.filter(p => p.kind === 'focus').map(p => plane(p.x, 0.004, p.z, p.r * 2));
       pools.focus = fp.length ? new T.Mesh(T.mergeGeometries(fp, false), mats.focus) : null;
       fp.forEach(x => x.dispose());
-      for (const p of [pools.lamp, pools.focus]) if (p) { p.renderOrder = 1; meshes.push(p); }
+      for (const p of [pools.lamp, pools.focus, pools.cab]) if (p) { p.renderOrder = 1; meshes.push(p); }
       if (pools.lamp) pools.lamp.visible = dark() || !!(data && data.day && data.day.night);
       /* the call tiles: one canvas for every person working from home */
       homeAtlas.uids = w.homes.map(h => h.uid);
@@ -1213,6 +1223,8 @@
       colliders: () => (world ? world.colliders.slice() : []),
       drawers: o.drawers,
       preset: kind => setCam(kind),
+      /* the camera is the viewer's own from here (Arrange moves it): a rebuild or a resize keeps it where it is */
+      hold() { userCam = true; tween = null; follow = null; },
       look: p => look(new T.Vector3(cm(p.x), 0.8, cm(p.y))),
       reserve(list) { extra.reserved = list || []; invalidate(1); }};
 
@@ -1573,7 +1585,7 @@
             const here = d.state === 'office' || d.state === 'wfh' || d.place === 'meeting' || d.place === 'lunch';
             if (d.cabin) {
               return html`<button key=${'k' + d.uid} ref=${reg('founder')} type="button" class="office-founder o3-item" data-uid=${d.uid} data-state=${d.state} data-place=${kPlace} data-live=${kLive ? '1' : '0'}
-                tabIndex=${tabFor(d)} aria-label=${O.deskAria(d, nm(d.uid))} title=${nm(d.uid)} onClick=${() => open('desk', d.uid)} onKeyDown=${ev => keyDesk(d, ev)}><b>${first(d.uid)}</b></button>`;
+                tabIndex=${tabFor(d)} aria-label=${O.deskAria(O.onFloor(d, K), nm(d.uid))} title=${nm(d.uid)} onClick=${() => open('desk', d.uid)} onKeyDown=${ev => keyDesk(d, ev)}><b>${first(d.uid)}</b></button>`;
             }
             return html`<button key=${'d' + d.uid} ref=${reg('desk:' + d.uid)} type="button" class=${'office-desk o3-item' + (here ? '' : ' away') + (roll && d.state !== 'closed' ? ' lit' : '')}
               data-uid=${d.uid} data-state=${d.state} data-place=${d.place} data-ai="desk" tabIndex=${tabFor(d)} aria-label=${O.deskAria(d, nm(d.uid))} title=${nm(d.uid)}

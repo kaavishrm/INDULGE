@@ -1077,6 +1077,10 @@
   const useKaavish = ctx => { const L3 = M.officeLive; return (L3 && L3.useKaavish ? L3.useKaavish(ctx) : null) || NOK; };
   function kaavishAt(now) { const L3 = M.officeLive; try { const s = L3 && L3.sample ? L3.sample(now) : null; return s && isFinite(s.x) && isFinite(s.y) ? s : null; } catch (e) { return null; } }
   const driving = K => !!(K && K.live && K.mode !== 'sit');
+  /* where he is, for a word only (the desk list, a drawer): the descriptor without watching the office */
+  const useWhere = ctx => { const L3 = M.officeLive; return (L3 && L3.useWhere ? L3.useWhere(ctx) : null) || NOK; };
+  /* his desk's word while he walks the floor: 'in', never 'in the cabin' */
+  const onFloor = (d, K) => (d && d.cabin && driving(K) ? {...d, cabin: false} : d);
   /* his words: typed out at 30 a second, held for clamp(4 s, 60 ms a character, 12 s), then a pill for 30 s */
   function useSay(say) {
     const reduced = useReduced();
@@ -1088,7 +1092,9 @@
       let n = reduced ? len : 0;
       setSt({id, n, fold: false, gone: false});
       let iv = 0;
-      if (!reduced) iv = setInterval(() => { n = Math.min(len, n + 2); setSt(s => (s.id === id ? {...s, n} : s)); if (n >= len) clearInterval(iv); }, 66);
+      /* typed by the clock, not by the tick: a page whose timers come late still has the whole line before it folds */
+      const t0 = performance.now();
+      if (!reduced) iv = setInterval(() => { n = Math.min(len, Math.max(n + 2, Math.floor((performance.now() - t0) * 30 / 1000))); setSt(s => (s.id === id ? {...s, n} : s)); if (n >= len) clearInterval(iv); }, 66);
       const hold = (reduced ? 0 : len / 30 * 1000) + clamp(4000, 12000, 60 * len);
       const t1 = setTimeout(() => setSt(s => (s.id === id ? {...s, n: len, fold: true} : s)), hold);
       const t2 = setTimeout(() => setSt(s => (s.id === id ? {...s, gone: true} : s)), hold + 30000);
@@ -1342,7 +1348,7 @@
             })}
             ${shownD.map((d, i) => html`<${Desk} key=${d.uid} d=${d} L=${L} ppu=${ppu} name=${nm(d.uid)} tags=${showTags} tab=${tabFor(d)}
               lit=${roll && d.state !== 'closed' ? roll.k : 0} litDelay=${Math.min(i, 12) * 80} asked=${asked && asked.uid === d.uid ? asked.at : 0}
-              label=${deskAria(d, nm(d.uid))} live=${d.cabin && K.live}
+              label=${deskAria(onFloor(d, K), nm(d.uid))} live=${d.cabin && K.live}
               avatar=${html`<${UI.Avatar} id=${d.uid} size=${phone && whole ? 22 : 28}/>`}
               onOpen=${() => onOpenDesk && onOpenDesk(d.uid)} onKey=${ev => keyDesk(d, ev)}/>`)}
             ${said && kAt && !phone ? html`<${Say} s=${said} className="flat" style=${{left: pc(kAt.x, L.W), top: pc(kAt.y, L.H)}}/>` : null}
@@ -1392,6 +1398,7 @@
   }
   function DeskList({data}) {
     const {D, profs} = data;
+    const K = useWhere(data.ctx);
     const byPod = {};
     D.forEach(d => { const k = d.cabin ? 'The cabin' : d.pod; (byPod[k] = byPod[k] || []).push(d); });
     const keys = Object.keys(byPod);
@@ -1399,7 +1406,7 @@
     return html`<div class="office-desklist">${keys.map(k => html`<div key=${k} class="odl-pod">
       <div class="micro plain">${k}</div>
       <ul>${byPod[k].map(d => html`<li key=${d.uid} data-uid=${d.uid}><${UI.Avatar} id=${d.uid} size=${22}/><span class="grow">${((profs[d.uid] || {}).name) || 'Someone'}</span>
-        <span class="sub small">${d.tag || stateWord(d)}${d.focus ? ', in focus' : ''}</span></li>`)}</ul>
+        <span class="sub small">${d.tag || stateWord(onFloor(d, K))}${d.focus ? ', in focus' : ''}</span></li>`)}</ul>
     </div>`)}</div>`;
   }
   function Waiting({data}) {
@@ -1501,7 +1508,8 @@
   function DeskDrawer({uid, data, onClose}) {
     const {ctx, D, profs, founder, scope} = data;
     const [styling, setStyling] = useState(false);
-    const d = D.find(x => x.uid === uid);
+    const K = useWhere(ctx);
+    const d = onFloor(D.find(x => x.uid === uid), K);
     if (!d) return null;
     /* the owner restyles anyone from their desk: the character sheet takes the drawer's place */
     const Sheet = ctx.isOwner && !ctx.viewAs ? M.parts.CharacterSheet : null;
@@ -1679,6 +1687,6 @@
     STATION_POS, SPOTS, AREA, STATION_LABEL, ROOM_LABEL, NAV, MEET_SEATS, LUNCH_SEATS, aisles, walkway, path, route, standPoint, spotOf, sy,
     queue, choreo, approvedAt, say, rowBubble, teamLine, NEEDS, restOf, clockLine, useData, useDrawers, StationDrawer, DeskDrawer, CooDrawer,
     Rail, RunList, DeskList, Bubble, Mascot, ITEM, undoRow, useDirector, flatStage, useReduced, useLite, useVisible, useHushed, useMedia,
-    Scene, Desk, House, Phones, stationAria, cooAria, deskAria, useKaavish, kaavishAt, driving, useSay, Say, useSayAloud, canDrive,
+    Scene, Desk, House, Phones, stationAria, cooAria, deskAria, useKaavish, useWhere, onFloor, kaavishAt, driving, useSay, Say, useSayAloud, canDrive,
     PLAN: {W: PLAN_W, H: PLAN_H, GROW, BENCH_W, BENCH_H, DESK_W, COLS, ROW0, SEAT_ORDER}, EASE, bez, untilHm};
 })();

@@ -135,12 +135,23 @@ def test(h):
     until(fl, 's => !!document.querySelector(s)', 'the flat member page never drew the office', arg='.office[data-render="flat"] .office-founder', timeout=30000)
     until(fl, '() => { const b = document.querySelector(".office-founder"); return b.dataset.live === "1" && b.dataset.place === "floor"; }', 'the flat page never showed him live on the floor', timeout=20000)
     until(fl, 't => { const e = document.querySelector(".office .office-say"); return !!e && e.textContent.includes(t); }', 'the flat page never showed his words', arg=SAID, timeout=20000)
-    pos = fl.evaluate('''() => { const b = document.querySelector('.office-founder'), r = b.getBoundingClientRect(), s = b.parentElement.getBoundingClientRect();
-      return {x: (r.left + r.width / 2 - s.left) / s.width, y: (r.top + r.height / 2 - s.top) / s.height}; }''')
+    where = '''() => { const b = document.querySelector('.office-founder'), r = b.getBoundingClientRect(), s = b.parentElement.getBoundingClientRect();
+      return {x: (r.left + r.width / 2 - s.left) / s.width, y: (r.top + r.height / 2 - s.top) / s.height}; }'''
     L = fl.evaluate('() => { const L = M.office.layout(M.lastCtx); return {W: L.W, H: L.H}; }')
+    # his face glides there over 600 ms (a CSS transition), so the place is read once the glide is done
+    try:
+        fl.wait_for_function('([ex, ey]) => { const p = (' + where + ')(); return Math.abs(p.x - ex) < 0.06 && Math.abs(p.y - ey) < 0.08; }',
+                             arg=[end['x'] / L['W'], end['y'] / L['H']], timeout=10000, polling=200)
+    except Exception:
+        pass
+    pos = fl.evaluate(where)
     near = abs(pos['x'] - end['x'] / L['W']) < 0.06 and abs(pos['y'] - end['y'] / L['H']) < 0.08
     check(near, 'a flat member page shows .office-founder data-live 1 on the floor at his stand point, and his bubble: %r vs %r' % (pos, (end['x'] / L['W'], end['y'] / L['H'])))
     fl.screenshot(path=os.path.join(SHOTS, 'live-member-flat.png'))
+    # the words that say where he is follow him: 'in' while he stands on the floor, never 'in the cabin'
+    word = '() => { const l = document.querySelector(\'.office-desklist li[data-uid="u_founder"] .sub\'); return l ? l.textContent : null; }'
+    aria = '() => document.querySelector(".office .office-founder").getAttribute("aria-label")'
+    check(fl.evaluate(word) == 'in' and m.evaluate(aria).endswith(', in.'), 'on the floor, the desk list and his desk button say "in": %r' % [fl.evaluate(word), m.evaluate(aria)])
 
     # ---- a member drives nothing ----
     for p in (m, fl):
@@ -165,7 +176,8 @@ def test(h):
     until(m, 's => M.officeLive.state().seq === s', 'the same message from his own account was not believed, so the room never carried it', arg=fake['s'], polling=100)
     check(True, 'the same message from his own account is believed (seq %d)' % fake['s'])
     m.evaluate('''() => { for (const peer of ['xnull', 'xself', 'xreal']) { const bc = new BroadcastChannel('m360room'); bc.postMessage({t: 'bye', peer}); bc.close(); } }''')
-    until(m, 's => M.officeLive.state().seq === s', 'the stand-in peers never left the member\'s page', arg=f.evaluate('() => M.officeLive.state().seq'), timeout=20000, polling=100)
+    # back to his own walk's seq, as the member had it before the stand-ins (his own page heard them too, so his count is no guide)
+    until(m, 's => M.officeLive.state().seq === s', 'the stand-in peers never left the member\'s page', arg=seq, timeout=20000, polling=100)
 
     # ---- he leaves #office: seated in the cabin within 2 s ----
     m.evaluate(WATCH)
@@ -180,6 +192,8 @@ def test(h):
     # his words may still show for a while: he is live, and seated at his cabin desk
     until(fl, '() => document.querySelector(".office-founder").dataset.place === "cabin"', 'the flat page never put him back in the cabin')
     check(True, 'the member\'s scene draws him at his cabin desk, and the flat page puts him back in the cabin')
+    until(fl, 'w => (' + word + ')() === "in the cabin"', 'the desk list never said he was back in the cabin', timeout=10000)
+    check(m.evaluate(aria).endswith(', in the cabin.'), 'and both say "in the cabin" again: %r' % m.evaluate(aria))
     m.screenshot(path=os.path.join(SHOTS, 'live-member-cabin.png'))
     fl.close()
     m.close()

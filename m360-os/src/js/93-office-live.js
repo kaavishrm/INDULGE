@@ -481,6 +481,15 @@
     useEffect(() => { watchers++; watchSync(); return () => { watchers--; watchSync(); }; }, []);
     return d;
   }
+  /* the same descriptor for a word that says where he is (the desk list, a drawer): it hears the room and never
+     says it watches, so it polls nothing on the team site */
+  function useWhere(ctx) {
+    bind(ctx);
+    const d = React.useSyncExternalStore(subscribe, snapshot, snapshot);
+    const room = (ctx && ctx.room) || null;
+    useEffect(() => { join(room); }, [room]);
+    return d;
+  }
   function useController(api, data) {
     const ctx = data && data.ctx;
     if (ctx) bind(ctx);
@@ -904,6 +913,8 @@
       setOn(true); arranging = true; setSel(''); setNaming(false);
       const c = api.controls;
       if (c) saved.current = {min: c.minPolarAngle, max: c.maxPolarAngle, rot: c.enableRotate, polar: null};
+      /* each drop rebuilds the floor: the top-down view stays while he arranges */
+      if (api.hold) api.hold();
       const p0 = camTo(api, 20 / DEG, () => { if (c) { c.enableRotate = false; } });
       if (saved.current) saved.current.polar = p0;
     };
@@ -964,5 +975,5 @@
       say: desc.say ? desc.say.t : '', live: desc.live, to: desc.to, talking: s.talking, peers: far.size, watching: watchers, roomless};
   }
 
-  M.officeLive = {canDrive, useKaavish, sample, useController, walkTo, say, clear, Composer, Arrange, planWrite, state};
+  M.officeLive = {canDrive, useKaavish, useWhere, sample, useController, walkTo, say, clear, Composer, Arrange, planWrite, state};
 })();

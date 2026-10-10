@@ -297,9 +297,11 @@
     const [editing, setEditing] = useState(null);
     const [busy, setBusy] = useState('');
     const going = useRef(false);
-    const people = ctx && ctx.isOwner ? (ctx.activeMembers || []).filter(m => m.uid !== ctx.founderUid) : [];
+    /* every founder sees the looks (Admin folds this card for each of them); Kaavish alone restyles, locks and unlocks */
+    const people = ctx && ctx.isFounder ? (ctx.activeMembers || []).filter(m => m.uid !== ctx.founderUid) : [];
     const ps = M.useProfiles(people.map(m => m.uid));
-    if (!ctx || !ctx.isOwner || !M.cast) return null;
+    if (!ctx || !ctx.isFounder || !M.cast) return null;
+    const owner = !!ctx.isOwner;
     /* one lock write at a time: every row waits while one is on its way */
     const run = async (uid, patch) => {
       if (going.current) return;
@@ -314,18 +316,18 @@
       <div class="cast-admin">${people.map(m => {
         const name = (ps[m.uid] && ps[m.uid].name) || '';
         const r = M.cast.resolveFor(ctx, m.uid, name);
-        const state = r.locked ? 'locked' : r.src === 'starter' ? 'clay' : r.by === ctx.realUid ? 'you set' : 'their own';
+        const state = r.locked ? 'locked' : r.src === 'starter' ? 'clay' : r.by && r.by === ctx.founderUid ? (owner ? 'you set' : 'set by Kaavish') : 'their own';
         return html`<div class="cast-admin-row" key=${m.uid} data-uid=${m.uid} data-src=${r.src}>
           <img src=${M.cast.head2d(r.look, {size: 40}).url} alt="" width="40" height="40"/>
           <div class="grow cast-admin-who"><div class="small"><${UI.Name} id=${m.uid}/></div><div class="tiny ink62">${state}</div></div>
-          <div class="cast-actions">
+          ${owner ? html`<div class="cast-actions">
             <${UI.Btn} kind="sec" sm=${true} onClick=${() => setEditing(m.uid)}>Restyle<//>
             ${r.locked ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${!!busy} onClick=${() => run(m.uid, {[m.uid]: null})}>Unlock<//>`
               : r.src === 'own' ? html`<${UI.Btn} kind="ghost" sm=${true} disabled=${!!busy} onClick=${() => run(m.uid, {[m.uid]: {look: {...M.cast.clean(r.look), pic: 'auto'}, at: Date.now()}})}>Lock this look<//>` : null}
-          </div>
+          </div>` : null}
         </div>`;
       })}</div>
-      ${editing ? html`<${CharacterSheet} uid=${editing} onClose=${() => setEditing(null)}/>` : null}
+      ${editing && owner ? html`<${CharacterSheet} uid=${editing} onClose=${() => setEditing(null)}/>` : null}
     <//>`;
   }
   AdminCharacters.foldTitle = 'Characters';

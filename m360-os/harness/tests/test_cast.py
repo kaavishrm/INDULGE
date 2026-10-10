@@ -182,6 +182,9 @@ def test(h):
     check(row2.get_attribute('data-src') == 'starter', 'Aanya is still clay')
     row2.get_by_role('button', name='Restyle').click()
     p.wait_for_selector('#cast-sheet[data-uid="%s"][data-ro="0"]' % M2)
+    tools = p.evaluate('''() => { const s = document.querySelector('#cast-sheet .cast-stage').getBoundingClientRect(), t = document.querySelector('#cast-sheet .cast-tools').getBoundingClientRect();
+      return [Math.round(s.bottom), Math.round(t.top)]; }''')
+    check(tools[1] >= tools[0], 'Shuffle and Undo changes sit under the stage, clear of the figure: %r' % tools)
     p.click('#cast-sheet .cast-tile[data-part="skin"][data-v="s2"]')
     p.get_by_role('tab', name='Hair', exact=True).click()
     p.click('#cast-sheet .cast-tile[data-part="hair"][data-v="bob"]')
@@ -197,6 +200,22 @@ def test(h):
     p.wait_for_function('() => document.querySelector(\'#cast-admin .cast-admin-row[data-uid="u_m2"]\').dataset.src === "own"', timeout=10000)
     check('you set' in row2.inner_text(), 'the row now reads "you set"')
     p.screenshot(path=os.path.join(SHOTS, 'cast-admin-1280.png'))
+
+    # ---- a second roster founder (not the owner) sees the looks, read only: Kaavish alone restyles and locks ----
+    team = p.evaluate('() => window.__db.get("roster/team")')
+    was = team['members'][M3].get('role')
+    team['members'][M3]['role'] = 'founder'
+    h.seed_doc(p, 'roster/team', team)
+    q = h.page(c)
+    # on claude.ai a roster founder who is not the owner is a founder with edit access (edit=1 in the stand-in)
+    h.go(q, 'm3', hash='#admin', edit=True)
+    q.wait_for_selector('#cast-admin .cast-admin-row[data-uid="%s"]' % M2, timeout=10000)
+    seen = q.evaluate('''() => ({rows: document.querySelectorAll('#cast-admin .cast-admin-row').length, buttons: document.querySelectorAll('#cast-admin button').length,
+      aanya: document.querySelector('#cast-admin .cast-admin-row[data-uid="u_m2"] .tiny').textContent})''')
+    check(seen['rows'] >= 2 and seen['buttons'] == 0 and seen['aanya'] == 'set by Kaavish', 'a second founder sees Characters with no Restyle, Lock or Unlock: %r' % seen)
+    q.close()
+    team['members'][M3]['role'] = was
+    h.seed_doc(p, 'roster/team', team)
 
     # ---- the figures keep their budgets ----
     budget = p.evaluate('''async ([a, b, k]) => { const T = await M.office3d.load(), C = M.cast, F = M.figure, out = {};
