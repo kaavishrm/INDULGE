@@ -13,6 +13,7 @@ Reduced motion keeps the nudge and drops the rain. On the laptop the check-out d
 Run: cd m360-os && python3 harness/tests/test_motion.py
 """
 import os
+import time
 import sys
 from datetime import datetime
 
@@ -295,6 +296,16 @@ def test(h):
     seed(h, big)
     seed_in(h, big, 'u_m1')
     h.go(big, 'm1', hash='#home')
+    # the seeded check-in reaches the hero once the day's check-ins load; on a busy machine that can pass 8 s
+    t0 = time.time()
+    try:
+        big.wait_for_selector('#home-hero button:has-text("Check out")', timeout=30000)
+    except Exception:
+        print('DIAG', big.evaluate('''() => ({now: new Date().toString(), uid: (M.ctx && M.ctx().uid) || null, hash: location.hash,
+          hero: (document.querySelector('#home-hero') || {}).innerText || null, store: Object.keys(localStorage).filter(k => k.includes('checkin')).map(k => [k, localStorage.getItem(k).slice(0, 300)])})'''))
+        big.screenshot(path='/tmp/claude-0/-home-user-INDULGE/c70c5fa1-d903-5f8a-a380-0c7e1b00c68e/scratchpad/v35rel-check/motion-diag.png')
+        raise
+    print('check out shown after %.1f s' % (time.time() - t0))
     big.click('#home-hero button:has-text("Check out")')
     # RELIEF R14: the rating opens from the hero's button, never on check-out
     big.wait_for_selector('#home-rate', timeout=15000)

@@ -371,6 +371,12 @@ def test(h):
         q.context.close()
 
     # ---- the windows: 3D on a desktop, flat on a phone ----
+    def open_studio(q):
+        # v36 relief R14: Home's studio starts closed: Look in opens it on a desktop, its fold on a phone
+        q.wait_for_selector('#studio-look, #fold-studio .fold-head', timeout=20000)
+        check(q.locator('#studio-now .office-window').count() == 0, "Home's studio starts folded")
+        q.click('#studio-look' if q.locator('#studio-look').count() else '#fold-studio .fold-head')
+
     if part('windows'):
         q = h.page(h.context(width=1280, height=800, init=[FORCE_3D, clock]))
         office_world(h, q, tue)
@@ -378,6 +384,8 @@ def test(h):
                                ('#home', '#studio-now .office-window', 'Home\'s studio')):
             q.goto(h.url('founder', hsh))
             h.ready(q)
+            if hsh == '#home':
+                open_studio(q)
             q.wait_for_selector(sel, timeout=20000)
             q.evaluate('s => document.querySelector(s).scrollIntoView({block: "center"})', sel)
             until(q, 's => !!document.querySelector(s)', '%s never drew in 3D' % name, arg=sel + ' ' + READY, timeout=45000)
@@ -392,6 +400,8 @@ def test(h):
                                ('#home', '#studio-now .office-window', 'Home\'s studio')):
             q.goto(h.url('founder', hsh))
             h.ready(q)
+            if hsh == '#home':
+                open_studio(q)
             until(q, 's => !!document.querySelector(s)', '%s is not flat on a phone' % name, arg=sel + ' .office[data-render="flat"]', timeout=20000)
             check(q.locator(sel + ' .office-gl').count() == 0 and h.overflow(q) <= 0, '%s is flat on a phone' % name)
         q.context.close()
