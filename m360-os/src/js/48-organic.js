@@ -665,10 +665,10 @@
         <${Stat} v=${st.posts30} l="posts, 30 days"/>
       </div>
       ${due.length && off === 0 ? html`<${UI.Card} title="To post today" action=${html`<span class="num small">${due.length}</span>`} flame=${due.some(p => p.t < U.hhmm(Date.now()))}>
-        <div class="stack tight">${due.slice(0, 12).map(p => {
+        <div class="stack tight">${due.slice(0, 6).map(p => {
           const a = accs.find(x => x.id === p.a);
           return html`<div key=${p.id}><div class="tiny ink62">@${a ? a.handle : 'account'} · ${PLAT[a && a.platform] || ''}</div><${PostRow} c=${c} p=${p} decks=${decks}/></div>`;
-        })}${due.length > 12 ? html`<div class="tiny ink62">${due.length - 12} more in the week grid.</div>` : null}</div>
+        })}${due.length > 6 ? html`<div class="tiny ink62">${due.length - 6} more today in the week grid.</div>` : null}</div>
       <//>` : null}
       <${UI.Card} title="The week" action=${html`<div class="row nowrap" style=${{gap: '6px'}}>
         <button type="button" class="iconbtn" aria-label="Last week" onClick=${() => setOff(o => o - 1)}><${icons.chevL}/></button>
@@ -682,8 +682,7 @@
             ${days.map(d => {
               const xs = at(a.id, d);
               const done = xs.filter(p => p.s === 'posted').length;
-              const want = num(a.perDay) || num(c.perDay) || 5;
-              const late = d < today && done < want;
+              const late = d < today && xs.length > 0 && done < xs.length;
               return html`<td key=${d} class=${d === today ? 'org-today' : ''}>
                 <button type="button" class=${'org-cell' + (late ? ' late' : '') + (xs.length && done === xs.length ? ' full' : '')} data-acc=${a.id} data-day=${d}
                   aria-label=${'@' + a.handle + ', ' + U.fmtDay(d) + ', ' + done + ' of ' + xs.length + ' posted'} onClick=${() => setCell({a: a.id, d})}>
