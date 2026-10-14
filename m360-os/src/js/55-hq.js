@@ -87,7 +87,7 @@
         ${(() => { const b = html`<button type="button" class=${'btn sm on-dark' + (data ? ' sec' : '')} disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} label="Reading the company" state="solving"/>` : html`<span class="spark">${SPARK}</span> ${data ? 'Refresh' : 'Brief me'}`}</button>`;
           return data ? b : html`<${M.fx.Metal} kind="paper">${b}<//>`; })()}
       </div>
-      ${r.state === 'error' ? html`<div class="small" style=${{marginTop: '10px', color: 'var(--flame)'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small" style=${{marginTop: '10px', color: 'var(--flame)'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       ${!data && !busy ? html`<div style=${{marginTop: '14px', fontWeight: 500}}>One tap and m360 reads the whole company: who's slipping, which client needs love, where the money is, and what to hand out today.</div>` : null}
       ${busy && !data ? html`<div class="small ink62 row nowrap ai-wait" style=${{marginTop: '14px'}}><${M.fx.Orb} state="solving" size=${32} dark=${true} label="Reading the company"/><span>Scanning attendance, workload, blockers, pipeline and team energy…</span></div>` : null}
       ${data ? html`<div class="stack" style=${{marginTop: '16px', gap: '16px'}}>
@@ -187,7 +187,7 @@
           <button type="button" class="linky small" onClick=${() => M.nav('#tasks/' + left[0].id)}>Reassign</button>
         </div>` : null}
       </div>
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '10px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '10px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       ${moves ? html`<div style=${{marginTop: '14px'}}>
         ${moves.length ? moves.map((mv, i) => html`<div class="focus" key=${i}>
           <div class="grow"><div style=${{fontWeight: 700}}>${mv.task} → ${mv.to}</div><div class="tiny ink62">${mv.why}</div></div>

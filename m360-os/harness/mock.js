@@ -328,6 +328,8 @@
   const tomorrow = (() => { const d = new Date(Date.now() + 86400000); const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); })();
   const flat = input => typeof input === 'string' ? input : input.map(t => t.content).join('\n');
   const sampleErr = q.get('aierr');
+  /* aimsg: what the host says with that error (the owner reads it, cleaned, under the copy) */
+  const sampleMsg = q.get('aimsg') || 'mock';
   function answerFor(text) {
     if (/plan for the rest of today/.test(text)) return '**Ship the hero reel script first, it is 4 days late.**\n- Finish Write hero reel script\n- Lock the shot list before review\n- Nudge Blah Studio on the call sheet\nYou have got this.';
     if (/Wrapped/.test(text)) return '**Week 39, wrapped**\n- Thirty scripts approved in one pass\n- Kudos to Durvesh for the shoot schedule\n- Most shipped: Aanya\nNext week we go again.';
@@ -374,7 +376,7 @@
     const text = flat(input);
     const nImg = opts.images ? (opts.images instanceof Blob ? 1 : opts.images.length) : 0;
     window.__sampleCalls.push({kind: 'text', text, tools: (opts.tools || []).map(t => t.name), images: nImg});
-    if (sampleErr) return new Promise((res, rej) => setTimeout(() => rej({code: sampleErr, message: 'mock'}), 30));
+    if (sampleErr) return new Promise((res, rej) => setTimeout(() => rej({code: sampleErr, message: sampleMsg}), 30));
     return new Promise(async (res) => {
       await new Promise(r => setTimeout(r, 60));
       const tools = opts.tools || [];
@@ -477,7 +479,7 @@
   sample.json = function (input, opts) {
     const text = flat(input);
     window.__sampleCalls.push({kind: 'json', text});
-    if (sampleErr) return new Promise((res, rej) => setTimeout(() => rej({code: sampleErr, message: 'mock'}), 30));
+    if (sampleErr) return new Promise((res, rej) => setTimeout(() => rej({code: sampleErr, message: sampleMsg}), 30));
     return new Promise(res => setTimeout(() => res(jsonFor(text)), 60));
   };
   sample.limits = () => Promise.resolve({maxPromptBytes: 65536, tools: {maxCount: 8}, ...(q.get('img') ? {images: {maxCount: 4, maxBytes: 5000000, mediaTypes: ['image/jpeg', 'image/png', 'image/webp']}} : {})});

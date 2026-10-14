@@ -110,7 +110,7 @@
         <div class="row" style=${{gap: '10px', marginTop: '12px', flexWrap: 'wrap'}}>
           ${M.ai.on(ctx) ? html`<${UI.Btn} sm=${true} id="reflect-write" disabled=${r.state === 'thinking' || r.state === 'streaming'} onClick=${write}>${r.state === 'thinking' || r.state === 'streaming' ? 'Writing' : text ? 'Write it again' : 'Write it for me'}<//>` : null}
           <${UI.Btn} sm=${true} kind="sec" id="reflect-share" onClick=${share}>Share one line to Vibe<//>
-          ${r.state === 'error' ? html`<span class="tiny flame-t">${M.ai.errCopy(r.err)}</span>` : null}
+          ${r.state === 'error' ? html`<span class="tiny flame-t">${M.ai.errLine(r.err, r.why)}</span>` : null}
         </div>
       <//>
       <div class="hint">Numbers from your own records only; nobody else's. The era is earned, the write-up is for you.</div>

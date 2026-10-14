@@ -2,7 +2,9 @@
    file-backed blob store (etags are content MD5s, like the real store). Dev and tests only.
    node dev/server.mjs [port] [storeFile]   env MOCK_AI=1 answers AI calls locally (the m360 COO's drafts and memo
    included); env COO_SETTLE_MS sets the COO's claim settle (default 400). GET /__clock?at=<ms> pins the server's
-   clock for the COO tests (?add=<ms> moves it on, ?off=1 lets it run again); /__ai lists the model calls. */
+   clock for the COO tests (?add=<ms> moves it on, ?off=1 lets it run again); /__ai lists the model calls (?clear=1
+   empties the list). env MOCK_AI_FAIL (credit, key, model, beta, busy, unreachable) or GET /__aifail?mode=<mode>&n=<calls>
+   makes the canned model fail on purpose; AI_BUDGET_MS shortens the AI deadline for the slow case. */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -169,6 +171,41 @@ async function fakeVoice(url, init) {
   return j({detail: 'not found'}, 404);
 }
 
+/* the canned model failing on purpose, the way the real API does, so every mapping and retry in aicall.js is
+   testable with no real key. The mode comes from the store flag x/mock/aifail {mode, n} (GET /__aifail?mode=&n=
+   sets it; n calls fail, then the flag goes; no n means every call) or else from env MOCK_AI_FAIL (every call).
+   credit, key, model and busy fail any call; beta fails only a call that carries the beta header or fallbacks;
+   unreachable throws the way a dropped connection does; slow never answers until the server gives up. */
+const AI_FAIL_MODES = ['credit', 'key', 'model', 'beta', 'busy', 'unreachable', 'slow'];
+function aiFailure(body, beta) {
+  let flag = null;
+  try { flag = data['x/mock/aifail'] ? JSON.parse(data['x/mock/aifail']) : null; } catch (e) { flag = null; }
+  const mode = flag && AI_FAIL_MODES.includes(flag.mode) ? flag.mode : AI_FAIL_MODES.includes(process.env.MOCK_AI_FAIL) ? process.env.MOCK_AI_FAIL : '';
+  if (!mode) return '';
+  if (mode === 'beta' && !beta && body.fallbacks === undefined) return '';
+  if (flag && Number(flag.n) > 0) {
+    if (Number(flag.n) <= 1) delete data['x/mock/aifail'];
+    else data['x/mock/aifail'] = JSON.stringify({...flag, n: Number(flag.n) - 1});
+    save();
+  }
+  return mode;
+}
+async function aiFail(mode, body, init) {
+  const j = (status, type, message) => new Response(JSON.stringify({type: 'error', error: {type, message}, request_id: 'req_mock'}), {status, headers: {'content-type': 'application/json'}});
+  if (mode === 'credit') return j(400, 'invalid_request_error', 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.');
+  if (mode === 'key') return j(401, 'authentication_error', 'invalid x-api-key');
+  if (mode === 'model') return j(404, 'not_found_error', 'model: ' + body.model);
+  if (mode === 'beta') return j(400, 'invalid_request_error', 'Unexpected value(s) `' + ((init.headers || {})['anthropic-beta'] || 'fallbacks') + '` for the `anthropic-beta` header. Please consult our documentation at docs.claude.com or try again without the header.');
+  if (mode === 'busy') return j(529, 'overloaded_error', 'Overloaded');
+  if (mode === 'unreachable') throw new TypeError('fetch failed');
+  /* slow: hold the line until the caller's deadline aborts it */
+  await new Promise((res, rej) => {
+    const t = setTimeout(res, 60000);
+    if (init.signal) init.signal.addEventListener('abort', () => { clearTimeout(t); rej(Object.assign(new Error('This operation was aborted'), {name: 'AbortError'})); });
+  });
+  return j(529, 'overloaded_error', 'Overloaded');
+}
+
 async function fakeFetch(url, init) {
   const fv = await fakeVoice(String(url), init || {});
   if (fv) return fv;
@@ -226,7 +263,10 @@ async function fakeFetch(url, init) {
   const last = body.messages[body.messages.length - 1];
   const text = typeof last.content === 'string' ? last.content : (Array.isArray(last.content) ? last.content.filter(c => c.type === 'text').map(c => c.text).join('\n') : '');
   const images = Array.isArray(last.content) ? last.content.filter(c => c.type === 'image').map(c => ({type: c.source && c.source.media_type, bytes: c.source && c.source.data ? c.source.data.length : 0})) : [];
-  globalThis.__aiReqs = (globalThis.__aiReqs || []).concat([{model: body.model, fallbacks: body.fallbacks || null, beta: (init.headers || {})['anthropic-beta'] || '', effort: body.output_config ? body.output_config.effort : null, tools: (body.tools || []).map(t => t.name), images, system: String(body.system || '').slice(0, 40), max_tokens: body.max_tokens}]).slice(-40);
+  const beta = (init.headers || {})['anthropic-beta'] || '';
+  const failing = aiFailure(body, beta);
+  globalThis.__aiReqs = (globalThis.__aiReqs || []).concat([{model: body.model, fallbacks: body.fallbacks || null, beta, effort: body.output_config ? body.output_config.effort : null, tools: (body.tools || []).map(t => t.name), images, system: String(body.system || '').slice(0, 40), max_tokens: body.max_tokens, fail: failing || ''}]).slice(-40);
+  if (failing) return aiFail(failing, body, init);
   const toolNames = (body.tools || []).map(t => t.name);
   const said = text.split('THEY SAID: ').pop();   /* the question itself, not the chat carried in the prompt */
   let content, cutShort = false;
@@ -278,6 +318,7 @@ async function fakeFetch(url, init) {
     content = [{type: 'text', text: JSON.stringify(brain)}];
   }
   else if (/Reply with JSON only/.test(text)) content = [{type: 'text', text: '{"summary":"All calm today.","items":[]}'}];
+  else if (/^Reply with OK$/.test(said.trim())) content = [{type: 'text', text: 'OK'}];
   else if (body.tools && body.tools.some(t => t.name === 'create_task') && /add a task/i.test(said))
     content = [{type: 'tool_use', id: 'tu1', name: 'create_task', input: {title: 'Cut the teaser', owner: 'me'}}];
   else content = [{type: 'text', text: 'Here is your day: finish the hero reel script first.'}];
@@ -309,7 +350,15 @@ http.createServer(async (req, res) => {
   }
   if (url.pathname === '/__spotify') { res.writeHead(200, {'content-type': 'application/json'}); res.end(JSON.stringify(globalThis.__spotifyChecks || [])); return; }
   if (url.pathname === '/__voice') { res.writeHead(200, {'content-type': 'application/json'}); res.end(JSON.stringify(globalThis.__voice || {tts: 0, stt: 0, last: null})); return; }
-  if (url.pathname === '/__ai') { res.writeHead(200, {'content-type': 'application/json'}); res.end(JSON.stringify(globalThis.__aiReqs || [])); return; }
+  if (url.pathname === '/__ai') { if (url.searchParams.get('clear')) globalThis.__aiReqs = []; res.writeHead(200, {'content-type': 'application/json'}); res.end(JSON.stringify(globalThis.__aiReqs || [])); return; }
+  /* tests only: the canned model fails on purpose (aiFailure above); ?mode=off clears it */
+  if (url.pathname === '/__aifail') {
+    const mode = url.searchParams.get('mode') || '';
+    if (AI_FAIL_MODES.includes(mode)) data['x/mock/aifail'] = JSON.stringify({mode, n: Number(url.searchParams.get('n')) || 0});
+    else delete data['x/mock/aifail'];
+    save();
+    res.writeHead(200, {'content-type': 'application/json'}); res.end(JSON.stringify({mode: AI_FAIL_MODES.includes(mode) ? mode : ''})); return;
+  }
   if (url.pathname === '/api/google') {
     const request = new Request(url, {method: req.method, headers: req.headers});
     const out = await app.google(request);

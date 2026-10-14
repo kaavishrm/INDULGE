@@ -800,7 +800,7 @@
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="composing" size=${32} label="Drafting"/><span>Reading this person and their company.</span></span>` : 'Ninety words, in the agency voice, from what we know about them.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div><//>`;
   }
 

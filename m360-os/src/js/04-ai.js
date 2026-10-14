@@ -4,7 +4,7 @@
    except the viewer's own cached brief in their private space. */
 'use strict';
 (function () {
-  const {html, React, U} = M;
+  const {html, React, U, UI} = M;
 
   /* ---------- live presence: who has m360 open right now ---------- */
   const pageOf = () => (location.hash || '').replace(/^#/, '').split('/')[0] || 'home';
@@ -55,15 +55,55 @@
     tools_unavailable: 'Actions are unavailable here. Answers still work.', empty_completion: 'Nothing came back. Try rephrasing.',
     cancelled: 'Stopped.',
     /* the team site's daily cap on AI turns per person */
-    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works."
+    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works.",
+    /* the team site names what went wrong with the model call (edgeone/server/aicall.js) */
+    ai_key: 'The AI key was refused. Kaavish can paste a new one in Admin under AI.',
+    ai_credit: 'The AI account is out of credit. Once credit is added in the Anthropic console it works again at once.',
+    ai_model: 'The AI could not reach the model it uses, or its backup. Kaavish can run Check the AI in Admin under AI.',
+    ai_busy: 'The AI is overloaded right now. Give it a minute and try again.',
+    ai_unreachable: 'The AI did not answer in time. Try again in a moment, or ask something shorter.'
   };
   const OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
+  /* the model call itself failed: the account, the key, the model or the line to it */
+  const DOWN = ['ai_key', 'ai_credit', 'ai_model', 'ai_busy', 'ai_unreachable'];
+  /* codes the page or this server made up itself: there is nothing Anthropic said to show */
+  const OWN = ['cancelled', 'slow_down', 'invalid_json', 'invalid_output', 'image_rejected', 'invalid_request', 'not_granted', 'invalid_argument'];
+  const LOCAL_MSG = /^(offline|http \d{3}|ai is off\b.*|no sample|no messages|empty input|model error|not an image)$/i;
+  const SAID = 'Anthropic said: ';
 
   const ai = M.ai = {};
   ai.VOICE = VOICE;
   ai.on = ctx => !!(ctx && ctx.sample);
   ai.errCopy = code => ERR[code] || 'Something glitched. Try again.';
   ai.isOff = code => OFF.indexOf(code) >= 0;
+  ai.isDown = code => DOWN.indexOf(code) >= 0;
+  ai.DOWN = DOWN.slice();
+  /* what Anthropic said, fit to show: one line, no model names, no dashes, nothing shaped like a key, 300 characters */
+  ai.clean = function (s) {
+    let t = String(s == null ? '' : s).replace(/sk-ant-[A-Za-z0-9_\-]{4,}/g, 'a key').replace(/\bclaude-[a-z0-9][a-z0-9.\-]*/gi, 'the model')
+      .replace(/\s*[\u2012-\u2015]\s*/g, ', ').replace(/!/g, '.').replace(/\s+/g, ' ').trim();
+    if (t.length > 300) t = t.slice(0, 297).replace(/\s+\S*$/, '') + '...';
+    return t;
+  };
+  /* the reason an error carries, cleaned; empty when the page or the server made the error up itself */
+  ai.why = function (e) {
+    const code = e && e.code, msg = ai.clean(e && e.message);
+    if (!msg || msg === code || OWN.indexOf(code) >= 0 || LOCAL_MSG.test(msg)) return '';
+    return msg;
+  };
+  /* Kaavish and admins read what Anthropic said; members never do */
+  ai.reasonFor = function (code, why) {
+    const c = M.lastCtx;
+    if (!why || !c || !c.isFounder || c.viewAs || OWN.indexOf(code) >= 0) return '';
+    return why;
+  };
+  /* the error as text (a toast, the panel), and as a line with the reason under it (a card) */
+  ai.errText = (code, why) => { const w = ai.reasonFor(code, why); return ai.errCopy(code) + (w ? '\n' + SAID + w : ''); };
+  ai.errLine = (code, why) => {
+    const w = ai.reasonFor(code, why);
+    return w ? html`<${React.Fragment}>${ai.errCopy(code)}<span class="ai-why">${SAID + w}</span><//>` : ai.errCopy(code);
+  };
+  ai.SAID = SAID;
 
   ai.text = function (ctx, prompt, o) {
     o = o || {};
@@ -397,7 +437,7 @@
       } catch (e) {
         const code = (e && e.code) || 'upstream_error';
         if (code === 'cancelled') { set(x => ({...x, state: x.text ? 'done' : 'idle'})); return null; }
-        set(x => ({state: 'error', text: (e && e.text) || x.text, err: code}));
+        set(x => ({state: 'error', text: (e && e.text) || x.text, err: code, why: ai.why(e)}));
         return null;
       }
     }, []);
@@ -425,6 +465,61 @@
     flush();
     return html`<div class="ai-out">${out}</div>`;
   };
+
+  /* ---------- Admin > m360 AI > Check the AI ----------
+     On the team site, the server asks each tier one tiny question and times it (action aicheck); on a claude.ai
+     page, one tiny question on the viewer's own account. Each tier in plain words, with what Anthropic said */
+  const TIER_NAME = {quick: 'Quick answers', default: 'Thinking answers'};
+  const CHECK_WORD = {ai_key: 'the key was refused', ai_credit: 'out of credit', ai_model: 'the model it uses is not open to this account',
+    ai_busy: 'overloaded right now', ai_unreachable: 'no answer in time', rate_limited: 'at its rate limit for a minute', refused: 'passed on the test question',
+    not_granted: 'off', not_declared: 'off on this page', sampling_disabled: 'off for this account', slow_down: "used up for today"};
+  const CHECK_HINT = {ai_key: 'Paste a new key here and check again.', ai_credit: 'Add credit in the Anthropic console. It works again at once.',
+    ai_busy: 'Nothing to fix here. Check again in a minute.'};
+  function AiCheck() {
+    const ctx = M.useCtx();
+    const [st, setSt] = React.useState({busy: false, out: null});
+    if (!ctx || !ctx.isFounder) return null;
+    const site = typeof window.M360_API === 'function';
+    const run = async () => {
+      if (st.busy) return;
+      setSt(s => ({...s, busy: true}));
+      let out;
+      if (site) {
+        try {
+          const r = await window.M360_API('aicheck', {});
+          out = {key: !!r.key, source: r.source || 'none', rows: r.key ? ['quick', 'default'].map(k => ({k, ...((r.tiers || {})[k] || {ok: false, code: 'unavailable'})})) : []};
+        } catch (e) { out = {err: ai.errText(e && e.code, ai.why(e))}; }
+      } else if (!ctx.sample) out = {rows: [{k: 'quick', ok: false, code: 'not_declared', reason: ''}]};
+      else {
+        const t = Date.now();
+        try { await ctx.sample('Reply with OK', {modelTier: 'quick'}); out = {rows: [{k: 'quick', ok: true, ms: Date.now() - t}]}; }
+        catch (e) { out = {rows: [{k: 'quick', ok: false, ms: Date.now() - t, code: (e && e.code) || 'upstream_error', reason: ai.why(e)}]}; }
+      }
+      setSt({busy: false, out});
+    };
+    const out = st.out;
+    const secs = ms => Math.max(0.1, Math.round((Number(ms) || 0) / 100) / 10).toFixed(1) + ' s';
+    return html`<div class="ai-check" id="ai-check-box">
+      <div class="row ai-check-head">
+        <${UI.Btn} kind="sec" sm=${true} id="ai-check" disabled=${st.busy} onClick=${run}>${st.busy ? 'Checking' : 'Check the AI'}<//>
+        <span class="tiny ink62">${site ? 'One tiny question on each kind of answer, timed.' : 'One tiny question on your claude.ai account, timed.'}</span>
+      </div>
+      ${out ? html`<div class="ai-check-out" id="ai-check-out" role="status">
+        ${out.err ? html`<div class="small flame-t" style=${{whiteSpace: 'pre-line'}}>${out.err}</div>` : null}
+        ${out.key === false ? html`<div class="small">No key is set yet. Paste one here to switch the AI on.</div>` : null}
+        ${(out.rows || []).map(r => html`<div key=${r.k} class=${'ai-check-row ' + (r.ok ? 'ok' : 'bad')} data-tier=${r.k} data-code=${r.ok ? 'ok' : (r.code || '')}>
+          <span class="ai-check-dot" aria-hidden="true"/>
+          <div class="grow ai-check-text">
+            <div class="small"><b>${TIER_NAME[r.k] || 'Answers'}</b>: ${r.ok ? 'working, ' + secs(r.ms) : (CHECK_WORD[r.code] || 'not working')}</div>
+            ${!r.ok && r.reason ? html`<div class="tiny ai-why">${SAID + ai.clean(r.reason)}</div>` : null}
+            ${!r.ok && CHECK_HINT[r.code] ? html`<div class="tiny ink62">${CHECK_HINT[r.code]}</div>` : null}
+          </div>
+        </div>`)}
+        ${out.key ? html`<div class="tiny ink62" id="ai-check-source">${out.source === 'environment' ? "The key is set in the site's environment settings." : 'The key is the one pasted here.'}</div>` : null}
+      </div>` : null}
+    </div>`;
+  }
+  M.parts.AiCheck = AiCheck;
 
   M.Thinking = function Thinking({label, state}) {
     const l = String(label || 'Thinking');

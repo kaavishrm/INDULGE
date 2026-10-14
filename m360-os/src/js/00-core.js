@@ -138,13 +138,14 @@ M.ToastHost = function ToastHost() {
   React.useEffect(() => {
     const on = t => {
       setItems(x => [...x, t]);
-      setTimeout(() => setItems(x => x.filter(i => i.id !== t.id)), 3200);
+      /* a toast with a second line (what Anthropic said, for Kaavish) stays long enough to read */
+      setTimeout(() => setItems(x => x.filter(i => i.id !== t.id)), t.msg.indexOf('\n') >= 0 ? 7000 : 3200);
     };
     toastListeners.add(on);
     return () => toastListeners.delete(on);
   }, []);
   return html`<div class="toasts" aria-live="polite">
-    ${items.map(t => html`<div key=${t.id} class=${'toast' + (t.err ? ' err' : '')}>${t.msg}</div>`)}
+    ${items.map(t => html`<div key=${t.id} class=${'toast' + (t.err ? ' err' : '') + (t.msg.indexOf('\n') >= 0 ? ' multi' : '')}>${t.msg}</div>`)}
   </div>`;
 };
 

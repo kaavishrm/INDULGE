@@ -539,6 +539,7 @@
         <${UI.Btn} sm=${true} disabled=${busy || !key.trim()} onClick=${() => save(key.trim())}>Save key<//>
         ${on ? html`<${UI.ConfirmBtn} kind="ghost" onConfirm=${() => save('')} label="Tap again to remove">Remove<//>` : null}
       </div>
+      ${M.parts.AiCheck ? html`<${M.parts.AiCheck}/>` : null}
     <//>`;
   }
 

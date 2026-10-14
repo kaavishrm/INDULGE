@@ -336,7 +336,7 @@
         setD(fields); setDirty(false);
         M.toast('Brain built');
       } catch (e) {
-        if (!(e && e.code === 'cancelled')) setErr(M.ai.errCopy(e && e.code));
+        if (!(e && e.code === 'cancelled')) setErr(M.ai.errLine(e && e.code, M.ai.why(e)));
       } finally { setBusy(false); setStep(''); }
     }
     async function saveFields() {
@@ -424,7 +424,7 @@
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy the prep</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="shaping" size=${32} label="Shaping the prep"/><span>Reading the brain, projects, tasks, pitches, people and news.</span></span>` : 'Who they are, what we are doing, open pitches, the people, the news, three questions and one risk. One screen.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div>`;
     return html`<${M.fx.Beam}><${UI.Fold} title="Meeting prep" summary=${r.text ? 'ready to copy' : 'one tap'} id="fold-client-prep">${body}<//><//>`;
   }
@@ -669,7 +669,7 @@
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy for WhatsApp</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="composing" size=${32} label="Writing the update"/><span>Reading this client's projects and tasks.</span></span>` : 'A client-ready note on what shipped and what is next, in one tap.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div>`;
   }
   M.parts.ClientUpdate = ClientUpdate;

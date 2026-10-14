@@ -1,0 +1,27 @@
+/* ---------- v36.1: the AI says what is wrong (04-ai.js), and your character from settings and the office ----------
+   Tokens only, so the night theme flips every colour by itself. */
+
+/* what Anthropic said, on its own line under an AI error, for Kaavish and admins */
+.ai-why{display:block; margin-top:4px; color:var(--ink62); font-weight:400; overflow-wrap:anywhere}
+.toast.multi{border-radius:var(--r-card); white-space:pre-line; text-align:left}
+
+/* Admin > m360 AI > Check the AI */
+.ai-check{display:flex; flex-direction:column; gap:10px; margin-top:14px; min-width:0}
+.ai-check-head{gap:10px}
+.ai-check-out{display:flex; flex-direction:column; gap:12px; padding:12px 14px; border-radius:var(--r-sm); background:var(--warm); border:1px solid var(--line); min-width:0}
+.ai-check-row{display:flex; align-items:flex-start; gap:10px; min-width:0}
+.ai-check-text{min-width:0; overflow-wrap:anywhere}
+.ai-check-dot{width:10px; height:10px; margin-top:5px; border-radius:999px; flex:none; background:var(--ink)}
+.ai-check-row.bad .ai-check-dot{background:var(--flame)}
+.ai-check-row .ai-why{margin-top:2px}
+
+/* your small head, in Me > Your m360 and in the office's head */
+.cast-mini{width:32px; height:32px; border-radius:999px; background:var(--warm); flex:none; display:block}
+.prefs-character{gap:10px}
+.prefs-character-who{gap:10px; min-width:0}
+.prefs-character-words{gap:1px; min-width:0}
+.office-me{display:inline-flex; align-items:center; gap:8px}
+.office-me .cast-mini{width:24px; height:24px; background:var(--paper)}
+@media (max-width:700px){
+  .prefs-character .btn{margin-left:auto}
+}

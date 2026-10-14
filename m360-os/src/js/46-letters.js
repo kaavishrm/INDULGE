@@ -393,7 +393,7 @@
           {signal: c.signal, cache: false, onText: r => { if (r && r.text) put(tidy(r.text)); }});
         if (clean(out)) put(tidy(out)); else onChange({...f, body: before});
       } catch (e) {
-        if (!(e && e.code === 'cancelled')) { M.toast(M.ai.errCopy(e && e.code), true); onChange({...f, body: before}); }
+        if (!(e && e.code === 'cancelled')) { M.toast(M.ai.errText(e && e.code, M.ai.why(e)), true); onChange({...f, body: before}); }
       }
       setLive(false);
     };

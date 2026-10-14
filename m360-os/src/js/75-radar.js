@@ -292,7 +292,7 @@
     return html`<${React.Fragment}>
       <button type="button" class="btn ghost sm" disabled=${busy} onClick=${go}>${busy ? html`<${M.fx.Orb} state="composing" size=${20} label="writing"/>` : html`<span class="spark">${SPARK}</span>`} ${busy ? 'Thinking' : (r.text ? 'Ask again' : 'Why it matters')}</button>
       ${r.text ? html`<div class="rd-why small"><${M.AIText} text=${r.text}/></div>` : null}
-      ${r.state === 'error' ? html`<div class="tiny flame-t" style=${{width: '100%'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="tiny flame-t" style=${{width: '100%'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     <//>`;
   }
 
@@ -351,7 +351,7 @@
       </div>
       <div style=${{marginTop: '12px'}}>
         ${text ? html`<${M.AIText} text=${text}/>` : html`<div class="small" style=${{fontWeight: 500}}>Five bullets on the top ${Math.min(12, top.length) || 12} stories and what each one means for us. Written once a day, cached on this device.</div>`}
-        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>
     </section><//>`;
   }

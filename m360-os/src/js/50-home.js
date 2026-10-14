@@ -381,7 +381,7 @@
           ${thinking ? html`<${M.Thinking} label="Drafting"/>` : html`<span class="spark">${SPARK}</span> Write it for me`}</button></span>` : null}
       </div>
       ${thinking ? html`<div class="row nowrap fxh-drafting"><${M.fx.Orb} state="composing" size=${32} label="m360 is writing"/><span class="small ink62">Writing your three lines from today's work.</span></div>` : null}
-      ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
       <div class="stack tight">
         <${UI.TextArea} id="wrap-shipped" label="shipped" rows=${2} value=${f.shipped} onChange=${v => set('shipped', v)} placeholder="What went out today"/>
         <${UI.Input} id="wrap-next" label="next" value=${f.next} onChange=${v => set('next', v)} placeholder="What you pick up tomorrow"/>
@@ -422,7 +422,7 @@
       ${text ? html`<${M.AIText} text=${text}/>`
         : busy ? html`<div class="row nowrap fxh-drafting"><${M.fx.Orb} state="composing" size=${32} label="m360 is drafting"/><span class="small ink62">Reading your tasks, outcomes and flags.</span></div>`
         : html`<div class="small ink62">One tap and m360 lines up your day from your tasks, deadlines and this week's outcomes.</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </section><//>`;
   }
 
@@ -482,7 +482,7 @@
             {tier: 'quick', cache: false});
           if (out && out.title) task = {title: String(out.title).slice(0, 140), owner: M.ai.findMember(ctx, nm, out.owner) || ctx.uid,
             due: /^\d{4}-\d{2}-\d{2}$/.test(String(out.due || '')) ? out.due : '', priority: ['low', 'normal', 'high'].indexOf(out.priority) >= 0 ? out.priority : 'normal'};
-        } catch (e) { if (e && e.code && !M.ai.isOff(e.code)) M.toast(M.ai.errCopy(e.code), true); }
+        } catch (e) { if (e && e.code && !M.ai.isOff(e.code)) M.toast(M.ai.errText(e.code, M.ai.why(e)), true); }
       }
       await ctx.W.set('tasks/' + U.uid(), {...task, client: '', project: '', section: '', status: 'todo', link: '', revisions: 0, shown20: false,
         subtasks: {}, comments: {}, by: ctx.uid, created: Date.now(), updated: Date.now(), doneAt: null}).catch(() => {});

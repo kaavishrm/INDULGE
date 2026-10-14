@@ -483,7 +483,7 @@
       ${!asked ? html`<div class="row" style=${{gap: '8px', marginTop: '10px'}}>${BASE_CHIPS.map(c => html`<button key=${c} type="button" class="chip" onClick=${() => go(c)}>${c}</button>`)}</div>` : null}
       ${asked ? html`<div class="bubble me" style=${{marginTop: '10px'}}>${asked}</div>` : null}
       ${busy || r.text ? html`<div class="bubble ai" style=${{marginTop: '8px', maxWidth: '100%'}}>${r.text ? html`<${M.AIText} text=${r.text}/>` : html`<${M.Thinking} label="Reading the base" state="searching"/>`}</div>` : null}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       <div class="ask-in" style=${{marginTop: '10px'}}>
         <input id="ask-base-input" class="input" value=${q} placeholder="Ask about anyone or any company in the base" aria-label="Ask the base"
           onInput=${e => setQ(e.target.value)} onKeyDown=${e => { if (e.key === 'Enter') go(); }}/>

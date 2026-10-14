@@ -80,7 +80,7 @@
           options=${[{v: '', label: 'No project'}].concat(projects.map(p => ({v: p.id, label: p.name})))}/>
         <${Metal} kind="ink" block=${true}><button type="button" class="btn" disabled=${thinking || brief.trim().length < 12} onClick=${breakDown}>
           ${thinking ? html`<${M.Thinking} label="Breaking it down" state="composing"/>` : html`<span class="spark">${SPARK}</span> Break it down`}</button><//>
-        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>` : html`<div class="stack tight">
         <div class="small" style=${{fontWeight: 500}}>Untick anything you don't want. Change owners or dates, then send.</div>
         ${rows.map(t => html`<div class="focus" key=${t.k} style=${{alignItems: 'flex-start', flexWrap: 'wrap'}}>
@@ -196,7 +196,7 @@
       </div>
       <div style=${{marginTop: '12px'}}>
         ${text ? html`<${M.AIText} text=${text}/>` : html`<div class="small" style=${{fontWeight: 500}}>Wins, shoutouts and who shipped the most, written up by m360.</div>`}
-        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>
     </section><//>`;
   }
@@ -252,7 +252,7 @@
       ${t === 'leave' ? html`<${Embed} page="Leave"/>` : t === 'handbook' ? html`<${Embed} page="Handbook" id=${id}/>` : t === 'notes' ? html`<${Embed} page="Notes" id=${id}/>`
         : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>` : t === 'trophies' ? (M.parts.Trophies ? html`<${M.parts.Trophies}/>` : null)
         : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
-      ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
+      ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="your character, look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
       ${t === 'profile' && M.parts.BuddyPrefs ? html`<${M.parts.BuddyPrefs}/>` : null}
       ${t === 'profile' && M.parts.EmailCard ? html`<${UI.Fold} title="Your email" summary="for sign-in links" id="fold-email"><${M.parts.EmailCard}/><//>` : null}
       ${t === 'profile' && M.parts.DeviceCard ? html`<${UI.Fold} title="Your devices" summary="where you are signed in" id="fold-devices"><${M.parts.DeviceCard}/><//>` : null}
@@ -269,11 +269,25 @@
     const [previews, setPreviews] = useState(() => M.notices ? M.notices.previews() : true);
     const [allRooms, setAllRooms] = useState(() => M.prefs.get('noticeAll', '0') === '1');
     const [perm, setPerm] = useState(() => { try { return window.Notification ? Notification.permission : 'denied'; } catch (e) { return 'denied'; } });
+    const [castOpen, setCastOpen] = useState(false);
     const wk = U.periodRange('week');
     const ctx = M.useCtx();
     const deep = M.focus ? M.focus.minutes(ctx, ctx.uid, wk.from, wk.to) : 0;
+    /* the character the office draws for you: your small head, and the sheet; read only while Kaavish holds your look */
+    const Sheet = M.parts.CharacterSheet;
+    const cast = Sheet && M.cast && ctx.uid ? M.cast.resolveFor(ctx, ctx.uid) : null;
     return html`<${UI.Card} id="prefs-card" title="Your m360">
       <div class="stack tight">
+        ${cast ? html`<div class="row between prefs-character" id="prefs-character" data-locked=${cast.locked ? '1' : '0'}>
+          <span class="row nowrap prefs-character-who">
+            <img class="cast-mini" src=${M.cast.head2d(cast.look, {founder: cast.founder, size: 32}).url} alt="" width="32" height="32"/>
+            <span class="stack prefs-character-words"><span>Your character</span>
+              ${cast.locked ? html`<span class="tiny ink62" id="prefs-character-line">Kaavish set this look for you.</span>`
+                : cast.src === 'starter' ? html`<span class="tiny ink62" id="prefs-character-line">Clay for now. Style it to step into the office.</span>` : null}</span>
+          </span>
+          <${UI.Btn} kind="sec" sm=${true} id="prefs-character-open" onClick=${() => setCastOpen(true)}>Style your character<//>
+        </div>` : null}
+        ${castOpen && Sheet ? html`<${Sheet} uid=${ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
         <div class="row between">
           <span>Look</span>
           <div class="theme-seg" role="group" aria-label="Theme">
@@ -332,7 +346,11 @@
     return html`<div class="stack" style=${{gap: '20px'}}>
       <${M.SectionHero} color="ink" micro=${'founder' + (window.M360_BUILD ? ' · build ' + window.M360_BUILD : '')} title="Admin"
         sub="Team, rules, corrections, the activity log, payroll export and your super controls."/>
-      ${M.parts.AiKeyCard ? html`<${UI.Fold} title="m360 AI" summary="your Anthropic key switches the AI on" id="fold-ai"><${M.parts.AiKeyCard}/><//>` : null}
+      ${M.parts.AiKeyCard ? html`<${UI.Fold} title="m360 AI" summary="your Anthropic key, and Check the AI" id="fold-ai"><${M.parts.AiKeyCard}/><//>`
+        : M.parts.AiCheck ? html`<${UI.Fold} title="m360 AI" summary="check that the AI answers" id="fold-ai"><${UI.Card} id="ai-card" title="m360 AI">
+            <p class="small ink62" style=${{marginTop: 0}}>Here the AI runs on each person's own claude.ai account. Check that it answers, and see what Anthropic says when it does not.</p>
+            <${M.parts.AiCheck}/>
+          <//><//>` : null}
       ${M.parts.MailCard ? html`<${UI.Fold} title="Email sending" summary="Resend key and sender" id="fold-mail"><${M.parts.MailCard}/><//>` : null}
       ${M.parts.VoiceCard ? html`<${UI.Fold} title="The buddy's voice" summary="a natural voice for the cursor buddy" id="fold-voice"><${M.parts.VoiceCard}/><//>` : null}
       ${M.parts.GoogleCard ? html`<${UI.Fold} title="Google Workspace" summary="mail, calendar, meetings and drive for everyone" id="fold-google"><${M.parts.GoogleCard}/><//>` : null}

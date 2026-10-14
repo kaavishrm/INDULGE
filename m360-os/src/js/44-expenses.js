@@ -569,7 +569,7 @@
         }
         if (rows && rows.length) await prepare(rows);
         else await server(file);
-      } catch (err) { setNote('Could not read that file.'); setSt('pick'); }
+      } catch (err) { setNote(err && M.ai.isDown(err.code) ? M.ai.errLine(err.code, M.ai.why(err)) : 'Could not read that file.'); setSt('pick'); }
     };
     const setLine = (i, patch) => setLines(ls => ls.map(l => l.i === i ? {...l, ...patch} : l));
     const picked = lines.filter(l => l.on);

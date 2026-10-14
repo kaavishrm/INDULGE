@@ -10,6 +10,7 @@
       the COO's drafts in books/cooq for the owner's tap.
    The page keeps the same numbers and words (src/js/42-books.js and 43-invoices.js); the defaults
    here are the same defaults, kept short. */
+import {askModel, statusOf as aiStatusOf} from './aicall.js';
 
 const DEFAULTS = {
   company: {name: 'Mask Management', state: 'Maharashtra', mail: 'accounts@mask360.agency'},
@@ -99,6 +100,8 @@ export const booksView = {
 
 /* the model reads mail, attachments and statements for the books; JSON in, JSON out */
 const MODEL = 'claude-sonnet-5';
+/* a 404 on the model gets one more try here (aicall.js) */
+const MODEL_FALLBACK = 'claude-sonnet-5-5';
 const MINE_SYSTEM = 'BOOKS MINE. You read a company\'s mail about one client and pick out the billing details for that client. Reply with JSON only, one object: {"legalName": "", "address": "", "country": "", "taxId": "", "contactName": "", "contactEmail": "", "currency": "", "termsDays": 0, "po": "", "note": ""}. legalName is the registered name that should print on an invoice to them (the payer, not us). address is their billing address, lines separated by newlines. country is the country of that address. taxId is their GSTIN (India, 15 characters) or VAT or TRN number. contactName and contactEmail are the accounts payable person who receives invoices. currency is the ISO code they pay in. termsDays is the payment terms in days when stated. po is the latest purchase order number. Leave a field empty ("" or 0) when the mail does not say; never guess, never invent, never use our own company details. note is one short sentence on what you read and anything unsure.';
 const STATEMENT_SYSTEM = 'BOOKS STATEMENT. You read a bank or card statement and list every transaction. Reply with JSON only: {"rows": [{"date": "yyyy-mm-dd", "vendor": "", "desc": "", "amount": 0, "credit": 0, "method": "bank", "ref": ""}]}. amount is the money out (debit, positive number, 0 when the line is money in); credit is the money in (positive, 0 otherwise). vendor is the merchant or person the line names, cleaned of UPI, NEFT, IMPS, POS prefixes and reference numbers; desc is the narration as printed. method is upi, card, cash or bank from the narration. ref is the transaction or cheque reference. Keep the order of the statement. Skip opening and closing balance lines.';
 const CAT_SYSTEM = 'BOOKS CATEGORIES. You sort a marketing agency\'s expenses into categories. The only categories are: Salaries, Rent, Software and tools, Freelancers, Production, Travel, Meals and client, Marketing, Professional fees, Bank and taxes, Equipment, Other. Reply with JSON only: {"categories": ["...", ...]} with exactly one category per row, in the same order as the rows given.';
@@ -113,12 +116,11 @@ export function booksDesk(h) {
   async function ask(system, content, maxTokens) {
     const key = aiKey ? await aiKey() : null;
     if (!key) throw new HttpError(403, 'not_granted', 'AI is off. Add the key under Admin.');
-    const r = await (env.fetch || fetch)('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: {'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01'},
-      body: JSON.stringify({model: MODEL, max_tokens: maxTokens || 2048, system, messages: [{role: 'user', content}]})
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new HttpError(r.status === 429 ? 429 : 502, r.status === 429 ? 'rate_limited' : 'unavailable', (j && j.error && j.error.message) || 'model error');
+    /* the same failures, named the same way, as the page's AI (aicall.js); only the owner calls these */
+    const res = await askModel({doFetch: env.fetch || fetch, key, req: {model: MODEL, max_tokens: maxTokens || 2048, system, messages: [{role: 'user', content}]},
+      fallback: MODEL_FALLBACK, deadline: Date.now() + (Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : 25000)});
+    if (!res.ok) throw new HttpError(aiStatusOf(res.code), res.code, res.reason);
+    const j = res.j;
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
     const out = jsonOut(text);
     if (!out) throw new HttpError(502, 'invalid_json', 'The reading came back scrambled. Try again.');

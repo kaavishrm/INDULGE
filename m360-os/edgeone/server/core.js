@@ -41,6 +41,7 @@ import {baseActions} from './base.js';
 import {pmDesk} from './pm.js';
 import {cooDesk} from './coo.js';
 import {officeActions} from './office.js';
+import {askModel, statusOf, cleanReason} from './aicall.js';
 
 const LEVEL = {view: 0, interact: 1, admin: 2, owner: 3};
 const SESSION_DAYS = 180;
@@ -58,6 +59,11 @@ const LAST_SEEN_MS = 3600000;   /* a session's last-seen stamp moves at most onc
 const BODY_MAX = 6 * 1024 * 1024; /* the platform's own limit, refused early with a clear code */
 /* the model behind the page's AI: quick answers on Haiku, everything else on the current Opus */
 const AI_MODELS = {quick: 'claude-haiku-4-5-20251001', default: 'claude-opus-5-5', complex: 'claude-opus-5-5'};
+/* a model the account cannot reach (404) gets one more try on the tier's fallback (aicall.js) */
+const AI_FALLBACK = {quick: 'claude-haiku-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
+/* the platform stops a function at 30 seconds with a bare 504; the model's answer has to be in well before,
+   counted from the moment the request came in (AI_BUDGET_MS in the environment changes it for tests) */
+const AI_BUDGET_MS = 25000;
 const AI_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const AI_IMAGE_MAX = 2200000;   /* base64 characters per image, about 1.6 MB */
 const AI_DAILY_MAX = 600;        /* model turns one person gets in a day */
@@ -1120,40 +1126,74 @@ export function createApp({store, env = {}}) {
 
     /* one model turn; the page runs its own tools and calls again. Text and images come in as the page
        shaped them (a string, or content blocks); tool results and the model's own blocks ride back the
-       same way, so a multi round call keeps its thinking intact on the same model. */
-    async ai(v, body) {
-      if (!v || (await levelOf(v.uid)) < LEVEL.interact) throw new HttpError(403, 'not_granted');
-      /* one person's turns per day are counted, so a loop or a leaked session cannot run the key dry */
+       same way, so a multi round call keeps its thinking intact on the same model. A failure comes back
+       with its own code (aicall.js); its reason, cleaned, goes to Kaavish and admins only, so a member's
+       page never holds what Anthropic said. */
+    async ai(v, body, req) {
+      const level = v ? await levelOf(v.uid) : -1;
+      if (!v || level < LEVEL.interact) throw new HttpError(403, 'not_granted');
+      /* one person's turns per day are counted, so a loop or a leaked session cannot run the key dry; only a
+         turn that reached the model counts, so an account that is failing never burns the cap as well */
       const dayKey = 'n/ai/' + ymdIST(Date.now()) + '/' + v.uid;
       const used = Number(((await getJ(dayKey).catch(() => null)) || {}).n) || 0;
       if (used >= AI_DAILY_MAX) throw new HttpError(429, 'slow_down', 'The AI has done its ' + AI_DAILY_MAX + ' turns for you today. It is back tomorrow.');
-      await putJ(dayKey, {n: used + 1, at: Date.now()}).catch(() => {});
       const key = await aiKey();
       if (!key) throw new HttpError(403, 'not_granted', 'AI is off');
       const tier = body.tier === 'quick' || body.tier === 'complex' ? body.tier : 'default';
       const model = AI_MODELS[tier];
       const messages = Array.isArray(body.messages) ? body.messages.slice(-60).map(cleanTurn).filter(Boolean) : [];
       if (!messages.length) throw new HttpError(400, 'invalid_argument', 'no messages');
-      const req = {model, max_tokens: Math.min(Number(body.max_tokens) || 4096, 8192), messages};
-      if (typeof body.system === 'string' && body.system) req.system = body.system.slice(0, 160000);
-      if (Array.isArray(body.tools) && body.tools.length) req.tools = body.tools.slice(0, 32).map(t => ({name: String(t.name || '').slice(0, 64), description: String(t.description || '').slice(0, 4000), input_schema: isObj(t.input_schema) ? t.input_schema : {type: 'object', properties: {}}}));
-      if (req.tools && body.noTools === true) req.tool_choice = {type: 'none'};
-      const headers = {'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01'};
+      const ask = {model, max_tokens: Math.min(Number(body.max_tokens) || 4096, 8192), messages};
+      if (typeof body.system === 'string' && body.system) ask.system = body.system.slice(0, 160000);
+      if (Array.isArray(body.tools) && body.tools.length) ask.tools = body.tools.slice(0, 32).map(t => ({name: String(t.name || '').slice(0, 64), description: String(t.description || '').slice(0, 4000), input_schema: isObj(t.input_schema) ? t.input_schema : {type: 'object', properties: {}}}));
+      if (ask.tools && body.noTools === true) ask.tool_choice = {type: 'none'};
+      let beta = '';
       if (tier !== 'quick') {
         /* the current models think by themselves; effort sets how hard. A safety refusal is routed to a
            fallback model on the server side, so a plain question never dies on a classifier. */
-        req.output_config = {effort: tier === 'complex' ? 'high' : 'medium'};
-        req.fallbacks = 'default';
-        headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+        ask.output_config = {effort: tier === 'complex' ? 'high' : 'medium'};
+        ask.fallbacks = 'default';
+        beta = 'server-side-fallback-2026-07-01';
       }
-      const r = await (env.fetch || fetch)('https://api.anthropic.com/v1/messages', {method: 'POST', headers, body: JSON.stringify(req)});
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new HttpError(r.status === 429 ? 429 : 502, r.status === 429 ? 'rate_limited' : 'unavailable',
-        (j && j.error && j.error.message) || 'model error');
-      if (j.stop_reason === 'refusal') throw new HttpError(400, 'refused', (j.stop_details && j.stop_details.explanation) || 'The model passed on that one.');
-      return {content: j.content || [], stop_reason: j.stop_reason || '', model: j.model || model};
+      const out = await askModel({doFetch: env.fetch || fetch, key, req: ask, beta, fallback: AI_FALLBACK[tier], deadline: aiDeadline(req)});
+      if (!out.ok) throw new HttpError(statusOf(out.code), out.code, level >= LEVEL.admin ? out.reason : '');
+      const j = out.j;
+      const now = Number(((await getJ(dayKey).catch(() => null)) || {}).n) || 0;
+      await putJ(dayKey, {n: Math.max(now, used) + 1, at: Date.now()}).catch(() => {});
+      if (j.stop_reason === 'refusal') throw new HttpError(400, 'refused', level >= LEVEL.admin ? cleanReason((j.stop_details && j.stop_details.explanation) || 'The model passed on that one.', key) : '');
+      return {content: j.content || [], stop_reason: j.stop_reason || '', model: j.model || out.model};
+    },
+
+    /* Admin > m360 AI > Check the AI: one tiny call on each tier, timed, with the failure named. Says whether a
+       key is set and where it lives; never the key, never which model answered */
+    async aicheck(v, body, req) {
+      if (!v || (await levelOf(v.uid)) < LEVEL.admin) throw new HttpError(403, 'not_granted', 'Only Kaavish and admins check the AI.');
+      const stored = !!(((await getJ('x/ai').catch(() => null)) || {}).key);
+      const key = await aiKey();
+      const out = {key: !!key, source: env.ANTHROPIC_API_KEY ? 'environment' : stored ? 'stored' : 'none', tiers: {}};
+      if (key) {
+        const deadline = aiDeadline(req);
+        const one = async tier => {
+          const ask = {model: AI_MODELS[tier], max_tokens: 32, messages: [{role: 'user', content: 'Reply with OK'}]};
+          let beta = '';
+          if (tier !== 'quick') { ask.output_config = {effort: 'low'}; ask.fallbacks = 'default'; beta = 'server-side-fallback-2026-07-01'; }
+          const t = Date.now();
+          const r = await askModel({doFetch: env.fetch || fetch, key, req: ask, beta, fallback: AI_FALLBACK[tier], deadline});
+          return r.ok ? {ok: true, ms: Date.now() - t, code: '', reason: ''} : {ok: false, ms: Date.now() - t, code: r.code, reason: r.reason};
+        };
+        const [quick, def] = await Promise.all([one('quick'), one('default')]);
+        out.tiers = {quick, default: def};
+      }
+      const word = t => !t ? 'none' : t.ok ? 'ok' : t.code;
+      await log(v.uid, 'aicheck', '', key ? 'quick ' + word(out.tiers.quick) + ', thinking ' + word(out.tiers.default) : 'no key');
+      return out;
     }
   };
+  /* the moment a model's answer must be in by: the platform's 30 seconds, less room to answer */
+  function aiDeadline(req) {
+    const budget = Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : AI_BUDGET_MS;
+    return ((req && Number(req.t0)) || Date.now()) + budget;
+  }
   /* what a page may send the model: a string, or text, image and tool blocks; anything else is dropped */
   function cleanTurn(t) {
     if (!isObj(t) || (t.role !== 'user' && t.role !== 'assistant')) return null;
@@ -1258,7 +1298,7 @@ export function createApp({store, env = {}}) {
       /* once a day per instance, off the request's path: old log days go */
       const today = ymdIST(Date.now());
       if (logPruneDay !== today) { logPruneDay = today; pruneOldLogs(LOG_DAYS).catch(() => {}); }
-      const out = await fn(v, body, {ua: deviceLabel(request.headers.get('user-agent')), site, ip, coo: cooSum});
+      const out = await fn(v, body, {ua: deviceLabel(request.headers.get('user-agent')), site, ip, coo: cooSum, t0});
       const extra = {};
       if (out && out.__cookie) { extra['set-cookie'] = out.__cookie; delete out.__cookie; }
       return json(out || {}, 200, extra);

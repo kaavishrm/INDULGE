@@ -599,7 +599,7 @@
       if (!siteApi() || reading) return;
       setReading(true);
       try { const r = await mine(clientId); setFound({...r, at: Date.now()}); if (!r.sources || !r.sources.length) M.toast('No mail about billing for ' + (c.name || 'this client')); }
-      catch (e) { M.toast(e && e.code === 'google_off' ? 'Connect Google under Workspace first' : (e && e.message) || 'Could not read the mail', true); }
+      catch (e) { M.toast(e && e.code === 'google_off' ? 'Connect Google under Workspace first' : e && M.ai.isDown(e.code) ? M.ai.errText(e.code, M.ai.why(e)) : (e && e.message) || 'Could not read the mail', true); }
       setReading(false);
     };
     const use = k => { const v = found.found[k]; set(k, k === 'termsDays' ? num(v) || f.termsDays : String(v).slice(0, 400)); };

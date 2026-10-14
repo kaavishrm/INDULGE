@@ -22,6 +22,9 @@
     if (!r.ok || j.error) {
       /* a signed-in page that gets a 401 anywhere has lost its session: back to the sign-in screen */
       if (r.status === 401 && !OPEN.has(a) && meInfo && meInfo.uid) kick();
+      /* the platform stops a function at 30 seconds with a bare 504; on a model call that is the AI taking too long */
+      if (!j.error && r.status === 504 && (a === 'ai' || a === 'aicheck')) throw {code: 'ai_unreachable', message: 'nothing, the team site stopped waiting at its 30 second limit', status: 504};
+      /* the server's code and message pass through as they are: the page words them (M.ai.errCopy, M.ai.why) */
       throw {code: (j.error && j.error.code) || 'unavailable', message: (j.error && j.error.message) || ('http ' + r.status), status: r.status};
     }
     return j;

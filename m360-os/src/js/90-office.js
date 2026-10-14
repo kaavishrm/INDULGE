@@ -1605,6 +1605,7 @@
     const [cam, setCam] = useState(() => M.prefs.get('office.cam', 'floor'));
     const [pick, setPick] = useState(null);
     const [now, setNow] = useState(null);
+    const [castOpen, setCastOpen] = useState(false);
     const toList = () => { setMode('list'); M.prefs.set('office.view', 'list'); };
     const dr = useDrawers(data, toList);
     const whole = phone ? cam === 'floor-phone' : cam !== 'follow';
@@ -1636,10 +1637,17 @@
       : self ? '' : 'Kaavish moves things here. Drag to look around, and tap anything to see it.';
     const hint = three && mode === 'office' && line ? html`<p class="office-note small">${line}</p>` : null;
     const style = self && mode === 'office' && M.parts.CharacterSheet && M.cast && M.cast.resolveFor(data.ctx, data.ctx.uid).src === 'starter' ? html`<${StyleCard} ctx=${data.ctx}/>` : null;
+    /* everyone styles their own character from here, members too; read only while Kaavish holds their look */
+    const Sheet = M.parts.CharacterSheet;
+    const mine = Sheet && M.cast && data.ctx.uid && !data.ctx.viewAs ? M.cast.resolveFor(data.ctx, data.ctx.uid) : null;
+    const meBtn = mine ? html`<button type="button" class="btn sec sm office-me" id="office-character" data-locked=${mine.locked ? '1' : '0'}
+        onClick=${() => setCastOpen(true)} title=${mine.locked ? 'Kaavish set this look for you.' : 'Style your character'}>
+        <img class="cast-mini" src=${M.cast.head2d(mine.look, {founder: mine.founder, size: 24}).url} alt="" width="24" height="24"/>Your character</button>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
         <div class="row office-ctl">
+          ${meBtn}
           <${UI.Seg} sm=${true} ariaLabel="View" value=${mode} onChange=${v => { setMode(v); M.prefs.set('office.view', v); }} options=${[{v: 'office', label: 'Office'}, {v: 'list', label: 'List'}]}/>
           ${mode === 'office' ? html`<${UI.Seg} sm=${true} ariaLabel="Camera" value=${camVal}
             onChange=${v => { setCam(v); setPick(null); M.prefs.set('office.cam', v); }}
@@ -1655,6 +1663,7 @@
         </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
         : html`<div class="office-grid">${composer || slow || style ? html`<div class="stack">${scene}${composer}${slow}${style}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
       ${dr.node}
+      ${castOpen && Sheet ? html`<${Sheet} uid=${data.ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
     </div>`;
   }
 
