@@ -316,7 +316,7 @@ def test(h):
     m.wait_for_selector('#office-character[data-locked="0"]', timeout=10000)
     # at 390: the button sits in the head, nothing scrolls sideways
     m.set_viewport_size({'width': 390, 'height': 844})
-    m.wait_for_timeout(300)
+    m.wait_for_function('() => window.innerWidth === 390 && document.documentElement.clientWidth <= 390')
     box = m.evaluate('''() => { const b = document.querySelector('#office-character').getBoundingClientRect();
       return {w: Math.round(b.width), right: Math.round(b.right), over: document.documentElement.scrollWidth - document.documentElement.clientWidth}; }''')
     check(box['right'] <= 390 and box['over'] <= 0 and box['w'] >= 44, 'at 390 the office button fits, 44 px and up, no sideways scroll: %r' % box)

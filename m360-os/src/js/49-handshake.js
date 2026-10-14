@@ -238,6 +238,8 @@
     for (let i = 0; i < 20 && todo.some(p => !written(fresh(), p.id)); i++) await wait(100);
     const missed = todo.filter(p => !written(fresh(), p.id));
     if (missed.length) {
+      /* the model call itself failed (the key, the credit, overloaded): the house words say which */
+      if (lastErr && M.ai.named(lastErr)) throw lastErr;
       const why = lastErr && lastErr.message ? ' (' + lastErr.message + ')' : '';
       throw new Error((missed.length === todo.length ? 'Could not write ' + (todo.length === 1 ? 'it' : 'them') : 'Could not write ' + missed.map(p => p.name).join(', ')) + why + '. Try again in a minute.');
     }
@@ -248,7 +250,7 @@
   async function fromAsk(ctx, images, note) {
     const r = await intake(ctx, {images, note: String(note || '').replace(/^dm:\s*/i, '')});
     M.nav('#handshake');
-    if (r.added.length) run(ctx, r.added.map(p => p.id)).catch(e => M.toast((e && e.message) || 'The desk could not write', true));
+    if (r.added.length) run(ctx, r.added.map(p => p.id)).catch(e => M.toast(M.ai.say(e, 'The desk could not write'), true));
     return r;
   }
 
@@ -262,7 +264,7 @@
     const sr = p.senior ? all.find(x => x.id === p.senior) : null;
     const copy = () => navigator.clipboard.writeText(p.message).then(() => M.toast('Copied. Paste it into LinkedIn'), () => M.toast('Copy is blocked here', true));
     const patch = d => ctx.W.update('dm/' + p.id, {...d, updated: Date.now()});
-    const rewrite = async () => { setBusy('rewrite'); try { await run(ctx, [p.id]); } catch (e) { M.toast((e && e.message) || 'Could not rewrite', true); } setBusy(''); };
+    const rewrite = async () => { setBusy('rewrite'); try { await run(ctx, [p.id]); } catch (e) { M.toast(M.ai.say(e, 'Could not rewrite'), true); } setBusy(''); };
     const held = p.state === 'hold' && p.holdUntil > Date.now();
     const bucket = BUCKETS.find(b => b.v === p.bucket);
     const search = 'https://www.linkedin.com/search/results/all/?keywords=' + encodeURIComponent(p.name + (p.company ? ' ' + p.company : ''));
@@ -325,7 +327,7 @@
         setLast(r); setImgs([]); setText('');
         if (r.added.length) await run(ctx, r.added.map(p => p.id), setBusy);
         M.toast(r.added.length ? r.added.length + ' written' : 'Nobody new in that batch');
-      } catch (e) { M.toast((e && e.message) || 'The desk could not read that', true); }
+      } catch (e) { M.toast(M.ai.say(e, 'The desk could not read that'), true); }
       setBusy('');
     };
     return html`<${UI.Card} id="hs-intake" title="Intake" action=${html`<${M.fx.Bot} feature="handshake" state=${busy ? 'working' : 'default'} size=${36} label="m360, the handshake desk" className="ai-bot"/>`}>
@@ -376,7 +378,7 @@
     const writeNew = async () => {
       setWriting('Starting');
       try { await run(ctx, fresh.map(p => p.id), setWriting); M.toast(fresh.length === 1 ? 'Written' : fresh.length + ' written'); }
-      catch (e) { M.toast((e && e.message) || 'Could not write', true); }
+      catch (e) { M.toast(M.ai.say(e, 'Could not write'), true); }
       setWriting('');
     };
     const group = (title, list, id) => list.length ? html`<${UI.Card} title=${title + ' (' + list.length + ')'} id=${id}>

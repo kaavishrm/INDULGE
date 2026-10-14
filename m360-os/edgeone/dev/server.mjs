@@ -3,7 +3,7 @@
    node dev/server.mjs [port] [storeFile]   env MOCK_AI=1 answers AI calls locally (the m360 COO's drafts and memo
    included); env COO_SETTLE_MS sets the COO's claim settle (default 400). GET /__clock?at=<ms> pins the server's
    clock for the COO tests (?add=<ms> moves it on, ?off=1 lets it run again); /__ai lists the model calls (?clear=1
-   empties the list). env MOCK_AI_FAIL (credit, key, model, beta, busy, unreachable) or GET /__aifail?mode=<mode>&n=<calls>
+   empties the list). env MOCK_AI_FAIL (credit, key, model, beta, busy, unreachable, slow, bad, signature, refusal) or GET /__aifail?mode=<mode>&n=<calls>
    makes the canned model fail on purpose; AI_BUDGET_MS shortens the AI deadline for the slow case. */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -175,8 +175,10 @@ async function fakeVoice(url, init) {
    testable with no real key. The mode comes from the store flag x/mock/aifail {mode, n} (GET /__aifail?mode=&n=
    sets it; n calls fail, then the flag goes; no n means every call) or else from env MOCK_AI_FAIL (every call).
    credit, key, model and busy fail any call; beta fails only a call that carries the beta header or fallbacks;
-   unreachable throws the way a dropped connection does; slow never answers until the server gives up. */
-const AI_FAIL_MODES = ['credit', 'key', 'model', 'beta', 'busy', 'unreachable', 'slow'];
+   unreachable throws the way a dropped connection does; slow never answers until the server gives up. bad is a
+   plain bad request, signature a thinking block bound to another conversation (its message names a beta header);
+   neither may be tried again. refusal answers with the refusal stop reason and an explanation. */
+const AI_FAIL_MODES = ['credit', 'key', 'model', 'beta', 'busy', 'unreachable', 'slow', 'bad', 'signature', 'refusal'];
 function aiFailure(body, beta) {
   let flag = null;
   try { flag = data['x/mock/aifail'] ? JSON.parse(data['x/mock/aifail']) : null; } catch (e) { flag = null; }
@@ -197,6 +199,11 @@ async function aiFail(mode, body, init) {
   if (mode === 'model') return j(404, 'not_found_error', 'model: ' + body.model);
   if (mode === 'beta') return j(400, 'invalid_request_error', 'Unexpected value(s) `' + ((init.headers || {})['anthropic-beta'] || 'fallbacks') + '` for the `anthropic-beta` header. Please consult our documentation at docs.claude.com or try again without the header.');
   if (mode === 'busy') return j(529, 'overloaded_error', 'Overloaded');
+  if (mode === 'bad') return j(400, 'invalid_request_error', 'messages: roles must alternate between "user" and "assistant"');
+  if (mode === 'signature') return j(400, 'invalid_request_error', 'messages.1.content.0: Invalid `signature` in `thinking` block. The block is bound to a different conversation. '
+    + 'Remove the block, or set `thinking.block_binding.prefix_mismatch_behavior` to "drop_block". That setting needs the `anthropic-beta` header `thinking-binding-controls-2026-08-01`.');
+  if (mode === 'refusal') return new Response(JSON.stringify({id: 'msg_mock', type: 'message', role: 'assistant', model: body.model, content: [], stop_reason: 'refusal',
+    stop_details: {type: 'refusal', category: 'cyber', explanation: body.model + ' declined this one.'}, usage: {input_tokens: 10, output_tokens: 0}}), {status: 200, headers: {'content-type': 'application/json'}});
   if (mode === 'unreachable') throw new TypeError('fetch failed');
   /* slow: hold the line until the caller's deadline aborts it */
   await new Promise((res, rej) => {

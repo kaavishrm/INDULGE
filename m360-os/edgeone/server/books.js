@@ -10,7 +10,7 @@
       the COO's drafts in books/cooq for the owner's tap.
    The page keeps the same numbers and words (src/js/42-books.js and 43-invoices.js); the defaults
    here are the same defaults, kept short. */
-import {askModel, statusOf as aiStatusOf} from './aicall.js';
+import {askModel, statusOf as aiStatusOf, AI_BUDGET_MS} from './aicall.js';
 
 const DEFAULTS = {
   company: {name: 'Mask Management', state: 'Maharashtra', mail: 'accounts@mask360.agency'},
@@ -113,12 +113,13 @@ export function booksDesk(h) {
   const {getJ, docKey, listAll, ownerUid, sendMail, writeAs, ymdIST, levelOf, LEVEL, HttpError, env, aiKey, google} = h;
   const MAX_FILE = 3 * 1024 * 1024;
   /* one question to the model, the answer parsed as JSON */
-  async function ask(system, content, maxTokens) {
+  async function ask(system, content, maxTokens, t0) {
     const key = aiKey ? await aiKey() : null;
     if (!key) throw new HttpError(403, 'not_granted', 'AI is off. Add the key under Admin.');
-    /* the same failures, named the same way, as the page's AI (aicall.js); only the owner calls these */
+    /* the same failures, named the same way, as the page's AI (aicall.js); only the owner calls these. The answer
+       has to be in before the platform's 30 seconds (AI_BUDGET_MS), counted from when the request came in (t0) */
     const res = await askModel({doFetch: env.fetch || fetch, key, req: {model: MODEL, max_tokens: maxTokens || 2048, system, messages: [{role: 'user', content}]},
-      fallback: MODEL_FALLBACK, deadline: Date.now() + (Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : 25000)});
+      fallback: MODEL_FALLBACK, deadline: (Number(t0) || Date.now()) + (Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : AI_BUDGET_MS)});
     if (!res.ok) throw new HttpError(aiStatusOf(res.code), res.code, res.reason);
     const j = res.j;
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
@@ -193,7 +194,7 @@ export function booksDesk(h) {
   };
 
   /* ---------- reading the owner's mail for a client's billing details ---------- */
-  actions.booksmine = async function booksmine(v, body) {
+  actions.booksmine = async function booksmine(v, body, req) {
     await owner(v);
     if (!google || !google.gapi) throw new HttpError(403, 'google_off', 'Google is not set up.');
     const cid = String(body.clientId || '');
@@ -264,7 +265,7 @@ export function booksDesk(h) {
     }
     if (!content.length) return {found: {}, sources: [], note: 'No mail or file about ' + (client.name || 'this client') + ' mentions billing.'};
     content.unshift({type: 'text', text: 'THE CLIENT: ' + (client.name || '') + (domain ? ' (' + domain + ')' : '') + '. OUR COMPANY (never the answer): Mask Management, Mask360, mask360.agency.'});
-    const out = await ask(MINE_SYSTEM, content, 1500);
+    const out = await ask(MINE_SYSTEM, content, 1500, req && req.t0);
     const found = {};
     for (const k of ['legalName', 'address', 'country', 'taxId', 'contactName', 'contactEmail', 'currency', 'po']) if (out[k] && typeof out[k] === 'string' && out[k].trim()) found[k] = out[k].trim().slice(0, 400);
     if (Number(out.termsDays) > 0) found.termsDays = Math.min(180, Math.round(Number(out.termsDays)));
@@ -276,7 +277,7 @@ export function booksDesk(h) {
   const atobUrl = s => { try { const bin = atob(String(s || '').replace(/-/g, '+').replace(/_/g, '/')); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return new TextDecoder().decode(u8); } catch (e) { return ''; } };
 
   /* ---------- a bank statement into rows ---------- */
-  actions.bookstatement = async function bookstatement(v, body) {
+  actions.bookstatement = async function bookstatement(v, body, req) {
     await owner(v);
     const data = String(body.data || '');
     const name = String(body.name || 'statement').slice(0, 120);
@@ -292,7 +293,7 @@ export function booksDesk(h) {
       content.push({type: 'text', text: 'STATEMENT ' + name + ':\n' + text.slice(0, 120000)});
     }
     content.push({type: 'text', text: 'List every transaction as JSON.'});
-    const out = await ask(STATEMENT_SYSTEM, content, 8000);
+    const out = await ask(STATEMENT_SYSTEM, content, 8000, req && req.t0);
     const rows = (Array.isArray(out.rows) ? out.rows : []).slice(0, 600).map(r => ({
       date: /^\d{4}-\d{2}-\d{2}$/.test(String(r.date || '')) ? r.date : '', vendor: String(r.vendor || '').slice(0, 120), desc: String(r.desc || '').slice(0, 300),
       amount: Math.max(0, num(r.amount)), credit: Math.max(0, num(r.credit)), method: ['upi', 'card', 'cash', 'bank'].includes(String(r.method)) ? r.method : 'bank', ref: String(r.ref || '').slice(0, 60)
@@ -301,11 +302,11 @@ export function booksDesk(h) {
   };
 
   /* ---------- categories for rows the books have not seen ---------- */
-  actions.bookscategorize = async function bookscategorize(v, body) {
+  actions.bookscategorize = async function bookscategorize(v, body, req) {
     await owner(v);
     const rows = (Array.isArray(body.rows) ? body.rows : []).slice(0, 200).map(r => ({vendor: String((r && r.vendor) || '').slice(0, 120), desc: String((r && r.desc) || '').slice(0, 200), amount: num(r && r.amount)}));
     if (!rows.length) return {categories: []};
-    const out = await ask(CAT_SYSTEM, [{type: 'text', text: 'ROWS:\n' + rows.map((r, i) => (i + 1) + '. ' + r.vendor + (r.desc ? ' | ' + r.desc : '') + ' | ' + r.amount).join('\n')}], 4000);
+    const out = await ask(CAT_SYSTEM, [{type: 'text', text: 'ROWS:\n' + rows.map((r, i) => (i + 1) + '. ' + r.vendor + (r.desc ? ' | ' + r.desc : '') + ' | ' + r.amount).join('\n')}], 4000, req && req.t0);
     const CATS = ['Salaries', 'Rent', 'Software and tools', 'Freelancers', 'Production', 'Travel', 'Meals and client', 'Marketing', 'Professional fees', 'Bank and taxes', 'Equipment', 'Other'];
     const cats = (Array.isArray(out.categories) ? out.categories : []).map(c => CATS.includes(c) ? c : 'Other');
     while (cats.length < rows.length) cats.push('Other');

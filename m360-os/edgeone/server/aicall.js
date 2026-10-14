@@ -11,12 +11,16 @@
      prompt_too_large  413, or a prompt past the model's window
      unavailable     anything else (a 500, a 400 that is none of the above)
 
-   A 400 that names the fallbacks parameter or a beta header is tried once more with neither. At most one
+   A 400 that refuses the fallbacks parameter or the beta header we sent is tried once more with neither. At most one
    extra call per turn, whatever went wrong. The reason is the API's own message, at most 300 characters, with
    every model name replaced by "the model" and anything shaped like a key taken out. */
 
 export const API_URL = 'https://api.anthropic.com/v1/messages';
 export const REASON_MAX = 300;
+/* EdgeOne stops a function at 30 seconds with a bare 504. The model's answer must be in by 27 seconds after the request
+   came in: room for a cold start and the reply, and as few slow answers cut short as that allows (AI_BUDGET_MS in
+   the environment changes it for tests) */
+export const AI_BUDGET_MS = 27000;
 /* the page's codes for a model that failed; HTTP 424 on the way out, so no edge in between swaps the body */
 export const AI_DOWN = ['ai_key', 'ai_credit', 'ai_model', 'ai_busy', 'ai_unreachable'];
 export const statusOf = code => code === 'rate_limited' ? 429 : code === 'prompt_too_large' ? 413 : 424;
@@ -49,7 +53,9 @@ export function classify(res) {
   if (st === 401 || st === 403 || type === 'authentication_error' || type === 'permission_error') return {code: 'ai_key', retry: null, reason: said};
   if (st === 402 || type === 'billing_error' || (st === 400 && /credit|balance|billing|spend(ing)? limit|usage limit/i.test(msg))) return {code: 'ai_credit', retry: null, reason: said};
   if (st === 404 || type === 'not_found_error' || /^model:/i.test(msg)) return {code: 'ai_model', retry: 'model', reason: said};
-  if (st === 400 && /fallback|anthropic-beta|beta header/i.test(msg)) return {code: 'unavailable', retry: 'beta', reason: said};
+  /* only a refusal of the fallbacks parameter or of a beta value we sent: a 400 that merely mentions some other
+     beta header (a thinking block bound to another conversation names one) fails the same way twice */
+  if (st === 400 && (/fallback/i.test(msg) || /unexpected value\(s\)[\s\S]*anthropic-beta/i.test(msg))) return {code: 'unavailable', retry: 'beta', reason: said};
   if (st === 529 || type === 'overloaded_error' || /overloaded/i.test(msg)) return {code: 'ai_busy', retry: 'busy', reason: said};
   if (st === 429 || type === 'rate_limit_error') return {code: 'rate_limited', retry: null, reason: said};
   if (st === 413 || type === 'request_too_large' || /prompt is too long|too many tokens|request too large/i.test(msg)) return {code: 'prompt_too_large', retry: null, reason: said};
@@ -61,7 +67,7 @@ export function classify(res) {
    Resolves {ok: true, j, model, calls} or {ok: false, code, reason, calls}; never throws */
 export async function askModel(o) {
   const doFetch = o.doFetch || fetch;
-  const deadline = Number(o.deadline) || (Date.now() + 25000);
+  const deadline = Number(o.deadline) || (Date.now() + AI_BUDGET_MS);
   const once = async (req, beta) => {
     const left = deadline - Date.now();
     if (left < 800) return {thrown: 'time', waited: 0};

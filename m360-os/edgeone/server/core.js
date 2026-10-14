@@ -41,7 +41,7 @@ import {baseActions} from './base.js';
 import {pmDesk} from './pm.js';
 import {cooDesk} from './coo.js';
 import {officeActions} from './office.js';
-import {askModel, statusOf, cleanReason} from './aicall.js';
+import {askModel, statusOf, cleanReason, AI_BUDGET_MS} from './aicall.js';
 
 const LEVEL = {view: 0, interact: 1, admin: 2, owner: 3};
 const SESSION_DAYS = 180;
@@ -61,9 +61,6 @@ const BODY_MAX = 6 * 1024 * 1024; /* the platform's own limit, refused early wit
 const AI_MODELS = {quick: 'claude-haiku-4-5-20251001', default: 'claude-opus-5-5', complex: 'claude-opus-5-5'};
 /* a model the account cannot reach (404) gets one more try on the tier's fallback (aicall.js) */
 const AI_FALLBACK = {quick: 'claude-haiku-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
-/* the platform stops a function at 30 seconds with a bare 504; the model's answer has to be in well before,
-   counted from the moment the request came in (AI_BUDGET_MS in the environment changes it for tests) */
-const AI_BUDGET_MS = 25000;
 const AI_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const AI_IMAGE_MAX = 2200000;   /* base64 characters per image, about 1.6 MB */
 const AI_DAILY_MAX = 600;        /* model turns one person gets in a day */

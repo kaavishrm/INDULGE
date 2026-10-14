@@ -14,8 +14,11 @@ real server code through the local stand-in (edgeone/dev/server.mjs) with the ca
   answers on the second call, never makes a third, and counts once;
 - the page: Ask m360 in the dock shows the house copy and the offline chips for each code, Kaavish also reads
   "Anthropic said: ..." on its own line, a member never does;
+- a bad request is asked once and never again, even one whose message names a beta header; a refusal counts (the
+  model answered) and its explanation reaches Kaavish and admins only; the platform's bare 504 on a model call
+  reads as ai_unreachable;
 - aicheck: both tiers reported for the owner (and an admin), whether a key is set and where it lives, never the
-  key or a model name in the answer or the log; refused for a member;
+  key or a model name in the answer or the log; refused for a member and for nobody signed in;
 - Admin > m360 AI > Check the AI at 1280 and 390, light and dark, readable;
 - on a claude.ai page (the harness stand-in), a sample error keeps its code and the owner reads the cleaned
   message, a member does not; Check the AI there makes one tiny call.
@@ -34,6 +37,7 @@ import sys
 import tempfile
 import time
 import traceback
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -60,6 +64,9 @@ CASES = [
     ('unreachable', 'ai_unreachable', 'nothing, the call did not get through (fetch failed)'),
     ('slow', 'ai_unreachable', 'nothing, no answer came back within %d seconds' % BUDGET_S),
 ]
+# the calls each failing turn makes: a refused key, no credit or no line are asked once; a missing model once more
+# on the backup, an overloaded API once more after the wait; never a third
+CALLS = {'credit': 1, 'key': 1, 'model': 2, 'busy': 2, 'unreachable': 1, 'slow': 1}
 QUESTION = 'Write two lines about Monday mornings at the studio'
 # made up for the test, like every sign-in here
 PW = {'k': 'health-lamp-4471', 'd': 'health-desk-5582', 'a': 'health-reel-6693'}
@@ -103,6 +110,10 @@ def site_part(check):
     def fail(mode, n=0):
         get('__aifail?mode=%s&n=%d' % (mode, n))
 
+    def calls():
+        """the model calls the page's AI made (the COO's own calls carry a system prompt; these test turns do not)"""
+        return [c for c in get('__ai') if not c.get('system')]
+
     def used(uid):
         """this person's AI turns counted today (n/ai/<ymd>/<uid>), however the day reads"""
         data = get('__store')
@@ -127,7 +138,9 @@ def site_part(check):
                 pg = c.new_page()
                 pg.set_default_timeout(30000)
                 pg.on('pageerror', lambda e: errors.append(str(e)))
-                pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' and 'favicon' not in m.text and 'status of 4' not in m.text else None)
+                # a 4xx is an answer the page words; the 504s are the bare platform timeouts this test fakes on purpose
+                pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' and 'favicon' not in m.text and 'status of 4' not in m.text
+                      and 'status of 504' not in m.text else None)
                 return c, pg
 
             # ---- Kaavish sets the workspace up; a member and an admin join it ----
@@ -169,17 +182,61 @@ def site_part(check):
                 f0, m0 = used(fuid), used(muid)
                 get('__ai?clear=1')
                 rf = f.evaluate(ask, ['default'])
-                nf = len(get('__ai'))
+                nf = len(calls())
                 get('__ai?clear=1')
                 rm = m.evaluate(ask, ['default'])
-                nm = len(get('__ai'))
+                nm = len(calls())
                 check(not rf['ok'] and rf['code'] == code and rf['status'] == 424, '%s: the owner gets %s (424): %r' % (mode, code, rf))
                 check(said in (rf.get('message') or '') and 'claude-' not in (rf.get('message') or '') and 'sk-ant' not in (rf.get('message') or ''),
                       '%s: the owner\'s reason is cleaned, with no model name or key: %r' % (mode, rf.get('message')))
                 check(not rm['ok'] and rm['code'] == code and rm.get('message') in ('', code), '%s: a member gets %s and no reason: %r' % (mode, code, rm))
-                check(1 <= nf <= 2 and 1 <= nm <= 2, '%s: at most one extra call a turn (%d, %d)' % (mode, nf, nm))
+                check(nf == CALLS[mode] and nm == CALLS[mode], '%s: %d call(s) a turn, never more (%d, %d)' % (mode, CALLS[mode], nf, nm))
                 check(used(fuid) == f0 and used(muid) == m0, '%s: a failed turn does not count against the cap' % mode)
             fail('off')
+            # a bad request is asked once, never again, even one whose message names a beta header (a thinking block
+            # bound to another conversation does); the owner reads why, a member does not, and it does not count
+            for mode, said in (('bad', 'roles must alternate'), ('signature', 'Invalid `signature` in `thinking` block')):
+                fail(mode)
+                f0, m0 = used(fuid), used(muid)
+                get('__ai?clear=1')
+                rf = f.evaluate(ask, ['default'])
+                cs = calls()
+                rm = m.evaluate(ask, ['default'])
+                check(not rf['ok'] and rf['code'] == 'unavailable' and rf['status'] == 424 and said in (rf.get('message') or ''),
+                      '%s: the owner gets unavailable with the reason: %r' % (mode, rf))
+                check(len(cs) == 1 and cs[0]['fallbacks'] == 'default' and cs[0]['beta'], '%s: one call, the request kept as it was: %r' % (mode, [(c['model'], c['beta'], c['fallbacks']) for c in cs]))
+                check(not rm['ok'] and rm['code'] == 'unavailable' and rm.get('message') in ('', 'unavailable'), '%s: a member gets the code alone: %r' % (mode, rm))
+                check(used(fuid) == f0 and used(muid) == m0, '%s: a bad request does not count against the cap' % mode)
+            fail('off')
+            # a refusal: the model answered, so it counts; the explanation is Kaavish's and an admin's, cleaned of the model's name
+            fail('refusal')
+            f0, m0 = used(fuid), used(muid)
+            get('__ai?clear=1')
+            rf = f.evaluate(ask, ['default'])
+            ra = a.evaluate(ask, ['default'])
+            rm = m.evaluate(ask, ['default'])
+            fail('off')
+            check(not rf['ok'] and rf['code'] == 'refused' and rf.get('message') == 'the model declined this one.' and len(calls()) == 3,
+                  'a refusal reaches the owner as refused, cleaned, one call each: %r' % rf)
+            check(ra.get('code') == 'refused' and 'declined' in (ra.get('message') or '') and 'claude-' not in (ra.get('message') or ''), 'an admin reads it too: %r' % ra)
+            check(rm.get('code') == 'refused' and rm.get('message') in ('', 'refused'), 'a member gets refused alone: %r' % rm)
+            check(used(fuid) == f0 + 1 and used(muid) == m0 + 1, 'a refusal counts once: the model answered')
+            # the platform's bare 504 on a model call reads as no answer in time; on any other action it stays unavailable
+            def bare504(route):
+                try:
+                    act = json.loads(route.request.post_data or '{}').get('a')
+                except Exception:
+                    act = ''
+                if act in ('ai', 'aistatus'):
+                    route.fulfill(status=504, body='<html><body>504 Gateway Time-out</body></html>', headers={'content-type': 'text/html'})
+                else:
+                    route.continue_()
+            m.route('**/api/m360*', bare504)
+            r504 = m.evaluate(ask, ['default'])
+            o504 = m.evaluate('() => window.M360_API("aistatus", {}).then(() => "ran", e => e.code + "|" + e.status)')
+            m.unroute('**/api/m360*')
+            check(not r504['ok'] and r504['code'] == 'ai_unreachable' and r504['status'] == 504, 'a bare 504 on a model call is ai_unreachable: %r' % r504)
+            check(o504 == 'unavailable|504', 'a bare 504 on another action stays unavailable: %r' % o504)
             # quick answers are named the same way
             fail('key')
             rq = m.evaluate(ask, ['quick'])
@@ -227,8 +284,16 @@ def site_part(check):
             r = a.evaluate('() => window.M360_API("aicheck", {})')
             check(r['tiers']['default']['code'] == 'ai_model' and 'claude-' not in json.dumps(r), 'an admin checks the AI too, and a missing model reads without its name: %r' % r['tiers'])
             fail('off')
+            get('__ai?clear=1')
             got = m.evaluate('() => window.M360_API("aicheck", {}).then(() => "ran", e => e.code + "|" + e.status)')
             check(got == 'not_granted|403', 'a member cannot check the AI: %r' % got)
+            # nobody signed in: refused, and no model is asked
+            req = urllib.request.Request(base + 'api/m360', data=json.dumps({'a': 'aicheck'}).encode(), headers={'content-type': 'application/json'}, method='POST')
+            try:
+                gs, gb = urllib.request.urlopen(req, timeout=30).status, ''
+            except urllib.error.HTTPError as e:
+                gs, gb = e.code, e.read().decode()
+            check(gs == 403 and 'tiers' not in gb and 'sk-ant' not in gb and not calls(), 'a guest cannot check the AI and no model is asked: %r %r' % (gs, gb[:120]))
             data = get('__store')
             logs = [json.loads(v) for k, v in data.items() if k.startswith('d/log~') and k.endswith(fuid)]
             lines = [e for d in logs for e in d.get('e', {}).values() if e.get('a') == 'aicheck']
@@ -262,6 +327,25 @@ def site_part(check):
                     m.screenshot(path=os.path.join(SHOTS, 'v361-ai-error-member-1280.png'))
             fail('off')
 
+            # ---- HQ's brief sits on a dark card: what Anthropic said reads there too, light and dark ----
+            fail('credit')
+            for theme in ('light', 'dark'):
+                f.goto(base + '#hq')
+                f.reload()
+                f.wait_for_function('() => !!(window.M && M.lastCtx && M.theme)')
+                f.evaluate('t => M.theme.set(t)', theme)
+                f.locator('section.ai-card.dark button.btn').first.click()
+                f.wait_for_selector('section.ai-card.dark .ai-why', timeout=45000)
+                t = f.inner_text('section.ai-card.dark')
+                ratio = f.evaluate(CONTRAST, ['section.ai-card.dark .ai-why', 'section.ai-card.dark'])
+                check(COPY['ai_credit'] in t and 'Anthropic said: Your credit balance is too low' in t and ratio >= 4.5,
+                      'HQ brief, %s: the copy and what Anthropic said, readable on the dark card (%.1f:1)' % (theme, ratio))
+                if theme == 'dark':
+                    f.locator('section.ai-card.dark').scroll_into_view_if_needed()
+                    f.screenshot(path=os.path.join(SHOTS, 'v361-ai-error-hq-kaavish-1280-dark.png'))
+                f.evaluate('() => M.theme.set("auto")')
+            fail('off')
+
             # ---- Admin > m360 AI > Check the AI, at 1280 and 390, light and dark ----
             for width, theme, mode in ((1280, 'light', 'off'), (1280, 'dark', 'credit'), (390, 'light', 'credit'), (390, 'dark', 'off')):
                 fail(mode)
@@ -293,12 +377,21 @@ def site_part(check):
                 f.locator('#ai-check-box').scroll_into_view_if_needed()
                 f.screenshot(path=os.path.join(SHOTS, 'v361-check-ai-%d-%s.png' % (width, theme)))
                 f.evaluate('() => M.theme.set("auto")')
-            fail('off')
+            # a refused key that lives in the site's environment: the hint says a pasted key is not used while it is set
+            fail('key')
             f.set_viewport_size({'width': 1280, 'height': 900})
+            f.goto(base + '#admin')
+            f.reload()
+            f.wait_for_selector('#ai-check')
+            f.click('#ai-check')
+            f.wait_for_selector('#ai-check-out .ai-check-row[data-code="ai_key"]', timeout=45000)
+            t = f.inner_text('#ai-check-out')
+            check('the key was refused' in t and "set in the site's environment settings, and a key pasted here is not used" in t and 'Paste a new key here' not in t,
+                  'Check the AI: a refused environment key says where to change it: %r' % t)
+            fail('off')
             # a member's Admin has no AI card at all
             m.goto(base + '#admin')
-            m.wait_for_function('() => !!(window.M && M.lastCtx)')
-            m.wait_for_timeout(500)
+            m.wait_for_function('() => !!(window.M && M.lastCtx) && location.hash.length > 1 && !!document.querySelector("main") && document.querySelector("main").children.length > 0')
             check(m.locator('#ai-check').count() == 0, 'a member has no Check the AI')
             browser.close()
     except Exception:
@@ -336,6 +429,11 @@ def artifact_part(h, check):
       M.ai.why({code: "ai_credit", message: "ai_credit"}), M.ai.why({code: "unavailable", message: "offline"}), M.ai.why({code: "cancelled", message: "stopped"}),
       M.ai.isDown("ai_busy"), M.ai.isDown("rate_limited")]''')
     check(c[0] == 'model: the model not found, a key' and c[1] <= 300 and c[2:] == ['', '', '', True, False], 'M.ai.clean and M.ai.why: %r' % c)
+    # a toast that shows a desk's error (Handshake) says a named AI failure in the house words, never its bare code
+    s = p.evaluate('''() => [M.ai.say({code: "ai_credit", message: "ai_credit"}, "Could not write"), M.ai.say({code: "unavailable", message: "unavailable"}, "x"),
+      M.ai.say({code: "refused", message: "refused"}, "x"), M.ai.say({message: "Could not write Asha. Try again in a minute."}, "x"), M.ai.say(null, "Could not write")]''')
+    check(s == [COPY['ai_credit'], 'Something glitched. Try again.', 'Claude passed on that one. Try asking differently.', 'Could not write Asha. Try again in a minute.', 'Could not write'],
+          'M.ai.say for a member: %r' % s)
     # Check the AI on claude.ai: one tiny call on the viewer's own account
     h.go(p, 'founder', hash='#admin')
     p.wait_for_selector('#ai-check')

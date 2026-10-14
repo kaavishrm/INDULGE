@@ -3,6 +3,8 @@
 
 /* what Anthropic said, on its own line under an AI error, for Kaavish and admins */
 .ai-why{display:block; margin-top:4px; color:var(--ink62); font-weight:400; overflow-wrap:anywhere}
+/* HQ's brief sits on the dark card in both themes: the reason reads in the card's own light grey */
+.ai-card.dark .ai-why{color:rgba(255,255,255,.72)}
 .toast.multi{border-radius:var(--r-card); white-space:pre-line; text-align:left}
 
 /* Admin > m360 AI > Check the AI */

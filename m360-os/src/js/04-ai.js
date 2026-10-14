@@ -104,6 +104,12 @@
     return w ? html`<${React.Fragment}>${ai.errCopy(code)}<span class="ai-why">${SAID + w}</span><//>` : ai.errCopy(code);
   };
   ai.SAID = SAID;
+  /* a failure the AI itself named: the model call, its limits, a refusal, or one whose reason the server kept back
+     (a member's error carries the code alone) */
+  const NAMED = ['rate_limited', 'slow_down', 'refused', 'prompt_too_large'];
+  ai.named = e => { const code = e && e.code; return !!code && (DOWN.indexOf(code) >= 0 || NAMED.indexOf(code) >= 0 || (code === 'unavailable' && e.message === code)); };
+  /* an error from a call that asked the model, as a person reads it: the house copy when the AI named it, else the caller's words */
+  ai.say = (e, fallback) => ai.named(e) ? ai.errText(e.code, ai.why(e)) : (ai.clean(e && e.message) || fallback || ai.errCopy(''));
 
   ai.text = function (ctx, prompt, o) {
     o = o || {};
@@ -475,6 +481,9 @@
     not_granted: 'off', not_declared: 'off on this page', sampling_disabled: 'off for this account', slow_down: "used up for today"};
   const CHECK_HINT = {ai_key: 'Paste a new key here and check again.', ai_credit: 'Add credit in the Anthropic console. It works again at once.',
     ai_busy: 'Nothing to fix here. Check again in a minute.'};
+  /* the site's environment key wins over a pasted one, so a refused environment key is changed where it lives */
+  const hintFor = (code, source) => code === 'ai_key' && source === 'environment'
+    ? "This key is set in the site's environment settings, and a key pasted here is not used while that one is set." : CHECK_HINT[code];
   function AiCheck() {
     const ctx = M.useCtx();
     const [st, setSt] = React.useState({busy: false, out: null});
@@ -512,7 +521,7 @@
           <div class="grow ai-check-text">
             <div class="small"><b>${TIER_NAME[r.k] || 'Answers'}</b>: ${r.ok ? 'working, ' + secs(r.ms) : (CHECK_WORD[r.code] || 'not working')}</div>
             ${!r.ok && r.reason ? html`<div class="tiny ai-why">${SAID + ai.clean(r.reason)}</div>` : null}
-            ${!r.ok && CHECK_HINT[r.code] ? html`<div class="tiny ink62">${CHECK_HINT[r.code]}</div>` : null}
+            ${!r.ok && hintFor(r.code, out.source) ? html`<div class="tiny ink62">${hintFor(r.code, out.source)}</div>` : null}
           </div>
         </div>`)}
         ${out.key ? html`<div class="tiny ink62" id="ai-check-source">${out.source === 'environment' ? "The key is set in the site's environment settings." : 'The key is the one pasted here.'}</div>` : null}

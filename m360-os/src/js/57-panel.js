@@ -191,7 +191,7 @@
         const r = await M.handshake.fromAsk(ctx, pics, msg);
         await M.chat.append(ctx, [{role: 'assistant', content: 'Handshake has ' + r.added.length + (r.added.length === 1 ? ' new person' : ' new people') + (r.dupes.length ? ' (already in: ' + r.dupes.join(', ') + ')' : '') + '. Writing now; the messages land under Accounts, Handshake.'}]);
         S.set({phase: 'answer'});
-      } catch (e) { S.set({phase: 'answer', err: 'The desk could not read that: ' + ((e && e.message) || 'unknown')}); }
+      } catch (e) { S.set({phase: 'answer', err: M.ai.named(e) ? M.ai.say(e) : 'The desk could not read that: ' + M.ai.say(e, 'unknown')}); }
       return null;
     }
     const c = new AbortController();
