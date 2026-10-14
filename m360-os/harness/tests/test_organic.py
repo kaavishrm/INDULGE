@@ -178,6 +178,18 @@ def part(h):
     check('125k' in p.inner_text('#org-schedule .org-kpis'), 'the 30 day views read 125k')
     check(h.ctx(p, 'M.organic.stats(ctx, M.organic.campaign(ctx, %r)).posts7' % cid) == 1, 'one post in the last 7 days')
 
+    # Home: the posts due today on the founder's own accounts, in a quiet fold
+    h.go(p, 'founder', hash='#home', width=1280)
+    p.wait_for_selector('#home-organic')
+    mine = h.ctx(p, 'M.organic.mineToday(ctx).length')
+    check(mine > 0 and str(mine) in p.inner_text('#home-organic'), 'the Home fold counts my posts today: %r' % mine)
+    # Cmd K finds the studio
+    p.keyboard.press('Control+k')
+    p.wait_for_selector('.pal input')
+    p.fill('.pal input', 'slideshow')
+    p.wait_for_selector('.pal:has-text("Slideshow studio")')
+    p.keyboard.press('Escape')
+
     # a member sees the same campaign and can write to it
     h.go(p, 'm1', hash='#organic', width=1280)
     p.wait_for_selector('#org-playbook')
@@ -187,6 +199,10 @@ def part(h):
     p.fill('#org-handle', 'golfersdigest0')
     p.locator('#org-handles button:has-text("Add account")').click()
     p.wait_for_function('() => Object.keys(M.organic.campaign(M.lastCtx, %r).accounts).length === 3' % cid)
+    h.go(p, 'm1', hash='#home', width=1280)
+    p.wait_for_selector('.split')
+    p.wait_for_timeout(300)
+    check(p.locator('#home-organic').count() == 0, 'no Organic fold for a member with nothing planned on their accounts')
 
     # phone: no sideways scroll on any tab
     for hsh in ('#organic', '#slides', '#handles', '#posting'):

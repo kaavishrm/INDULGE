@@ -3864,7 +3864,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 .office.o3.on-phone .office-view{border-radius:16px}
 .office.o3 .office-under{margin-top:10px; display:grid; gap:8px}
 </style>
-<script>window.M360_BUILD = "9122807+.261014-1340"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "79305aa+.261014-1413"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -29074,8 +29074,39 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     </div>`;
   }
 
+  /* Home: the posts due today on accounts the viewer posts for, across campaigns. Quiet: it lists, it never rings */
+  function mineToday(ctx) {
+    const t = td(), out = [];
+    for (const c of campaigns(ctx)) {
+      const accs = {};
+      for (const a of accountsOf(c)) if (a.owner === ctx.uid) accs[a.id] = a;
+      if (!Object.keys(accs).length) continue;
+      for (const p of posts(ctx, c.id)) if (p.d === t && p.s !== 'posted' && accs[p.a]) out.push({c, a: accs[p.a], p});
+    }
+    return out.sort((x, y) => (x.p.t < y.p.t ? -1 : x.p.t > y.p.t ? 1 : 0));
+  }
+  function OrganicFold() {
+    const ctx = M.useCtx();
+    if (ctx.viewAs) return null;
+    const rows = mineToday(ctx);
+    if (!rows.length) return null;
+    const now = U.hhmm(Date.now());
+    const late = rows.filter(r => r.p.t < now).length;
+    return html`<${UI.Fold} title="Posts to make today" summary=${rows.length + (rows.length === 1 ? ' post' : ' posts') + (late ? ', ' + late + ' past their time' : '')}
+      open=${late > 0} hot=${late > 0} id="fold-organic">
+      <${UI.Card} id="home-organic" title="Posts to make today" flame=${late > 0} action=${html`<span class="num small">${rows.length}</span>`}>
+      <div class="stack tight">
+        ${rows.slice(0, 5).map(r => html`<div key=${r.p.id}><div class="tiny ink62">@${r.a.handle} · ${r.c.title || 'Campaign'}</div><${PostRow} c=${r.c} p=${r.p} decks=${decksOf(r.c)}/></div>`)}
+        ${rows.length > 5 ? html`<div class="tiny ink62">${rows.length - 5} more on the schedule.</div>` : null}
+        <div><${UI.Btn} kind="ghost" sm=${true} onClick=${() => M.nav('#posting')}>Open the schedule<//></div>
+      </div>
+      <//>
+    <//>`;
+  }
+
   M.pages.Organic = Organic;
-  M.organic = {STEPS, campaigns, campaign, posts, stats, check, progress, bestPrice, arpu, adNeed, slotTimes, planWeek, offlineDraft, cleanDeck};
+  M.parts.OrganicFold = OrganicFold;
+  M.organic = {STEPS, mineToday, campaigns, campaign, posts, stats, check, progress, bestPrice, arpu, adNeed, slotTimes, planWeek, offlineDraft, cleanDeck};
 })();
 
 /* ==== 49-handshake.js ==== */
@@ -30330,6 +30361,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${eodFirst ? html`<${F} title="EOD line" summary=${eodPosted ? 'posted for today' : 'due by ' + (ctx.settings.eodCut || '19:30')} open=${!eodPosted} hot=${!eodPosted} id="fold-eod"><${Wrap}/><//>` : null}
           <${F} title="Today's focus" summary=${n(myOpen.length, 'open task', 'open tasks') + (myLate ? ', ' + n(myLate, 'overdue', 'overdue') : '')} open=${true} hot=${myLate > 0} id="fold-focus"><${Focus} onOpen=${setTask}/><//>
           ${M.parts.FollowupsFold ? html`<${M.parts.FollowupsFold}/>` : null}
+          ${M.parts.OrganicFold ? html`<${M.parts.OrganicFold}/>` : null}
           ${Reviews && revN ? html`<${F} title="Waiting on your review" summary=${n(revN, 'piece', 'pieces')} open=${true} hot=${true} id="fold-reviews"><${Reviews} compact=${true}/><//>` : null}
           ${Outcomes ? html`<${F} title="This week's outcomes" summary="what you said you would ship" id="fold-outcomes"><${Outcomes}/><//>` : null}
           ${!eodFirst && working ? html`<${F} title="EOD line" summary=${'three lines before ' + (ctx.settings.eodCut || '19:30')} id="fold-eod"><${Wrap}/><//>` : null}
@@ -37064,6 +37096,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   const PAGES = [
     ['Home', 'home', 'today'], ['My tasks', 'tasks', 'tasks'], ['Projects', 'projects', 'projects'], ['The week', 'week', 'week'],
     ['Calendar', 'calendar', 'calendar'], ['Reviews', 'reviews', 'review'], ['Clients', 'clients', 'clients'], ['Pipeline', 'pitches', 'pitches'], ['Prospects', 'prospects', 'people'],
+    ['Organic', 'organic', 'up'], ['Slideshow studio', 'slides', 'up'], ['Posting schedule', 'posting', 'up'],
     ['Feed', 'feed', 'feed'], ['Crew', 'people', 'people'], ['Pulse and ideas', 'voice', 'voice'], ['Leaderboard', 'scores', 'scores'],
     ['Base', 'base', 'database'], ['Companies', 'companies', 'database'], ['Radar', 'radar', 'radar'],
     ['Me', 'me', 'people'], ['Leave', 'leave', 'leave'], ['Handbook', 'handbook', 'handbook'], ['Trophies', 'trophies', 'trophy'],

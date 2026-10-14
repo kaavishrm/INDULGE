@@ -526,6 +526,7 @@ Read from a thread on launching an app (a golf app at US$100K ARR in 7 days) and
 - **Accounts** (`#handles`): the fleet, with platform, faceless, who posts, the daily target, 7 days posted against target (flame when short) and 30 day views.
 - **Schedule** (`#posting`): 30 day views, likes, comments and shares; To post today; the week by account and day (flame on a past day that fell short); Plan the rest of the week fills each account to its own daily target between 09:00 and 21:00 with the slideshows round robin, and planning twice adds nothing. A post is marked posted in one tap and its numbers are typed in once it has run.
 - **Storage.** One shared collection, `organic`: the campaign at `organic/<cid>` and one document per week of posts at `organic/<cid>.w.<YYYY-Www>`, so 8 accounts at 10 a day stays far under the 256 KiB limit. Week documents older than 13 weeks are removed by the next schedule write. Removing an account, a slideshow, a question or a price marks it `removed`; a post is skipped with `s: 'skip'`. Names are never stored, only ids.
+- **Home and Cmd K.** Home gets a Posts to make today card for whoever posts on an account, across campaigns, with Mark posted in place. It lists and never rings, and it shows nothing on a day with nothing planned. Cmd K finds Organic, the slideshow studio and the posting schedule.
 - Tests: `test_organic.py` (the campaign, all six checks, the AI and template drafts, the PNG download, planning, posting, a member writing, 390 px). The map, the sidebar and the More sheet list the section.
 
 ## Launch day

@@ -735,6 +735,37 @@
     </div>`;
   }
 
+  /* Home: the posts due today on accounts the viewer posts for, across campaigns. Quiet: it lists, it never rings */
+  function mineToday(ctx) {
+    const t = td(), out = [];
+    for (const c of campaigns(ctx)) {
+      const accs = {};
+      for (const a of accountsOf(c)) if (a.owner === ctx.uid) accs[a.id] = a;
+      if (!Object.keys(accs).length) continue;
+      for (const p of posts(ctx, c.id)) if (p.d === t && p.s !== 'posted' && accs[p.a]) out.push({c, a: accs[p.a], p});
+    }
+    return out.sort((x, y) => (x.p.t < y.p.t ? -1 : x.p.t > y.p.t ? 1 : 0));
+  }
+  function OrganicFold() {
+    const ctx = M.useCtx();
+    if (ctx.viewAs) return null;
+    const rows = mineToday(ctx);
+    if (!rows.length) return null;
+    const now = U.hhmm(Date.now());
+    const late = rows.filter(r => r.p.t < now).length;
+    return html`<${UI.Fold} title="Posts to make today" summary=${rows.length + (rows.length === 1 ? ' post' : ' posts') + (late ? ', ' + late + ' past their time' : '')}
+      open=${late > 0} hot=${late > 0} id="fold-organic">
+      <${UI.Card} id="home-organic" title="Posts to make today" flame=${late > 0} action=${html`<span class="num small">${rows.length}</span>`}>
+      <div class="stack tight">
+        ${rows.slice(0, 5).map(r => html`<div key=${r.p.id}><div class="tiny ink62">@${r.a.handle} · ${r.c.title || 'Campaign'}</div><${PostRow} c=${r.c} p=${r.p} decks=${decksOf(r.c)}/></div>`)}
+        ${rows.length > 5 ? html`<div class="tiny ink62">${rows.length - 5} more on the schedule.</div>` : null}
+        <div><${UI.Btn} kind="ghost" sm=${true} onClick=${() => M.nav('#posting')}>Open the schedule<//></div>
+      </div>
+      <//>
+    <//>`;
+  }
+
   M.pages.Organic = Organic;
-  M.organic = {STEPS, campaigns, campaign, posts, stats, check, progress, bestPrice, arpu, adNeed, slotTimes, planWeek, offlineDraft, cleanDeck};
+  M.parts.OrganicFold = OrganicFold;
+  M.organic = {STEPS, mineToday, campaigns, campaign, posts, stats, check, progress, bestPrice, arpu, adNeed, slotTimes, planWeek, offlineDraft, cleanDeck};
 })();
