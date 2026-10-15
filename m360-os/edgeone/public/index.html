@@ -3044,6 +3044,37 @@ a.pill.cl-social .k{color:var(--micro); letter-spacing:.1em}
 }
 @media (prefers-reduced-motion:reduce){ .pm-chev{transition:none} }
 
+/* ==== 99-ai-check.css ==== */
+/* ---------- v36.1: the AI says what is wrong (04-ai.js), and your character from settings and the office ----------
+   Tokens only, so the night theme flips every colour by itself. */
+
+/* what Anthropic said, on its own line under an AI error, for Kaavish and admins */
+.ai-why{display:block; margin-top:4px; color:var(--ink62); font-weight:400; overflow-wrap:anywhere}
+/* HQ's brief sits on the dark card in both themes: the reason reads in the card's own light grey */
+.ai-card.dark .ai-why{color:rgba(255,255,255,.72)}
+.toast.multi{border-radius:var(--r-card); white-space:pre-line; text-align:left}
+
+/* Admin > m360 AI > Check the AI */
+.ai-check{display:flex; flex-direction:column; gap:10px; margin-top:14px; min-width:0}
+.ai-check-head{gap:10px}
+.ai-check-out{display:flex; flex-direction:column; gap:12px; padding:12px 14px; border-radius:var(--r-sm); background:var(--warm); border:1px solid var(--line); min-width:0}
+.ai-check-row{display:flex; align-items:flex-start; gap:10px; min-width:0}
+.ai-check-text{min-width:0; overflow-wrap:anywhere}
+.ai-check-dot{width:10px; height:10px; margin-top:5px; border-radius:999px; flex:none; background:var(--ink)}
+.ai-check-row.bad .ai-check-dot{background:var(--flame)}
+.ai-check-row .ai-why{margin-top:2px}
+
+/* your small head, in Me > Your m360 and in the office's head */
+.cast-mini{width:32px; height:32px; border-radius:999px; background:var(--warm); flex:none; display:block}
+.prefs-character{gap:10px}
+.prefs-character-who{gap:10px; min-width:0}
+.prefs-character-words{gap:1px; min-width:0}
+.office-me{display:inline-flex; align-items:center; gap:8px}
+.office-me .cast-mini{width:24px; height:24px; background:var(--paper)}
+@media (max-width:700px){
+  .prefs-character .btn{margin-left:auto}
+}
+
 /* ==== 99-cast.css ==== */
 /* ---------- v35: characters (71-z-character.js) ----------
    Me > Your character, the sheet that styles it and Admin > Characters. Tokens only: the swatches carry the
@@ -3822,7 +3853,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 .office.o3.on-phone .office-view{border-radius:16px}
 .office.o3 .office-under{margin-top:10px; display:grid; gap:8px}
 </style>
-<script>window.M360_BUILD = "47bcc96.261010-2135"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "2dc6699.261015-1040"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -3847,6 +3878,9 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
     if (!r.ok || j.error) {
       /* a signed-in page that gets a 401 anywhere has lost its session: back to the sign-in screen */
       if (r.status === 401 && !OPEN.has(a) && meInfo && meInfo.uid) kick();
+      /* the platform stops a function at 30 seconds with a bare 504; on a model call that is the AI taking too long */
+      if (!j.error && r.status === 504 && (a === 'ai' || a === 'aicheck')) throw {code: 'ai_unreachable', message: 'nothing, the team site stopped waiting at its 30 second limit', status: 504};
+      /* the server's code and message pass through as they are: the page words them (M.ai.errCopy, M.ai.why) */
       throw {code: (j.error && j.error.code) || 'unavailable', message: (j.error && j.error.message) || ('http ' + r.status), status: r.status};
     }
     return j;
@@ -6451,13 +6485,14 @@ M.ToastHost = function ToastHost() {
   React.useEffect(() => {
     const on = t => {
       setItems(x => [...x, t]);
-      setTimeout(() => setItems(x => x.filter(i => i.id !== t.id)), 3200);
+      /* a toast with a second line (what Anthropic said, for Kaavish) stays long enough to read */
+      setTimeout(() => setItems(x => x.filter(i => i.id !== t.id)), t.msg.indexOf('\n') >= 0 ? 7000 : 3200);
     };
     toastListeners.add(on);
     return () => toastListeners.delete(on);
   }, []);
   return html`<div class="toasts" aria-live="polite">
-    ${items.map(t => html`<div key=${t.id} class=${'toast' + (t.err ? ' err' : '')}>${t.msg}</div>`)}
+    ${items.map(t => html`<div key=${t.id} class=${'toast' + (t.err ? ' err' : '') + (t.msg.indexOf('\n') >= 0 ? ' multi' : '')}>${t.msg}</div>`)}
   </div>`;
 };
 
@@ -8408,7 +8443,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
    except the viewer's own cached brief in their private space. */
 'use strict';
 (function () {
-  const {html, React, U} = M;
+  const {html, React, U, UI} = M;
 
   /* ---------- live presence: who has m360 open right now ---------- */
   const pageOf = () => (location.hash || '').replace(/^#/, '').split('/')[0] || 'home';
@@ -8459,15 +8494,61 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     tools_unavailable: 'Actions are unavailable here. Answers still work.', empty_completion: 'Nothing came back. Try rephrasing.',
     cancelled: 'Stopped.',
     /* the team site's daily cap on AI turns per person */
-    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works."
+    slow_down: "You have used today's AI. It is back tomorrow, and everything else still works.",
+    /* the team site names what went wrong with the model call (edgeone/server/aicall.js) */
+    ai_key: 'The AI key was refused. Kaavish can paste a new one in Admin under AI.',
+    ai_credit: 'The AI account is out of credit. Once credit is added in the Anthropic console it works again at once.',
+    ai_model: 'The AI could not reach the model it uses, or its backup. Kaavish can run Check the AI in Admin under AI.',
+    ai_busy: 'The AI is overloaded right now. Give it a minute and try again.',
+    ai_unreachable: 'The AI did not answer in time. Try again in a moment, or ask something shorter.'
   };
   const OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
+  /* the model call itself failed: the account, the key, the model or the line to it */
+  const DOWN = ['ai_key', 'ai_credit', 'ai_model', 'ai_busy', 'ai_unreachable'];
+  /* codes the page or this server made up itself: there is nothing Anthropic said to show */
+  const OWN = ['cancelled', 'slow_down', 'invalid_json', 'invalid_output', 'image_rejected', 'invalid_request', 'not_granted', 'invalid_argument'];
+  const LOCAL_MSG = /^(offline|http \d{3}|ai is off\b.*|no sample|no messages|empty input|model error|not an image)$/i;
+  const SAID = 'Anthropic said: ';
 
   const ai = M.ai = {};
   ai.VOICE = VOICE;
   ai.on = ctx => !!(ctx && ctx.sample);
   ai.errCopy = code => ERR[code] || 'Something glitched. Try again.';
   ai.isOff = code => OFF.indexOf(code) >= 0;
+  ai.isDown = code => DOWN.indexOf(code) >= 0;
+  ai.DOWN = DOWN.slice();
+  /* what Anthropic said, fit to show: one line, no model names, no dashes, nothing shaped like a key, 300 characters */
+  ai.clean = function (s) {
+    let t = String(s == null ? '' : s).replace(/sk-ant-[A-Za-z0-9_\-]{4,}/g, 'a key').replace(/\bclaude-[a-z0-9][a-z0-9.\-]*/gi, 'the model')
+      .replace(/\s*[\u2012-\u2015]\s*/g, ', ').replace(/!/g, '.').replace(/\s+/g, ' ').trim();
+    if (t.length > 300) t = t.slice(0, 297).replace(/\s+\S*$/, '') + '...';
+    return t;
+  };
+  /* the reason an error carries, cleaned; empty when the page or the server made the error up itself */
+  ai.why = function (e) {
+    const code = e && e.code, msg = ai.clean(e && e.message);
+    if (!msg || msg === code || OWN.indexOf(code) >= 0 || LOCAL_MSG.test(msg)) return '';
+    return msg;
+  };
+  /* Kaavish and admins read what Anthropic said; members never do */
+  ai.reasonFor = function (code, why) {
+    const c = M.lastCtx;
+    if (!why || !c || !c.isFounder || c.viewAs || OWN.indexOf(code) >= 0) return '';
+    return why;
+  };
+  /* the error as text (a toast, the panel), and as a line with the reason under it (a card) */
+  ai.errText = (code, why) => { const w = ai.reasonFor(code, why); return ai.errCopy(code) + (w ? '\n' + SAID + w : ''); };
+  ai.errLine = (code, why) => {
+    const w = ai.reasonFor(code, why);
+    return w ? html`<${React.Fragment}>${ai.errCopy(code)}<span class="ai-why">${SAID + w}</span><//>` : ai.errCopy(code);
+  };
+  ai.SAID = SAID;
+  /* a failure the AI itself named: the model call, its limits, a refusal, or one whose reason the server kept back
+     (a member's error carries the code alone) */
+  const NAMED = ['rate_limited', 'slow_down', 'refused', 'prompt_too_large'];
+  ai.named = e => { const code = e && e.code; return !!code && (DOWN.indexOf(code) >= 0 || NAMED.indexOf(code) >= 0 || (code === 'unavailable' && e.message === code)); };
+  /* an error from a call that asked the model, as a person reads it: the house copy when the AI named it, else the caller's words */
+  ai.say = (e, fallback) => ai.named(e) ? ai.errText(e.code, ai.why(e)) : (ai.clean(e && e.message) || fallback || ai.errCopy(''));
 
   ai.text = function (ctx, prompt, o) {
     o = o || {};
@@ -8801,7 +8882,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       } catch (e) {
         const code = (e && e.code) || 'upstream_error';
         if (code === 'cancelled') { set(x => ({...x, state: x.text ? 'done' : 'idle'})); return null; }
-        set(x => ({state: 'error', text: (e && e.text) || x.text, err: code}));
+        set(x => ({state: 'error', text: (e && e.text) || x.text, err: code, why: ai.why(e)}));
         return null;
       }
     }, []);
@@ -8829,6 +8910,64 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     flush();
     return html`<div class="ai-out">${out}</div>`;
   };
+
+  /* ---------- Admin > m360 AI > Check the AI ----------
+     On the team site, the server asks each tier one tiny question and times it (action aicheck); on a claude.ai
+     page, one tiny question on the viewer's own account. Each tier in plain words, with what Anthropic said */
+  const TIER_NAME = {quick: 'Quick answers', default: 'Thinking answers'};
+  const CHECK_WORD = {ai_key: 'the key was refused', ai_credit: 'out of credit', ai_model: 'the model it uses is not open to this account',
+    ai_busy: 'overloaded right now', ai_unreachable: 'no answer in time', rate_limited: 'at its rate limit for a minute', refused: 'passed on the test question',
+    not_granted: 'off', not_declared: 'off on this page', sampling_disabled: 'off for this account', slow_down: "used up for today"};
+  const CHECK_HINT = {ai_key: 'Paste a new key here and check again.', ai_credit: 'Add credit in the Anthropic console. It works again at once.',
+    ai_busy: 'Nothing to fix here. Check again in a minute.'};
+  /* the site's environment key wins over a pasted one, so a refused environment key is changed where it lives */
+  const hintFor = (code, source) => code === 'ai_key' && source === 'environment'
+    ? "This key is set in the site's environment settings, and a key pasted here is not used while that one is set." : CHECK_HINT[code];
+  function AiCheck() {
+    const ctx = M.useCtx();
+    const [st, setSt] = React.useState({busy: false, out: null});
+    if (!ctx || !ctx.isFounder) return null;
+    const site = typeof window.M360_API === 'function';
+    const run = async () => {
+      if (st.busy) return;
+      setSt(s => ({...s, busy: true}));
+      let out;
+      if (site) {
+        try {
+          const r = await window.M360_API('aicheck', {});
+          out = {key: !!r.key, source: r.source || 'none', rows: r.key ? ['quick', 'default'].map(k => ({k, ...((r.tiers || {})[k] || {ok: false, code: 'unavailable'})})) : []};
+        } catch (e) { out = {err: ai.errText(e && e.code, ai.why(e))}; }
+      } else if (!ctx.sample) out = {rows: [{k: 'quick', ok: false, code: 'not_declared', reason: ''}]};
+      else {
+        const t = Date.now();
+        try { await ctx.sample('Reply with OK', {modelTier: 'quick'}); out = {rows: [{k: 'quick', ok: true, ms: Date.now() - t}]}; }
+        catch (e) { out = {rows: [{k: 'quick', ok: false, ms: Date.now() - t, code: (e && e.code) || 'upstream_error', reason: ai.why(e)}]}; }
+      }
+      setSt({busy: false, out});
+    };
+    const out = st.out;
+    const secs = ms => Math.max(0.1, Math.round((Number(ms) || 0) / 100) / 10).toFixed(1) + ' s';
+    return html`<div class="ai-check" id="ai-check-box">
+      <div class="row ai-check-head">
+        <${UI.Btn} kind="sec" sm=${true} id="ai-check" disabled=${st.busy} onClick=${run}>${st.busy ? 'Checking' : 'Check the AI'}<//>
+        <span class="tiny ink62">${site ? 'One tiny question on each kind of answer, timed.' : 'One tiny question on your claude.ai account, timed.'}</span>
+      </div>
+      ${out ? html`<div class="ai-check-out" id="ai-check-out" role="status">
+        ${out.err ? html`<div class="small flame-t" style=${{whiteSpace: 'pre-line'}}>${out.err}</div>` : null}
+        ${out.key === false ? html`<div class="small">No key is set yet. Paste one here to switch the AI on.</div>` : null}
+        ${(out.rows || []).map(r => html`<div key=${r.k} class=${'ai-check-row ' + (r.ok ? 'ok' : 'bad')} data-tier=${r.k} data-code=${r.ok ? 'ok' : (r.code || '')}>
+          <span class="ai-check-dot" aria-hidden="true"/>
+          <div class="grow ai-check-text">
+            <div class="small"><b>${TIER_NAME[r.k] || 'Answers'}</b>: ${r.ok ? 'working, ' + secs(r.ms) : (CHECK_WORD[r.code] || 'not working')}</div>
+            ${!r.ok && r.reason ? html`<div class="tiny ai-why">${SAID + ai.clean(r.reason)}</div>` : null}
+            ${!r.ok && hintFor(r.code, out.source) ? html`<div class="tiny ink62">${hintFor(r.code, out.source)}</div>` : null}
+          </div>
+        </div>`)}
+        ${out.key ? html`<div class="tiny ink62" id="ai-check-source">${out.source === 'environment' ? "The key is set in the site's environment settings." : 'The key is the one pasted here.'}</div>` : null}
+      </div>` : null}
+    </div>`;
+  }
+  M.parts.AiCheck = AiCheck;
 
   M.Thinking = function Thinking({label, state}) {
     const l = String(label || 'Thinking');
@@ -17386,7 +17525,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         setD(fields); setDirty(false);
         M.toast('Brain built');
       } catch (e) {
-        if (!(e && e.code === 'cancelled')) setErr(M.ai.errCopy(e && e.code));
+        if (!(e && e.code === 'cancelled')) setErr(M.ai.errLine(e && e.code, M.ai.why(e)));
       } finally { setBusy(false); setStep(''); }
     }
     async function saveFields() {
@@ -17474,7 +17613,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy the prep</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="shaping" size=${32} label="Shaping the prep"/><span>Reading the brain, projects, tasks, pitches, people and news.</span></span>` : 'Who they are, what we are doing, open pitches, the people, the news, three questions and one risk. One screen.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div>`;
     return html`<${M.fx.Beam}><${UI.Fold} title="Meeting prep" summary=${r.text ? 'ready to copy' : 'one tap'} id="fold-client-prep">${body}<//><//>`;
   }
@@ -17719,7 +17858,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy for WhatsApp</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="composing" size=${32} label="Writing the update"/><span>Reading this client's projects and tasks.</span></span>` : 'A client-ready note on what shipped and what is next, in one tap.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div>`;
   }
   M.parts.ClientUpdate = ClientUpdate;
@@ -24532,7 +24671,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <div class="row" style=${{gap: '10px', marginTop: '12px', flexWrap: 'wrap'}}>
           ${M.ai.on(ctx) ? html`<${UI.Btn} sm=${true} id="reflect-write" disabled=${r.state === 'thinking' || r.state === 'streaming'} onClick=${write}>${r.state === 'thinking' || r.state === 'streaming' ? 'Writing' : text ? 'Write it again' : 'Write it for me'}<//>` : null}
           <${UI.Btn} sm=${true} kind="sec" id="reflect-share" onClick=${share}>Share one line to Vibe<//>
-          ${r.state === 'error' ? html`<span class="tiny flame-t">${M.ai.errCopy(r.err)}</span>` : null}
+          ${r.state === 'error' ? html`<span class="tiny flame-t">${M.ai.errLine(r.err, r.why)}</span>` : null}
         </div>
       <//>
       <div class="hint">Numbers from your own records only; nobody else's. The era is earned, the write-up is for you.</div>
@@ -25922,7 +26061,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (!siteApi() || reading) return;
       setReading(true);
       try { const r = await mine(clientId); setFound({...r, at: Date.now()}); if (!r.sources || !r.sources.length) M.toast('No mail about billing for ' + (c.name || 'this client')); }
-      catch (e) { M.toast(e && e.code === 'google_off' ? 'Connect Google under Workspace first' : (e && e.message) || 'Could not read the mail', true); }
+      catch (e) { M.toast(e && e.code === 'google_off' ? 'Connect Google under Workspace first' : e && M.ai.isDown(e.code) ? M.ai.errText(e.code, M.ai.why(e)) : (e && e.message) || 'Could not read the mail', true); }
       setReading(false);
     };
     const use = k => { const v = found.found[k]; set(k, k === 'termsDays' ? num(v) || f.termsDays : String(v).slice(0, 400)); };
@@ -27016,7 +27155,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         }
         if (rows && rows.length) await prepare(rows);
         else await server(file);
-      } catch (err) { setNote('Could not read that file.'); setSt('pick'); }
+      } catch (err) { setNote(err && M.ai.isDown(err.code) ? M.ai.errLine(err.code, M.ai.why(err)) : 'Could not read that file.'); setSt('pick'); }
     };
     const setLine = (i, patch) => setLines(ls => ls.map(l => l.i === i ? {...l, ...patch} : l));
     const picked = lines.filter(l => l.on);
@@ -28023,7 +28162,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           {signal: c.signal, cache: false, onText: r => { if (r && r.text) put(tidy(r.text)); }});
         if (clean(out)) put(tidy(out)); else onChange({...f, body: before});
       } catch (e) {
-        if (!(e && e.code === 'cancelled')) { M.toast(M.ai.errCopy(e && e.code), true); onChange({...f, body: before}); }
+        if (!(e && e.code === 'cancelled')) { M.toast(M.ai.errText(e && e.code, M.ai.why(e)), true); onChange({...f, body: before}); }
       }
       setLive(false);
     };
@@ -28527,6 +28666,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     for (let i = 0; i < 20 && todo.some(p => !written(fresh(), p.id)); i++) await wait(100);
     const missed = todo.filter(p => !written(fresh(), p.id));
     if (missed.length) {
+      /* the model call itself failed (the key, the credit, overloaded): the house words say which */
+      if (lastErr && M.ai.named(lastErr)) throw lastErr;
       const why = lastErr && lastErr.message ? ' (' + lastErr.message + ')' : '';
       throw new Error((missed.length === todo.length ? 'Could not write ' + (todo.length === 1 ? 'it' : 'them') : 'Could not write ' + missed.map(p => p.name).join(', ')) + why + '. Try again in a minute.');
     }
@@ -28537,7 +28678,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   async function fromAsk(ctx, images, note) {
     const r = await intake(ctx, {images, note: String(note || '').replace(/^dm:\s*/i, '')});
     M.nav('#handshake');
-    if (r.added.length) run(ctx, r.added.map(p => p.id)).catch(e => M.toast((e && e.message) || 'The desk could not write', true));
+    if (r.added.length) run(ctx, r.added.map(p => p.id)).catch(e => M.toast(M.ai.say(e, 'The desk could not write'), true));
     return r;
   }
 
@@ -28551,7 +28692,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const sr = p.senior ? all.find(x => x.id === p.senior) : null;
     const copy = () => navigator.clipboard.writeText(p.message).then(() => M.toast('Copied. Paste it into LinkedIn'), () => M.toast('Copy is blocked here', true));
     const patch = d => ctx.W.update('dm/' + p.id, {...d, updated: Date.now()});
-    const rewrite = async () => { setBusy('rewrite'); try { await run(ctx, [p.id]); } catch (e) { M.toast((e && e.message) || 'Could not rewrite', true); } setBusy(''); };
+    const rewrite = async () => { setBusy('rewrite'); try { await run(ctx, [p.id]); } catch (e) { M.toast(M.ai.say(e, 'Could not rewrite'), true); } setBusy(''); };
     const held = p.state === 'hold' && p.holdUntil > Date.now();
     const bucket = BUCKETS.find(b => b.v === p.bucket);
     const search = 'https://www.linkedin.com/search/results/all/?keywords=' + encodeURIComponent(p.name + (p.company ? ' ' + p.company : ''));
@@ -28614,7 +28755,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         setLast(r); setImgs([]); setText('');
         if (r.added.length) await run(ctx, r.added.map(p => p.id), setBusy);
         M.toast(r.added.length ? r.added.length + ' written' : 'Nobody new in that batch');
-      } catch (e) { M.toast((e && e.message) || 'The desk could not read that', true); }
+      } catch (e) { M.toast(M.ai.say(e, 'The desk could not read that'), true); }
       setBusy('');
     };
     return html`<${UI.Card} id="hs-intake" title="Intake" action=${html`<${M.fx.Bot} feature="handshake" state=${busy ? 'working' : 'default'} size=${36} label="m360, the handshake desk" className="ai-bot"/>`}>
@@ -28665,7 +28806,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const writeNew = async () => {
       setWriting('Starting');
       try { await run(ctx, fresh.map(p => p.id), setWriting); M.toast(fresh.length === 1 ? 'Written' : fresh.length + ' written'); }
-      catch (e) { M.toast((e && e.message) || 'Could not write', true); }
+      catch (e) { M.toast(M.ai.say(e, 'Could not write'), true); }
       setWriting('');
     };
     const group = (title, list, id) => list.length ? html`<${UI.Card} title=${title + ' (' + list.length + ')'} id=${id}>
@@ -29095,7 +29236,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${thinking ? html`<${M.Thinking} label="Drafting"/>` : html`<span class="spark">${SPARK}</span> Write it for me`}</button></span>` : null}
       </div>
       ${thinking ? html`<div class="row nowrap fxh-drafting"><${M.fx.Orb} state="composing" size=${32} label="m360 is writing"/><span class="small ink62">Writing your three lines from today's work.</span></div>` : null}
-      ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
       <div class="stack tight">
         <${UI.TextArea} id="wrap-shipped" label="shipped" rows=${2} value=${f.shipped} onChange=${v => set('shipped', v)} placeholder="What went out today"/>
         <${UI.Input} id="wrap-next" label="next" value=${f.next} onChange=${v => set('next', v)} placeholder="What you pick up tomorrow"/>
@@ -29136,7 +29277,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${text ? html`<${M.AIText} text=${text}/>`
         : busy ? html`<div class="row nowrap fxh-drafting"><${M.fx.Orb} state="composing" size=${32} label="m360 is drafting"/><span class="small ink62">Reading your tasks, outcomes and flags.</span></div>`
         : html`<div class="small ink62">One tap and m360 lines up your day from your tasks, deadlines and this week's outcomes.</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </section><//>`;
   }
 
@@ -29196,7 +29337,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
             {tier: 'quick', cache: false});
           if (out && out.title) task = {title: String(out.title).slice(0, 140), owner: M.ai.findMember(ctx, nm, out.owner) || ctx.uid,
             due: /^\d{4}-\d{2}-\d{2}$/.test(String(out.due || '')) ? out.due : '', priority: ['low', 'normal', 'high'].indexOf(out.priority) >= 0 ? out.priority : 'normal'};
-        } catch (e) { if (e && e.code && !M.ai.isOff(e.code)) M.toast(M.ai.errCopy(e.code), true); }
+        } catch (e) { if (e && e.code && !M.ai.isOff(e.code)) M.toast(M.ai.errText(e.code, M.ai.why(e)), true); }
       }
       await ctx.W.set('tasks/' + U.uid(), {...task, client: '', project: '', section: '', status: 'todo', link: '', revisions: 0, shown20: false,
         subtasks: {}, comments: {}, by: ctx.uid, created: Date.now(), updated: Date.now(), doneAt: null}).catch(() => {});
@@ -29647,7 +29788,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           options=${[{v: '', label: 'No project'}].concat(projects.map(p => ({v: p.id, label: p.name})))}/>
         <${Metal} kind="ink" block=${true}><button type="button" class="btn" disabled=${thinking || brief.trim().length < 12} onClick=${breakDown}>
           ${thinking ? html`<${M.Thinking} label="Breaking it down" state="composing"/>` : html`<span class="spark">${SPARK}</span> Break it down`}</button><//>
-        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>` : html`<div class="stack tight">
         <div class="small" style=${{fontWeight: 500}}>Untick anything you don't want. Change owners or dates, then send.</div>
         ${rows.map(t => html`<div class="focus" key=${t.k} style=${{alignItems: 'flex-start', flexWrap: 'wrap'}}>
@@ -29763,7 +29904,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       </div>
       <div style=${{marginTop: '12px'}}>
         ${text ? html`<${M.AIText} text=${text}/>` : html`<div class="small" style=${{fontWeight: 500}}>Wins, shoutouts and who shipped the most, written up by m360.</div>`}
-        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>
     </section><//>`;
   }
@@ -29819,7 +29960,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${t === 'leave' ? html`<${Embed} page="Leave"/>` : t === 'handbook' ? html`<${Embed} page="Handbook" id=${id}/>` : t === 'notes' ? html`<${Embed} page="Notes" id=${id}/>`
         : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>` : t === 'trophies' ? (M.parts.Trophies ? html`<${M.parts.Trophies}/>` : null)
         : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
-      ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
+      ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="your character, look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
       ${t === 'profile' && M.parts.BuddyPrefs ? html`<${M.parts.BuddyPrefs}/>` : null}
       ${t === 'profile' && M.parts.EmailCard ? html`<${UI.Fold} title="Your email" summary="for sign-in links" id="fold-email"><${M.parts.EmailCard}/><//>` : null}
       ${t === 'profile' && M.parts.DeviceCard ? html`<${UI.Fold} title="Your devices" summary="where you are signed in" id="fold-devices"><${M.parts.DeviceCard}/><//>` : null}
@@ -29836,11 +29977,25 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [previews, setPreviews] = useState(() => M.notices ? M.notices.previews() : true);
     const [allRooms, setAllRooms] = useState(() => M.prefs.get('noticeAll', '0') === '1');
     const [perm, setPerm] = useState(() => { try { return window.Notification ? Notification.permission : 'denied'; } catch (e) { return 'denied'; } });
+    const [castOpen, setCastOpen] = useState(false);
     const wk = U.periodRange('week');
     const ctx = M.useCtx();
     const deep = M.focus ? M.focus.minutes(ctx, ctx.uid, wk.from, wk.to) : 0;
+    /* the character the office draws for you: your small head, and the sheet; read only while Kaavish holds your look */
+    const Sheet = M.parts.CharacterSheet;
+    const cast = Sheet && M.cast && ctx.uid ? M.cast.resolveFor(ctx, ctx.uid) : null;
     return html`<${UI.Card} id="prefs-card" title="Your m360">
       <div class="stack tight">
+        ${cast ? html`<div class="row between prefs-character" id="prefs-character" data-locked=${cast.locked ? '1' : '0'}>
+          <span class="row nowrap prefs-character-who">
+            <img class="cast-mini" src=${M.cast.head2d(cast.look, {founder: cast.founder, size: 32}).url} alt="" width="32" height="32"/>
+            <span class="stack prefs-character-words"><span>Your character</span>
+              ${cast.locked ? html`<span class="tiny ink62" id="prefs-character-line">Kaavish set this look for you.</span>`
+                : cast.src === 'starter' ? html`<span class="tiny ink62" id="prefs-character-line">Clay for now. Style it to step into the office.</span>` : null}</span>
+          </span>
+          <${UI.Btn} kind="sec" sm=${true} id="prefs-character-open" onClick=${() => setCastOpen(true)}>Style your character<//>
+        </div>` : null}
+        ${castOpen && Sheet ? html`<${Sheet} uid=${ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
         <div class="row between">
           <span>Look</span>
           <div class="theme-seg" role="group" aria-label="Theme">
@@ -29899,7 +30054,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return html`<div class="stack" style=${{gap: '20px'}}>
       <${M.SectionHero} color="ink" micro=${'founder' + (window.M360_BUILD ? ' · build ' + window.M360_BUILD : '')} title="Admin"
         sub="Team, rules, corrections, the activity log, payroll export and your super controls."/>
-      ${M.parts.AiKeyCard ? html`<${UI.Fold} title="m360 AI" summary="your Anthropic key switches the AI on" id="fold-ai"><${M.parts.AiKeyCard}/><//>` : null}
+      ${M.parts.AiKeyCard ? html`<${UI.Fold} title="m360 AI" summary="your Anthropic key, and Check the AI" id="fold-ai"><${M.parts.AiKeyCard}/><//>`
+        : M.parts.AiCheck ? html`<${UI.Fold} title="m360 AI" summary="check that the AI answers" id="fold-ai"><${UI.Card} id="ai-card" title="m360 AI">
+            <p class="small ink62" style=${{marginTop: 0}}>Here the AI runs on each person's own claude.ai account. Check that it answers, and see what Anthropic says when it does not.</p>
+            <${M.parts.AiCheck}/>
+          <//><//>` : null}
       ${M.parts.MailCard ? html`<${UI.Fold} title="Email sending" summary="Resend key and sender" id="fold-mail"><${M.parts.MailCard}/><//>` : null}
       ${M.parts.VoiceCard ? html`<${UI.Fold} title="The buddy's voice" summary="a natural voice for the cursor buddy" id="fold-voice"><${M.parts.VoiceCard}/><//>` : null}
       ${M.parts.GoogleCard ? html`<${UI.Fold} title="Google Workspace" summary="mail, calendar, meetings and drive for everyone" id="fold-google"><${M.parts.GoogleCard}/><//>` : null}
@@ -30006,7 +30165,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         ${(() => { const b = html`<button type="button" class=${'btn sm on-dark' + (data ? ' sec' : '')} disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} label="Reading the company" state="solving"/>` : html`<span class="spark">${SPARK}</span> ${data ? 'Refresh' : 'Brief me'}`}</button>`;
           return data ? b : html`<${M.fx.Metal} kind="paper">${b}<//>`; })()}
       </div>
-      ${r.state === 'error' ? html`<div class="small" style=${{marginTop: '10px', color: 'var(--flame)'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small" style=${{marginTop: '10px', color: 'var(--flame)'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       ${!data && !busy ? html`<div style=${{marginTop: '14px', fontWeight: 500}}>One tap and m360 reads the whole company: who's slipping, which client needs love, where the money is, and what to hand out today.</div>` : null}
       ${busy && !data ? html`<div class="small ink62 row nowrap ai-wait" style=${{marginTop: '14px'}}><${M.fx.Orb} state="solving" size=${32} dark=${true} label="Reading the company"/><span>Scanning attendance, workload, blockers, pipeline and team energy…</span></div>` : null}
       ${data ? html`<div class="stack" style=${{marginTop: '16px', gap: '16px'}}>
@@ -30106,7 +30265,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <button type="button" class="linky small" onClick=${() => M.nav('#tasks/' + left[0].id)}>Reassign</button>
         </div>` : null}
       </div>
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '10px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '10px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       ${moves ? html`<div style=${{marginTop: '14px'}}>
         ${moves.length ? moves.map((mv, i) => html`<div class="focus" key=${i}>
           <div class="grow"><div style=${{fontWeight: 700}}>${mv.task} → ${mv.to}</div><div class="tiny ink62">${mv.why}</div></div>
@@ -33834,7 +33993,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         const r = await M.handshake.fromAsk(ctx, pics, msg);
         await M.chat.append(ctx, [{role: 'assistant', content: 'Handshake has ' + r.added.length + (r.added.length === 1 ? ' new person' : ' new people') + (r.dupes.length ? ' (already in: ' + r.dupes.join(', ') + ')' : '') + '. Writing now; the messages land under Accounts, Handshake.'}]);
         S.set({phase: 'answer'});
-      } catch (e) { S.set({phase: 'answer', err: 'The desk could not read that: ' + ((e && e.message) || 'unknown')}); }
+      } catch (e) { S.set({phase: 'answer', err: M.ai.named(e) ? M.ai.say(e) : 'The desk could not read that: ' + M.ai.say(e, 'unknown')}); }
       return null;
     }
     const c = new AbortController();
@@ -33865,10 +34024,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (acts.length) await M.chat.append(ctx, [{role: 'assistant', content: code === 'cancelled' || !mine ? 'Stopped.' : '', acts}]);
       /* stopped: the state is only put back when nothing new (listening, another turn) has taken over */
       if (code === 'cancelled' || !mine) { if (S.st.phase === 'thinking' && !S.ctl) S.set({phase: 'answer', live: '', acts: []}); return null; }
-      /* the AI is off, resting or used up for today (slow_down): the grammar still runs, so the chips say what does */
-      const off = M.ai.isOff(code) || code === 'rate_limited' || code === 'slow_down' || /limit|quota|cap/.test(code);
+      /* the AI is off, resting, used up for today (slow_down) or its model call failed (the key, the credit, the
+         model, overloaded, out of reach): the grammar still runs, so the chips say what does */
+      const off = M.ai.isOff(code) || M.ai.isDown(code) || code === 'rate_limited' || code === 'slow_down' || /limit|quota|cap/.test(code);
       const line = (e && e.text ? e.text + '\n\n' : '') + M.ai.errCopy(code) + (off ? ' ' + OFFLINE_LINE : '');
-      S.set({phase: 'answer', live: '', acts: [], err: line, chips: off ? offline() : null, announce: line});
+      /* what Anthropic said goes on its own line, for Kaavish and admins, and is shown, never read aloud */
+      const said = M.ai.reasonFor(code, M.ai.why(e));
+      S.set({phase: 'answer', live: '', acts: [], err: line + (said ? '\n' + M.ai.SAID + said : ''), chips: off ? offline() : null, announce: line});
       done({text: line, via: o.via, dock: o.dock, err: true});
       return null;
     }
@@ -39274,7 +39436,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return html`<${React.Fragment}>
       <button type="button" class="btn ghost sm" disabled=${busy} onClick=${go}>${busy ? html`<${M.fx.Orb} state="composing" size=${20} label="writing"/>` : html`<span class="spark">${SPARK}</span>`} ${busy ? 'Thinking' : (r.text ? 'Ask again' : 'Why it matters')}</button>
       ${r.text ? html`<div class="rd-why small"><${M.AIText} text=${r.text}/></div>` : null}
-      ${r.state === 'error' ? html`<div class="tiny flame-t" style=${{width: '100%'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="tiny flame-t" style=${{width: '100%'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     <//>`;
   }
 
@@ -39333,7 +39495,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       </div>
       <div style=${{marginTop: '12px'}}>
         ${text ? html`<${M.AIText} text=${text}/>` : html`<div class="small" style=${{fontWeight: 500}}>Five bullets on the top ${Math.min(12, top.length) || 12} stories and what each one means for us. Written once a day, cached on this device.</div>`}
-        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       </div>
     </section><//>`;
   }
@@ -40432,7 +40594,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${r.text ? html`<div style=${{marginTop: '12px'}}><${M.AIText} text=${r.text}/>
         <button type="button" class="linky small" style=${{marginTop: '8px'}} onClick=${() => navigator.clipboard.writeText(r.text).then(() => M.toast('Copied'), () => M.toast('Copy is blocked here', true))}>Copy</button></div>`
         : html`<div class="small ink62" style=${{marginTop: '8px'}}>${busy ? html`<span class="row nowrap ai-wait"><${M.fx.Orb} state="composing" size=${32} label="Drafting"/><span>Reading this person and their company.</span></span>` : 'Ninety words, in the agency voice, from what we know about them.'}</div>`}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
     </div><//>`;
   }
 
@@ -41698,7 +41860,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${!asked ? html`<div class="row" style=${{gap: '8px', marginTop: '10px'}}>${BASE_CHIPS.map(c => html`<button key=${c} type="button" class="chip" onClick=${() => go(c)}>${c}</button>`)}</div>` : null}
       ${asked ? html`<div class="bubble me" style=${{marginTop: '10px'}}>${asked}</div>` : null}
       ${busy || r.text ? html`<div class="bubble ai" style=${{marginTop: '8px', maxWidth: '100%'}}>${r.text ? html`<${M.AIText} text=${r.text}/>` : html`<${M.Thinking} label="Reading the base" state="searching"/>`}</div>` : null}
-      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errCopy(r.err)}</div>` : null}
+      ${r.state === 'error' ? html`<div class="small flame-t" style=${{marginTop: '8px'}}>${M.ai.errLine(r.err, r.why)}</div>` : null}
       <div class="ask-in" style=${{marginTop: '10px'}}>
         <input id="ask-base-input" class="input" value=${q} placeholder="Ask about anyone or any company in the base" aria-label="Ask the base"
           onInput=${e => setQ(e.target.value)} onKeyDown=${e => { if (e.key === 'Enter') go(); }}/>
@@ -46060,6 +46222,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [cam, setCam] = useState(() => M.prefs.get('office.cam', 'floor'));
     const [pick, setPick] = useState(null);
     const [now, setNow] = useState(null);
+    const [castOpen, setCastOpen] = useState(false);
     const toList = () => { setMode('list'); M.prefs.set('office.view', 'list'); };
     const dr = useDrawers(data, toList);
     const whole = phone ? cam === 'floor-phone' : cam !== 'follow';
@@ -46091,10 +46254,17 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       : self ? '' : 'Kaavish moves things here. Drag to look around, and tap anything to see it.';
     const hint = three && mode === 'office' && line ? html`<p class="office-note small">${line}</p>` : null;
     const style = self && mode === 'office' && M.parts.CharacterSheet && M.cast && M.cast.resolveFor(data.ctx, data.ctx.uid).src === 'starter' ? html`<${StyleCard} ctx=${data.ctx}/>` : null;
+    /* everyone styles their own character from here, members too; read only while Kaavish holds their look */
+    const Sheet = M.parts.CharacterSheet;
+    const mine = Sheet && M.cast && data.ctx.uid && !data.ctx.viewAs ? M.cast.resolveFor(data.ctx, data.ctx.uid) : null;
+    const meBtn = mine ? html`<button type="button" class="btn sec sm office-me" id="office-character" data-locked=${mine.locked ? '1' : '0'}
+        onClick=${() => setCastOpen(true)} title=${mine.locked ? 'Kaavish set this look for you.' : 'Style your character'}>
+        <img class="cast-mini" src=${M.cast.head2d(mine.look, {founder: mine.founder, size: 24}).url} alt="" width="24" height="24"/>Your character</button>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
         <div class="row office-ctl">
+          ${meBtn}
           <${UI.Seg} sm=${true} ariaLabel="View" value=${mode} onChange=${v => { setMode(v); M.prefs.set('office.view', v); }} options=${[{v: 'office', label: 'Office'}, {v: 'list', label: 'List'}]}/>
           ${mode === 'office' ? html`<${UI.Seg} sm=${true} ariaLabel="Camera" value=${camVal}
             onChange=${v => { setCam(v); setPick(null); M.prefs.set('office.cam', v); }}
@@ -46110,6 +46280,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
         : html`<div class="office-grid">${composer || slow || style ? html`<div class="stack">${scene}${composer}${slow}${style}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
       ${dr.node}
+      ${castOpen && Sheet ? html`<${Sheet} uid=${data.ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
     </div>`;
   }
 
@@ -50774,6 +50945,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <${UI.Btn} sm=${true} disabled=${busy || !key.trim()} onClick=${() => save(key.trim())}>Save key<//>
         ${on ? html`<${UI.ConfirmBtn} kind="ghost" onConfirm=${() => save('')} label="Tap again to remove">Remove<//>` : null}
       </div>
+      ${M.parts.AiCheck ? html`<${M.parts.AiCheck}/>` : null}
     <//>`;
   }
 
