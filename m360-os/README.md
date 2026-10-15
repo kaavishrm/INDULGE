@@ -516,7 +516,7 @@ Kaavish said "the ai personal manager nudge is too annoying". A census of one wo
 - **Before and after.** Measured on the census Tuesday: Kaavish had 17 interrupt moments, 10 of them repeated, wrong or not his; Shreya had 16; Riya 9; Dev 11. After relief we expect about 4, 5, 2 and 3. That after is an estimate from the design, walked through the same day, until the brain's day test (`test_attn_day.py`, release 2) measures it.
 - Built by three agents (the PM engine, the COO and the mail; the inbox, the bell and chat; the cards, the dock and Home), then a fourth wrote the tests. Tests: `test_relief.py`, one named check per row, R1 to R15, in the real app and on the real team site code (run against the v34 code, all 15 rows fail), with `test_pm.py`, `test_pm_ui.py`, `test_pm_server.py`, `test_contract_pm.py`, `test_asks.py`, `test_brain.py`, `test_motion.py` and `test_office.py` updated where the relief changes what they promised.
 
-## What is in v36.2: no more shiny numbers
+## What is in v36.2: no more shiny numbers, and a sign-in that moves like Apple's
 
 - **The liquid metal is gone.** Numbers like the weighted pipeline, the leaderboard, Books tiles and
   payroll totals were drawn in a chromatic metal that showed as coloured ghost copies of the figure. Every
@@ -525,6 +525,13 @@ Kaavish said "the ai personal manager nudge is too annoying". A census of one wo
 - **Lighter.** The effects bundle no longer carries metal-fx: about 105 KB less in every page, and no
   WebGL loop behind each button.
 - `M.fx.Metal`, `MetalText` and `MetalBadge` keep their names, so nothing that calls them changed.
+- **Signing in moves the way Apple's does.** The m360 mark writes itself in, left to right behind a soft
+  pen edge; the title, the line and the form rise into focus one after another on a soft spring; a warm
+  light drifts slowly behind. A wrong sign-in shakes the box, Forgot it? and the code step rise in fresh,
+  and the first screen after signing in settles into place. Every piece runs on one clock from the static
+  boot screen's first paint, so when React swaps the screen the motion carries on and never starts over
+  (`src/js/03-z-gate.js`, `src/css/99-gate.css`). The watch stops once the app is up, and reduced motion
+  moves nothing. Proved by `harness/tests/test_gate_motion.py`.
 
 ## What is in v36.1: the AI says what is wrong, and your character is easy to find
 
