@@ -153,9 +153,11 @@ def main():
     olds = {x['source']: x for x in committed.get('headers', [])}
     news = {x['source']: x for x in cfg['headers']}
     added = sorted(set(news) - set(olds))
-    check(added == ['/' + src.group(1)] and news['/' + src.group(1)]['headers'] == [{'key': 'Cache-Control', 'value': 'public, max-age=31536000, immutable'}],
-          'edgeone.json gains exactly one immutable entry, for the three file: %r' % added)
+    three = '/' + src.group(1)
+    check(added == ([] if three in olds else [three]) and three in news and news[three]['headers'] == [{'key': 'Cache-Control', 'value': 'public, max-age=31536000, immutable'}],
+          'edgeone.json holds one immutable entry for the three file, new only when the bundle changed: %r' % added)
     old3 = [s for s in olds if re.match(r'^/vendor/three\.[0-9a-f]{8}\.js$', s)]
+    check(all(s == three or s not in news for s in old3), 'an older three file loses its entry: %r' % old3)
     check(set(olds) - set(old3) <= set(news), 'every other entry stays')
     for s, x in olds.items():
         if s in old3:
