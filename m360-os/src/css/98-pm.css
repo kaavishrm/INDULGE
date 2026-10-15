@@ -4,7 +4,7 @@
    rows wrap and every target is 44px. ---------- */
 
 /* the card */
-.pm-card{padding:18px 20px; overflow:hidden}   /* the metal badge's glow never pushes the page sideways */
+.pm-card{padding:18px 20px; overflow:hidden}   /* the card never pushes the page sideways */
 .pm-head{gap:10px; align-items:center; margin-bottom:6px}
 .pm-head .card-title{margin:0; min-width:0}
 .pm-bot{flex:none; display:inline-flex; align-items:center; justify-content:center}

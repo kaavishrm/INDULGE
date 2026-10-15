@@ -7,7 +7,7 @@
 .fx-head-bot{display:inline-flex; align-items:center; flex:none}
 .fx-inbox-head{gap:8px; margin-right:4px}
 
-/* metal numbers inside a hero chip */
+/* numbers inside a hero chip */
 .chipline.fx-mini{gap:6px}
 
 /* a beam round a field: the field keeps a little air inside the beam */
@@ -36,8 +36,7 @@
 /* the writer bot beside Rewrite in our voice */
 .fx-writer{flex:none}
 
-/* a metal number: the plain copy keeps the text in place for the instant the metal is still hidden,
-   then steps aside once the metal shows (or when the plain stand in is used) */
+/* a number in a fixed box (fx-num) stays on its line */
 .fx-num{position:relative; display:inline-flex; align-items:center; max-width:100%}
 
 /* the notes search box in a beam */

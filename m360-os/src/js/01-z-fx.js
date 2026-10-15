@@ -8,9 +8,9 @@
      M.fx.Voice     voice-glow      VoiceBeam under an input, a recording pill or a phone screen
      M.fx.VoicePill voice-glow      the recording pill round a Talk button while it listens
      M.fx.Bot       bot-avatars     BotAvatar, one body per AI feature (M.fx.BOTS)
-     M.fx.Metal     metal-fx        MetalFx round a primary button or an icon circle
-     M.fx.MetalText metal-fx        MetalText for a headline word or a number, from 22px up
-     M.fx.MetalBadge metal-fx       MetalBadge for a small "new" style tag
+     M.fx.Metal     (retired)       the control itself; the liquid metal is gone (v36.2)
+     M.fx.MetalText (retired)       the number or word in plain type at the size asked
+     M.fx.MetalBadge (retired)      a flame pill for a small "new" style tag
      M.fx.Bell      React Bits      BellToggle for anything you switch on to be told about */
 'use strict';
 (function () {
@@ -124,52 +124,28 @@
     </span>`;
   }
 
-  /* MetalFx, chromatic, flowing as the library ships it (it pauses itself off screen). A disabled
-     control stands as the plain faded button and takes its metal back once it is enabled. In the
-     sidebar the metal holds still (the package's paused) and flows under the pointer or the keyboard. */
-  function Metal({kind, circle, strength, children, className, block}) {
-    useSettled();
-    const th = M.useResolvedTheme();
-    const hush = useHushed();
-    const [place, setPlace] = React.useState('');
-    const [hover, setHover] = React.useState(false);
-    const [focus, setFocus] = React.useState(false);
-    const host = React.useCallback(el => { if (el) setPlace(el.closest('.sidebar') ? 'chrome' : el.closest(MODAL) ? 'modal' : ''); }, []);
-    const fx = FX();
-    const p = children && children.props;
-    const off = !!(p && (p.disabled || String(p['aria-disabled']) === 'true'));
-    if (!fx || still() || off) return children;
-    const dark = kind === 'paper' ? false : kind === 'ink' ? true : th === 'dark';
-    const chrome = place === 'chrome';
-    const paused = (chrome && !hover && !focus) || (hush && place !== 'modal');
-    return html`<span class=${'metal-host' + (block ? ' block' : '')} ref=${host}
-      onPointerEnter=${chrome ? () => setHover(true) : undefined} onPointerLeave=${chrome ? () => setHover(false) : undefined}
-      onFocus=${chrome ? e => setFocus(e.target.matches(':focus-visible')) : undefined} onBlur=${chrome ? () => setFocus(false) : undefined}>
-      <${fx.MetalFx} preset="chromatic" variant=${circle ? 'circle' : 'button'} theme=${dark ? 'dark' : 'light'} strength=${strength == null ? 1 : strength} innerShadow=${!!circle} paused=${paused} className=${'metal ' + (dark ? 'metal-ink' : 'metal-paper') + (className ? ' ' + className : '')}>${children}<//>
-    </span>`;
+  /* The metal (metal-fx) is retired in v36.2. Its chromatic copies drew numbers and words as misaligned
+     coloured ghosts, and the liquid buttons cost a WebGL canvas each. The three names stay so every caller
+     keeps working, and each draws plain: Metal gives back its control as it is, MetalText the text in the
+     house type at the size asked (below 22px it takes the type around it), MetalBadge a flame pill. */
+  function Metal({children, kind, className, block}) {
+    /* the host keeps the layout the metal had (full width in the sidebar, on a block, in the day rating) and
+       its ink or paper class, which sets the flame of a spark inside the button */
+    const tone = kind === 'ink' ? ' metal-ink' : kind === 'paper' ? ' metal-paper' : '';
+    return html`<span class=${'metal-host' + tone + (block ? ' block' : '') + (className ? ' ' + className : '')}>${children}</span>`;
   }
 
-  /* MetalText: a headline word or a number cast in metal, from 22px up. Below that the metal smears a
-     digit, so the text stays in the type around it; the plain text also stands in without the bundle. */
   const METAL_TEXT_MIN = 22;
   function MetalText({children, size, weight, color, className}) {
-    useSettled();
-    const th = M.useResolvedTheme();
-    const fx = FX();
     const px = Number(size) || 24;
-    if (px < METAL_TEXT_MIN) return html`<span class=${'metal-text-plain' + (className ? ' ' + className : '')} style=${{fontSize: 'inherit', fontWeight: 'inherit', color: color || 'inherit'}}>${children}</span>`;
-    if (!fx || still()) return html`<span class=${'metal-text-plain' + (className ? ' ' + className : '')} style=${{fontSize: px + 'px', fontWeight: weight || 600, color: color || 'inherit'}}>${children}</span>`;
-    return html`<${fx.MetalText} font=${(weight || 600) + ' ' + px + "px/1.15 'Space Grotesk', system-ui, sans-serif"} color=${color || (th === 'dark' ? '#F2F1EC' : '#0E0E0E')} theme=${th} className=${className}>${children}<//>`;
+    const style = px < METAL_TEXT_MIN
+      ? {fontSize: 'inherit', fontWeight: 'inherit', color: color || 'inherit'}
+      : {fontSize: px + 'px', fontWeight: weight || 600, color: color || 'inherit'};
+    return html`<span class=${'metal-text-plain' + (className ? ' ' + className : '')} style=${style}>${children}</span>`;
   }
 
-  /* MetalBadge: a small tag in metal */
   function MetalBadge({children, className}) {
-    useSettled();
-    const th = M.useResolvedTheme();
-    const fx = FX();
-    if (!fx || still()) return html`<span class=${'pill flame' + (className ? ' ' + className : '')}>${children}</span>`;
-    /* the badge ships at a fixed 45px; every badge here fits its word (the fit rule), so no label spills over its neighbour */
-    return html`<span class=${'metal-badge-host fit' + (className ? ' ' + className : '')}><${fx.MetalBadge} theme=${th}>${children}<//></span>`;
+    return html`<span class=${'pill flame' + (className ? ' ' + className : '')}>${children}</span>`;
   }
 
   /* VoiceBeam under an input (default), round a recording pill (pill), or along a phone screen

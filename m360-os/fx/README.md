@@ -12,7 +12,7 @@ ahead of the m360 code. React, ReactDOM and the JSX runtime resolve to the page'
 | Beam | `border-beam` | any flame card and hot fold (sunset), the thought for the day (colorful, slow) |
 | Voice | `voice-glow` | under the Ask input while the mic is live, gathering into a beam while the answer comes; the bottom of the orb screen |
 | Bots | `bot-avatars` | beside the AI's words in Ask (clover, flame), in the buddy's bubble (droid) |
-| Metal | `metal-fx` | the New button, Check in, That was my day, Ask, Another |
+| Metal | retired in v36.2 | `metal-fx` is no longer bundled: its chromatic text drew numbers as misaligned coloured ghosts. `M.fx.Metal`, `MetalText` and `MetalBadge` stay as names and draw a plain button, plain text and a flame pill |
 | Bell | React Bits `BellToggle` (`BellToggle.jsx`, `src/css/90-bell.vendor.css`) | the notifications card on Home |
 
 The wrappers in `src/js/01-z-fx.js` (`M.fx.Orb`, `Beam`, `Metal`, `Voice`, `Bot`, `Bell`) pick the
@@ -49,7 +49,6 @@ The bundle is committed, so the page build and the EdgeOne deploy never need npm
 skips `*.vendor.js` and `*.vendor.css`: they are other people's code, kept as shipped (the bell's default
 colours moved to the m360 palette, and em dashes replaced in strings, since the page build refuses them).
 
-Two edits to the packages, both applied by `build.sh`: `entry.jsx` tints the metal's chromatic preset
-flame (`PRESETS.chromatic.modes.*.colorTint`), and `patches.py` fixes one line of metal-fx 2.0.11 (and lets the orbs and bots draw sharp at 3x)
-(the glow's next resting point is clamped when a metal control changes size, as its current point
-already is). On an upgrade, the patch stops the build if that line has moved, so it can be checked.
+One set of edits to the packages, applied by `build.sh`: `patches.py` lets the orbs, the bots and the
+voice beam draw sharp at 3x (its metal-fx line still patches the installed package, which is no longer
+bundled). On an upgrade, a patch stops the build if its line has moved, so it can be checked.

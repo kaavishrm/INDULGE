@@ -1,15 +1,10 @@
 /* ---------- v29 fx, the work area: tasks, projects, pitches, feed, chat, people, scores, week, leave, reviews, crm, command ---------- */
 
-/* a metal badge with a longer word ("approved", "new hire", "shipped") grows to fit it */
-.metal-badge-host.fit div[style*="width: 45px"]{width:auto !important; min-width:45px}
-.metal-badge-host.fit span[style*="width: 45px"]{width:auto !important; padding-left:10px !important; padding-right:10px !important}
-
-/* a pill that holds a metal badge sheds its own border and fill, so only the metal shows */
+/* a pill that holds a badge sheds its own border and fill, so only the badge shows */
 .pill.metal-pill{border:0; background:transparent; padding:0; min-height:0}
 
 /* scores: the podium leader's tag sits above the plinth */
 .podium .po-top{margin-bottom:-2px}
-.podium .plinth .metal-fx-root{margin-top:-2px}
 
 /* projects: the header's percent sits at the end of the progress line */
 .proj-progress{gap:12px; align-items:center}
@@ -25,11 +20,9 @@
 
 /* crm: the search box fills its share of the row inside the beam */
 .crm-find .beam-host, .crm-find .input{width:100%}
-.crm-count .metal-fx-root{vertical-align:middle}
 
-/* metal numbers in the kpi tiles never push a tile wider than its column */
+/* numbers in the kpi tiles never push a tile wider than its column */
 .kpi .v{max-width:100%; overflow:hidden}
-.kpi .v .metal-fx-root{max-width:100%}
 
 /* a won pitch card: the brand and its badge share the first line */
 .tcard .row.between > .t{min-width:0; overflow:hidden; text-overflow:ellipsis}
@@ -42,7 +35,7 @@
 .stage-count{font-size:14px; white-space:nowrap}
 .stage-count .num{font-weight:600; margin-left:4px}
 
-/* HQ: a plain figure takes the same line as the metal one beside it (MetalText sets 1.15), so the labels line up */
+/* HQ: every figure sits on a 1.15 line, so the labels line up */
 .stat.glass .v{line-height:1.15; display:flex; align-items:center}
 
 /* a figure with nothing behind it yet reads as a quiet label in the number's place */

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """v28 and v29 test: the six effects, the real packages, bundled into the page.
 
-window.FX carries thinking-orbs, border-beam, voice-glow, bot-avatars, metal-fx and React Bits'
-BellToggle. The thinking line draws the orb on a canvas with a state read from its label; a flame card
+window.FX carries thinking-orbs, border-beam, voice-glow, bot-avatars and React Bits' BellToggle.
+v36.2 retired metal-fx: its chromatic text drew numbers as misaligned coloured ghosts, so the bundle no
+longer carries it and M.fx.Metal, MetalText and MetalBadge draw a plain button, plain text and a flame pill. The thinking line draws the orb on a canvas with a state read from its label; a flame card
 and a hot fold ride the border beam; Ask wraps its input in the voice beam, lit while the mic is live
-and travelling while the answer is on its way, with a bot avatar beside every answer and the Ask button
-in liquid metal; the New button and the check-in button are metal too; the notifications pill is the
-bell, ringing on a press with its label unfurling; reduced motion drops the beam and the metal and
-keeps the plain controls; on the phone the orb screen draws the listening orb and the voice beam.
+and travelling while the answer is on its way, with a bot avatar beside every answer ; the notifications pill is
+the bell, ringing on a press with its label unfurling; reduced motion drops the beam and keeps the plain
+controls; on the phone the orb screen draws the listening orb and the voice beam.
 
 Run: cd m360-os && python3 harness/tests/test_effects.py
 """
@@ -65,8 +65,10 @@ def test(h):
     h.go(p, 'founder', hash='#home', seed=True)
     p.wait_for_function('() => !!window.FX && !!window.ReactDOM')
     keys = p.evaluate('() => Object.keys(window.FX)')
-    for k in ('ThinkingOrb', 'BorderBeam', 'VoiceBeam', 'useMicrophone', 'BotAvatar', 'MetalFx', 'MetalText', 'MetalBadge', 'BellToggle'):
+    for k in ('ThinkingOrb', 'BorderBeam', 'VoiceBeam', 'useMicrophone', 'BotAvatar', 'BellToggle'):
         check(k in keys, 'the bundle carries ' + k)
+    check(not any(k.startswith('Metal') or k.startswith('useMetal') for k in keys) and 'metal' not in p.evaluate('() => window.FX.version'),
+          'the bundle no longer carries metal-fx: %r' % keys)
     check(p.evaluate('() => window.FX.version.orbs') == '0.3.2' and p.evaluate('() => M.fx.has()'), 'the bundle names its versions and the app sees it')
 
     p.evaluate(SCRATCH, {'count': 0})
@@ -85,20 +87,22 @@ def test(h):
     check(p.evaluate('() => document.getElementById("fx-hot").parentElement.hasAttribute("data-active")'), 'and keeps running while it is on screen, as the library ships it')
     check(p.evaluate('() => !document.getElementById("fx-cold").parentElement.hasAttribute("data-beam")'), 'a plain card has no beam')
 
-    # ---- liquid metal round a button ----
-    metal = p.evaluate('() => { const r = document.getElementById("fx-btn").closest(".metal-fx-root"); return r ? [r.dataset.variant, r.dataset.theme, !!r.querySelector("canvas.metal-fx-canvas")] : null; }')
-    check(metal and metal[0] == 'button' and metal[1] == 'dark' and metal[2], 'the ink button is a dark metal pill with its own canvas: %r' % metal)
-    check(p.evaluate('() => getComputedStyle(document.getElementById("fx-btn")).visibility') == 'visible', 'the button inside the metal is visible from the first paint')
+    # ---- v36.2: the metal is retired; the ink button is the plain button in its layout host ----
+    plain = p.evaluate('() => { const b = document.getElementById("fx-btn"); const h = b.parentElement; return [!!b.closest(".metal-fx-root"), h.classList.contains("metal-host"), h.classList.contains("metal-ink"), h.querySelectorAll("canvas").length]; }')
+    check(plain == [False, True, True, 0], 'the ink button is plain, in its host, with no canvas: %r' % plain)
+    check(p.evaluate('() => getComputedStyle(document.getElementById("fx-btn")).visibility') == 'visible', 'the button is visible from the first paint')
     p.locator('#fx-btn').click()
     check(True, 'and takes a click')
 
-    # ---- metal text and the metal badge ----
+    # ---- MetalText is plain text at the size asked, MetalBadge a flame pill ----
     p.evaluate('''() => { const r = document.createElement('div'); r.id = 'fx-scratch2'; document.body.appendChild(r);
-      ReactDOM.createRoot(r).render(M.html`<div><span id="fx-mt"><${M.fx.MetalText} size=${28}>42<//></span><span id="fx-mb"><${M.fx.MetalBadge}>new<//></span></div>`); }''')
-    p.wait_for_selector('#fx-mt .metal-fx-root')
-    check('42' in p.inner_text('#fx-mt'), 'metal text reads its number')
-    p.wait_for_selector('#fx-mb .metal-badge-host')
-    check('new' in p.inner_text('#fx-mb').lower(), 'the metal badge reads its word')
+      ReactDOM.createRoot(r).render(M.html`<div><span id="fx-mt"><${M.fx.MetalText} size=${28}>42<//></span><span id="fx-ms"><${M.fx.MetalText} size=${16}>7<//></span><span id="fx-mb"><${M.fx.MetalBadge}>new<//></span></div>`); }''')
+    p.wait_for_selector('#fx-mb .pill')
+    mt = p.evaluate('() => { const e = document.querySelector("#fx-mt > span"); return [e.textContent, getComputedStyle(e).fontSize, document.querySelectorAll("#fx-mt canvas, #fx-mt svg").length, e.children.length]; }')
+    check(mt == ['42', '28px', 0, 0], 'the number reads once, in plain type at 28px, with no canvas and no copies: %r' % mt)
+    check(p.evaluate('() => getComputedStyle(document.querySelector("#fx-ms > span")).fontSize') == p.evaluate('() => getComputedStyle(document.getElementById("fx-ms")).fontSize'), 'below 22px it takes the type around it')
+    mb = p.evaluate('() => { const e = document.querySelector("#fx-mb .pill"); return [e.className, e.textContent]; }')
+    check(mb[0].split() == ['pill', 'flame'] and mb[1] == 'new', 'the badge is a flame pill with its word: %r' % mb)
 
     # ---- the bell: a press rings and unfurls, the badge rolls ----
     check(p.get_attribute('#fx-bell', 'data-on') == 'false', 'the bell starts off')
@@ -133,11 +137,10 @@ def test(h):
     p.wait_for_timeout(200)
     check(bool(p.evaluate('() => document.getElementById("fx-bot").getAttribute("aria-label")')), 'the working bot carries a label')
 
-    # ---- Home: the New button and Check in are metal, the thought has its beam ----
-    newm = p.evaluate('() => { const b = document.querySelector(".sidebar .btn.new-trigger"); return b && b.closest(".metal-fx-root") ? b.closest(".metal-fx-root").dataset.theme : null; }')
-    check(newm == 'dark', 'the New button is dark metal: %r' % newm)
-    checkin = p.evaluate('() => { const b = document.querySelector("#tapin .btn.xl"); return b && b.closest(".metal-fx-root") ? b.closest(".metal-fx-root").dataset.theme : null; }')
-    check(checkin == 'light' or SUNDAY, 'the check-in button is light metal on the dark panel: %r' % checkin)
+    # ---- Home: nothing on the page is drawn in metal; the New button keeps the sidebar's full width ----
+    check(p.evaluate('() => document.querySelectorAll(".metal-fx-root, canvas.metal-fx-canvas, .metal-badge-host").length') == 0, 'no metal anywhere on Home')
+    neww = p.evaluate('() => { const b = document.querySelector(".sidebar .btn.new-trigger"); const s = b && b.closest(".sidebar"); if (!b || !s) return null; const pad = parseFloat(getComputedStyle(b.closest(".metal-host").parentElement).paddingLeft) || 0; return [Math.round(b.getBoundingClientRect().width), Math.round(b.closest(".metal-host").parentElement.getBoundingClientRect().width - 2 * pad)]; }')
+    check(neww and abs(neww[0] - neww[1]) <= 2, 'the New button fills the sidebar row as before: %r' % neww)
     # v31: the thought is decorative, so it no longer carries a beam (one moving thing per view)
     check(not p.evaluate('() => document.getElementById("quote-card").parentElement.hasAttribute("data-beam")'), 'the thought sits still, without a beam')
 
@@ -147,10 +150,10 @@ def test(h):
     p.wait_for_selector('#buddy-input')
     check(p.evaluate('() => !!document.querySelector("#buddy-input").closest("[data-voice-beam]")'), 'the input sits inside the voice beam')
     ASK_METAL = '() => { const b = document.querySelector("#buddy-send"); return !!(b && b.closest(".metal-fx-root")); }'
-    check(not p.evaluate(ASK_METAL), 'an empty Send is the plain disabled button, no metal')
+    check(not p.evaluate(ASK_METAL), 'an empty Send is the plain disabled button')
     p.fill('#buddy-input', 'what can you do')
-    p.wait_for_function(ASK_METAL)
-    check(True, 'the Send button turns metal once there is something to ask')
+    p.wait_for_function('() => { const b = document.querySelector("#buddy-send"); return b && !b.disabled; }')
+    check(not p.evaluate(ASK_METAL), 'the Send button stays plain once there is something to ask')
     p.fill('#buddy-input', '')
     p.locator('#buddy-talk').click()
     p.wait_for_function('() => { const w = document.querySelector("#buddy-input").closest("[data-voice-beam]"); return w && w.hasAttribute("data-active"); }')

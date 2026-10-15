@@ -516,6 +516,16 @@ Kaavish said "the ai personal manager nudge is too annoying". A census of one wo
 - **Before and after.** Measured on the census Tuesday: Kaavish had 17 interrupt moments, 10 of them repeated, wrong or not his; Shreya had 16; Riya 9; Dev 11. After relief we expect about 4, 5, 2 and 3. That after is an estimate from the design, walked through the same day, until the brain's day test (`test_attn_day.py`, release 2) measures it.
 - Built by three agents (the PM engine, the COO and the mail; the inbox, the bell and chat; the cards, the dock and Home), then a fourth wrote the tests. Tests: `test_relief.py`, one named check per row, R1 to R15, in the real app and on the real team site code (run against the v34 code, all 15 rows fail), with `test_pm.py`, `test_pm_ui.py`, `test_pm_server.py`, `test_contract_pm.py`, `test_asks.py`, `test_brain.py`, `test_motion.py` and `test_office.py` updated where the relief changes what they promised.
 
+## What is in v36.2: no more shiny numbers
+
+- **The liquid metal is gone.** Numbers like the weighted pipeline, the leaderboard, Books tiles and
+  payroll totals were drawn in a chromatic metal that showed as coloured ghost copies of the figure. Every
+  number now reads once, crisp, in the house type. Badges such as won, new and shipped are a flame pill,
+  and the primary buttons (New, Check in, Send) are the plain ink button.
+- **Lighter.** The effects bundle no longer carries metal-fx: about 105 KB less in every page, and no
+  WebGL loop behind each button.
+- `M.fx.Metal`, `MetalText` and `MetalBadge` keep their names, so nothing that calls them changed.
+
 ## What is in v36.1: the AI says what is wrong, and your character is easy to find
 
 Kaavish said "ai stopped working" and "virtual office doesn't let me/anyone from the office customise their characters as an option in settings". The code that asks the model had not changed since 30 September and every model it names is current, so the likeliest causes sit outside it: the Anthropic account out of credit, a refused key, or an answer that took too long. The page hid all of them behind "Something glitched. Try again." Now it says which, and recovers by itself where it safely can.

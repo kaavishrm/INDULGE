@@ -13,8 +13,6 @@
 .fxh-talk{gap:10px; align-items:center; min-width:0}
 .fxh-talk > .small,.fxh-talk > div{min-width:0}
 .fxh-sent{gap:8px; align-items:center}
-/* metal numbers sit on the text line */
-.chipline .metal-fx-root,.stat .v .metal-fx-root,.brk-row .metal-fx-root{vertical-align:middle}
 .stat .v{min-height:1em}
 /* the timers: the orb under the count */
 .brk-orb{display:inline-flex; align-items:center; justify-content:center; min-height:32px}
@@ -23,7 +21,7 @@
 .focus-orb .focus-ring{position:absolute; inset:0}
 /* the trophy case: the tag sits beside the icon */
 .trophy > .row{gap:8px; align-items:center}
-.trophy .metal-badge-host{flex:none}
-.top-row .metal-badge-host{flex:none}
+.trophy .pill.flame{flex:none}
+.top-row .pill.flame{flex:none}
 .focus-big-ring{position:relative; display:inline-flex; align-items:center; justify-content:center; width:220px; height:220px}
 .focus-big-ring .ring{position:absolute; inset:0}

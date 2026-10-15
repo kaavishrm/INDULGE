@@ -16,7 +16,7 @@ import sys
 p = sys.argv[1]
 s = open(p + '.tmp', encoding='utf-8').read()
 s = s.replace('—', '-').replace('–', '-')
-head = ("/* vendor: the effects from Libraries.dev (thinking-orbs, border-beam, voice-glow, bot-avatars, metal-fx) and\n"
+head = ("/* vendor: the effects from Libraries.dev (thinking-orbs, border-beam, voice-glow, bot-avatars) and\n"
         "   BellToggle from React Bits, bundled by fx/build.sh. Never edited by hand; conformance skips .vendor.js. */\n")
 open(p, 'w', encoding='utf-8').write(head + s)
 EOF
