@@ -208,7 +208,7 @@ def standalone_part():
             check(mem == ['the Swisse invoice goes to Omar'], 'the memory on the site: %r' % mem)
             reqs = json.load(urllib.request.urlopen(base + '__ai'))
             r0 = reqs[-2]
-            check(r0['model'] == 'claude-opus-5-5' and r0['fallbacks'] == 'default' and 'server-side-fallback' in r0['beta'] and r0['effort'] == 'medium', 'the current Opus with the fallback: %r' % r0)
+            check(r0['model'] == 'claude-opus-5-5' and r0['fallbacks'] == 'default' and 'server-side-fallback' in r0['beta'] and r0['effort'] == 'low', 'the current Opus with the fallback, thinking lightly to stay inside the 30 s limit: %r' % r0)
             check('act' in r0['tools'] and 'look_up' in r0['tools'], 'the brain tools ride along on the site: %r' % r0['tools'])
             # the calendar through look_up: the second round reads what came back
             out = ask_buddy(k, 'what is on my calendar')

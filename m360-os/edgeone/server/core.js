@@ -1146,9 +1146,11 @@ export function createApp({store, env = {}}) {
       if (ask.tools && body.noTools === true) ask.tool_choice = {type: 'none'};
       let beta = '';
       if (tier !== 'quick') {
-        /* the current models think by themselves; effort sets how hard. A safety refusal is routed to a
-           fallback model on the server side, so a plain question never dies on a classifier. */
-        ask.output_config = {effort: tier === 'complex' ? 'high' : 'medium'};
+        /* the current models think by themselves; effort sets how hard. EdgeOne ends a function at 30 s, and a
+           turn at medium or high effort can think past that, so everyday turns think lightly and the complex
+           tier one step more. A safety refusal is routed to a fallback model on the server side, so a plain
+           question never dies on a classifier. */
+        ask.output_config = {effort: tier === 'complex' ? 'medium' : 'low'};
         ask.fallbacks = 'default';
         beta = 'server-side-fallback-2026-07-01';
       }
