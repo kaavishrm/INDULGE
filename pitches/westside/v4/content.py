@@ -50,13 +50,13 @@ def today():
 <div class="board">
   {stat(s['stores'], 'stores on 30 September 2026', f"{s['stores_added']} more than a year earlier")}
   {stat(s['cities'], 'cities on 30 June 2026', 'latest disclosed count')}
-  {stat(s['wsc'], 'active WestStyleClub members, FY26', 'up 53% in a year', small=' mn')}
-  {stat(s['online'], 'of Westside revenue is online, Q1 FY27', 'nearly every rupee is spent in a store')}
+  {stat(s['members'], 'WestStyle Club members, 30 September 2025', 'Trent’s latest published count', small=' mn+')}
+  {stat('6%+', 'of Westside revenue is online, Q1 FY27', 'nearly all of it is spent in a store')}
   {stat('Low', 'single-digit like-for-like growth', 'Trent fashion portfolio, Q4 FY26 to Q1 FY27')}
-  {stat('400–500', 'new designs a week', 'Westside’s in-house design team, July 2026')}
+  {stat('400–500', 'new designs a week', 'about 50 designers using AI tools, July 2026')}
 </div></div>'''
-    src = ('Sources: Trent Q2 FY27 business update, 6 Oct 2026 (stores). Trent Q1 FY27 investor presentation and results, 6 Aug 2026 '
-           '(cities, online, like-for-like). Trent FY26 annual report (WestStyleClub). Bloomberg interview with Shailina Parti, 20 Jul 2026 (designs).')
+    src = ('Sources: Trent store updates for Q2 FY26 (261 stores) and Q2 FY27 (+10 in the quarter, 311). Trent Q1 FY27 investor presentation, '
+           '6 Aug 2026 (cities, online, like-for-like). Trent Q2 FY26 investor presentation (WestStyle Club). Bloomberg interview with Shailina Parti, 20 Jul 2026 (designs).')
     return slide('today', 'Westside today', body, src=src)
 
 
@@ -94,11 +94,11 @@ def competition():
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 center">
   <h2 class="h1">What the others did. How Westside wins.</h2>
-  <p class="ink2">Their customers are not always Westside’s, but the wallet often is. Each row is what a rival did in the last twelve months, and the move that beats it.</p>
+  <p class="ink2">Their customers are not always Westside’s, but the wallet often is. Each row is a rival’s latest marketing, and the move that beats it.</p>
 </div>
-{table(['Brand', 'What they did, Oct 2025 to Oct 2026', 'How Westside wins'], rows, cls='tbl small tight')}
+{table(['Brand', 'What they did lately', 'How Westside wins'], rows, cls='tbl')}
 </div>'''
-    return slide('rivals', 'The market', body, src='Sources: company releases and trade press, Oct 2025 to Oct 2026; full list in research_notes/Westside proposal v4/04_competitor_map.md.')
+    return slide('rivals', 'The market', body, src='Sources: Shoppers Stop Q1 FY27 results release (22 Jul 2026); brand and trade-press announcements, Aug 2025 to Oct 2026 (Indian Retailer, exchange4media, Social Samosa, Storyboard18, Medianews4u).')
 
 
 def plan():
@@ -108,6 +108,7 @@ def plan():
         ('3', 'Window Stories', 'Two mannequins, one moment everyone recognises, every piece for sale inside. A different story in every store.', MODEL['windows']),
     ]
     cols = ''.join(f'''<div class="idea rule-plan"><span class="no">{n}</span><h3 class="h2">{t}</h3><p>{d}</p>
+<div class="rule mt-m"><p class="label mute">Where it ends</p><p class="f-s mt-s">{m['ends']}</p></div>
 <div class="mt-auto"><div class="imp">{m['label']}<small>impressions</small></div><p class="f-s mute mt-s">{m['note']}</p></div></div>''' for n, t, d, m in ideas)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 center">
@@ -145,7 +146,7 @@ def styling_plan():
   <h2 class="h1">Styled by Westside: who, how many, how often.</h2>
   <p class="ink2">Twelve weeks, three cities. The numbers below are what we commit to deliver.</p>
 </div>
-{table(['Line', 'Who', 'How many', 'How often', 'What it delivers'], m['rows'], cls='tbl small tight', right=(2,))}
+{table(['Line', 'Who', 'How many', 'How often', 'What it delivers'], m['rows'], cls='tbl', right=(2,))}
 <div class="row c3 mt-auto">
   <div class="rule">{stat(m['label'], 'impressions in twelve weeks', m['note'])}</div>
   <div class="rule">{stat(m['people'], 'people from Mask360 on the programme', m['people_note'])}</div>
@@ -195,7 +196,7 @@ def cart_plan():
   <h2 class="h1">The Coffee Cart: where it goes and what it earns.</h2>
   <p class="ink2">{m['lede']}</p>
 </div>
-{table(['Line', 'Detail', 'How many', 'What it delivers'], m['rows'], cls='tbl small tight', right=(2,))}
+{table(['Line', 'Detail', 'How many', 'What it delivers'], m['rows'], cls='tbl', right=(2,))}
 <div class="row c3 mt-auto">
   <div class="rule">{stat(m['label'], 'impressions over the run', m['note'])}</div>
   <div class="rule">{stat(m['cups'], 'cups, each with a look on the sleeve', m['cups_note'])}</div>
