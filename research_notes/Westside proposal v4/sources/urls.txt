@@ -1,0 +1,11 @@
+# Primary sources for the Westside proposal, fetched by .github/workflows/westside-sources.yml (16 Oct 2026)
+bse 500251 20251001 20261016
+https://nsearchives.nseindia.com/corporate/TRENT_06082026134112_InvestorPresentation06082026Q1FY27.pdf nse_q1fy27_investor_presentation
+https://nsearchives.nseindia.com/corporate/TRENT_06042026081829_PressreleaseQ4FY26.pdf nse_q4fy26_update
+https://indianretailer.com/brandlicense/archives/news/westside-introduces-front-row-80-seasonal-looks-and-new-talent-initiatives.n6017 indianretailer_front_row
+https://www.retail-insight-network.com/newsletters/trent-q2-standalone-revenue-rises-23 rin_trent_q2fy27
+https://upstox.com/news/market-news/stocks/trent-shares-in-focus-after-q2-revenue-jumps-23-yo-y-zudio-crosses-1-000-store-milestone/article-201309/ upstox_trent_q2fy27
+https://www.westside.com/ westside_home
+https://www.westside.com/pages/brands westside_brands
+https://www.youtube.com/@westsidestores/videos westside_youtube_videos
+https://www.instagram.com/westsidestores/ westside_instagram
