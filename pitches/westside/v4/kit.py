@@ -1,0 +1,70 @@
+"""Small HTML helpers for the v4 slides. Every slide is a <section class="slide"> holding one 16:9 <div class="frame">."""
+from html import escape as esc
+
+W_MARK = '<svg viewBox="0 0 1506 1194" aria-hidden="true"><use href="#logo-w"/></svg>'
+M_MARK = '<svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg>'
+
+
+def head(section):
+    return (f'<div class="head"><span class="label">{section}</span>'
+            f'<span class="brand" aria-label="Westside and Mask360">{W_MARK}<span class="x label">×</span>{M_MARK}</span></div>')
+
+
+def slide(sid, section, body, src='', dark=False, cls='', bare=False):
+    """bare=True drops the running head (cover, section breaks)."""
+    hd = '' if bare else head(section)
+    folio = f'<div class="folio"><span class="src">{src}</span><span class="pg label" data-pg></span></div>'
+    return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" aria-label="{esc(section)}">'
+            f'<div class="frame">{hd}<div class="body">{body}</div>{folio}</div></section>')
+
+
+def stat(num, label, source='', small=''):
+    s = f'<div class="s">{source}</div>' if source else ''
+    sm = f'<small>{small}</small>' if small else ''
+    return f'<div class="stat"><div class="num">{num}{sm}</div><div class="k">{label}</div>{s}</div>'
+
+
+def ul(items, cls='list'):
+    return f'<ul class="{cls}">' + ''.join(f'<li>{i}</li>' for i in items) + '</ul>'
+
+
+def table(cols, rows, cls='tbl', right=(), total=None, col_cls=None):
+    """cols: header labels; rows: lists of cell HTML; right: indexes of right-aligned columns; total: optional last row."""
+    col_cls = col_cls or {}
+    def cell(i, v, tag='td'):
+        c = []
+        if i in right:
+            c.append('r')
+        if i in col_cls:
+            c.append(col_cls[i])
+        return f'<{tag}{" class=" + chr(34) + " ".join(c) + chr(34) if c else ""}>{v}</{tag}>'
+    h = '<tr>' + ''.join(cell(i, c, 'th') for i, c in enumerate(cols)) + '</tr>'
+    b = ''.join('<tr>' + ''.join(cell(i, v) for i, v in enumerate(r)) + '</tr>' for r in rows)
+    if total:
+        b += '<tr class="tot">' + ''.join(cell(i, v) for i, v in enumerate(total)) + '</tr>'
+    return f'<div class="scroll-x"><table class="{cls}"><thead>{h}</thead><tbody>{b}</tbody></table></div>'
+
+
+def months(items):
+    """items: (month label, event html, result html, quiet?)"""
+    out = []
+    for m, ev, rs, quiet in items:
+        out.append(f'<div class="m{" quiet" if quiet else ""}"><div class="mn">{m}</div><div class="ev">{ev}</div>'
+                   + (f'<div class="rs">{rs}</div>' if rs else '') + '</div>')
+    return '<div class="months">' + ''.join(out) + '</div>'
+
+
+def video_card(v, caption, meta=''):
+    """v: manifest item or None (placeholder)."""
+    if not v:
+        return (f'<figure class="vcard" style="margin:0"><div class="vbox"><div class="vempty">Video to come</div></div>'
+                f'<figcaption class="cap">{caption}</figcaption></figure>')
+    ar = f'{v["width"]}/{v["height"]}'
+    slug = v['slug']
+    return (f'<figure class="vcard" style="margin:0"><div class="vbox" style="--ar:{ar};--poster:url(media/{slug}.webp)">'
+            f'<video preload="none" playsinline poster="media/{slug}.webp" aria-label="{esc(v.get("title", slug))}">'
+            f'<source src="media/{slug}.av1.mp4" type=\'video/mp4; codecs="av01.0.12M.08"\'>'
+            f'<source src="media/{slug}.mp4" type="video/mp4"></video>'
+            f'<button class="vplay" type="button" aria-label="Play: {esc(v.get("title", slug))}"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span></button>'
+            f'</div><figcaption class="cap">{caption}</figcaption>'
+            + (f'<div class="meta">{meta}</div>' if meta else '') + '</figure>')
