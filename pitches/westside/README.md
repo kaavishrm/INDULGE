@@ -1,66 +1,67 @@
-# Seen at Westside · Mask360 pitch to Westside
+# Westside × Mask360 · proposal, version 4
 
-A Zara-app-style HTML pitch from Mask360 to Westside (Trent Ltd), October 2026. Version 3.
+A plain 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. Version 4 replaces the app-style v3 ("Seen at Westside"), which is still in git history.
 
-- **Send this file:** `dist/Westside-x-M360-Seen-at-Westside.html`. It is self-contained (about 0.9 MB), with images, logos and fonts embedded, and works offline.
-- **Research behind it:**
-  - `reports/Westside marketing audit 2026.md`, with its notes in `research_notes/Westside marketing audit 2026/`.
-  - `research_notes/Zara and Target content IP/`: Zara's content properties, its app and UI, @TargetStyle as a style account, and Target's creator programmes. Each note ends with a verification table.
+- **Send:** the website link (see `web.py` and `.github/workflows/deploy-westside.yml`). The page is `dist/index.html` plus the reference videos in `media/out/`.
+- **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
+- **Print or PDF:** printing from a browser gives one slide per page.
 
-## What's inside (30 screens, each with DETAILS +)
+## The 21 slides
 
-1. **The brief.** Our WhatsApp promise, "from the post to the billing counter".
-2. **Westside today.** Store count and sales mix, a 13-moment log of the last twelve months, the Indian shopper, and the gap with Zara.
-3. **The idea.**
-   - *Every look has an address.*
-   - **@seenatwestside**, a dedicated style account built the way @TargetStyle is: a profile mock-up, the weekly rhythm and the launch.
-   - A reference screen on what we take from Zara and from Target Style.
-4. **The IPs.** Eight properties, each shown as a product page:
-   - Mausam
-   - The Window
-   - The Trial Room
-   - Seen In
-   - First Look
-   - Dehleez
-   - Five Functions
-   - The Regulars
+1. **Cover and our promise.** From the post to the billing counter, measured on footfall per store. One store launch or one festive drop as the test. If the numbers don't move, you lose nothing.
+2. **Westside today** (3 slides):
+   - the facts as of 16 Oct 2026;
+   - the last twelve months on one page;
+   - how Westside talks, and where we take it.
+3. **The market.** What seven rivals did lately, and how Westside wins. There is no Zara, and no rival is used as the source of an idea.
+4. **The plan.** Three ideas, 15 mn impressions, all of it measured in store:
+   - **Styled by Westside:** stylists and creators build complete looks every week, distributed through Westside's pages, creators and clip, meme and city pages. 4.9 mn.
+   - **The Westside Coffee Cart:** a menu named after Westside labels, with a look code on every cup. 5.4 mn.
+   - **Window Stories:** Rahul and Anjali getting ready for dinner, then a different story in every store. 4.7 mn.
+5. **The numbers.** Each line is units × average, with low, plan and high. The baseline is YNG's 6 mn views (Trent Q4 FY26 deck), plus a commitment to beat Westside's own twelve-month total by at least 20%.
+6. **Measurement, the test, the first 90 days, the reference videos, Mask360 and next steps.**
 
-   Also a 52-week glass calendar and four of the fourteen art-direction rules.
-5. **The store.** The post-to-bill tracker, nine in-the-wild mock-ups, and the WhatsApp operations behind HOLD and BOOK.
-6. **The pilot.** One opening for eight weeks (store launch recommended, festive drop as the alternative), returns, what we need, and a scorecard with a read for a launch and a read for an existing store.
-7. **Scale, Mask360 and the ask.** The ask is a checkout pre-filled with the recommended pilot.
+## Sources
+
+Every number has its source on the slide.
+
+- **Primary documents.** Trent's store updates and investor presentations (Q2 FY26 to Q1 FY27) and the FRONT ROW launch article were fetched as text into `research_notes/Westside proposal v4/sources/` by `.github/workflows/westside-sources.yml`, because the coding sandbox cannot reach the exchanges.
+- **Research notes** in `research_notes/Westside proposal v4/`:
+  - 01 facts;
+  - 03 positioning over the last twelve months;
+  - 04 competitor map;
+  - 05 reach benchmarks;
+  - 06 coffee-cart and windows feasibility.
+- Notes 04 to 06 were written when web search was out of budget. The deck uses only their claims that were re-checked by search on 16 Oct 2026.
 
 ## Editing
 
-Sources are in `src/`:
+- `v4/content.py`: slide copy and layout.
+- `v4/data.py`: facts, the twelve months, the competitor rows and the impressions model. Totals are computed, so the parts always add up.
+- `v4/art.py`: the line illustrations.
+- `v4/deck.css`, `v4/deck.js`: the deck's styles and keyboard navigation.
 
-- `build3.py` holds the screen copy and assembles the page.
-- `ips.py` holds the eight property screens.
-- `ipsheets.json` holds their Details sheets.
-- `account.json` holds the style account and its Target Style evidence.
-- Styles are in `deck3.css`, `extra3.css` and `mock.css`.
-- Behaviour is in `deck3.js`, `extras3.js` (the log data) and `fabric.js` (the rendered textiles).
-
-Rebuild with:
+Build with:
 
 ```
-STRICT=1 python3 pitches/westside/build.py
+STRICT=1 python3 pitches/westside/v4/build.py
 ```
 
-`STRICT=1` makes the build fail if internal research notes, placeholders or a wrong handle reach the page. The build writes two files to `dist/`:
+`STRICT=1` fails the build on placeholders (`[[ ]]`), on Zara or other banned words, and on orange in the CSS. The build writes `dist/index.html` (website) and `dist/westside-proposal.html` (claude.ai artifact).
 
-- `seen-at-westside.html` is the fragment published as the claude.ai artifact.
-- `Westside-x-M360-Seen-at-Westside.html` is the standalone page.
+**Reference videos.** Put the Drive folder link in `media/source.txt`. The `westside-media` workflow downloads the folder and runs `media.py`, which makes:
+
+- AV1 and H.264 versions, at most 4K and 30 fps, bitrate-capped;
+- a poster frame for each clip.
+
+The deck loads nothing until someone presses play.
 
 ## Before sending
 
-- **Commercial terms.** The pilot promises no agency fee unless verified footfall beats the comparison by an agreed threshold, with production and media at cost "within a cap agreed before launch". Add the cap, the fee and the names of the pilot team.
-- **Handle.** Check that @seenatwestside (fallback @westsidestyle) is free on Instagram, YouTube and Threads, and reserve it.
-- **Feed audit.** The research could not open Instagram. Before the meeting, review 90 days of @westsidestores Reels, highlights and YouTube. If a Diwali 2025 film or store-named posts turn up, edit the Oct '25 log card and the gap line.
-- **Figures to confirm.**
-  - YNG as a 4,000-member community: check the Trent Q4 FY26 investor presentation (BSE filing).
-  - Umashan Naidoo's title before he is proposed as house creative director.
-- **Client list.** AJIO Luxe belongs to Reliance Retail, a Westside competitor. Decide whether it stays on the Mask360 screen.
-- **Visuals.** All visuals are mock-ups: rendered fabrics, interface frames, crops of one concept store render and three styling frames. Real styling photography (looks on Indian bodies for Mausam, The Window, The Trial Room, Five Functions and Seen In) would lift the deck most.
-- **Dates and numbers.** 2027 festival and wedding dates follow the published calendar and must be fixed with Trent. First Look No. 330 is an illustrative opening number. Store names in the mock-ups are illustrative.
-- **Positioning.** Zara and Target are named only inside this pitch, never in consumer copy, and the deck says it is not affiliated with Zara/Inditex or Target.
+- **Commercials.** Our fee, the production and media cap, and the names on the team.
+- **Westside's real averages.** The model uses planning figures for Westside's own Reel views (20,000) and creator Reels (25,000). Replace them with Westside's numbers, and swap YNG's 6 mn for Westside's internal twelve-month total.
+- **WestStyle Club.** The deck uses Trent's latest published figure (19 mn+ members, 30 Sep 2025). A later "11.85 mn active members (FY26)" figure could not be confirmed against the annual report.
+- **Titles.** Confirm Shailina Parti's and Umashan Naidoo's titles before the meeting. The FRONT ROW article (3 Oct 2026) calls Naidoo Chief Creative, Brand & Beauty.
+- **Rahul and Anjali.** As a pair, the names recall Kuch Kuch Hota Hai (Dharma Productions). Generic first names are low risk, but film cues (costume, music, lines) invite a claim. Keep the styling original, or swap the names before launch.
+- **Coffee cart.** About 300 cups a day and the build cost are planning figures. Confirm them with a coffee partner. The partner operates under its own FSSAI licence, and every site needs mall or landlord consent.
+- **Client list.** AJIO Luxe was removed from the Mask360 slide because it belongs to Reliance Retail, a Westside competitor.
