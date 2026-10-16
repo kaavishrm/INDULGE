@@ -2,7 +2,7 @@
 in the folio line. Facts come from research_notes/Westside proposal v4/ (verified 16 Oct 2026)."""
 import json, pathlib
 import art
-from data import F, LAST12, COMPETITORS, POSITIONING, MODEL, BASELINE, VIDEOS
+from data import F, LAST12, COMPETITORS, POSITIONING, MODEL, BASELINE, REF_GROUPS
 from kit import slide, stat, ul, table, months, video_card
 
 TITLE = 'Westside × Mask360'
@@ -314,18 +314,21 @@ def ninety():
 
 
 def references():
-    vids = VIDEOS
-    n = len(vids) or 3
-    cols = 3 if n >= 3 else n
-    cards = ''.join(video_card(v.get('item'), v['caption'], v.get('meta', '')) for v in vids) if vids else ''.join(video_card(None, 'Reference video') for _ in range(3))
-    body = f'''<div class="stack-l grow">
+    out = []
+    n = len(REF_GROUPS)
+    for i, (idea, title, vids) in enumerate(REF_GROUPS):
+        cards = ''.join(video_card(v['item'], v['caption']) for v in vids)
+        lede = ('Clips the team collected for tone and format. They are references, not our work. Press play; each opens full screen with sound.'
+                if i == 0 else f'References for {idea}.')
+        body = f'''<div class="stack-l grow">
 <div class="row c-7-5 center">
-  <h2 class="h1">References.</h2>
-  <p class="ink2">The tone and finish we are aiming for. Press play; each opens full screen with sound.</p>
+  <h2 class="h2">{title}</h2>
+  <p class="ink2 f-s">{lede}</p>
 </div>
-<div class="vgrid grow" style="--vc:{cols}">{cards}</div>
+<div class="vgrid grow" style="--vc:6">{cards}</div>
 </div>'''
-    return slide('references', 'References', body)
+        out.append(slide(f'references-{i + 1}', f'References {i + 1} of {n} · {idea}', body))
+    return out
 
 
 def mask360():
@@ -360,4 +363,4 @@ def next_steps():
 
 def slides():
     return [cover(), promise(), today(), last12(), voice(), competition(), plan(), styling(), styling_plan(), look_path(),
-            cart(), cart_plan(), windows(), windows_scale(), numbers(), measure(), test(), ninety(), references(), mask360(), next_steps()]
+            cart(), cart_plan(), windows(), windows_scale(), numbers(), measure(), test(), ninety(), *references(), mask360(), next_steps()]

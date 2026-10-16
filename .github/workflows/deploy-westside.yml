@@ -26,7 +26,7 @@ jobs:
           node-version: '22'
       - name: Build
         run: |
-          STRICT=1 python3 pitches/westside/build.py
+          STRICT=1 python3 pitches/westside/v4/build.py
           python3 pitches/westside/web.py "$RUNNER_TEMP/$PROJECT"
       - name: Deploy
         run: |
@@ -65,7 +65,7 @@ jobs:
           CLAIM=$(echo "$RESULT" | grep -o '"claimUrl":"[^"]*"' | cut -d'"' -f4)
           EXPIRES=$(echo "$RESULT" | grep -o '"expiresAt":"[^"]*"' | cut -d'"' -f4)
           {
-            echo "## Seen at Westside is live"
+            echo "## The Westside proposal is live"
             echo ""
             echo "Open: ${URL%%\?*}"
             echo ""
@@ -83,7 +83,7 @@ jobs:
           URL=$(cat "$RUNNER_TEMP/url.txt")
           sleep 5
           for i in 1 2 3 4 5; do
-            if curl -sS -m 60 "$URL" -o page.html && grep -q '<title>Seen at Westside' page.html; then echo "Serving the deck: $(wc -c < page.html) bytes"; exit 0; fi
+            if curl -sS -m 60 "$URL" -o page.html && grep -q 'Mask360</title>' page.html; then echo "Serving the proposal: $(wc -c < page.html) bytes"; exit 0; fi
             sleep 6
           done
-          echo "The page did not serve the deck" && exit 1
+          echo "The page did not serve the proposal" && exit 1

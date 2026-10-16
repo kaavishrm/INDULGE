@@ -188,5 +188,45 @@ MODEL = {
 
 MANIFEST = HERE.parent / 'media' / 'out' / 'manifest.json'
 _items = {v['slug']: v for v in json.loads(MANIFEST.read_text())} if MANIFEST.exists() else {}
-# captions are written once the clips are seen; until then every clip gets a neutral caption
-VIDEOS = [{'item': v, 'caption': f'<b>Reference {i + 1}</b>'} for i, v in enumerate(_items.values())]
+# Reference clips from the team's Drive folder (WhatsApp exports, 576x1024). Grouped by the idea each one illustrates.
+# Captions describe the format only; the clips are references, not our work. 18-42-50-1 repeats 18-20-19 and is left out.
+def _v(key, caption):
+    item = _items.get('whatsapp-video-2026-10-16-at-' + key)
+    return {'item': item, 'caption': caption}
+
+
+REF_GROUPS = [
+    ('Styled by Westside', 'One piece, many ways', [
+        _v('18-42-52-1', '<b>One shirt, six ways.</b> A styling session built around a single piece.'),
+        _v('18-42-52-2', '<b>Four ways to wear denim.</b> Same base, four complete looks.'),
+        _v('18-19-59', '<b>A mood, then the outfits.</b> One creator, one theme, five looks.'),
+        _v('18-42-51', '<b>One oversized shirt.</b> Styled at home, the way people actually dress.'),
+        _v('18-42-51-1', '<b>The try-on.</b> A creator talks through what works and why.'),
+        _v('18-20-04', '<b>Six looks for six moments.</b> Brunch to the last summer night.'),
+    ]),
+    ('Styled by Westside', 'Indian stylists, real rails', [
+        _v('18-42-53-1', '<b>Bandhani on the street.</b> A traditional textile styled for today.'),
+        _v('18-42-53-2', '<b>Studio styling from a rail.</b> Pieces pulled, styled and explained.'),
+        _v('18-42-53', '<b>One look, many layers.</b> A saree and separates, styled by hand.'),
+        _v('18-42-54', '<b>The denim edit, explained.</b> A stylist walks through each piece.'),
+        _v('18-42-50-2', '<b>Straight from the store floor.</b> Real rails, real price tags.'),
+        _v('18-42-52', '<b>A creator’s afternoon in store.</b> Browse, try, pick, film.'),
+    ]),
+    ('Styled by Westside', 'The finish we want', [
+        _v('18-20-13', '<b>Fit, explained on screen.</b> Short captions on the details that sell.'),
+        _v('18-20-15', '<b>What’s trending, in one studio.</b> Clean light, quick cuts.'),
+        _v('18-42-53-3', '<b>Every shade, a statement.</b> Looks built around a colour.'),
+        _v('18-20-10', '<b>Styling from a rail outdoors.</b> One model, a rail of jackets.'),
+        _v('18-20-19', '<b>One denim jacket, outdoors.</b> Texture close-ups, then the full look.'),
+        _v('18-42-50', '<b>A creator’s own take.</b> Streetwear, styled with personality.'),
+    ]),
+    ('The Coffee Cart and Window Stories', 'Store moments and the craft behind a look', [
+        _v('18-20-03', '<b>A branded truck as the front door.</b> Drinks and cookies first, then the collection.'),
+        _v('18-19-48', '<b>A drop launched in store.</b> The designer on the floor, a crowd at opening.'),
+        _v('18-19-55', '<b>A photo booth inside the store.</b> People film themselves and post it.'),
+        _v('18-42-51-2', '<b>From dress form to finished look.</b> The craft behind a window.'),
+        _v('18-42-51-3', '<b>Building a look on the form.</b> Layer by layer, then styled.'),
+        _v('18-20-25', '<b>One accessory, told as a story.</b> Close-ups and captions.'),
+    ]),
+]
+VIDEOS = [v for _, _, vs in REF_GROUPS for v in vs]
