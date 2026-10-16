@@ -10,8 +10,8 @@ V = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(V))
 import content  # noqa: E402
 
-DIST = V.parent / 'dist'
-DIST.mkdir(exist_ok=True)
+DIST = pathlib.Path(os.environ.get('DIST', V.parent / 'dist'))
+DIST.mkdir(parents=True, exist_ok=True)
 
 
 def font(name):
