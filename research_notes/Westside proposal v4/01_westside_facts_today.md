@@ -4,16 +4,18 @@ Prepared for the Mask360 pitch to Westside (Trent Ltd, Tata Group). Indian FY ru
 
 ## Summary (10 lines)
 
-1. Westside had **311 stores on 30 Sep 2026**: 10 net added in Q2 FY27 and 11 in H1 FY27, up 19% YoY (Q2 FY27 business update, 6 Oct 2026).
-2. **Net additions in the last 12 months: +50** (261 on 30 Sep 2025 to 311 on 30 Sep 2026). FY26 alone added 52 net (60 opened).
-3. The latest Trent deck (Q1 FY27, 30 Jun 2026) gives **301 stores, 7.15 Mn+ sq ft, 97 cities**. That is an average of about 23,750 sq ft per store (our arithmetic). The 30 Sep 2026 city count is not yet disclosed.
-4. Trent FY26 standalone revenue was **Rs 19,701 cr (+18%)** and consolidated Rs 20,074 cr. Q1 FY27 standalone was Rs 5,666 cr (+19%). Q2 FY27 standalone was **Rs 5,788 cr (+23%)**. Q2 results come to the board on **29 Oct 2026**.
-5. Trent does **not** disclose Westside revenue or Westside LFL. Fashion-portfolio LFL was "low single digits" in Q4 FY26, FY26 and Q1 FY27. The Q2 FY27 update gives no LFL.
-6. Online was "over 6%" of Westside revenue in Q1 FY27 (Westside.com plus Tata Neu), against a stated 10% ambition. WestStyleClub had **11.85 mn active members in FY26 (+53%)**.
-7. Westside is about 100% private label. The labels confirmed live on westside.com include Bombay Paisley, Wardrobe, L.O.V, Nuon, Gia/Gia Curves, Zuba, Utsa, Vark, Diza, Superstar, Wunderlove, Studiofit, Nuoflexx, E.T.A, Kala by E.T.A, Ascot, WES Casual/Formals, Hop, Y&F, Luna Blu, Soleplay and Yellow, plus Studiowest (beauty) and Westside Home. "Westsport" is not current.
-8. People: **Shailina Parti** heads Westside (called CEO by Bloomberg in Jul 2026, COO or CEO/COO elsewhere). **Umashan Naidoo** is Chief Creative, Brand & Beauty (Oct 2026). **Maya Tata** joined to lead Westside e-commerce marketing (reported Jul 2026). **Deepshikha Agarwal** heads Beauty (Jul 2026). P. Venkatesalu is Trent MD. Chairman Noel Tata retires in Nov 2026, and no successor had been named publicly.
+1. Westside had **311 stores on 30 Sep 2026**: 10 net added in Q2 FY27 and 11 in H1 FY27, up 19% YoY (Q2 FY27 business update, 6 Oct 2026, as reported by Motilal Oswal and Kalkine; the filing itself was not seen, so **unverified** against the primary).
+2. **Net additions in the last 12 months: +50** (261 on 30 Sep 2025 to 311 on 30 Sep 2026). FY26 alone added 52 net (60 opened). (The +50 is our arithmetic on two counts that are each unverified against the filings.)
+3. The latest Trent deck (Q1 FY27, 30 Jun 2026) gives **301 stores, 7.15 Mn+ sq ft, 97 cities** (unverified: deck text seen only as a search snippet). That is an average of about 23,750 sq ft per store (our arithmetic). The 30 Sep 2026 city count is not yet disclosed.
+4. Trent FY26 standalone revenue was **Rs 19,701 cr (+18%)** and consolidated Rs 20,074 cr. Q1 FY27 standalone was Rs 5,666 cr (+18.5%). Q2 FY27 standalone was **Rs 5,788 cr (+22.5% on Rs 4,724 cr, reported as 23%)**, from an unaudited business update. Q2 results come to the board on **29 Oct 2026** (unverified; one press preview). All revenue figures are unverified against the primary releases in the 16 Oct pass.
+5. Trent does **not** disclose Westside revenue or Westside LFL. Fashion-portfolio LFL was in the low single digits in Q4 FY26 and Q1 FY27 (broker and press paraphrase; Trent's exact wording not seen). No source in the claims table covers full-year FY26 LFL, and Q3 FY26 was "marginally negative". The Q2 FY27 update gives no LFL.
+6. Online was "over 6%" of Westside revenue in Q1 FY27, against a stated 10% ambition. (Corrected: the release does not say the 6% is westside.com plus Tata Neu; Tata Neu is mentioned in a separate sentence.) WestStyleClub had **11.85 mn active members in FY26 (+53%)** (unverified; seen only via IndiaInfoline's copy of the MD&A).
+7. Westside is about 100% private label. (Corrected: the earlier wording "confirmed live" overstated the evidence.) Labels with 2025-26 dated evidence: Bombay Paisley, Nuon, Gia, Superstar, Utsa, Vark, E.T.A, Kala by E.T.A, Studiowest (beauty) and the W Edit collection. Labels seen only on undated or stale westside.com pages (unverified as current): Wardrobe, L.O.V, Gia Curves, Zuba, Diza, Wunderlove, Studiofit, Nuoflexx, Ascot, WES Casual/Formals, Hop, Y&F, Luna Blu, Soleplay, Yellow and Westside Home (last dated 2024). "Westsport" is not current.
+8. People: **Shailina Parti** heads Westside (called CEO by Bloomberg in Jul 2026, COO or CEO/COO elsewhere; title unverified). **Umashan Naidoo** is Chief Creative, Brand & Beauty (Oct 2026; unverified, one outlet, paraphrase). **Maya Tata** joined to lead Westside e-commerce marketing (reported Jul 2026). **Deepshikha Agarwal** heads Beauty (Jul 2026). P. Venkatesalu is Trent MD. Chairman Noel Tata retires in Nov 2026, and no successor had been named publicly.
 9. Agencies: the only public mandate is **Oktobuzz** (digital/social, Nov 2022), and its current status is unconfirmed. Creative is described as in-house. No media, PR or experiential agency of record is public.
-10. Material since July: the **20 Jul "up to 100 stores a year" Bloomberg interview**, which Trent told the exchanges on **21 Jul is not guidance**; the **1 Oct FRONT ROW** platform launch in Mumbai; the 6 Oct Q2 update; and the Navratri 2026 edit online. No dated flagship, refit or new-format launch was found.
+10. Material since July: the **20 Jul "up to 100 stores a year" Bloomberg interview**, which Trent told the exchanges on **21 Jul is not guidance**; the **1 Oct FRONT ROW** platform launch in Mumbai (date and venue single-source, unverified); the 6 Oct Q2 update; and the Navratri 2026 edit online. No dated flagship, refit or new-format launch was found.
+
+See **Verification (16 Oct 2026)** at the end: no claim in this note could be re-read against a primary source in that pass.
 
 **Method and limits.** WebFetch could not resolve any host in this session (DNS failure), and curl to trent-tata.com, bseindia.com, nseindia.com and westside.com was refused by the proxy (403). Every figure below therefore comes from search-engine result summaries that quote the cited pages. Quotes are as returned in those snippets. Where only a paraphrase was available, the table says "paraphrase". **Before any number goes on a slide, open the primary PDF linked (Trent press release or investor deck).** Numbers from the earlier "Westside marketing audit 2026" notes were re-checked; the corrections are listed in section 7.
 
@@ -24,11 +26,11 @@ Prepared for the Mask360 pitch to Westside (Trent Ltd, Tata Group). Indian FY ru
 | Date (as of) | Westside stores | Net adds in period | Area | Cities | Source |
 |---|---|---|---|---|---|
 | 31 Mar 2025 | 248 | FY25: 40 opened, 24 consolidated | n/a | 86 (reported, not verified) | FY25 annual report via Storyboard18 / BW Marketing World |
-| 30 Sep 2025 | 261 | Q2 FY26: +13 | 6 Mn+ sq ft | 88 | Trent Q2 FY26 update and deck |
+| 30 Sep 2025 | 261 | Q2 FY26: +13 (unverified: with 248 at 31 Mar 2025 this implies 0 net in Q1 FY26, so +13 may be the H1 FY26 figure) | 6 Mn+ sq ft | 88 | Trent Q2 FY26 update and deck; +13 from IndMoney |
 | 31 Dec 2025 | 278 | Q3 FY26: +17 | n/a | n/a | Trent Q3 FY26 update |
 | 31 Mar 2026 | 300 | Q4 FY26: 23 opened, 1 consolidated (+22); FY26: +52 net, 60 opened | 7.3 mn sq ft (ICICI Direct) | 97 (ICICI Direct, Jun 2026) | Trent Q4 FY26 press release; ICICI Direct |
 | 30 Jun 2026 | 301 | Q1 FY27: +1 | 7.15 Mn+ sq ft | 97 | **Trent Q1 FY27 investor presentation, 6 Aug 2026 (latest primary)** |
-| 30 Sep 2026 | **311** | Q2 FY27: +10; H1 FY27: +11 | not disclosed | not disclosed | Trent Q2 FY27 business update, 6 Oct 2026 (via Motilal Oswal, Kalkine, Retail Insight Network) |
+| 30 Sep 2026 | **311** (unverified vs filing) | Q2 FY27: +10; H1 FY27: +11 | not disclosed | not disclosed | Trent Q2 FY27 business update, 6 Oct 2026 (via Motilal Oswal, Kalkine, Retail Insight Network). Coverage of the same update reports Zudio +17 net and "Zudio crosses 1,000", but 982 + 17 = 999; the store set needs checking against the filing |
 
 - **Last 12 months (30 Sep 2025 to 30 Sep 2026): +50 net** (311 − 261). By quarter: +17, +22, +1, +10.
 - **Cities:** 88 (30 Sep 2025) rose to 97 (30 Jun 2026), so 9 more cities in nine months. No Westside city count has been published for 30 Sep 2026. Trent-wide (all banners) was 330 cities including 3 in the UAE on 30 Jun 2026.
@@ -54,18 +56,18 @@ Prepared for the Mask360 pitch to Westside (Trent Ltd, Tata Group). Indian FY ru
   - The two cannot both be right. The area share makes the ~40% figure more plausible, but neither is a Trent disclosure. **Do not put a Westside revenue number on a slide.** Say "Trent does not break out Westside revenue; analysts put it at roughly 40% of Trent."
 
 **Like-for-like (fashion portfolio, not Westside alone)**
-- FY25: double digit. Q1 FY26 and Q2 FY26: low single digits. Q3 FY26: "marginally negative". Q4 FY26 and FY26: low single digits. Q1 FY27: low single digits, "the same pace as the prior quarter". Q2 FY27: not disclosed.
+- FY25: double digit. Q1 FY26 and Q2 FY26: low single digits. Q3 FY26: "marginally negative". Q4 FY26: low single digit (ICICI Direct wording). FY26 full year: low single digits (unverified; no source row covers the full year). Q1 FY27: low single digits, at the same pace as the prior quarter (Business Standard paraphrase; Trent's own wording not seen). Q2 FY27: not disclosed.
 - ICICI Direct (Jun 2026) reports management's expectation that LFL returns to "low double digit" in the medium term.
 
 **Online**
-- Q1 FY27: "Online revenues contributed over 6% of Westside revenues". The online business, "together with the Tata Neu proposition, continues to witness traction and grow profitably" (Trent Q1 FY27 release).
+- Q1 FY27: "Online revenues contributed over 6% of Westside revenues". The online business, "together with the Tata Neu proposition, continues to witness traction and grow profitably" (Trent Q1 FY27 release; snippet only, unverified). The release does not say which channels make up the 6%, so do not describe it as "westside.com plus Tata Neu".
 - Q4 FY26: online grew 25% and was more than 6% of Westside revenue. FY26: about Rs 300 cr, about 6% (ICICI Direct). Digital volumes grew 32% YoY in FY26 (ICICI Direct).
 - Target: raise e-commerce to 10% of Westside revenue from about 6% (Parti to Bloomberg, 20 Jul 2026; ambition, not guidance).
 - Conflict: an ICICI Direct news note from about Oct 2025 quoted the Westside COO saying online "now contributes 8% of revenues". Trent's own releases say "over 6%". Use Trent's figure.
 - Channels: westside.com (India), Tata Neu, Tata CLiQ Fashion ("the official online shopping destination for Westside", per its App Store listing), and **global.westside.com**, which ships to the UAE, KSA, Qatar, Bahrain and Oman. Its shipping charge is "currently complimentary in lieu of launch", which suggests a recent launch; the launch date was not found. No standalone Westside app listing was confirmed.
 
 **WestStyleClub (loyalty)**
-- FY26 (MD&A): "welcomed over 4.12 Million subscribers… taking the total active member base to 11.85 Million (7.73 Million in the previous year), a growth of 53%".
+- FY26 (MD&A): "welcomed over 4.12 Million subscribers… taking the total active member base to 11.85 Million (7.73 Million in the previous year), a growth of 53%". (Unverified: seen only as a snippet of IndiaInfoline's copy of the MD&A, not the annual report PDF.) Note that 7.73 + 4.12 = 11.85 exactly, so the "active" base is the prior base plus new sign-ups with no lapses netted off. For a Rs 199 annual membership that is odd; keep Trent's words "total active member base" and do not describe it as a churn-adjusted count.
 - Revenue share: "over 90%" of Westside revenue from WSC members (FY25, Kotak Securities, 19 Jun 2025). I could not confirm whether the FY26 report repeats the 90% figure. The earlier v3 note says it does, but this pass could not see that text.
 - Do not compare 11.85 mn (active, FY26) with older totals of 16.4 mn (FY25) or 19 mn+ (Q2 FY26 deck). Those look like a different definition (total enrolled).
 - Fee: Rs 199 a year per Westside's terms "as of June 1, 2025". The membership is valid for 12 months and earns NeuCoins.
@@ -111,7 +113,7 @@ Caveat: the full brand list comes from a westside.com brand menu that the search
 | Person | Role | Date and source | Confidence |
 |---|---|---|---|
 | Shailina Parti | Head of Westside: "CEO" (Bloomberg, 20 Jul 2026); "COO" (BW Businessworld 2026; ICICI Direct, about Oct 2025); "CEO/COO, Westside Fashion Lifestyle, Trent Limited" (Indore IMA conclave coverage, about Oct 2026) | See claims W-56 to W-58 | High that she leads Westside; **title varies, so confirm with the client.** "CEO, Westside" is the most-cited form. |
-| Umashan Naidoo | Chief Creative, Brand & Beauty (previously Head of Customer & Beauty) | FRONT ROW coverage, 1 Oct 2026 | High (multiple outlets) |
+| Umashan Naidoo | Chief Creative, Brand & Beauty (previously Head of Customer & Beauty, afaqs Nov 2022) | FRONT ROW coverage, 1 Oct 2026 (Fashion Value Chain, paraphrase) | Medium (corrected from "High (multiple outlets)": the claims table cites one outlet, as a paraphrase; the Fibre2Fashion interview cited in the 03 note is not dated to 2026). **Title unverified; confirm exact form with the client.** |
 | Maya Tata | Leads Westside e-commerce / online marketing (online business and overseas e-commerce). Ex-Tata Digital, age 37, daughter of Noel Tata | Reported 6-7 Jul 2026 (ET via Angel One; Franchise India; Indian Retailer; e4m). Some outlets say Trent has not officially confirmed | Medium-high. **No formal title is public.** |
 | Deepshikha Agarwal | Head of Beauty Business, Westside (makeup, fragrance, personal care, beauty accessories, impulse). Ex-Nykaa DGM | exchange4media, about 9-10 Jul 2026 | Medium-high |
 | Lyndsay Smith | Head, Westside Home | 2024 coverage | Low for "current" (no 2026 confirmation) |
@@ -132,10 +134,10 @@ Caveat: the full brand list comes from a westside.com brand menu that the search
 | 3 Jul 2026 | Bernstein keeps Outperform, sees Westside as the next growth driver, ~40% of revenue and area, ~50 stores a year achievable to 500-550; target cut to Rs 3,500 | Business Standard |
 | 6-7 Jul 2026 | Maya Tata reported to lead Westside e-commerce marketing | BusinessToday, Franchise India, Indian Retailer, exchange4media |
 | about 9-10 Jul 2026 | Deepshikha Agarwal joins as Head of Beauty Business, Westside | exchange4media; MarketScreener feed |
-| 20 Jul 2026 | Bloomberg interview: Parti on "up to 100" stores a year, northeast focus plus Delhi, Bengaluru, Hyderabad; AI design suite (50 designers, 400-500 designs a week, 30-day lead times); 10% online ambition | Bloomberg; Business Standard; Retail Insight Network |
+| 20 Jul 2026 | Bloomberg interview: Parti on "up to 100" stores a year, northeast focus plus Delhi, Bengaluru, Hyderabad; AI design suite (about 50 designers, 400-500 designs a week, 30-day lead times; unverified, seen only in Retail Insight Network's summary, not Bloomberg's text); 10% online ambition | Bloomberg; Business Standard; Retail Insight Network |
 | 21 Jul 2026 | **Trent exchange filing: the remarks reflect potential and aspirations and "may not be construed as any forward-looking guidance for the Westside business"** | BSE filing |
 | 6 Aug 2026 | Q1 FY27 results and deck: 301 stores, 7.15 Mn+ sq ft, 97 cities; LFL low single digits; online over 6% | Trent press release / deck |
-| 1 Oct 2026 | **FRONT ROW** launched in Mumbai: fashion and culture platform; 80 Autumn/Winter/Festive looks; 150 culture-shapers; "Tuxedo Street" (first "Dance Hall x Boiler Room" concept, a dance-off); three national Dance Off challenges planned; 30 New Faces (2026/27 models for campaigns and runway); second YNG designer; latest W Edit | Fashion Value Chain; t2online; Indian Retailer Brand License |
+| 1 Oct 2026 (date unverified) | **FRONT ROW** launched in Mumbai: fashion and culture platform; 80 Autumn/Winter/Festive looks; 150 culture-shapers; "Tuxedo Street" (first "Dance Hall x Boiler Room" concept, a dance-off); three national Dance Off challenges planned; 30 New Faces (2026/27 models for campaigns and runway); second YNG designer; latest W Edit | Fashion Value Chain; t2online; Indian Retailer Brand License. **Caveat (from the 03 note and the audit notes):** the 1 Oct date and the Mumbai venue rest on Fashion Value Chain alone, and one FRONT ROW snippet carried page-age metadata of about 273 days, which conflicts with 1 Oct 2026. "30 New Faces" was truncated in snippets. No Westside or Trent release was found |
 | 6 Oct 2026 | Q2 FY27 business update: Westside 311 (+10), revenue Rs 5,788 cr (+23%); stock up about 10% | Motilal Oswal; Kalkine; Retail Insight Network; Business Standard |
 | Oct 2026 | Navratri 2026 "9 Days 9 Colours" edit live on westside.com (Utsa, Vark and others) | westside.com collection page |
 | 29 Oct 2026 (upcoming) | Board meeting for Q2/H1 FY27 results | Zee Business preview |
@@ -147,13 +149,15 @@ Related, just before the window: the 74th AGM on 23 Jun 2026 gave ~50 Westside, 
 
 ## 6. Lines that are safe to use in the pitch (with as-of dates)
 
-- "311 Westside stores as of 30 September 2026, 50 more than a year earlier." (Trent Q2 FY27 update, 6 Oct 2026.)
-- "97 cities and over 7.15 million sq ft as of 30 June 2026." (Trent Q1 FY27 deck.)
-- "11.85 million active WestStyleClub members in FY26, up 53%." (Trent FY26 annual report, MD&A.)
-- "Online is just over 6% of Westside revenue (Q1 FY27)." (Trent.)
-- "Trent's fashion like-for-like growth has been in the low single digits (Q4 FY26 to Q1 FY27)." Say "Trent's fashion portfolio", not "Westside".
-- "Trent FY26 standalone revenue Rs 19,701 crore; Q2 FY27 revenue up 23%."
-- Avoid: "Westside revenue = Rs X crore", "100 stores a year plan", "Westsport", "Studiowest home", and any festive-sale discount claims.
+All of these are unverified against primary text as of the 16 Oct 2026 pass. Open the linked Trent PDF before each goes on a slide.
+
+- "311 Westside stores as of 30 September 2026, 50 more than a year earlier." (Trent Q2 FY27 business update, 6 Oct 2026.)
+- "Over 7.15 million sq ft across 97 cities as of 30 June 2026." (Trent Q1 FY27 investor presentation.)
+- "11.85 million active WestStyleClub members in FY26, up 53% from 7.73 million." (Trent FY26 annual report, MD&A.)
+- "Online contributed over 6% of Westside revenue in Q1 FY27." (Trent Q1 FY27 release.) Do not say which channels it includes.
+- "Like-for-like growth across Trent's fashion portfolio was in the low single digits in Q4 FY26 and Q1 FY27." Say "Trent's fashion portfolio", not "Westside".
+- "Trent FY26 standalone revenue from operations Rs 19,701 crore, up 18%; Q2 FY27 standalone revenue Rs 5,788 crore, up 23% (business update, unaudited)."
+- Avoid: "Westside revenue = Rs X crore", "100 stores a year plan", "Westsport", "Studiowest home", any festive-sale discount claims, and a full printed label list without checking the live westside.com menu.
 
 ## 7. Corrections to the earlier v3 research notes
 
@@ -165,7 +169,7 @@ Related, just before the window: the 74th AGM on 23 Jun 2026 gave ~50 Westside, 
 6. **New leadership not in v3:** Maya Tata (e-commerce marketing, Jul 2026) and Deepshikha Agarwal (Beauty, Jul 2026).
 7. **Cities:** v3 treated 97 as secondary only. It is now confirmed in Trent's Q1 FY27 deck. The 30 Sep 2025 figure (88) comes from the Q2 FY26 deck.
 8. **Area:** 7.15 Mn+ sq ft (Trent, 30 Jun 2026) supersedes ICICI's 7.3 mn.
-9. **Labels:** Studiowest is beauty, not home. Westside Home is the home line. Westsport only appears in 2017. Misbu is a separate Trent concept. Superstar and Diza are current Westside labels.
+9. **Labels:** Studiowest is beauty, not home. Westside Home is the home line. Westsport only appears in 2017. Misbu is a separate Trent concept. Superstar is a current Westside label (BW Businessworld 2026). Diza appears only on an undated westside.com blog page, so it is listed, not confirmed current (corrected 16 Oct 2026).
 10. **WSC 90% revenue share:** confirmed for FY25 (Kotak). The FY26 repeat could not be confirmed in this pass.
 
 ## 8. Gaps (not public or not found)
