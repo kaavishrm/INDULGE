@@ -10,10 +10,10 @@ def _t(x, y, s, size=12, cls='', anchor='start', weight=400, ls=0, italic=False,
     return f'<text x="{x}" y="{y}" text-anchor="{anchor}" class="{cls}"{f}>{esc(s)}</text>'
 
 
-def window(story_title='Rahul & Anjali', story_line='Getting ready. Dinner at eight.', left='Anjali', right='Rahul'):
+def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is at eight.', left='Anjali', right='Rahul'):
     """Two dress forms in a shop window, a vanity mirror between them, a wall clock at 7:40."""
     o = ['<svg viewBox="0 0 800 560" role="img" aria-label="Line drawing: a Westside window with two dress forms styled as '
-         f'{esc(right)} and {esc(left)} getting ready for a dinner date, a mirror between them and a clock at twenty to eight">']
+         f'{esc(right)} and {esc(left)} getting ready for a date, a mirror between them and a clock at a quarter to eight">']
     # window frame and glass
     o.append('<rect class="fpanel" x="40" y="40" width="720" height="460"/>')
     o.append('<rect class="ln" x="40" y="40" width="720" height="460"/>')
@@ -22,7 +22,7 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. Dinner at ei
     # glass decal
     o.append(_t(78, 98, story_title, 30, 'tx-d', italic=True))
     o.append(_t(79, 122, story_line, 13, ls=.02))
-    o.append(_t(79, 142, 'A Westside window story', 9, ls=.18, fill='var(--ink-3)'))
+    o.append(_t(79, 142, 'A WESTSIDE WINDOW STORY', 9, weight=500, ls=.18, fill='var(--ink-3)'))
     # wall clock at 7:40
     o.append('<circle class="fw" cx="668" cy="112" r="30"/><circle class="ln" cx="668" cy="112" r="30"/>')
     for i in range(12):
@@ -47,16 +47,18 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. Dinner at ei
     # RAHUL: male form with a blazer over a shirt, cx 540
     o.append('<ellipse class="ln" cx="540" cy="146" rx="12" ry="3.5"/>')
     o.append('<path class="ln" d="M528 146 L529 164 M552 146 L551 164"/>')
-    jacket = ('M529 164 C506 166 484 170 474 180 C466 190 468 214 472 236 C476 262 480 300 482 340 '
-              'L598 340 C600 300 604 262 608 236 C612 214 614 190 606 180 C596 170 574 166 551 164 Z')
+    jacket = ('M529 164 C510 166 496 170 488 180 C482 190 484 214 487 236 C490 262 492 300 494 336 '
+              'L586 336 C588 300 590 262 593 236 C596 214 598 190 592 180 C584 170 570 166 551 164 Z')
+    o.append('<path class="fw" d="M500 336 L497 440 L535 440 L540 362 L545 440 L583 440 L580 336 Z"/>'
+             '<path class="ln" d="M500 336 L497 440 L535 440 L540 362 L545 440 L583 440 L580 336"/>')
     o.append(f'<path class="fw" d="{jacket}"/><path class="ln" d="{jacket}"/>')
     o.append('<path class="ln" d="M529 164 L540 186 L551 164"/>')            # shirt collar
     o.append('<path class="ln" d="M526 168 L512 214 L540 276 L568 214 L554 168"/>')  # lapels
     o.append('<path class="fp" d="M532 176 L540 270 L548 176 Z"/>')          # shirt front in tint
     o.append('<circle class="fi" cx="540" cy="292" r="2.6"/><circle class="fi" cx="540" cy="314" r="2.6"/>')
-    o.append('<path class="ln" d="M566 234 L586 232 L586 238"/><path class="lnp" d="M570 233 L575 226 L580 233"/>')  # pocket square
-    o.append('<path class="ln2" d="M488 300 L512 300 M568 300 L592 300"/>')
-    o.append('<path class="ln" d="M540 340 L540 462"/><ellipse class="ln" cx="540" cy="466" rx="42" ry="6"/>')
+    o.append('<path class="ln" d="M563 236 L581 236"/><path class="fp" d="M565 236 L579 236 L572 226 Z"/><path class="lnp" d="M565 236 L572 226 L579 236"/>')  # pocket square
+    o.append('<path class="ln2" d="M496 300 L514 300 M566 300 L584 300"/>')
+    o.append('<path class="ln" d="M540 440 L540 462"/><ellipse class="ln" cx="540" cy="466" rx="42" ry="6"/>')
     # vanity mirror with bulbs between them
     o.append('<rect class="fw" x="352" y="168" width="96" height="128" rx="48"/><rect class="ln" x="352" y="168" width="96" height="128" rx="48"/>')
     o.append('<path class="ln2" d="M372 214 L392 194 M378 236 L414 200"/>')
@@ -66,8 +68,7 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. Dinner at ei
     o.append('<path class="ln" d="M342 312 L458 312 M350 312 L350 452 M450 312 L450 452 M350 360 L450 360"/>')
     o.append('<rect class="fw" x="364" y="290" width="16" height="22" rx="2"/><rect class="ln" x="364" y="290" width="16" height="22" rx="2"/><path class="ln" d="M368 290 L368 284 L376 284 L376 290"/>')
     o.append('<circle class="ln" cx="402" cy="304" r="7"/><path class="ln2" d="M392 304 L395 304 M409 304 L413 304"/>')
-    o.append('<rect class="fi" x="420" y="296" width="26" height="14" rx="2"/>')
-    o.append(_t(433, 306, 'Table for 2', 5.2, anchor='middle', fill='var(--paper)'))
+    o.append('<rect class="fi" x="420" y="294" width="16" height="18" rx="2"/>')
     # look tags
     o.append(_t(250, 528, f'{left.upper()} · LOOK 01', 11, anchor='middle', weight=500, ls=.16))
     o.append(_t(540, 528, f'{right.upper()} · LOOK 02', 11, anchor='middle', weight=500, ls=.16))
@@ -105,7 +106,7 @@ def cart(menu, name='The Westside Coffee Cart'):
     o.append(_t(299, 392, 'W E S T S I D E', 10, anchor='middle', weight=500, ls=.12))
     o.append(_t(501, 336, 'Coffee, and the look', 13, 'tx-d', anchor='middle', italic=True))
     o.append(_t(501, 356, 'that goes with it.', 13, 'tx-d', anchor='middle', italic=True))
-    o.append(_t(501, 384, 'SCAN THE CUP FOR THE LOOK', 7.5, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
+    o.append(_t(501, 384, 'SHOW YOUR CUP IN STORE', 8, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     # espresso machine, cups, jar on the counter
     o.append('<rect class="fw" x="440" y="226" width="92" height="36" rx="3"/><rect class="ln" x="440" y="226" width="92" height="36" rx="3"/>')
     o.append('<path class="ln" d="M458 262 L458 254 L468 254 L468 262 M504 262 L504 254 L514 254 L514 262"/><circle class="ln2" cx="486" cy="240" r="7"/>')
@@ -121,20 +122,18 @@ def cart(menu, name='The Westside Coffee Cart'):
             o.append(f'<line class="ln2" x1="{cx}" y1="440" x2="{cx + 30 * math.cos(a):.1f}" y2="{440 + 30 * math.sin(a):.1f}"/>')
     o.append('<path class="ln" d="M610 300 L668 286 L672 292"/>')
     # standing menu board
-    o.append('<path class="ln" d="M44 474 L70 222 L170 222 L196 474"/>')
-    o.append('<rect class="fi" x="66" y="234" width="108" height="214"/>')
-    o.append(_t(120, 258, 'MENU', 9, anchor='middle', weight=500, ls=.3, fill='var(--paper)'))
-    y = 282
+    o.append('<path class="ln" d="M22 474 L44 222 L166 222 L172 474"/>')
+    o.append('<rect class="fi" x="40" y="234" width="124" height="214"/>')
+    o.append(_t(102, 260, 'MENU', 10, anchor='middle', weight=500, ls=.3, fill='var(--paper)'))
+    y = 288
     for item, price in menu:
-        o.append(_t(76, y, item, 8.2, fill='var(--paper)'))
-        o.append(_t(166, y, price, 8.2, anchor='end', fill='var(--paper)'))
-        y += 22
-    o.append(_t(120, 436, 'each cup comes with a look', 6.6, anchor='middle', italic=True, fill='var(--night-2)'))
+        o.append(_t(50, y, item, 8.4, fill='var(--paper)'))
+        y += 24
     o.append('</svg>')
     return ''.join(o)
 
 
-def rail():
+def rail(highlight='blazer', code='LOOK 014'):
     """A styling rail with six looks, one picked out, and a phone on a tripod with a ring light."""
     o = ['<svg viewBox="0 0 800 560" role="img" aria-label="Line drawing: a clothing rail with six outfits, one highlighted, '
          'and a phone on a tripod with a ring light, ready to film a look">']
@@ -147,7 +146,7 @@ def rail():
     for kind, cx in looks:
         o.append(f'<path class="ln" d="M{cx} 112 L{cx} 124 C{cx} 130 {cx + 8} 130 {cx + 8} 124"/>')
         o.append(f'<path class="ln" d="M{cx} 132 L{cx - 30} 150 M{cx} 132 L{cx + 30} 150"/>')
-        hl = kind == 'blazer'
+        hl = kind == highlight
         fill = 'fp' if hl else 'fw'
         if kind == 'shirt':
             d = f'M{cx - 30} 150 L{cx - 40} 210 L{cx - 30} 212 L{cx - 28} 280 L{cx + 28} 280 L{cx + 30} 212 L{cx + 40} 210 L{cx + 30} 150 Z'
@@ -168,15 +167,16 @@ def rail():
             d = f'M{cx - 26} 150 L{cx - 28} 226 L{cx + 28} 226 L{cx + 26} 150 Z M{cx - 26} 232 L{cx - 22} 360 L{cx - 2} 360 L{cx} 262 L{cx + 2} 360 L{cx + 22} 360 L{cx + 26} 232 Z'
             ex = ''
         o.append(f'<path class="{fill}" d="{d}"/><path class="ln" d="{d}"/>{ex}')
-    o.append(_t(370, 316, 'LOOK 014', 9, anchor='middle', weight=500, ls=.16))
-    o.append('<path class="lnp" d="M370 322 L370 404 L626 404"/>')
+    hx = dict(looks)[highlight]
+    o.append(_t(hx, 392, code, 13, anchor='middle', weight=500, ls=.14))
+    o.append(f'<path class="lnp" d="M{hx} 402 L{hx} 418 L664 418"/>')
     # ring light and phone on tripod
     o.append('<circle class="ln2" cx="664" cy="250" r="66"/><circle class="ln" cx="664" cy="250" r="58"/>')
     o.append('<rect class="fw" x="640" y="204" width="48" height="92" rx="7"/><rect class="ln" x="640" y="204" width="48" height="92" rx="7"/>')
     o.append('<circle class="fi" cx="653" cy="216" r="3"/>')
-    o.append(_t(661, 219, 'REC', 7, weight=500, ls=.1))
+    o.append(_t(659, 220, 'REC', 9, weight=500, ls=.1))
     o.append('<path class="ln" d="M664 296 L664 420 M664 420 L620 484 M664 420 L708 484 M664 420 L664 484"/>')
-    o.append(_t(626, 432, 'shot in store', 10, 'tx-d', anchor='end', italic=True))
+    o.append(_t(664, 522, 'filmed in store', 15, 'tx-d', anchor='middle', italic=True))
     o.append('</svg>')
     return ''.join(o)
 

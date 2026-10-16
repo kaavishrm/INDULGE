@@ -1,4 +1,5 @@
 """Small HTML helpers for the v4 slides. Every slide is a <section class="slide"> holding one 16:9 <div class="frame">."""
+import re
 from html import escape as esc
 
 W_MARK = '<svg viewBox="0 0 1506 1194" aria-hidden="true"><use href="#logo-w"/></svg>'
@@ -33,11 +34,12 @@ def table(cols, rows, cls='tbl', right=(), total=None, col_cls=None):
     col_cls = col_cls or {}
     def cell(i, v, tag='td'):
         c = []
+        dh = f' data-h="{esc(re.sub(r"<[^>]+>", "", cols[i]))}"' if tag == 'td' and i < len(cols) else ''
         if i in right:
             c.append('r')
         if i in col_cls:
             c.append(col_cls[i])
-        return f'<{tag}{" class=" + chr(34) + " ".join(c) + chr(34) if c else ""}>{v}</{tag}>'
+        return f'<{tag}{dh}{" class=" + chr(34) + " ".join(c) + chr(34) if c else ""}>{v}</{tag}>'
     h = '<tr>' + ''.join(cell(i, c, 'th') for i, c in enumerate(cols)) + '</tr>'
     b = ''.join('<tr>' + ''.join(cell(i, v) for i, v in enumerate(r)) + '</tr>' for r in rows)
     if total:
