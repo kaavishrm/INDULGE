@@ -8,7 +8,7 @@
 
  Error 54113
 
- Details: cache-iad-kiad7000041-IAD 1792190354 1477807985
+ Details: cache-dfw-kdfw8210135-DFW 1792190453 1636916864
 
  Varnish cache server
 
