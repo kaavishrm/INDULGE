@@ -14,28 +14,29 @@ F = {'stores': '311', 'stores_added': '50', 'cities': '97', 'members': '19 mn+',
 LAST12 = [
     ('Nov ’25', '<b>Wedding season</b> A men’s wedding style guide on westside.com, featuring Kala by E.T.A.', 'An edit page; we found no campaign', True),
     ('Dec ’25', '<b>Glitz &amp; Glam</b> A party capsule with the I-pop group W.i.S.H.', 'In store and online', False),
-    ('Jan ’26', '<b>Quiet month</b> We found no Republic Day or end-of-season sale campaign.', '', True),
+    ('Jan ’26', 'We found no Republic Day or end-of-season sale campaign.', '', True),
     ('Feb ’26', '<b>Wesness Fun Run</b> Mumbai, 8 February, with a W.i.S.H. live set.', '3,600+ participants', False),
-    ('Mar ’26', '<b>YNG</b> Trent’s Q4 deck reports Westside’s creator community.', '4,000 members, 6&nbsp;mn views', False),
-    ('Apr ’26', '<b>Run2Quiz, Run2Zumba</b> Wesness runs that start at stores in Bengaluru and Mumbai.', '₹499 entry; no results published', False),
+    ('Mar ’26', '<b>YNG</b> Trent’s Q4 deck reports on the creator community, January to March.', '4,000 members, 6&nbsp;mn views', False),
+    ('Apr ’26', '<b>Run2Quiz, Run2Zumba</b> Wesness runs that start at stores in Bengaluru and Mumbai.', '₹499 entry; no results found', False),
     ('May ’26', '<b>Wesness Fun Run</b> Bengaluru, plus Run2Rave, pickleball and heritage runs in four cities.', '3,300+ participants', False),
-    ('Jun ’26', '<b>AGM</b> Trent plans about 50 new Westside stores a year.', 'We found no brand activity', True),
-    ('Jul ’26', '<b>Run2Stepup</b> Mumbai, 19 July, the last Wesness event we found.', '', True),
-    ('Aug ’26', '<b>Quiet month</b> We found no Independence Day or back-to-college work.', '', True),
-    ('Sep ’26', '<b>9 Days 9 Colours</b> The Navratri edit on westside.com.', '311 stores at quarter end', False),
+    ('Jun ’26', '<b>AGM</b> Trent plans about 50 new Westside stores a year.', '', True),
+    ('Jul ’26', '<b>Run2Stepup</b> Mumbai, 19 July, the last Wesness event we found.', '', False),
+    ('Aug ’26', 'We found no Independence Day or back-to-college work.', '', True),
+    ('Sep ’26', '<b>9 Days 9 Colours</b> The Navratri edit on westside.com, live ahead of Navratri on 11 October.', '311 stores at quarter end', False),
     ('Oct ’26', '<b>FRONT ROW</b> A fashion and culture platform: 80 looks, 150 culture-shapers, 30 New Faces.', 'Three national Dance Off challenges to come', False),
 ]
 
 POSITIONING = {
     'year_title': 'A year measured in turnout and views.',
-    'year_line': 'Runs, a creator community, a culture platform and festive edits on westside.com, while 50 new stores opened.',
-    'year_stats': [('6&nbsp;mn', 'views from YNG, Westside’s 4,000-member creator community', 'Trent Q4 FY26 investor presentation'),
+    'year_line': 'Westside ran Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com, while the chain grew by 50 stores.',
+    'year_stats': [('6&nbsp;mn', 'views from YNG, Westside’s 4,000-member creator community, January to March 2026', 'Trent Q4 FY26 investor presentation'),
                    ('3,600+', 'people at the biggest Wesness run, Mumbai, February 2026', 'Trent Q4 FY26 investor presentation'),
-                   ('0', 'published results we found that count a store visit', 'our review of Trent filings, decks and press, to 16 Oct 2026')],
-    'year_src': ('Sources: Trent investor presentations Q4 FY26 (22 Apr 2026) and Q1 FY27 (6 Aug 2026); Trent store updates; Indian Retailer, '
-                 '3 Oct 2026 (FRONT ROW); westside.com; Wesness listings. Anything marked as not found means none in public sources.'),
+                   ('Footfall', 'not yet reported for any campaign; this test adds it', 'our review of Trent filings, decks and press, to 16 Oct 2026')],
+    'year_src': ('Sources: Trent investor presentations Q4 FY26 (22 Apr 2026) and Q1 FY27 (6 Aug 2026); Trent store updates; Trent Wesness press release, '
+                 '10 Feb 2026; 74th AGM, 23 Jun 2026, as reported by CNBC-TV18; Indian Retailer, 3 Oct 2026 (FRONT ROW); westside.com; Wesness listings. '
+                 '“We found no” means not in Trent filings, trade press or event listings; we have not yet reviewed Westside’s Instagram feed.'),
     'voice_title': 'Westside speaks through YNG, Wesness and FRONT ROW.',
-    'voice_lede': 'The everyday voice is warm and inclusive; the events are editorial. Nothing yet links the two, or takes people from a post into a store.',
+    'voice_lede': 'The everyday voice is warm and inclusive; the events are editorial. We found nothing that links the two, or takes people from a post into a store.',
     'themes': ['<b>New Indian talent.</b> YNG creators, 30 New Faces, FRONT ROW.',
                '<b>Culture beyond clothes.</b> I-pop, dance-offs, fitness runs.',
                '<b>Women together.</b> Wesness runs in four cities, 3,600+ at the biggest.',
@@ -45,29 +46,29 @@ POSITIONING = {
                       'Give every new store the same local launch, with creators and looks styled from its rails.',
                       'End every post and every event in a store, and count the visit.'],
     'answers': [('Styled by Westside', 'Starts with YNG’s creators and the new designs that land every week.'),
-                ('The Westside Coffee Cart', 'Goes where Westside already gathers people, from Wesness finish lines to launch weekends.'),
-                ('Window Stories', 'Casts FRONT ROW’s New Faces as the couples and families in the windows.')],
+                ('The Westside Coffee Cart', 'Goes where Westside already gathers people, from store forecourts to launch weekends.'),
+                ('Window Stories', 'Casts FRONT ROW’s New Faces as the couples in the window Reels.')],
     'voice_src': ('Sources: Trent investor presentations Q2 FY26 to Q1 FY27 (Wesness, YNG), Indian Retailer, 3 Oct 2026 (FRONT ROW), westside.com, '
-                  'Bloomberg interview with Shailina Parti, 20 Jul 2026 (designs).'),
+                  'Bloomberg interview with Shailina Parti, 20 Jul 2026, as reported by Retail Insight Network (designs).'),
 }
 
 # research note 04, every row re-checked by search on 16 Oct 2026; source pages are fetched into sources/
 COMPETITORS = [
-    {'name': 'Shoppers Stop', 'stores': '288 stores, Jun&nbsp;2026',
+    {'name': 'Shoppers Stop', 'stores': '115 department stores, Jun&nbsp;2026 (288 in all formats)',
      'did': '“India Weds with Shoppers Stop”, “The Travel Edit” and “Get Spotlight Ready” with HYBE India (Apr to Jun 2026). Customer entries up 3% like-for-like.',
-     'win': 'Every piece is Westside’s own, so each weekly look is stocked in a named store. A multi&#8209;brand floor cannot promise that.'},
+     'win': 'Almost every piece is Westside’s own, so each weekly look is stocked in a named store. A multi&#8209;brand floor cannot promise that.'},
     {'name': 'Max Fashion', 'stores': 'Landmark Group',
      'did': '“How New Is Your New?” films with Siddhant Chaturvedi, Kalki Koechlin and Alaya F, selling weekly newness (Aug to Sep 2025).',
-     'win': 'Show this week’s new looks on Westside’s pages and in each store’s window.'},
+     'win': 'Show this week’s new looks on Westside’s pages, styled in its own stores.'},
     {'name': 'Pantaloons', 'stores': 'ABFRL',
      'did': 'First-ever ambassador, Samantha Ruth Prabhu, with the festive “Spark Your Imagination” campaign (Oct 2025).',
      'win': 'Westside stylists and local creators instead of one star, each tied to a named store.'},
     {'name': 'Trends', 'stores': 'Reliance Retail',
-     'did': '“This Holiday, Trend It” with Aneet Padda: spend ₹1,499 or more, scan a QR code in store, enter a draw for 100+ holidays (20 Apr to 17 May 2026).',
-     'win': 'No discounts or lucky draws. People come in for a styled look, a coffee or a window story.'},
-    {'name': 'H&amp;M', 'stores': '71 stores in India',
+     'did': '“This Holiday, Trend It” with Aneet Padda: spend ₹1,499 or more, scan a QR code in store and make an AI holiday song; the 100+ most creative entries win holidays (20 Apr to 17 May 2026).',
+     'win': 'No discounts or spend-to-win contests. People come in for a styled look, a coffee or a window story.'},
+    {'name': 'H&amp;M', 'stores': '71 stores in India, Apr&nbsp;2026',
      'did': '“Icons in the Making” with HYBE India: pop-ups in six cities with H&amp;M Beauty stations (May to Jun 2026). A Lollapalooza India 2026 collection.',
-     'win': 'The cart and the windows run at Westside’s own stores, on Westside’s calendar, so the visits stay with Westside.'},
+     'win': 'The windows and the carts run on Westside’s calendar and send people to its own stores.'},
     {'name': 'Uniqlo', 'stores': 'Uniqlo India',
      'did': 'Three openings in Bengaluru and Pune (Mar to Jun 2026). A fleece campaign with Kriti Sanon and Jasprit Bumrah (Oct 2026).',
      'win': 'With 311 stores, every new Westside gets a local launch and every window a story.'},
@@ -78,11 +79,10 @@ COMPETITORS = [
 
 # The biggest content figure Westside has published in the last twelve months: YNG, Trent Q4 FY26 investor presentation.
 BASELINE = {
-    'label': 'YNG, views', 'value': '6&nbsp;mn', 'pct_base': 40, 'pct_plan': 100,
-    'plan_line': ('Westside’s biggest published content figure in the last year is 6&nbsp;mn YNG views. The test targets 15&nbsp;mn impressions in twelve weeks, '
-                  'and at least 20% more reach than Westside’s best comparable campaign of the last year.'),
-    'compare_line': ('Views count plays; impressions count every showing. In week one we swap in Westside’s best comparable campaign of the last '
-                     'twelve months and commit to beat its reach by at least 20%. If organic reach is behind plan by week six, we move budget into paid Reels.'),
+    'label': 'YNG views, Jan to Mar 2026', 'value': '6&nbsp;mn', 'pct_base': 40, 'pct_plan': 100,
+    'plan_line': ('Westside’s biggest published content figure in the last year is 6&nbsp;mn YNG views, in January to March 2026. '
+                  'The test also aims for at least 20% more views and impressions than Westside’s best comparable campaign of the last year.'),
+    'compare_line': '',  # filled below from the model
     'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the model on the numbers slide.',
 }
 
@@ -151,9 +151,11 @@ MODEL = {
     'total_label': '15&nbsp;mn',
     'by_idea': _by_idea,
     'table': {'rows': _rows, 'total': ['Total', '', '', '', _mn(_tot[0]), _mn(_tot[1]), _mn(_tot[2])]},
-    'src': ('Inputs: clip and city pages at 35,000 views a post, from a Qoruz report via Social Samosa, 2025 (₹1 lakh buys 10–20 meme-page posts and '
-            '500,000+ views). Reels ads at ₹45–140 per 1,000 impressions in India (Upgrowth, 2026), planned at ₹120. Westside and creator averages are '
-            'planning figures, replaced with real averages in week two. Low = 60% of organic, high = 150%; paid is fixed.'),
+    'src': ('Inputs: clip, city and food pages at 35,000 views a post, the midpoint of a Qoruz figure for film meme pages (Social Samosa, 31 Dec 2025: '
+            '₹1 lakh of creator spend drives 10–20 posts and 500,000+ organic views); city and food pages use it until we have their own Insights. '
+            f'Reels ads at ₹45–140 per 1,000 impressions in India (Upgrowth, 2026), planned at ₹120; the same source puts fashion at ₹140–280, and at ₹140 the '
+            f'boosts give {_label(PAID * 120 / 140)} and the plan {_label(_tot[1] - PAID + PAID * 120 / 140)}. Westside and creator averages are planning figures, '
+            'replaced with real averages in week two. Low = 60% of organic, high = 150%; paid is fixed. Totals are summed before rounding.'),
     'styling': {
         'label': _label(_by_idea['Styled by Westside'][1]), 'note': _range('Styled by Westside'),
         'ends': 'Each look has a code. Show it at the store and the team brings the outfit in your size.',
@@ -164,7 +166,7 @@ MODEL = {
                  ['Creators', 'YNG members first, then fashion and lifestyle creators with 50,000 to 500,000 followers', '40', '3 to 4 a week', 'One styled look each, posted on their page'],
                  ['Clip and city pages', 'Paid posts on pages people already follow; Westside approves the list', '55', '4 to 5 a week', 'Reach beyond Westside’s followers'],
                  ['Westside’s pages', 'Instagram and YouTube Shorts', '36', '3 a week', 'Every look in one place'],
-                 ['Stores featured', 'Each look tagged to a named store and its rail', '48', '4 a week', 'A code to show at the counter']],
+                 ['Store features', 'Each look tagged to a named store in the test city and its rail', '48', '4 a week', 'A code to show at the counter']],
         'src': 'Plan figures are Mask360’s proposal for the twelve-week test. Impressions from the model on the numbers slide.',
     },
     'cart': {
@@ -197,6 +199,21 @@ MODEL = {
     },
 }
 
+# lines computed from the model, so the copy always matches the table
+_organic = _tot[1] - PAID
+BASELINE['compare_line'] = (f'Our organic lines count views, as YNG’s 6&nbsp;mn does ({_label(_organic)} of the {MODEL["total_label"]}); the paid lines '
+                            f'count impressions ({_label(PAID)}). In week one we swap in Westside’s best comparable campaign of the last twelve months '
+                            'and commit to beat its views or impressions, whichever Westside reported, by at least 20%. If organic views are behind '
+                            'plan by week six, we move budget into paid Reels.')
+_by_line, _c = {}, ''
+for idea, ch, ut, u, at, a, paid in LINES:
+    _c = idea or _c
+    _by_line[(_c, ch)] = _imp(u, a, paid)
+_cart_paid_posts = _by_line[('Coffee Cart', 'Creators at the cart')] + _by_line[('Coffee Cart', 'Clip, city and food pages')]
+MODEL['cart']['reach_line'] = (f'Paid creator and page posts give {_label(_cart_paid_posts)} impressions; Westside’s own Reels and a ₹2 lakh Reels boost '
+                               f'take the total to {MODEL["cart"]["label"]}.')
+
+
 MANIFEST = HERE.parent / 'media' / 'out' / 'manifest.json'
 _items = {v['slug']: v for v in json.loads(MANIFEST.read_text())} if MANIFEST.exists() else {}
 
@@ -222,7 +239,7 @@ REF_GROUPS = [
         _v('18-42-53-3', '<b>Looks built on one colour</b>'),
         _v('18-42-50', '<b>A creator’s own take</b>'),
     ]),
-    ('Finish, store moments and craft', [
+    ('Store moments and craft', [
         _v('18-20-13', '<b>Fit, captioned on screen</b>'),
         _v('18-20-15', '<b>One studio, quick cuts</b>'),
         _v('18-20-10', '<b>A rail of jackets, outdoors</b>'),

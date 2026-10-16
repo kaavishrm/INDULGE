@@ -10,6 +10,7 @@
   const go = i => slides[Math.max(0, Math.min(total - 1, i))].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 
   addEventListener('keydown', e => {
+    if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } return; }
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
     if (t.closest && t.closest('video, input, textarea, select, button, [contenteditable]')) return;
@@ -20,20 +21,53 @@
     else if (k === 'End') { e.preventDefault(); go(total - 1); }
   });
 
-  // reference videos: nothing loads until someone presses play; one plays at a time
+  // reference videos: nothing loads until someone presses play. Play opens the clip large, over the deck, with the browser's own
+  // controls (play, sound, volume, full screen); Esc, the close button or a click outside puts it back on its slide.
   const vids = [...document.querySelectorAll('.vbox video')];
+  let lb = null, open = null;
+  function close() {
+    if (!open) return;
+    const { v, box } = open;
+    open = null;
+    v.pause();
+    v.controls = false;
+    box.insertBefore(v, box.firstChild);
+    lb.hidden = true;
+    document.documentElement.classList.remove('lb-open');
+    const b = box.querySelector('.vplay');
+    if (b) b.focus({ preventScroll: true });
+  }
+  function build() {
+    lb = document.createElement('div');
+    lb.className = 'vlight';
+    lb.hidden = true;
+    lb.setAttribute('role', 'dialog');
+    lb.setAttribute('aria-modal', 'true');
+    lb.setAttribute('aria-label', 'Reference clip');
+    lb.innerHTML = '<div class="vl-stage"></div><p class="vl-cap"></p><button class="vl-x" type="button">Close</button>';
+    lb.addEventListener('click', e => { if (e.target === lb) close(); });
+    lb.querySelector('.vl-x').addEventListener('click', close);
+    document.body.appendChild(lb);
+  }
   document.querySelectorAll('.vbox .vplay').forEach(b => {
     b.addEventListener('click', () => {
+      if (!lb) build();
+      if (open) close();
       const box = b.closest('.vbox');
       const v = box.querySelector('video');
-      box.classList.add('on');
+      const cap = box.parentElement.querySelector('.cap');
+      open = { v, box };
+      lb.querySelector('.vl-stage').appendChild(v);
+      lb.querySelector('.vl-cap').textContent = cap ? cap.textContent : '';
       v.controls = true;
+      lb.hidden = false;
+      document.documentElement.classList.add('lb-open');
       const p = v.play();
       if (p && p.catch) p.catch(() => {});
       v.focus({ preventScroll: true });
     });
   });
-  vids.forEach(v => v.addEventListener('play', () => vids.forEach(o => { if (o !== v && !o.paused) o.pause(); })));
+  vids.forEach(v => v.addEventListener('webkitendfullscreen', close));
 
   if (location.hash) {
     const el = document.getElementById(location.hash.slice(1));

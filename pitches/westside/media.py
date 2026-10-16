@@ -10,6 +10,9 @@ and a manifest.json describing them all.
 import json, pathlib, re, subprocess, sys
 
 VIDEO = {'.mp4', '.mov', '.m4v', '.webm', '.mkv', '.avi'}
+# poster frame times that avoid a logo under the play button or a large warm frame
+POSTER_AT = {'whatsapp-video-2026-10-16-at-18-20-10': 4.0, 'whatsapp-video-2026-10-16-at-18-42-51-2': 12.0,
+             'whatsapp-video-2026-10-16-at-18-20-25': 7.0, 'whatsapp-video-2026-10-16-at-18-42-50-2': 6.0}
 SRC, OUT = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'review').mkdir(exist_ok=True)
@@ -67,7 +70,7 @@ for p in files:
     run('ffmpeg', '-y', '-v', 'error', '-i', p, '-vf', vf, '-c:v', 'libsvtav1', '-preset', '8', '-crf', '36',
         '-g', str(int(ofps * 8)), '-svtav1-params', f'mbr={int(cap * 600)}', '-pix_fmt', 'yuv420p',
         *audio, '-movflags', '+faststart', av1)
-    at = min(1.5, dur / 3) if dur else 0
+    at = POSTER_AT.get(slug, min(1.5, dur / 3) if dur else 0)
     run('ffmpeg', '-y', '-v', 'error', '-ss', f'{at:.2f}', '-i', p, '-frames:v', '1',
         '-vf', f'scale={min(1600, ow) if not portrait else -2}:{-2 if not portrait else min(1600, oh)}',
         '-c:v', 'libwebp', '-quality', '72', poster)

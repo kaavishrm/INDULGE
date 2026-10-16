@@ -41,7 +41,8 @@ img,svg,video{max-width:100%;display:block}
 .f-s{font-size:calc(var(--u)*1)}
 .f-m{font-size:calc(var(--u)*1.12)}
 .f-l{font-size:calc(var(--u)*1.42)}
-p,li,td,th,dd,dt{font-size:calc(var(--u)*1.12);line-height:1.45;margin:0}
+p,li,td,th,dd,dt{font-size:calc(var(--u)*1.12);line-height:1.45;margin:0;text-wrap:pretty}
+[hidden]{display:none!important}
 h1,h2,h3,h4{margin:0;font-weight:400;text-wrap:balance}
 .h-display{font-family:var(--display);font-size:calc(var(--u)*5.4);line-height:1.02;letter-spacing:-.01em}
 .h1{font-family:var(--display);font-size:calc(var(--u)*3.7);line-height:1.06;letter-spacing:-.005em}
@@ -52,7 +53,7 @@ em,.it{font-style:italic}
 .h1 em,.h2 em,.h-display em{font-style:italic}
 .lede{font-size:calc(var(--u)*1.5);line-height:1.38;max-width:44em;color:var(--ink-2)}
 .dark .lede{color:var(--night-2)}
-.label{font-family:var(--text);font-weight:500;font-size:calc(var(--u)*.74);letter-spacing:.16em;text-transform:uppercase}
+.label{font-family:var(--text);font-weight:500;font-size:calc(var(--u)*1);letter-spacing:.14em;text-transform:uppercase}
 .mute{color:var(--ink-3)}
 .dark .mute{color:var(--night-2)}
 .ink2{color:var(--ink-2)}
@@ -70,9 +71,9 @@ b,strong{font-weight:500}
 .head .x{opacity:.5}
 .head .m{height:calc(var(--u)*.75)!important;opacity:.8}
 .folio{margin-top:auto;padding-top:calc(var(--u)*1.4);display:flex;justify-content:space-between;align-items:flex-end;gap:calc(var(--u)*3)}
-.folio .src{font-size:calc(var(--u)*.78);font-weight:400;line-height:1.4;color:var(--ink-2);max-width:84%}
+.folio .src{font-size:calc(var(--u)*.9);font-weight:400;line-height:1.4;color:var(--ink-2);max-width:84%}
 .dark .folio .src{color:var(--night-2)}
-.folio .pg{font-size:calc(var(--u)*.74);letter-spacing:.12em;color:var(--ink-3);white-space:nowrap}
+.folio .pg{font-size:calc(var(--u)*.86);letter-spacing:.12em;color:var(--ink-3);white-space:nowrap}
 .body{flex:1;min-height:0;display:flex;flex-direction:column}
 
 /* grids */
@@ -86,6 +87,7 @@ b,strong{font-weight:500}
 .c-4-8{grid-template-columns:4fr 8fr}
 .c-8-4{grid-template-columns:8fr 4fr}
 .c-6-6{grid-template-columns:1fr 1fr}
+.c-3-9{grid-template-columns:3fr 9fr}
 .stack{display:flex;flex-direction:column;gap:calc(var(--u)*1)}
 .stack-l{display:flex;flex-direction:column;gap:calc(var(--u)*1.8)}
 .grow{flex:1;min-height:0}
@@ -103,7 +105,7 @@ b,strong{font-weight:500}
 .stat .num{font-size:calc(var(--u)*4.3);letter-spacing:-.01em}
 .stat .num small{font-size:.48em;margin-left:.08em}
 .stat .k{margin-top:calc(var(--u)*.7);font-size:calc(var(--u)*1.12);line-height:1.35}
-.stat .s{margin-top:calc(var(--u)*.45);font-size:calc(var(--u)*.86);font-weight:400;color:var(--ink-2);line-height:1.35}
+.stat .s{margin-top:calc(var(--u)*.45);font-size:calc(var(--u)*1);font-weight:400;color:var(--ink-2);line-height:1.35}
 .dark .stat .s{color:var(--night-2)}
 
 /* a board of numbers: three across, ruled, filling the column */
@@ -123,12 +125,15 @@ b,strong{font-weight:500}
 .lockup .m{height:calc(var(--u)*1.7)}
 .lockup .x{font-size:calc(var(--u)*1.4);color:var(--ink-3)}
 .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*2.4);margin-top:calc(var(--u)*1.6)}
-.trio figure{margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.6)}
-.trio svg{width:100%;height:auto;max-height:calc(var(--u)*13)}
+.trio figure{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:calc(var(--u)*.6)}
+.trio svg{width:auto;max-width:100%;height:calc(var(--u)*15)}
 .trio figcaption{color:var(--plan)}
 .num.step{font-size:calc(var(--u)*3)}
 .flow>div{position:relative}
-.flow>div:not(:last-child)::after{content:"→";position:absolute;right:calc(var(--u)*-1.85);top:calc(var(--u)*1.6);font-size:calc(var(--u)*1.6);color:var(--ink-3)}
+.flow>div:not(:last-child)::after{content:"→";position:absolute;right:calc(var(--u)*-1.85);top:calc(var(--u)*-1.25);font-size:calc(var(--u)*1.6);color:var(--ink-3);background:var(--paper);padding-inline:calc(var(--u)*.2)}
+.flow .num.step{font-size:calc(var(--u)*4.4)}
+.flow .h3{font-size:calc(var(--u)*1.6)}
+.flow p.ink2{font-size:calc(var(--u)*1.3);line-height:1.45}
 .m-logo{width:46%}
 .m-logo svg{width:100%;height:auto;fill:currentColor}
 .gantt{display:grid;grid-template-columns:calc(var(--u)*11) repeat(17,minmax(0,1fr));column-gap:3px;row-gap:calc(var(--u)*.35);align-items:center}
@@ -139,7 +144,7 @@ b,strong{font-weight:500}
 .gantt .bar-plan{background:var(--plan)}
 .gantt .bar-ink{background:var(--ink)}
 .gantt .note{grid-column:2/-1;margin:0 0 calc(var(--u)*.4)}
-.dates p{font-size:calc(var(--u)*1)}
+.dates p:not(.label){font-size:calc(var(--u)*1.12)}
 
 /* bullets that read like a memo */
 .list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.75)}
@@ -154,9 +159,9 @@ ol.list li::before{content:counter(n);counter-increment:n;width:auto;height:auto
 
 /* tables and matrices */
 .tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.tbl th{font-family:var(--text);font-weight:500;font-size:calc(var(--u)*.72);letter-spacing:.12em;text-transform:uppercase;text-align:left;color:var(--ink-3);
+.tbl th{font-family:var(--text);font-weight:500;font-size:calc(var(--u)*.95);letter-spacing:.12em;text-transform:uppercase;text-align:left;color:var(--ink-3);
   padding:0 calc(var(--u)*1) calc(var(--u)*.7) 0;border-bottom:1px solid var(--ink);vertical-align:bottom}
-.tbl td{padding:calc(var(--u)*.62) calc(var(--u)*1) calc(var(--u)*.62) 0;border-bottom:1px solid var(--line);vertical-align:top;font-size:calc(var(--u)*.98);line-height:1.38}
+.tbl td{padding:calc(var(--u)*.62) calc(var(--u)*1) calc(var(--u)*.62) 0;border-bottom:1px solid var(--line);vertical-align:top;font-size:calc(var(--u)*1.06);line-height:1.38}
 .tbl td:last-child,.tbl th:last-child{padding-right:0}
 .tbl .r{text-align:right}
 .tbl tr.tot td{border-bottom:none;border-top:1px solid var(--ink);font-weight:500}
@@ -170,7 +175,7 @@ ol.list li::before{content:counter(n);counter-increment:n;width:auto;height:auto
 .tbl.model tr:has(td b) td{border-bottom-color:var(--ink-3)}
 .tbl .plan-col{color:var(--plan)}
 .tbl.tight td{padding-block:calc(var(--u)*.45)}
-.tbl.small td{font-size:calc(var(--u)*.9)}
+.tbl.small td{font-size:calc(var(--u)*1)}
 .dark .tbl th{color:var(--night-2);border-color:var(--night-ink)}
 .dark .tbl td{border-color:var(--night-line)}
 .scroll-x{overflow-x:auto;max-width:100%}
@@ -181,11 +186,11 @@ ol.list li::before{content:counter(n);counter-increment:n;width:auto;height:auto
 .months .m{padding:calc(var(--u)*.8) calc(var(--u)*.7) calc(var(--u)*1);border-right:1px solid var(--line);min-height:0}
 .months .m:first-child{padding-left:0}
 .months .m:last-child{border-right:none}
-.months .mn{font-weight:500;font-size:calc(var(--u)*.72);letter-spacing:.12em;text-transform:uppercase}
+.months .mn{font-weight:500;font-size:calc(var(--u)*.9);letter-spacing:.12em;text-transform:uppercase}
 .months .ev{margin-top:calc(var(--u)*.8);font-size:calc(var(--u)*1.04);line-height:1.34}
 .months .ev b{display:block;font-weight:500}
-.months .rs{margin-top:calc(var(--u)*.6);font-size:calc(var(--u)*.84);font-weight:500;line-height:1.3;color:var(--ink)}
-.months .m.quiet .ev{color:var(--ink-3)}
+.months .rs{margin-top:calc(var(--u)*.6);font-size:calc(var(--u)*1.02);font-weight:500;line-height:1.3;color:var(--ink)}
+.months .m.quiet .ev{color:var(--ink-2)}
 .months .ev b{margin-bottom:calc(var(--u)*.25)}
 .big-list li{font-size:calc(var(--u)*1.32);line-height:1.4}
 .big-list{gap:calc(var(--u)*1.1)}
@@ -195,6 +200,8 @@ ol.list li::before{content:counter(n);counter-increment:n;width:auto;height:auto
 .idea .no{font-family:var(--display);font-size:calc(var(--u)*1.6);color:var(--plan)}
 .idea .imp{font-family:var(--display);font-size:calc(var(--u)*3.8);line-height:1;color:var(--plan)}
 .idea .idea-d{min-height:calc(1.45em*3)}
+.idea .rule p.mt-s{min-height:calc(1.45em*2)}
+.tbl.roomy th:first-child{white-space:nowrap}
 .idea .imp small{font-size:.42em;font-family:var(--text);color:var(--ink-2);margin-left:.3em}
 
 /* bar for target vs baseline */
@@ -221,7 +228,8 @@ svg .tx-d{font-family:var(--display)}
 /* video references */
 .vgrid{display:grid;gap:calc(var(--u)*1.6);grid-template-columns:repeat(var(--vc,3),minmax(0,1fr));align-content:center}
 .vcard{display:flex;flex-direction:column;gap:calc(var(--u)*.5);min-width:0}
-.vgrid.two-rows{grid-template-columns:repeat(6,calc(var(--u)*8.4));justify-content:center;column-gap:calc(var(--u)*2.2);row-gap:calc(var(--u)*1.4)}
+.vgrid.two-rows{grid-template-columns:repeat(6,calc(var(--u)*9.6));justify-content:end;column-gap:calc(var(--u)*1.6);row-gap:calc(var(--u)*1.2)}
+.vgrid .vbox{aspect-ratio:9/16}
 .vbox{position:relative;background:var(--night);aspect-ratio:var(--ar,16/9);overflow:hidden}
 .vbox video{width:100%;height:100%;object-fit:contain;background:var(--night)}
 .vbox .vplay{position:absolute;inset:0;display:grid;place-items:center;border:0;padding:0;cursor:pointer;background:center/cover no-repeat var(--poster),var(--night);color:var(--night-ink)}
@@ -229,9 +237,19 @@ svg .tx-d{font-family:var(--display)}
 .vbox .vplay svg{width:38%;height:38%;fill:currentColor;margin-left:8%}
 .vbox .vplay:hover span{background:rgba(24,24,26,.75)}
 .vbox.on .vplay{display:none}
-.vcard .cap{font-size:calc(var(--u)*.9);line-height:1.3}
+.vcard .cap{font-size:calc(var(--u)*1);line-height:1.3}
 .vcard .cap b{font-weight:500}
 .vcard .meta{font-size:calc(var(--u)*.7);color:var(--ink-3);letter-spacing:.06em}
+/* the clip, opened large over the deck (outside the slide, so sized in px) */
+.vlight{position:fixed;inset:0;z-index:20;background:rgba(24,24,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:calc(env(safe-area-inset-top,0px) + 56px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(16px,env(safe-area-inset-left,0px))}
+.vl-stage{height:min(calc(100vh - 130px),calc((100vw - 32px) * 16 / 9));height:min(calc(100dvh - 130px),calc((100vw - 32px) * 16 / 9));aspect-ratio:9/16;max-width:100%}
+.vl-stage video{width:100%;height:100%;object-fit:contain;background:var(--night)}
+.vl-cap{color:var(--night-ink);font:400 15px/1.3 var(--text);text-align:center}
+.vl-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:max(16px,env(safe-area-inset-right,0px));font:500 12px/1 var(--text);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--night-ink);background:transparent;border:1px solid var(--night-line);padding:10px 14px;cursor:pointer}
+.vl-x:hover{border-color:var(--night-ink)}
+html.lb-open{overflow:hidden}
 .vempty{position:absolute;inset:0;display:grid;place-items:center;color:var(--night-2);font-size:calc(var(--u)*.9);text-align:center;padding:calc(var(--u)*2)}
 
 /* deck counter: the only control on screen */
@@ -251,7 +269,7 @@ svg .tx-d{font-family:var(--display)}
   .h-display{font-size:40px}.h1{font-size:32px}.h2{font-size:25px}
   .lede{font-size:18px}
   p,li,td,dd,dt{font-size:15.5px}
-  .row,.c2,.c3,.c4,.c5,.c-5-7,.c-7-5,.c-4-8,.c-8-4,.c-6-6{grid-template-columns:minmax(0,1fr)}
+  .row,.c2,.c3,.c4,.c5,.c-5-7,.c-7-5,.c-4-8,.c-8-4,.c-6-6,.c-3-9{grid-template-columns:minmax(0,1fr)}
   .months{grid-template-columns:repeat(2,minmax(0,1fr))}
   .months .m{min-height:0;padding-bottom:14px;border-bottom:1px solid var(--line)}
   .months .m:nth-child(2n){border-right:none}
@@ -265,7 +283,7 @@ svg .tx-d{font-family:var(--display)}
   .m-hide{display:none}
   .mt-auto{margin-top:calc(var(--u)*2.2)}
   .row+.row,.stack-l+.row{margin-top:24px}
-  .f-s{font-size:14.5px} .stat .s{font-size:12.5px} .folio .src{font-size:11.5px} .tbl.small td{font-size:14px} .label{font-size:11px}
+  .f-s{font-size:14.5px} .stat .s{font-size:13px} .folio .src{font-size:12px} .tbl.small td{font-size:14px} .label{font-size:12px}
   .head .label{max-width:62%;line-height:1.35}
   .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
   .months .m:nth-child(odd){padding-left:0} .months .m:nth-child(even){padding-left:12px}
@@ -274,7 +292,9 @@ svg .tx-d{font-family:var(--display)}
   .board{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lockup svg{height:44px} .lockup .m{height:22px}
   .gantt{grid-template-columns:90px repeat(17,minmax(0,1fr));column-gap:1px}
-  .gantt .wk{font-size:8px}
+  .gantt .wk{font-size:10.5px;letter-spacing:0} .gantt .wk:nth-child(odd){color:transparent}
+  .flow .num.step{font-size:44px} .flow .h3{font-size:19px} .flow p.ink2{font-size:15.5px}
+  .trio svg{width:100%;height:auto}
   .tbl.stackable thead{display:none}
   .tbl.stackable tr{display:block;padding:12px 0;border-bottom:1px solid var(--line)}
   .tbl.stackable td{display:block;border:0;padding:2px 0;text-align:left;white-space:normal}

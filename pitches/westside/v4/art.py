@@ -4,14 +4,19 @@ import math
 from html import escape as esc
 
 
+def _none(*a, **k):
+    return ''
+
+
 def _t(x, y, s, size=12, cls='', anchor='start', weight=400, ls=0, italic=False, fill=None):
     st = f'font-size:{size}px;font-weight:{weight}' + (f';letter-spacing:{ls}em' if ls else '') + (';font-style:italic' if italic else '')
     f = f' style="{st}{";fill:" + fill if fill else ""}"'
     return f'<text x="{x}" y="{y}" text-anchor="{anchor}" class="{cls}"{f}>{esc(s)}</text>'
 
 
-def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is at eight.', left='Anjali', right='Rahul'):
-    """Two dress forms in a shop window, a vanity mirror between them, a wall clock at 7:40."""
+def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is at eight.', left='Anjali', right='Rahul', labels=True):
+    """Two dress forms in a shop window, a vanity mirror between them, a wall clock at 7:45. labels=False drops the text (small sizes)."""
+    _t = globals()['_t'] if labels else _none
     o = ['<svg viewBox="0 0 800 560" role="img" aria-label="Line drawing: a Westside window with two dress forms styled as '
          f'{esc(right)} and {esc(left)} getting ready for a date, a mirror between them and a clock at a quarter to eight">']
     # window frame and glass
@@ -22,7 +27,7 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is 
     # glass decal
     o.append(_t(78, 98, story_title, 30, 'tx-d', italic=True))
     o.append(_t(79, 122, story_line, 13, ls=.02))
-    o.append(_t(79, 142, 'A WESTSIDE WINDOW STORY', 9, weight=500, ls=.18, fill='var(--ink-3)'))
+    o.append(_t(79, 144, 'A WESTSIDE WINDOW STORY', 11, weight=500, ls=.18, fill='var(--ink-3)'))
     # wall clock at 7:40
     o.append('<circle class="fw" cx="668" cy="112" r="30"/><circle class="ln" cx="668" cy="112" r="30"/>')
     for i in range(12):
@@ -56,7 +61,7 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is 
     o.append('<path class="ln" d="M526 168 L512 214 L540 276 L568 214 L554 168"/>')  # lapels
     o.append('<path class="fp" d="M532 176 L540 270 L548 176 Z"/>')          # shirt front in tint
     o.append('<circle class="fi" cx="540" cy="292" r="2.6"/><circle class="fi" cx="540" cy="314" r="2.6"/>')
-    o.append('<path class="ln" d="M563 236 L581 236"/><path class="fp" d="M565 236 L579 236 L572 226 Z"/><path class="lnp" d="M565 236 L572 226 L579 236"/>')  # pocket square
+    o.append('<path class="ln" d="M563 236 L581 236"/><path class="fp" d="M565 236 L568 227 L572 232 L576 227 L579 236 Z"/><path class="lnp" d="M565 236 L568 227 L572 232 L576 227 L579 236"/>')  # pocket square
     o.append('<path class="ln2" d="M496 300 L514 300 M566 300 L584 300"/>')
     o.append('<path class="ln" d="M540 440 L540 462"/><ellipse class="ln" cx="540" cy="466" rx="42" ry="6"/>')
     # vanity mirror with bulbs between them
@@ -70,14 +75,15 @@ def window(story_title='Rahul & Anjali', story_line='Getting ready. The date is 
     o.append('<circle class="ln" cx="402" cy="304" r="7"/><path class="ln2" d="M392 304 L395 304 M409 304 L413 304"/>')
     o.append('<rect class="fi" x="420" y="294" width="16" height="18" rx="2"/>')
     # look tags
-    o.append(_t(250, 528, f'{left.upper()} · LOOK 01', 11, anchor='middle', weight=500, ls=.16))
-    o.append(_t(540, 528, f'{right.upper()} · LOOK 02', 11, anchor='middle', weight=500, ls=.16))
+    o.append(_t(250, 530, f'{left.upper()} · LOOK 01', 14, anchor='middle', weight=500, ls=.16))
+    o.append(_t(540, 530, f'{right.upper()} · LOOK 02', 14, anchor='middle', weight=500, ls=.16))
     o.append('</svg>')
     return ''.join(o)
 
 
-def cart(menu, name='The Westside Coffee Cart'):
+def cart(menu, name='The Westside Coffee Cart', labels=True):
     """A striped-awning coffee cart with the W on its front and a standing menu board."""
+    _t = globals()['_t'] if labels else _none
     o = ['<svg viewBox="0 0 800 560" role="img" aria-label="Line drawing: a Westside coffee cart with a striped awning, '
          'two wheels, an espresso machine on the counter and a standing menu board">']
     o.append('<line class="ln2" x1="20" y1="476" x2="780" y2="476"/>')
@@ -97,7 +103,7 @@ def cart(menu, name='The Westside Coffee Cart'):
     # hanging name board
     o.append('<path class="ln2" d="M330 182 L330 190 M470 182 L470 190"/>')
     o.append('<rect class="fw" x="290" y="190" width="220" height="26"/><rect class="ln" x="290" y="190" width="220" height="26"/>')
-    o.append(_t(400, 207, name.upper(), 9, anchor='middle', weight=500, ls=.16))
+    o.append(_t(400, 208, name.upper(), 11, anchor='middle', weight=500, ls=.16))
     # counter and body
     o.append('<rect class="fi" x="176" y="262" width="448" height="10"/>')
     o.append('<rect class="fw" x="190" y="272" width="420" height="150"/><rect class="ln" x="190" y="272" width="420" height="150"/>')
@@ -106,7 +112,7 @@ def cart(menu, name='The Westside Coffee Cart'):
     o.append(_t(299, 392, 'W E S T S I D E', 10, anchor='middle', weight=500, ls=.12))
     o.append(_t(501, 336, 'Coffee, and the look', 13, 'tx-d', anchor='middle', italic=True))
     o.append(_t(501, 356, 'that goes with it.', 13, 'tx-d', anchor='middle', italic=True))
-    o.append(_t(501, 384, 'SHOW YOUR CUP IN STORE', 8, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
+    o.append(_t(501, 386, 'SHOW YOUR CUP IN STORE', 10, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     # espresso machine, cups, jar on the counter
     o.append('<rect class="fw" x="440" y="226" width="92" height="36" rx="3"/><rect class="ln" x="440" y="226" width="92" height="36" rx="3"/>')
     o.append('<path class="ln" d="M458 262 L458 254 L468 254 L468 262 M504 262 L504 254 L514 254 L514 262"/><circle class="ln2" cx="486" cy="240" r="7"/>')
@@ -125,16 +131,19 @@ def cart(menu, name='The Westside Coffee Cart'):
     o.append('<path class="ln" d="M22 474 L44 222 L166 222 L172 474"/>')
     o.append('<rect class="fi" x="40" y="234" width="124" height="214"/>')
     o.append(_t(102, 260, 'MENU', 10, anchor='middle', weight=500, ls=.3, fill='var(--paper)'))
+    if not labels:  # rules where the menu lines go, for small sizes
+        o.append(''.join(f'<path d="M54 {y} L{150 - (k % 3) * 18} {y}" style="fill:none;stroke:var(--paper);stroke-width:3;opacity:.7"/>' for k, y in enumerate(range(292, 432, 26))))
     y = 288
     for item, price in menu:
-        o.append(_t(50, y, item, 8.4, fill='var(--paper)'))
-        y += 24
+        o.append(_t(48, y, item, 10.5, fill='var(--paper)'))
+        y += 26
     o.append('</svg>')
     return ''.join(o)
 
 
-def rail(highlight='blazer', code='LOOK 014'):
+def rail(highlight='blazer', code='LOOK 014', labels=True):
     """A styling rail with six looks, one picked out, and a phone on a tripod with a ring light."""
+    _t = globals()['_t'] if labels else _none
     o = ['<svg viewBox="0 0 800 560" role="img" aria-label="Line drawing: a clothing rail with six outfits, one highlighted, '
          'and a phone on a tripod with a ring light, ready to film a look">']
     o.append('<line class="ln2" x1="20" y1="486" x2="780" y2="486"/>')
@@ -168,13 +177,13 @@ def rail(highlight='blazer', code='LOOK 014'):
             ex = ''
         o.append(f'<path class="{fill}" d="{d}"/><path class="ln" d="{d}"/>{ex}')
     hx = dict(looks)[highlight]
-    o.append(_t(hx, 392, code, 13, anchor='middle', weight=500, ls=.14))
+    o.append(_t(hx, 394, code, 16, anchor='middle', weight=500, ls=.14))
     o.append(f'<path class="lnp" d="M{hx} 402 L{hx} 418 L664 418"/>')
     # ring light and phone on tripod
     o.append('<circle class="ln2" cx="664" cy="250" r="66"/><circle class="ln" cx="664" cy="250" r="58"/>')
     o.append('<rect class="fw" x="640" y="204" width="48" height="92" rx="7"/><rect class="ln" x="640" y="204" width="48" height="92" rx="7"/>')
     o.append('<circle class="fi" cx="653" cy="216" r="3"/>')
-    o.append(_t(659, 220, 'REC', 9, weight=500, ls=.1))
+    o.append(_t(659, 221, 'REC', 12, weight=500, ls=.1))
     o.append('<path class="ln" d="M664 296 L664 420 M664 420 L620 484 M664 420 L708 484 M664 420 L664 484"/>')
     o.append(_t(664, 522, 'filmed in store', 15, 'tx-d', anchor='middle', italic=True))
     o.append('</svg>')
@@ -195,6 +204,6 @@ def stores_grid(n=300, cols=25, picks=None):
         if i in picks:
             o.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" style="fill:var(--plan)"/>')
         else:
-            o.append(f'<rect x="{x + .5}" y="{y + .5}" width="{cell - 1}" height="{cell - 1}" style="fill:none;stroke:var(--line)"/>')
+            o.append(f'<rect x="{x + .5}" y="{y + .5}" width="{cell - 1}" height="{cell - 1}" style="fill:none;stroke:var(--ink-3)"/>')
     o.append('</svg>')
     return ''.join(o)

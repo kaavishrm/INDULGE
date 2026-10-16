@@ -9,13 +9,13 @@ DESCRIPTION = ('Mask360’s proposal to Westside, October 2026: Styled by Westsi
                'measured on footfall per store.')
 
 # drinks named after Westside labels with 2025-26 evidence (westside.com, Trent filings, trade press)
-MENU = ['Bombay Paisley Filter', 'Nuon Cold Brew', 'Gia Hazelnut Latte', 'Wardrobe Flat White', 'Utsa Masala Chai', 'Vark Rose Cardamom']
+MENU = ['Bombay Paisley Filter', 'Nuon Cold Brew', 'Gia Hazelnut Latte', 'E.T.A Flat White', 'Utsa Masala Chai', 'Vark Rose Cardamom']
 
 
 def cover():
-    trio = (f'<div class="trio"><figure>{art.rail()}<figcaption class="label">Styled by Westside</figcaption></figure>'
-            f'<figure>{art.cart([(x, "") for x in MENU])}<figcaption class="label">The Westside Coffee Cart</figcaption></figure>'
-            f'<figure>{art.window()}<figcaption class="label">Window Stories</figcaption></figure></div>')
+    trio = (f'<div class="trio"><figure>{art.rail(labels=False)}<figcaption class="label">Styled by Westside</figcaption></figure>'
+            f'<figure>{art.cart([], labels=False)}<figcaption class="label">The Westside Coffee Cart</figcaption></figure>'
+            f'<figure>{art.window(labels=False)}<figcaption class="label">Window Stories</figcaption></figure></div>')
     body = f'''<div class="stack-l grow" style="justify-content:center">
 <div class="lockup">{W_MARK}<span class="x">×</span>{M_MARK}</div>
 <h1 class="h-display" style="max-width:13em">From the post to the billing counter.</h1>
@@ -28,11 +28,11 @@ def cover():
 def promise():
     body = '''<div class="stack-l grow" style="justify-content:center">
 <h2 class="h-display" style="max-width:15em">We will take shoppers from the post to the billing counter.</h2>
-<p class="lede">Every idea in this proposal ends inside a Westside store, and every idea is judged on the same number: how many more people walk into that store.</p>
+<p class="lede">Every idea here ends inside a Westside store and is judged on how many more people walk into it.</p>
 </div>
 <div class="row c3 mt-m">
-  <div class="rule"><p class="h3">Test it once</p><p class="mt-s">Give us one store launch or one festive drop.</p></div>
-  <div class="rule"><p class="h3">Measure it your way</p><p class="mt-s">Your people counters and your bills, read against stores that did not get the programme.</p></div>
+  <div class="rule"><p class="h3">Test it once</p><p class="mt-s">One city for twelve weeks, built around a store launch or the wedding season.</p></div>
+  <div class="rule"><p class="h3">Measure it your way</p><p class="mt-s">Your store entry counts and your bills, read against stores that did not get the programme.</p></div>
   <div class="rule"><p class="h3">No result, nothing to pay</p><p class="mt-s">If the numbers don’t move, you lose nothing.</p></div>
 </div>'''
     return slide('promise', 'Our promise', body, dark=True)
@@ -40,22 +40,22 @@ def promise():
 
 def today():
     s = F
-    body = f'''<div class="row c-4-8 grow center">
-<div class="stack-l">
+    body = f'''<div class="stack-l grow">
+<div class="row c-7-5 top">
   <h2 class="h1">Westside is growing by opening stores.</h2>
-  <p class="lede">The next gain is more people walking into each one. This proposal is built for that.</p>
+  <p class="ink2 lede-s">The next gain is more people walking into each one. This proposal is built for that.</p>
 </div>
-<div class="board">
-  {stat(s['stores'], 'stores on 30 September 2026', f"{s['stores_added']} more than a year earlier")}
+<div class="board grow" style="align-content:center;align-self:stretch">
+  {stat(s['stores'], 'stores on 30&nbsp;September&nbsp;2026', f"{s['stores_added']} more than a year earlier")}
   {stat(s['cities'], 'cities on 30 June 2026', 'the latest disclosed count')}
-  {stat(s['members'], 'WestStyleClub members, 30 September 2025', 'the latest count we could confirm')}
+  {stat(s['members'], 'WestStyleClub members, 30&nbsp;September&nbsp;2025', 'the latest count we could confirm')}
   {stat(s['online'], 'of Westside revenue is online, Q1 FY27', 'the other 94% or so is spent in stores')}
-  {stat(s['growth'], 'Trent revenue growth, July to September 2026', 'fashion like-for-like growth: low single digits')}
-  {stat('400–500', 'new designs a week', 'about 50 designers using AI tools')}
+  {stat(s['growth'], 'Trent revenue growth, July to September&nbsp;2026', 'fashion like-for-like, April to June: low single digits')}
+  {stat('400–500', 'new designs a week', 'with AI design tools, as reported')}
 </div></div>'''
     src = ('Sources: Trent store update, Q2 FY26 (261 stores); Trent Q1 FY27 investor presentation, 6&nbsp;Aug&nbsp;2026 (301 stores, cities, online, '
            'like-for-like); Q2 FY27 business update, 5&nbsp;Oct&nbsp;2026, as reported by Upstox (+10 stores, +23%); Trent Q2 FY26 investor presentation '
-           '(WestStyleClub); Bloomberg interview with Shailina Parti, 20&nbsp;Jul&nbsp;2026 (designs).')
+           '(WestStyleClub); Bloomberg interview with Shailina Parti, 20&nbsp;Jul&nbsp;2026, as reported by Retail Insight Network (designs).')
     return slide('today', 'Westside today', body, src=src)
 
 
@@ -80,12 +80,13 @@ def voice():
   <h2 class="h1">{p['voice_title']}</h2>
   <p class="ink2 lede-s">{p['voice_lede']}</p>
 </div>
-<div class="row c2 mt-m">
+<div class="stack-l grow" style="justify-content:center">
+<div class="row c2">
   <div class="rule stack"><p class="label mute">What Westside says now</p>{ul(p['themes'], 'list big-list')}</div>
   <div class="rule-plan stack"><p class="label plan">Where we take it</p>{ul(p['opportunities'], 'list big-list')}</div>
 </div>
-<div class="row c3 mt-auto">{''.join(f'<div class="panel-bg pad"><p class="label plan">{a}</p><p class="mt-s">{b}</p></div>' for a, b in p['answers'])}</div>
-</div>'''
+<div class="row c3 mt-m">{''.join(f'<div class="panel-bg pad"><p class="label plan">{a}</p><p class="mt-s">{b}</p></div>' for a, b in p['answers'])}</div>
+</div></div>'''
     return slide('voice', 'Westside today · how Westside talks', body, src=p['voice_src'])
 
 
@@ -94,12 +95,13 @@ def competition():
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
   <h2 class="h1">What the others did. How Westside wins.</h2>
-  <p class="ink2 lede-s">Their shoppers differ, but often spend from the same budget. Each row is the most recent marketing we found for that brand, and how Westside beats it.</p>
+  <p class="ink2 lede-s">Their shoppers differ, but often spend from the same budget. Each row is recent marketing we found for that brand, from August 2025 to October 2026, and how Westside beats it.</p>
 </div>
-<div class="grow v-center">{table(['Brand', 'What they did (latest we found)', 'How Westside wins'], rows, cls='tbl rivals stackable')}</div>
+<div class="grow v-center">{table(['Brand', 'What they did (recent work we found)', 'How Westside wins'], rows, cls='tbl rivals stackable')}</div>
 </div>'''
-    src = ('Sources: Shoppers Stop Q1 FY27 results release, 22&nbsp;Jul&nbsp;2026; Passionate in Marketing, 4&nbsp;May&nbsp;2026 (Trends); FashionUnited, Apr&nbsp;2026 (H&amp;M); '
-           'Indian Retailer, 9&nbsp;Oct&nbsp;2026 (Uniqlo); IndianTelevision (Myntra); Social Samosa and exchange4media (Pantaloons, Max), Aug to Oct&nbsp;2025.')
+    src = ('Sources: Shoppers Stop Q1 FY27 results release, 22&nbsp;Jul&nbsp;2026; Passionate in Marketing, 4&nbsp;May&nbsp;2026 (Trends); FashionUnited, '
+           '30&nbsp;Apr&nbsp;2026, and Fibre2Fashion (H&amp;M); Retail4Growth, 13&nbsp;Apr&nbsp;2026, and Indian Retailer, 9&nbsp;Oct&nbsp;2026 (Uniqlo); '
+           'IndianTelevision, 23&nbsp;Sep&nbsp;2026 (Myntra); Social Samosa, 6&nbsp;Oct&nbsp;2025 (Pantaloons); The Week, 20&nbsp;Aug&nbsp;2025 (Max).')
     return slide('rivals', 'The market', body, src=src)
 
 
@@ -111,13 +113,13 @@ def plan():
     ]
     cols = ''.join(f'''<div class="idea rule-plan"><span class="no">{n}</span><h3 class="h2">{t}</h3><p class="idea-d">{d}</p>
 <div class="rule"><p class="label mute">Where it ends</p><p class="mt-s">{m['ends']}</p></div>
-<div class="mt-auto"><div class="imp">{m['label']}<small>impressions</small></div><p class="f-s mute mt-s">{m['note']}</p></div></div>''' for n, t, d, m in ideas)
+<div class="mt-m"><div class="imp">{m['label']}<small>impressions</small></div><p class="f-s mute mt-s">{m['note']}</p></div></div>''' for n, t, d, m in ideas)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
-  <h2 class="h1">The test: one city, twelve weeks, three ideas, {MODEL['total_label']} impressions.</h2>
-  <p class="ink2 lede-s">{BASELINE['plan_line']} Built on what Westside already runs: YNG, Wesness and FRONT ROW.</p>
+  <h2 class="h1">A twelve-week test in one city targets {MODEL['total_label']} impressions.</h2>
+  <p class="ink2 lede-s">{BASELINE['plan_line']} It builds on YNG and FRONT ROW, which Westside already runs.</p>
 </div>
-<div class="row c3 grow">{cols}</div>
+<div class="row c3 grow vc">{cols}</div>
 </div>'''
     return slide('plan', 'The plan', body, src=BASELINE['src'])
 
@@ -133,7 +135,7 @@ def styling():
   <span class="label plan">Styled by Westside</span>
   <h2 class="h1">Make styling the reason people follow Westside.</h2>
   <p>Almost everything Westside sells is its own label, and its designers create 400–500 new designs a week. Most people never see how those pieces go together. Every week our stylists and creators build complete looks from one Westside store, film them on the floor and post them on Instagram and YouTube Shorts.</p>
-  <p>Each look has a code. Show it in store and the team brings the whole outfit in your size, or holds it if a size is out. The code is not a discount: it tells the team which look you want, and tells us which post brought you in.</p>
+  <p>Each look has a code. Show it in store and the team brings the whole outfit in your size, or holds it if a size is out. The code is not a discount. It tells the team which look you want, and tells us which post brought you in.</p>
   <div class="row c2 gap-s mt-m">{f}</div>
 </div>
 <div class="art" style="align-self:center">{art.rail(highlight='saree', code='LOOK 027')}</div>
@@ -166,7 +168,7 @@ def cart():
   <p>A Westside-designed coffee cart that parks outside Westside stores, in malls, at colleges and in office parks. The menu is named after Westside’s own labels, and every cup sleeve carries a look code to show at the nearest store.</p>
   <div class="row c2 gap-s mt-m">
     <div class="rule"><p class="label mute">On the menu</p><ul class="list mt-s">{menu}</ul></div>
-    <div class="rule-plan"><p class="label plan">How people see it</p><p class="mt-s">Creators and clip, city and food pages film the cart, the cups and the queue. We pay for those posts, which is how three carts reach {MODEL['cart']['label']} impressions.</p></div>
+    <div class="rule-plan"><p class="label plan">How people see it</p><p class="mt-s">Creators and clip, city and food pages film the cart, the cups and the queue. {MODEL['cart']['reach_line']}</p></div>
   </div>
 </div>
 <div class="art" style="align-self:center">{art.cart([(x, '') for x in MENU])}</div>
@@ -211,11 +213,11 @@ def windows_scale():
 <div class="stack-l" style="justify-content:space-between">
   <h2 class="h1">311 windows, each picking its story from one library.</h2>
   <div class="art" style="height:auto">{art.stores_grid(n=m['grid_n'], cols=25)}</div>
-  <p class="f-s ink2">One square per Westside store. The test city’s stores go first; every store follows after the go or no-go.</p>
+  <p class="f-s ink2">One square per Westside store. The test city’s stores go first; every store follows after the go or no&#8209;go.</p>
 </div>
 <div class="stack-l" style="justify-content:space-between">
-  <table class="tbl tight"><thead><tr><th>The first library</th><th>The story in the window</th></tr></thead><tbody>{stories}</tbody></table>
-  {table(['Item', 'How many', 'What it delivers'], m['rows'], cls='tbl tight', right=(1,))}
+  <table class="tbl tight"><thead><tr><th>First six stories</th><th>The story in the window</th></tr></thead><tbody>{stories}</tbody></table>
+  {table(['Item', 'How many', 'What it delivers'], m['rows'], cls='tbl tight stackable')}
   <div class="row c2"><div class="rule">{stat(m['label'], 'impressions in twelve weeks', m['note'])}</div><div class="rule">{stat(m['people'], 'people on the windows team', m['people_note'])}</div></div>
 </div></div>'''
     return slide('windows-scale', 'Idea 3 of 3 · at scale', body, src=m['src'] + ' FRONT ROW’s New Faces star in the window Reels.')
@@ -231,9 +233,9 @@ def look_path():
     body = f'''<div class="stack-l grow">
 <h2 class="h1">How every idea reaches the billing counter.</h2>
 <div class="row c5 flow vc grow">{cells}</div>
-<div class="row c2">
-  <p class="ink2">The look code links each post, cup and window to a store and a bill. That is how we count sales from content. The code is never a discount.</p>
-  <p class="ink2">Store teams need one short briefing a week: this week’s looks, where they hang and how to log the code.</p>
+<div class="row c2 rule">
+  <p class="f-l ink2">The look code links each post, cup and window to a store and a bill. That is how we count sales from content. The code is never a discount.</p>
+  <p class="f-l ink2">Store teams need one short briefing a week: this week’s looks, where they hang and how to log the code.</p>
 </div></div>'''
     return slide('path', 'From post to bill', body)
 
@@ -249,10 +251,10 @@ def numbers():
 <div class="row c-8-4 grow">
   {table(['Idea', 'Channel', 'Units', 'Average per unit', 'Low', 'Plan', 'High'], rows['rows'], cls='tbl small tight model', right=(2, 3, 4, 5, 6), total=rows['total'], col_cls={3: 'm-hide', 4: 'm-hide', 5: 'plan-col', 6: 'm-hide'})}
   <div class="stack-l" style="justify-content:center">
-    <p class="label mute">Against Westside’s best published figure</p>
+    <p class="label mute">Against YNG, January to March 2026</p>
     <div class="bars">
       <div class="bar"><span class="f-s">{b['label']}</span><span class="t"><i style="width:{b['pct_base']}%"></i></span><span class="v">{b['value']}</span></div>
-      <div class="bar us"><span class="f-s">This test, impressions</span><span class="t"><i style="width:{b['pct_plan']}%"></i></span><span class="v">{MODEL['total_label']}</span></div>
+      <div class="bar us"><span class="f-s">This test, views and impressions</span><span class="t"><i style="width:{b['pct_plan']}%"></i></span><span class="v">{MODEL['total_label']}</span></div>
     </div>
     <p class="ink2">{b['compare_line']}</p>
   </div>
@@ -265,15 +267,16 @@ def measure():
             ['Codes used', 'Look codes from posts, cups and windows, logged at billing', 'Per store, per idea, per week'],
             ['Member bills', 'Codes matched to WestStyleClub bills by Westside’s analytics team', 'Members who used a code against members who did not'],
             ['Impressions and views', 'Platform reports from every page and creator', 'Against the plan, line by line, every week']]
-    body = f'''<div class="row c-5-7 grow center">
-<div class="stack-l">
+    body = f'''<div class="stack-l grow">
+<div class="row c-7-5 top">
   <h2 class="h1">Measured at the billing counter.</h2>
-  <p class="lede">Impressions show the work was seen; footfall and bills show it worked. We report both weekly, store by store.</p>
-  <div class="rule-plan"><p class="label plan">Draft threshold</p><p class="mt-s">Test-city stores beat matched stores on entries by 5% or more over the twelve live weeks. We set the final number from your data before launch.</p></div>
+  <p class="ink2 lede-s">Impressions show the work was seen; footfall and bills show it worked. We report both weekly, store by store.</p>
 </div>
-<div class="stack-l">{table(['What we count', 'How', 'Read against'], rows, cls='tbl roomy stackable')}
-<p class="f-s ink2">A launch store has no history, so it is read against the opening weeks of recent comparable openings. One store can show a lift of about 10%; a city’s stores pooled can show smaller lifts. We see store totals only, never personal data.</p></div>
-</div>'''
+<div class="row c-4-8 grow vc">
+  <div class="rule-plan"><p class="label plan">Draft threshold</p><p class="mt-s f-l">Test-city stores beat matched stores on entries by 5% or more over the twelve live weeks.</p><p class="mt-s ink2">We set the final number from your data before launch.</p></div>
+  <div class="stack-l">{table(['What we count', 'How', 'Read against'], rows, cls='tbl roomy stackable')}
+  <p class="f-s ink2">A launch store has no history, so it is read against the opening weeks of recent comparable openings. One store on its own needs a lift of about 8–15% to read clearly; pooling a city’s stores lets us read smaller lifts. We see store totals only, never personal data.</p></div>
+</div></div>'''
     return slide('measure', 'Measurement', body)
 
 
@@ -281,24 +284,24 @@ def test():
     body = '''<div class="stack-l grow">
 <div class="row c-7-5 top">
   <h2 class="h1">Start with one city. If the numbers don’t move, you lose nothing.</h2>
-  <p class="ink2 lede-s">Twelve weeks live, all three ideas, read on footfall per store. Pick what the test is built around.</p>
+  <p class="ink2 lede-s">All three ideas run for twelve weeks, read on footfall per store. You pick what the test is built around.</p>
 </div>
 <div class="row c2 vc grow">
   <div class="panel-bg pad-l rule-plan stack">
     <p class="label plan">Option A · recommended</p><h3 class="h2">A store launch</h3>
-    <p>Westside’s next opening and the stores in its city: looks styled from its rails before it opens, the Coffee Cart outside on opening weekend, Window Stories across the city.</p>
+    <p>Westside’s next opening and the stores in its city: looks styled from its rails before it opens, a cart outside from opening weekend, Window Stories across the city.</p>
     <p class="f-s ink2">Read against the opening weeks of recent comparable openings, and against matched stores.</p>
   </div>
   <div class="panel-bg pad-l rule stack">
     <p class="label mute">Option B</p><h3 class="h2">The wedding season</h3>
-    <p>One city through the wedding dates: styled looks for every function, the cart at the city’s busiest Westside, wedding Window Stories in every store.</p>
+    <p>One city through the wedding dates: styled looks for every function, three carts across the city, wedding Window Stories in every store.</p>
     <p class="f-s ink2">Read against each store’s previous twelve weeks and matched stores in other cities.</p>
   </div>
 </div>
 <div class="row c3 mt-m">
-  <div class="rule"><p class="h4">If it works</p><p class="mt-s">Our fee, agreed now, is paid only if footfall beats the threshold.</p></div>
+  <div class="rule"><p class="h4">If it works</p><p class="mt-s">You pay our fee, agreed now, plus production and media within the cap.</p></div>
   <div class="rule"><p class="h4">If it doesn’t</p><p class="mt-s">No fee, and Mask360 carries production and media for the test, within a cap agreed before launch.</p></div>
-  <div class="rule"><p class="h4">What we need from Westside</p><p class="mt-s">A test city and matched stores, a look-code field at billing, stock depth on featured looks, VM time, help with mall consent, counter and bill data under a data agreement, and sign-off on each week’s posts within 48 hours.</p></div>
+  <div class="rule"><p class="h4">What we need from Westside</p><p class="mt-s">A test city and matched stores, people counters working in both, a look-code field at billing, stock depth on featured looks, VM time, help with mall consent, counter and bill data under a data agreement, and sign-off on each week’s posts within 48 hours.</p></div>
 </div></div>'''
     return slide('test', 'The test', body)
 
@@ -307,23 +310,23 @@ def timeline():
     weeks = 17
     phases = [('Agree and set up', 1, 3, 'line', 'Test city, matched stores and threshold agreed. Look codes set up at billing. Store teams briefed.'),
               ('Cast and build', 2, 5, 'line', 'Stylists and YNG creators cast. Carts built. First Window Stories designed. Clip and city pages booked.'),
-              ('Styled by Westside', 5, 17, 'plan', '120 looks, three Reels a week on Westside’s pages, creators and pages every week.'),
+              ('Styled by Westside', 5, 17, 'plan', '120 looks; Westside, creator and page posts every week.'),
               ('Coffee Cart', 7, 13, 'plan', 'Thursday to Sunday, three carts, six weeks.'),
               ('Window Stories', 5, 17, 'plan', 'A new story every four weeks in every store in the city.'),
-              ('Readout', 17, 18, 'ink', 'Footfall, codes, bills and impressions against plan. Go or no-go for the next cities.')]
+              ('Readout', 17, 18, 'ink', 'Footfall, codes, bills and impressions against plan. Go or no&#8209;go for the next cities.')]
     head = ''.join(f'<span class="wk label">{i}</span>' for i in range(1, weeks + 1))
     rows = ''.join(f'<p class="h4 ph">{n}</p><i class="bar-{c}" style="grid-column:{s + 1}/{e + 1}"></i><p class="ink2 f-s note">{t}</p>' for n, s, e, c, t in phases)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
   <h2 class="h1">Sixteen weeks to a readout.</h2>
-  <p class="ink2 lede-s">Four weeks to set up, twelve weeks live, then a readout with Westside’s leadership. Dates assume a working session in the week of 26 October.</p>
+  <p class="ink2 lede-s">Four weeks to set up, twelve weeks live, then a readout with Westside’s leadership. Dates assume a working session by 27 October and signature by 30 October.</p>
 </div>
 <div class="gantt vc grow"><span></span>{head}{rows}</div>
 <div class="row c4 dates">
   <div class="rule"><p class="label mute">Set up</p><p class="mt-s">2 to 29 November</p></div>
   <div class="rule-plan"><p class="label plan">Live</p><p class="mt-s">30 November to 21 February</p></div>
   <div class="rule"><p class="label mute">Readout</p><p class="mt-s">Week of 22 February 2027</p></div>
-  <div class="rule"><p class="label mute">Wedding dates</p><p class="mt-s">Option B covers both wedding windows, with the mid-December to mid-January pause in between.</p></div>
+  <div class="rule"><p class="label mute">Wedding dates</p><p class="mt-s">Option B runs through the wedding dates either side of the mid&#8209;December to mid&#8209;January pause. We confirm the 2026–27 dates before the city is picked.</p></div>
 </div></div>'''
     return slide('timeline', 'Timeline', body)
 
@@ -332,7 +335,7 @@ def mask360():
     pillars = [('Social', 'The Styled by Westside series, creators and paid page posts.'),
                ('Content', 'Stylists, shoots and edits, made in Westside stores.'),
                ('Events and retail', 'The Coffee Cart and Window Stories, built and run.'),
-               ('Measurement', 'The per-store scorecard, built with Westside’s data team.')]
+               ('Measurement', 'The per-store scorecard, built with Westside’s analysts.')]
     p = ''.join(f'<div class="rule"><p class="h2">{a}</p><p class="ink2 mt-s">{b}</p></div>' for a, b in pillars)
     body = f'''<div class="stack-l grow" style="justify-content:center">
 <div class="row c-5-7 center">
@@ -340,7 +343,7 @@ def mask360():
   <p class="lede">Mask360 is a creative and content agency in India and the UAE. For nine years we have made content, events and campaigns for luxury, lifestyle and real-estate brands, from Mumbai, Delhi, Bengaluru, Dubai and Abu Dhabi.</p>
 </div>
 <div class="row c4 mt-m">{p}</div>
-<div class="rule mt-m"><p class="label mute">Brands we have worked with</p><p class="mt-s f-l">Dior · L’Oréal · FCUK Beauty · Dyson · Anantara · Atlantis The Royal · St. Regis · Ferrari · Rolls-Royce · Swisse UAE · Zorae UAE · Rustomjee · Chandak Group</p></div>
+<div class="rule mt-m"><p class="label mute">Brands we have worked with</p><p class="mt-s f-l">Dior · L’Oréal · FCUK Beauty · Dyson · Anantara · Atlantis The Royal · St. Regis · Ferrari · Rolls-Royce · Swisse · Zorae · Rustomjee · Chandak Group</p></div>
 </div>'''
     return slide('mask360', 'Mask360', body)
 
@@ -363,12 +366,13 @@ def references():
     n = len(REF_GROUPS)
     for i, (title, vids) in enumerate(REF_GROUPS):
         cards = ''.join(video_card(v['item'], v['caption']) for v in vids)
-        body = f'''<div class="stack-l grow">
-<div class="row c-7-5 top">
+        body = f'''<div class="row c-3-9 grow">
+<div class="stack-l">
   <h2 class="h1">{title}.</h2>
-  <p class="ink2 lede-s">Clips the team collected for look and pace. They are references, not our work. Press play to watch with sound; each opens full screen.</p>
+  <p class="ink2 lede-s">Clips the team collected for look and pace. They are references, not our work.</p>
+  <p class="ink2 f-s">Press play to open a clip large, with sound, volume and a full-screen button. Esc or the close button returns to the slide.</p>
 </div>
-<div class="vgrid two-rows vc grow">{cards}</div>
+<div class="vgrid two-rows vc">{cards}</div>
 </div>'''
         out.append(slide(f'references-{i + 1}', f'Appendix · references {i + 1} of {n}', body))
     return out
