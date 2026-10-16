@@ -30,7 +30,7 @@ jobs:
         run: |
           URL=$(grep -m1 -o 'https://drive.google.com[^ ]*' pitches/westside/media/source.txt)
           mkdir -p "$RUNNER_TEMP/src"
-          gdown --folder "$URL" -O "$RUNNER_TEMP/src" --remaining-ok
+          gdown --folder "$URL" -O "$RUNNER_TEMP/src"
           cd "$RUNNER_TEMP/src"
           find . -iname '*.zip' -print0 | while IFS= read -r -d '' z; do unzip -o -q "$z" -d "${z%.zip}" -x '__MACOSX/*'; done
           echo "== files"; find . -type f -printf '%s\t%p\n' | sort -k2
