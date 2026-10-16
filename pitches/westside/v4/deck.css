@@ -267,7 +267,7 @@ svg .tx-d{font-family:var(--display)}
   .row+.row,.stack-l+.row{margin-top:24px}
   .f-s{font-size:14.5px} .stat .s{font-size:12.5px} .folio .src{font-size:11.5px} .tbl.small td{font-size:14px} .label{font-size:11px}
   .head .label{max-width:62%;line-height:1.35}
-  .vgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
   .months .m:nth-child(odd){padding-left:0} .months .m:nth-child(even){padding-left:12px}
   .flow>div::after{display:none}
   .trio{grid-template-columns:minmax(0,1fr)}

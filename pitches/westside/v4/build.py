@@ -55,6 +55,8 @@ if hits:
     if os.environ.get('STRICT'):
         sys.exit(1)
 
-(DIST / 'westside-proposal.html').write_text(fragment)
+# the claude.ai artifact carries only the H.264 files (its upload limits), so it drops the AV1 sources
+artifact = re.sub(r'<source src="media/[\w.-]+\.av1\.mp4"[^>]*>', '', fragment)
+(DIST / 'westside-proposal.html').write_text(artifact)
 (DIST / 'index.html').write_text(standalone)
 print(f'{n} slides · fragment {len(fragment) / 1024:.0f} KB · standalone {len(standalone) / 1024:.0f} KB')
