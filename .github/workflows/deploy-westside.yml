@@ -31,15 +31,27 @@ jobs:
           set -o pipefail
           cd "$RUNNER_TEMP"
           ok=""
-          for i in 1 2 3 4; do
-            if [ -n "$EDGEONE_API_TOKEN" ]; then
+          if [ -n "$EDGEONE_API_TOKEN" ]; then
+            for i in 1 2 3 4; do
               npx --yes edgeone@1.6.41 makers deploy site -n "$PROJECT" -t "$EDGEONE_API_TOKEN" --json 2>&1 | tee deploy.log || true
-            else
-              npx --yes edgeone@1.6.41 makers deploy site -n "$PROJECT" --anonymous --site global --json 2>&1 | tee deploy.log || true
-            fi
-            if grep -q '"status":"success"' deploy.log; then ok=1; break; fi
-            sleep 8
-          done
+              if grep -q '"status":"success"' deploy.log; then ok=1; break; fi
+              sleep 8
+            done
+          else
+            # anonymous deploys may refuse a chosen name; try the name, a hyphenated form, then an assigned one
+            for NAME in "$PROJECT" mask360-westside ""; do
+              for i in 1 2; do
+                if [ -n "$NAME" ]; then
+                  npx --yes edgeone@1.6.41 makers deploy site -n "$NAME" --anonymous --site global --json 2>&1 | tee deploy.log || true
+                else
+                  npx --yes edgeone@1.6.41 makers deploy site --anonymous --site global --json 2>&1 | tee deploy.log || true
+                fi
+                if grep -q '"status":"success"' deploy.log; then ok=1; break 2; fi
+                grep -q 'Project name' deploy.log && break
+                sleep 8
+              done
+            done
+          fi
           [ -n "$ok" ] || { echo "Deploy failed" | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
           RESULT=$(grep '"status":"success"' deploy.log | tail -1)
           URL=$(echo "$RESULT" | grep -o '"url":"[^"]*"' | cut -d'"' -f4)
