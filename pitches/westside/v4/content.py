@@ -75,15 +75,17 @@ def last12():
 
 def voice():
     p = POSITIONING
-    body = f'''<div class="row c-5-7 grow">
-<div class="stack-l">
+    body = f'''<div class="stack-l grow">
+<div class="row c-7-5 center">
   <h2 class="h1">{p['voice_title']}</h2>
-  <p class="lede">{p['voice_lede']}</p>
+  <p class="ink2">{p['voice_lede']}</p>
 </div>
-<div class="stack-l">
-  <div class="rule"><p class="label mute">What Westside says now</p>{ul(p['themes'])}</div>
-  <div class="rule-plan"><p class="label plan">Where we take it</p>{ul(p['opportunities'])}</div>
-</div></div>'''
+<div class="row c2 grow mt-m">
+  <div class="rule stack"><p class="label mute">What Westside says now</p>{ul(p['themes'], 'list big-list')}</div>
+  <div class="rule-plan stack"><p class="label plan">Where we take it</p>{ul(p['opportunities'], 'list big-list')}</div>
+</div>
+<div class="row c3 mt-auto">{''.join(f'<div class="panel-bg" style="padding:calc(var(--u)*1.2)"><p class="label plan">{a}</p><p class="f-s mt-s">{b}</p></div>' for a, b in p['answers'])}</div>
+</div>'''
     return slide('voice', 'Westside today · how Westside talks', body, src=p['voice_src'])
 
 

@@ -8,31 +8,44 @@ F = {
     'stores': '311', 'stores_added': '50', 'cities': '97', 'wsc': '11.85', 'online': '6%',
 }
 
-# (month, event html, result html, quiet?)
+# (month, event html, result html, quiet?) — research note 03, 16 Oct 2026
 LAST12 = [
-    ('Nov ’25', '<b>[[event]]</b> [[detail]]', '[[result]]', False),
-    ('Dec ’25', '<b>[[event]]</b>', '', True),
-    ('Jan ’26', '<b>[[event]]</b>', '', False),
-    ('Feb ’26', '<b>Wesness run, Mumbai</b> [[detail]]', '3,500+ women', False),
-    ('Mar ’26', '<b>[[event]]</b>', '', True),
-    ('Apr ’26', '<b>[[event]]</b>', '', False),
-    ('May ’26', '<b>[[event]]</b>', '', True),
-    ('Jun ’26', '<b>[[event]]</b>', '', False),
-    ('Jul ’26', '<b>[[event]]</b>', '', True),
-    ('Aug ’26', '<b>[[event]]</b>', '', False),
-    ('Sep ’26', '<b>[[event]]</b>', '', False),
-    ('Oct ’26', '<b>FRONT ROW</b> launched in Mumbai, 80 looks, 150 culture-shapers', '[[result]]', False),
+    ('Nov ’25', '<b>Wedding season</b> A men’s wedding style guide on westside.com, built on Kala by E.T.A.', 'An edit page, no campaign', True),
+    ('Dec ’25', '<b>Glitz &amp; Glam</b> A party capsule with the I-pop group W.i.S.H.', 'In store and online', False),
+    ('Jan ’26', '<b>No sale campaign</b> No Republic Day or end-of-season push, in line with Westside’s no-discount stance.', '', True),
+    ('Feb ’26', '<b>Wesness Fun Run</b> Mumbai, 8 February, with a W.i.S.H. live set.', '3,500+ women; 4,000+ registered', False),
+    ('Mar ’26', '<b>Wesness, Hyderabad</b> A promo run from Westside Gachibowli.', '23 stores opened in the quarter', False),
+    ('Apr ’26', '<b>Run2Quiz, Run2Zumba</b> Wesness runs from stores in Bengaluru and Mumbai.', 'Reported as registrations', False),
+    ('May ’26', '<b>Wesness 5K</b> Women’s run, Bengaluru.', '', True),
+    ('Jun ’26', '<b>AGM</b> About 50 new Westside stores a year.', 'No brand activity found', True),
+    ('Jul ’26', '<b>Run2Stepup</b> Mumbai, 19 July, the last Wesness event we found.', '400–500 designs a week, told to Bloomberg', False),
+    ('Aug ’26', '<b>Quiet month</b> No Independence Day or back-to-college work found.', '', True),
+    ('Sep ’26', '<b>9 Days 9 Colours</b> The Navratri edit on westside.com.', '311 stores at quarter end', False),
+    ('Oct ’26', '<b>FRONT ROW</b> Mumbai, 1 October: 80 looks, 150 culture-shapers, 30 New Faces.', 'Dance Off cities not yet announced', False),
 ]
 
 POSITIONING = {
-    'year_line': '[[One plain sentence on what the year added up to.]]',
-    'year_stats': [('[[n]]', '[[what]]', '[[source]]'), ('[[n]]', '[[what]]', '[[source]]'), ('[[n]]', '[[what]]', '[[source]]')],
-    'year_src': 'Sources: [[sources]]',
-    'voice_title': '[[How Westside talks today, one line]]',
-    'voice_lede': '[[lede]]',
-    'themes': ['[[theme]]', '[[theme]]', '[[theme]]', '[[theme]]'],
-    'opportunities': ['[[opportunity]]', '[[opportunity]]', '[[opportunity]]', '[[opportunity]]'],
-    'voice_src': 'Sources: [[sources]]',
+    'year_line': 'A year of community and culture platforms, festive edits on westside.com and 50 new stores. Results were reported as turnout, sign-ups and views.',
+    'year_stats': [('+50', 'stores in the twelve months to 30 September 2026', 'Trent Q2 FY27 update, 6 Oct 2026'),
+                   ('3,500+', 'women at the biggest Wesness run, Mumbai, 8 February', 'Trent filing to the exchanges, 10 Feb 2026'),
+                   ('None', 'of the published results counts a store visit', 'our review of Trent filings, decks and press')],
+    'year_src': ('Sources: Trent filings, investor decks and business updates (Feb to Oct 2026); FRONT ROW launch coverage, 1 Oct 2026; '
+                 'westside.com edits; Wesness event listings; Bloomberg, 20 Jul 2026. “Not found” means not found in public sources.'),
+    'voice_title': 'Westside talks through communities, not campaigns.',
+    'voice_lede': 'The everyday voice is warm and inclusive. The events are editorial. What is missing is a line that joins them, and the step from the post into the store.',
+    'themes': ['<b>New Indian talent.</b> YNG creators, 30 New Faces, FRONT ROW.',
+               '<b>Culture beyond clothes.</b> I-pop, dance-offs, fitness runs.',
+               '<b>Women together.</b> Wesness, about 25,000 women in four cities.',
+               '<b>Own labels as the hero.</b> Bombay Paisley, E.T.A, Utsa, Vark, W Edit.'],
+    'opportunities': ['Tell shoppers what is new each week, and in which store. Today the 400–500 designs a week are a story told to investors.',
+                      'Turn festive edits into one story from Navratri to the wedding season, carried in store and on social.',
+                      'Give every new store the same local launch: creators, styled looks, a reason to visit.',
+                      'End every post and every event in a store, and count the visit.'],
+    'answers': [('Idea 1 · Styled by Westside', 'Shows what is new every week, styled into complete looks, and names the store that has them.'),
+                ('Idea 2 · The Westside Coffee Cart', 'Gives every launch and every busy weekend a reason to visit, and counts the people it brings in.'),
+                ('Idea 3 · Window Stories', 'Turns the festive and wedding season into stories people see in the window, then walk in to buy.')],
+    'voice_src': ('Sources: Trent filings and investor decks (Wesness, YNG), FRONT ROW launch coverage (1 Oct 2026), westside.com, '
+                  'Bloomberg (20 Jul 2026).'),
 }
 
 COMPETITORS = [
