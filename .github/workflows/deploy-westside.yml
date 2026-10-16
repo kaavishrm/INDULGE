@@ -1,8 +1,9 @@
 name: deploy-westside
 # Builds the Westside pitch (pitches/westside) and deploys it to EdgeOne Pages as the project "mask360westside".
 #  - With the repository secret EDGEONE_API_TOKEN set, every push updates that project and keeps its link.
-#  - Without it, each run makes an anonymous deployment, which must be claimed within an hour from the
-#    link in the run summary (claim it into the same EdgeOne account as mask360os).
+#  - Without it, a run started by hand or a commit whose message contains [deploy] makes an anonymous
+#    deployment, which must be claimed within an hour from the link in the run summary (claim it into the
+#    same EdgeOne account as mask360os). Other pushes skip the deploy, so no stray projects pile up.
 on:
   push:
     branches: [claude/wizardly-bardeen-2oc2qq]
@@ -17,6 +18,7 @@ jobs:
     env:
       EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
       PROJECT: mask360westside
+      ANON_OK: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +31,10 @@ jobs:
       - name: Deploy
         run: |
           set -o pipefail
+          if [ -z "$EDGEONE_API_TOKEN" ] && [ "$ANON_OK" != "true" ]; then
+            echo "No EDGEONE_API_TOKEN secret and no [deploy] in the commit message: skipping deploy." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           # the CLI names an anonymous project after the folder it runs in, so it runs inside mask360westside/
           cd "$RUNNER_TEMP/$PROJECT"
           ok=""
@@ -70,3 +76,14 @@ jobs:
             fi
           } | tee -a "$GITHUB_STEP_SUMMARY"
           echo "$RESULT"
+          echo "$URL" > "$RUNNER_TEMP/url.txt"
+      - name: Check the page
+        run: |
+          [ -f "$RUNNER_TEMP/url.txt" ] || exit 0
+          URL=$(cat "$RUNNER_TEMP/url.txt")
+          sleep 5
+          for i in 1 2 3 4 5; do
+            if curl -sS -m 60 "$URL" -o page.html && grep -q '<title>Seen at Westside' page.html; then echo "Serving the deck: $(wc -c < page.html) bytes"; exit 0; fi
+            sleep 6
+          done
+          echo "The page did not serve the deck" && exit 1
