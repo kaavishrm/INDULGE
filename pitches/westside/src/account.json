@@ -1,0 +1,556 @@
+{
+ "handle": "seenatwestside",
+ "handle_alt": "westsidestyle",
+ "display_name": "Seen at Westside",
+ "bio_lines": [
+  "Style, seen in a Westside near you",
+  "The Window, har Friday",
+  "Tag us + your store to be Seen In",
+  "BOOK · HOLD · RSVP on store WhatsApp ↓"
+ ],
+ "link_in_bio": "westside.com/seen",
+ "highlights": [
+  {
+   "label": "Your store"
+  },
+  {
+   "label": "The Window"
+  },
+  {
+   "label": "Trial Room"
+  },
+  {
+   "label": "Seen In"
+  },
+  {
+   "label": "Mausam"
+  },
+  {
+   "label": "First Look"
+  },
+  {
+   "label": "Functions"
+  },
+  {
+   "label": "Dehleez"
+  },
+  {
+   "label": "Regulars"
+  }
+ ],
+ "grid_posts": [
+  {
+   "overlay": "No. 047",
+   "fab": "slate"
+  },
+  {
+   "overlay": "Functions 02",
+   "fab": "midnight"
+  },
+  {
+   "overlay": "Regulars 006",
+   "fab": "moss"
+  },
+  {
+   "overlay": "No. 046",
+   "fab": "bone"
+  },
+  {
+   "overlay": "Functions 01",
+   "fab": "mehendi"
+  },
+  {
+   "overlay": "Trial Room 012",
+   "fab": "curtain"
+  },
+  {
+   "overlay": "Seen In",
+   "fab": "ivory"
+  },
+  {
+   "overlay": "Mausam 02",
+   "fab": "indigo"
+  },
+  {
+   "overlay": "First Look 330",
+   "fab": "kohl"
+  }
+ ],
+ "week": [
+  [
+   "Mon",
+   "Seen In",
+   "RSVP"
+  ],
+  [
+   "Tue",
+   "Regulars",
+   "RSVP"
+  ],
+  [
+   "Wed",
+   "Trial Room",
+   "Book"
+  ],
+  [
+   "Thu",
+   "Season",
+   "Book"
+  ],
+  [
+   "Fri",
+   "Window",
+   "Hold"
+  ],
+  [
+   "Sat",
+   "In store",
+   "RSVP"
+  ],
+  [
+   "Sun",
+   "Stories",
+   "—"
+  ]
+ ],
+ "pitch_line": "Westside's own @TargetStyle: one style account beside @westsidestores, where the eight properties run as series. @TargetStyle has always ended online: a product page in 2014, in-app checkout in 2020. This one ends at a store.",
+ "launch": "A hosted premiere, the way Target relaunched @TargetStyle. @westsidestores announces it the day before with a clue to Window No. 001. The account goes live on preview night, the evening before the pilot store opens: in-store Stories, a host (a stand-up comic or a named Westside stylist, never a model) and an RSVP for Sunday's styling hour. In the festive-drop option it premieres with Five Functions Episode 01. It starts with one store and adds stores as they join.",
+ "target_style_summary": "@TargetStyle is Target's own Instagram account for style, run separately from the main @Target handle. It has existed since at least 27 August 2014, when Target added a shoppable profile link to both accounts and each had more than 300,000 followers. By May 2020 it had about 2.2 million followers against @Target's 4.4 million, as a separate account focused on fashion and beauty, and both accounts got in-app Instagram Checkout. Target relaunched it \"for today's social-first fashion audience\" with a live, hosted debut at the Target Style Tailgate during New York Fashion Week on 13 September 2025. It announced five content types: fall trend spotlights, NYC micro-creator collaborations, street-style snapshots, curated trend edits and stylist tips. We found no named or numbered series on the account, no current follower count and no post that sends people to a store.",
+ "split_with_brand_account": "@westsidestores stays the brand and promotions account. It keeps brand campaigns, collection launches, sales and offers, WestStyleClub news, YNG and FRONT ROW news, food and home, store openings as news, and customer care. @seenatwestside takes the eight series, store-specific looks, stylist episodes, neighbourhood portraits, creator and customer features (YNG and FRONT ROW members appear here as The Regulars), and every BOOK, HOLD and RSVP. It covers apparel, beauty and accessories only, as @TargetStyle covers fashion and beauty beside @Target. At launch, traffic runs from the brand account to the style account: @westsidestores announces the premiere the day before and shares each Window to Stories with a link to the style handle. The style handle never posts discounts. Brand moments can run as Instagram Collab posts on both handles. Longer Trial Room cuts run on Westside's existing YouTube channel, as Target ran its creator series on its main channel, rather than opening new style handles on other platforms.",
+ "voice_rules": [
+  "Every post names one store and its city and ends with one action: BOOK, HOLD or RSVP on that store's WhatsApp. This borrows Target's 2014 rule that every post's caption pointed to the one profile link; the store action is Westside's own.",
+  "Put the series name and number first: Window No. 012, Trial Room No. 004, Mausam No. 02. Westside's own; no numbered @TargetStyle series was found.",
+  "Show real people on real streets and in real stores, not studio sets. Borrowed from Woolrich x Target's move 'away from studio-shot imagery'.",
+  "Use Hindi and regional words only where a shopper would say them (mausam, baarish, shaadi, dehleez, har Friday), never as decoration. Westside's own.",
+  "Be warm and a little funny, with a host's voice for live moments rather than a model's. Borrowed from the comedian host of the Sept 2025 premiere.",
+  "Credit every stylist and creator by name and store. Paid posts carry ASCI-compliant disclosure (#ad or #collab). Borrowed from creator posts that tag @targetstyle with #TargetPartner and #ad.",
+  "No sale, discount or price-match language: promotions stay on @westsidestores. State a price plainly when it helps the store action. Westside's own.",
+  "Never name Zara, Target or any other retailer in consumer copy. Never write 'Zara at Westside prices' or any comparison line.",
+  "Keep captions to one line plus the action. If it needs a paragraph, make it a carousel."
+ ],
+ "property_borrowings": [
+  {
+   "property": "Account structure (separate handle)",
+   "from_target_style": "A Target-owned style handle beside the master brand, running since at least 27 Aug 2014. In May 2020 it was about half the size of @Target, 2.2M against 4.4M.",
+   "url": "https://corporate.target.com/press/release/2014/08/upping-the-target-insta-game-you-can-now-instantly-shop-target-and-target-style-instagram"
+  },
+  {
+   "property": "Scope",
+   "from_target_style": "Fashion and beauty only. Its 2020 shoppable categories were skin care, makeup, nail care, clothing and accessories, and footwear.",
+   "url": "https://www.tubefilter.com/2020/05/26/target-launches-shoppable-instagram-posts/"
+  },
+  {
+   "property": "Link in bio",
+   "from_target_style": "One profile link (Like2Buy, 2014), with every post captioned as shoppable and pointed at that link. Westside swaps the product page for that store's WhatsApp, which is Westside's own.",
+   "url": "https://www.entrepreneur.com/article/236914"
+  },
+  {
+   "property": "Launch",
+   "from_target_style": "Announced in a company post on Friday and debuted on Saturday 13 Sept 2025, with live BTS hosted by comedian Christina Kirkman.",
+   "url": "https://www.retaildive.com/news/target-style-instagram-relaunch-fall-marketing/760004/"
+  },
+  {
+   "property": "Mausam",
+   "from_target_style": "Fall trend spotlights featuring transitional outfit inspiration, under one named season, 'Forever Fall'.",
+   "url": "https://www.retaildive.com/news/target-style-instagram-relaunch-fall-marketing/760004/"
+  },
+  {
+   "property": "The Window",
+   "from_target_style": "Curated trend edits plus The Drop's rotating showcase at Target SoHo. The weekly number is Westside's own.",
+   "url": "https://www.retailtouchpoints.com/?p=154481"
+  },
+  {
+   "property": "The Trial Room",
+   "from_target_style": "Stylist tips for personalising a look. Zanna Roberts Rassi was the named 'fashion guru' for all-things TargetStyle. Kahlana Barfield Brown has a style edit that stays at Target SoHo.",
+   "url": "https://fashionweekdaily.com/zanna-roberts-rassi-named-targets-stylist"
+  },
+  {
+   "property": "Seen In",
+   "from_target_style": "Street-style snapshots and micro-influencer collaborations with NYC-based talent. The Woolrich social-first film was shot on real streets.",
+   "url": "https://www.marketingdive.com/news/why-target-embracing-social-first-marketing-woolrich-collab/802597/"
+  },
+  {
+   "property": "First Look",
+   "from_target_style": "The hosted live premiere. Collaboration launch nights followed by a public store day: Woolrich on 14 Oct 2025, then Rosie Assoulin at Target SoHo on 25 Jul 2026.",
+   "url": "https://corporate.target.com/press/release/2025/09/suki-waterhouse,-natasha-lyonne,-devin-booker,-sean-kaufman,-ciara-miller,-d-nice,-kitty-ca$h-and-mo"
+  },
+  {
+   "property": "Dehleez",
+   "from_target_style": "Not a @TargetStyle practice. It borrows Target SoHo's named seasonal re-theme 'Scenes of SoHo' and Target by Design's sequence of event, Instagram giveaway, then store day.",
+   "url": "https://corporate.target.com/news-features/article/2026/02/target-soho-spring"
+  },
+  {
+   "property": "Five Functions",
+   "from_target_style": "Westside's own: no wedding format was found at Target. It borrows only the stylist-tips structure. Indian precedent: Tanishq's Rivaah Bridal Insider, one episode per function.",
+   "url": "https://indianjeweller.in/Indian-Jewellery-News/15505/index.php"
+  },
+  {
+   "property": "The Regulars",
+   "from_target_style": "Creators tag @targetstyle with #TargetPartner and #ad disclosures. Club Target's entry-level reward is a feature on Target's own social accounts.",
+   "url": "https://www.modash.io/content-library/brands/target-style-examples"
+  },
+  {
+   "property": "Tag-to-be-featured (entry to Seen In and The Regulars)",
+   "from_target_style": "'Just post a picture and tag @TargetStyle and you might just see yourself, too!' on Target.com.",
+   "url": "https://www.target.com/finds"
+  }
+ ],
+ "kpis": [
+  "Primary: footfall per store, read as on the pilot scorecard: a new store against the opening curves of matched recent openings, an existing store by difference-in-differences against matched stores",
+  "WhatsApp actions started per post, per store, split into BOOK, HOLD and RSVP and by series",
+  "HOLD collection rate: holds collected in store within 48 hours as a share of holds placed",
+  "RSVP show rate and Trial Room bookings kept",
+  "Bills from WestStyleClub members who sent a WhatsApp action, within 7 days (subject to consent terms and DPDP)",
+  "Tagged customer posts per store (entries for Seen In and The Regulars)",
+  "Secondary only: followers, saves and shares. For reference, not as a target: @TargetStyle had about 2.2M followers against @Target's 4.4M in May 2020"
+ ],
+ "first_in_india": "We found no Indian fashion retailer running a dedicated style account. The nearest precedents are a designer label (Sabyasachi's bridal account) and a jeweller's function-by-function series on its main handle (Tanishq, Jun 2025).",
+ "comparables": [
+  [
+   "H&M @hm_man",
+   "A separate menswear account, Mar 2017",
+   "https://www.glossy.co/fashion/hm-turns-to-collaborations-and-a-new-instagram-account-to-spotlight-menswear/"
+  ],
+  [
+   "Macy's @macysmen",
+   "A dedicated men's page with a 300-strong staff Style Crew, 2018",
+   "https://www.retaildive.com/news/macys-steps-into-summer-with-new-instagram-look-dedicated-mens-page-and/523691/"
+  ],
+  [
+   "Mytheresa @myt_stylist",
+   "A second, stylist-led account, Aug 2015",
+   "https://fashionunited.com/news/retail/mytheresa-com-uses-stylist-service-to-kickstart-instagram-sales/201508257944"
+  ],
+  [
+   "Amazon @amazonthedrop",
+   "An account for 30-hour creator drops, May 2019",
+   "https://ae.fashionnetwork.com/news/Amazon-to-launch-limited-edition-influencer-designed-collections-via-The-Drop,1101992.html"
+  ],
+  [
+   "M&S Man",
+   "A dedicated menswear page with styling tips, Aug 2025",
+   "https://www.retailgazette.co.uk/blog/2025/08/ms-man-social-media/"
+  ]
+ ],
+ "target_style_rows": [
+  {
+   "name": "Own account",
+   "text": "A Target-owned style handle beside @Target since at least 27 Aug 2014, when both profiles got a shoppable link (Curalate Like2Buy).",
+   "url": "https://corporate.target.com/press/release/2014/08/upping-the-target-insta-game-you-can-now-instantly-shop-target-and-target-style-instagram",
+   "status": "verified (start date NOT FOUND)"
+  },
+  {
+   "name": "Half the reach",
+   "text": "May 2020: about 2.2M followers against @Target's 4.4M, described as a separate account focused on fashion and beauty.",
+   "url": "https://www.tubefilter.com/2020/05/26/target-launches-shoppable-instagram-posts/",
+   "status": "verified"
+  },
+  {
+   "name": "Hosted premiere",
+   "text": "Relaunched 13 Sept 2025 for a 'social-first fashion audience', with live BTS from the Target Style Tailgate during New York Fashion Week hosted by comedian Christina Kirkman.",
+   "url": "https://corporate.target.com/press/release/2025/09/suki-waterhouse,-natasha-lyonne,-devin-booker,-sean-kaufman,-ciara-miller,-d-nice,-kitty-ca$h-and-mo",
+   "status": "verified (host credit from Target's own release only)"
+  },
+  {
+   "name": "Fixed formats",
+   "text": "Sept 2025 format list: fall trend spotlights, NYC micro-creator collabs, street-style snapshots, trend edits, stylist tips. No numbered series found.",
+   "url": "https://www.retaildive.com/news/target-style-instagram-relaunch-fall-marketing/760004/",
+   "status": "verified (last three at search-summary level, Retail Touchpoints)"
+  },
+  {
+   "name": "Tag to feature",
+   "text": "On Target.com: 'Just post a picture and tag @TargetStyle and you might just see yourself, too!'",
+   "url": "https://www.target.com/finds",
+   "status": "verified (page title and live status not confirmed)"
+  },
+  {
+   "name": "Online, not store",
+   "text": "Its link sends people to product pages (2014) and in-app checkout (2020). We found no store action or footfall figure for the account. That is the gap Westside fills.",
+   "url": "https://corporate.target.com/article/2020/05/instagram-shopping",
+   "status": "verified; store action NOT FOUND"
+  }
+ ],
+ "sources": [
+  {
+   "title": "Target press release, 27 Aug 2014: Upping the Target Insta-Game (Like2Buy on Target and Target Style Instagram)",
+   "url": "https://corporate.target.com/press/release/2014/08/upping-the-target-insta-game-you-can-now-instantly-shop-target-and-target-style-instagram"
+  },
+  {
+   "title": "Drugstore News: Target shoppers can now buy on Instagram (2014)",
+   "url": "https://drugstorenews.com/news/target-shoppers-can-now-buy-instagram"
+  },
+  {
+   "title": "Entrepreneur: Curalate Like2Buy coverage (2014)",
+   "url": "https://www.entrepreneur.com/article/236914"
+  },
+  {
+   "title": "Tubefilter: Target first mass retailer to launch shoppable Instagram posts (26 May 2020)",
+   "url": "https://www.tubefilter.com/2020/05/26/target-launches-shoppable-instagram-posts/"
+  },
+  {
+   "title": "Target newsroom: Instagram Checkout (May 2020)",
+   "url": "https://corporate.target.com/article/2020/05/instagram-shopping"
+  },
+  {
+   "title": "Supermarket News: Target enables shopping via Instagram Checkout",
+   "url": "https://www.supermarketnews.com/grocery-trends-data/target-enables-shopping-via-instagram-checkout"
+  },
+  {
+   "title": "Retail TouchPoints: Target taps creator-led commerce with Linktree (8 Nov 2024)",
+   "url": "https://www.retailtouchpoints.com/topics/digital-commerce/social-commerce/target-taps-into-creator-led-commerce-with-linktree-partnership"
+  },
+  {
+   "title": "Retail TouchPoints: Target Style relaunch formats (Sept 2025)",
+   "url": "https://www.retailtouchpoints.com/?p=154481"
+  },
+  {
+   "title": "Target press release: Target Style Tailgate at New York Fashion Week (13 Sept 2025)",
+   "url": "https://corporate.target.com/press/release/2025/09/suki-waterhouse,-natasha-lyonne,-devin-booker,-sean-kaufman,-ciara-miller,-d-nice,-kitty-ca$h-and-mo"
+  },
+  {
+   "title": "eMarketer: Target bets on style reboot to reverse its sales slump",
+   "url": "https://www.emarketer.com/content/target-bets-on-style-reboot-reverse-its-sales-slump"
+  },
+  {
+   "title": "Modern Retail: Target's next CEO shares his 3 top priorities (Aug 2025)",
+   "url": "https://www.modernretail.co/operations/targets-next-ceo-shares-his-3-top-priorities-in-returning-to-growth/"
+  },
+  {
+   "title": "Brand Innovators: Scott Swartz bio",
+   "url": "https://brand-innovators.com/speakers/scott-swartz/"
+  },
+  {
+   "title": "Target press release: Woolrich x Target collection (Oct 2025)",
+   "url": "https://corporate.target.com/press/release/2025/10/target-announces-limited-time-collection-with-woolrich,-blending-iconic-heritage-and-trend-forward-s"
+  },
+  {
+   "title": "Marketing Dive: Why Target is embracing social-first marketing for its Woolrich collab",
+   "url": "https://www.marketingdive.com/news/why-target-embracing-social-first-marketing-woolrich-collab/802597/"
+  },
+  {
+   "title": "Influencer Marketing Hub: Target's social-first Woolrich campaign",
+   "url": "https://influencermarketinghub.com/target-social-first-campaign-for-its-woolrich-collaboration/"
+  },
+  {
+   "title": "Target press release: Woolrich x Target celebration (14 Oct 2025)",
+   "url": "https://corporate.target.com/press/release/2025/10/olivia-palermo,-sean-kaufman,-lukas-gage,-nicky-campbell-and-more-celebrate-the-woolrich-x-target-co"
+  },
+  {
+   "title": "Target press release: Rosie Assoulin x Target (Jul 2026)",
+   "url": "https://corporate.target.com/press/release/2026/07/target-brings-rosie-assoulin-s-bold,-joyful-designs-to-guests-at-an-incredible-value"
+  },
+  {
+   "title": "Target.com: Target Finds (tag @TargetStyle to be featured)",
+   "url": "https://www.target.com/finds"
+  },
+  {
+   "title": "Modash: Target Style sponsored creator content examples",
+   "url": "https://www.modash.io/content-library/brands/target-style-examples"
+  },
+  {
+   "title": "Fashion Week Daily: Zanna Roberts Rassi named Target's stylist",
+   "url": "https://fashionweekdaily.com/zanna-roberts-rassi-named-targets-stylist"
+  },
+  {
+   "title": "Tubefilter: Let's Target season 3 (15 Jun 2021)",
+   "url": "https://tubefilter.com/2021/06/15/lets-target-season-3-jackie-aina-preston-playz-remi-ashten/"
+  },
+  {
+   "title": "Jon Loomer: Meta shops and checkout changes (2023-24)",
+   "url": "https://www.jonloomer.com/?p=40946"
+  },
+  {
+   "title": "Retail Dive 807414: Target opens SoHo concept store (Dec 2025)",
+   "url": "https://www.retaildive.com/news/target-opens-soho-store-concept-curated-beauty-apparel/807414/"
+  },
+  {
+   "title": "RetailWire: Target SoHo boutique retailing (The Drop rotation)",
+   "url": "https://retailwire.com/discussion/boutique-retailing-target"
+  },
+  {
+   "title": "Target newsroom: Target SoHo brings NYC style to spring (19 Feb 2026)",
+   "url": "https://corporate.target.com/news-features/article/2026/02/target-soho-spring"
+  },
+  {
+   "title": "Target press release: Spring Beauty Studio at Target SoHo (11 Feb 2026)",
+   "url": "https://corporate.target.com/press/release/2026/02/jodie-turner-smith,-rachel-zoe,-ciara-miller,-ming-lee-simmons,-whitney-leavitt,-lana-condor,-and-mo"
+  },
+  {
+   "title": "Mass Market Retailers: Target puts its design legacy on display at museum (Sept 2026)",
+   "url": "https://massmarketretailers.com/target-puts-its-design-legacy-on-display-at-museum/"
+  },
+  {
+   "title": "Retail Dive 831146: Target Inside Out campaign and Red Bag Stories",
+   "url": "https://www.retaildive.com/news/target-inside-out-ad-campaign-marketing-design-legacy/831146/"
+  },
+  {
+   "title": "The PR Net: Future Collective fall 2024 creators",
+   "url": "https://theprnet.com/gallery/5294"
+  },
+  {
+   "title": "MPR News (AP): Isaac Mizrahi named creative director at large (15 Jun 2026)",
+   "url": "https://www.mprnews.org/story/2026/06/15/target-taps-designer-isaac-mizrahi-for-new-role-as-creative-director-at-large"
+  },
+  {
+   "title": "Target fact sheet: Collection186 (Sept 2026)",
+   "url": "https://corporate.target.com/press/fact-sheet/2026/09/collection-186"
+  },
+  {
+   "title": "Target newsroom: Club Target and Target Ambassadors (May 2026)",
+   "url": "https://corporate.target.com/news-features/article/2026/05/club-target"
+  },
+  {
+   "title": "Nasdaq/Zacks: Target Q3 FY2025 results",
+   "url": "https://www.nasdaq.com/articles/target-q3-earnings-beat-estimates-sales-decline-amid-soft-traffic"
+  },
+  {
+   "title": "Target press release: Q4 and full year 2025 earnings",
+   "url": "https://corporate.target.com/press/release/2026/03/target-corporation-reports-fourth-quarter-and-full-year-2025-earnings"
+  },
+  {
+   "title": "Target press release: Q2 2026 earnings (19 Aug 2026)",
+   "url": "https://corporate.target.com/press/release/2026/08/target-corporation-reports-second-quarter-earnings"
+  },
+  {
+   "title": "Glossy Pop: Embreigh Courtlyn's $2.2 million Target launch",
+   "url": "https://www.glossy.co/?p=205755"
+  },
+  {
+   "title": "Retail Dive 819417: Target's digital chief on the creator overhaul",
+   "url": "https://retaildive.com/news/targets-digital-chief-breaks-down-the-retailers-creator-overhaul/819417/"
+  },
+  {
+   "title": "Glossy: H&M turns to a new Instagram account to spotlight menswear (Mar 2017)",
+   "url": "https://www.glossy.co/fashion/hm-turns-to-collaborations-and-a-new-instagram-account-to-spotlight-menswear/"
+  },
+  {
+   "title": "Retail Gazette: M&S Man social media launch (Aug 2025)",
+   "url": "https://www.retailgazette.co.uk/blog/2025/08/ms-man-social-media/"
+  },
+  {
+   "title": "M&S press release: first virtual influencer (Mira) and M&S Insiders",
+   "url": "https://corporate.marksandspencer.com/media/press-releases/marks-spencer-experiments-ar-launch-its-first-virtual-influencer"
+  },
+  {
+   "title": "Retail Dive 523691: Macy's new Instagram look and @macysmen (2018)",
+   "url": "https://www.retaildive.com/news/macys-steps-into-summer-with-new-instagram-look-dedicated-mens-page-and/523691/"
+  },
+  {
+   "title": "Tubefilter: Macy's opens Style Crew to the public (4 Aug 2020)",
+   "url": "https://tubefilter.com/2020/08/04/macys-democratizes-style-crew-influencer-program/"
+  },
+  {
+   "title": "ASOS plc: ASOS Insiders are back (27 Feb 2024)",
+   "url": "https://www.asosplc.com/news/asos-insiders-are-back-asos-relaunches-fashion-and-style-influencer-programme"
+  },
+  {
+   "title": "FashionUnited: Mytheresa uses stylist service to kickstart Instagram sales (Aug 2015)",
+   "url": "https://fashionunited.com/news/retail/mytheresa-com-uses-stylist-service-to-kickstart-instagram-sales/201508257944"
+  },
+  {
+   "title": "FashionNetwork: Amazon The Drop (23 May 2019)",
+   "url": "https://ae.fashionnetwork.com/news/Amazon-to-launch-limited-edition-influencer-designed-collections-via-The-Drop,1101992.html"
+  },
+  {
+   "title": "Retail Dive: Nordstrom young adult ambassador programme (Aug 2021)",
+   "url": "https://retaildive.com/news/nordstrom-debuts-young-adult-ambassador-program/605332"
+  },
+  {
+   "title": "Modern Retail: How Uniqlo uses its LifeWear magazine",
+   "url": "https://www.modernretail.co/marketing/how-uniqlo-uses-its-lifestyle-magazine-to-drive-brand-engagement/"
+  },
+  {
+   "title": "FashionNetwork UK: Mango trials customer co-creation on Instagram (Nov 2019)",
+   "url": "https://uk.fashionnetwork.com/news/Mango-trials-customer-co-creation-on-instagram,1157427.html"
+  },
+  {
+   "title": "Walmart: Introducing the Walmart Style Tour (6 Sept 2024)",
+   "url": "https://corporate.walmart.com/news/2024/09/06/introducing-the-walmart-style-tour-bringing-style-fall-finds-to-a-city-near-you"
+  },
+  {
+   "title": "Indian Jeweller: Tanishq launches Rivaah Bridal Insider with Namrata Soni (Jun 2025)",
+   "url": "https://indianjeweller.in/Indian-Jewellery-News/15505/index.php"
+  },
+  {
+   "title": "Mint via Magzter: Personal shoppers lift India's premium fashion retail sales",
+   "url": "https://www.magzter.com/de/stories/newspaper/Mint-Bangalore/PERSONAL-SHOPPERS-LIFT-INDIAS-PREMIUM-FASHION-RETAIL-SALES"
+  },
+  {
+   "title": "Qoruz: Brides of Sabyasachi Instagram profile (third-party)",
+   "url": "https://qoruz.com/bridesofsabyasachi/instagram"
+  },
+  {
+   "title": "Social Samosa: Sabyasachi Mukherjee, a marketing masterstroke (Feb 2018)",
+   "url": "https://www.socialsamosa.com/2018/02/sabyasachi-mukherjee-marketing-strategy"
+  },
+  {
+   "title": "t2 Online: Westside's Front Row spotlights new voices in fashion and culture",
+   "url": "https://t2online.in/goodlife/fashion-beauty/westside-s-front-row-spotlights-new-voices-in-fashion-and-culture/2008395"
+  },
+  {
+   "title": "Westside store locator (@westsidestores)",
+   "url": "https://www.westside.com/pages/store-locator"
+  },
+  {
+   "title": "Research note written in this step",
+   "url": "file:///home/user/INDULGE/research_notes/Zara%20and%20Target%20content%20IP/target_style_account.md"
+  }
+ ],
+ "caveats": [
+  "No page was opened in this run. instagram.com/targetstyle failed on WebFetch (getaddrinfo ENOTFOUND), and every fact rests on search-result text, so check quotes on the page before they go into the deck.",
+  "Target's bio, link in bio, highlights, pinned posts, grid, cadence, voice and current follower count are NOT FOUND. The Westside anatomy here is Mask360's proposal, not a copy of Target's profile.",
+  "Do not quote 'as discoverable as it is shoppable' (unverifiable). Use only dated Target follower figures: 300,000+ each (Aug 2014), 2.2M (May 2020), 8.4M combined with @target (Nov 2024).",
+  "The Christina Kirkman host credit comes only from Target's own release.",
+  "Handle availability is unchecked for @seenatwestside and @westsidestyle. A search found nothing using 'seenatwestside', which does not prove it is free. Check on Instagram, and reserve matching handles on YouTube and Threads, before the deck shows the name.",
+  "'First in India' is a negative finding. Sabyasachi's bridal account and Tanishq's function-by-function series are the nearest Indian precedents.",
+  "Five Functions is not a new format in India (Tanishq, Jun 2025). Pitch it as the clothing companion, set apart by the store fitting. The five functions named are Mask360's choice, and regional weddings differ.",
+  "The stores in the grid mock-up are real Westside stores named in the earlier audit (Gachibowli, Jayanagar, New Commercial Street, Sky Vista DN Nagar II, Vaishali Nagar, Zoo Road, Silver Square Mall, Kelambakkam). Whether each is suitable for shoots and events is not confirmed.",
+  "Launch dates (Fri 20 and Sat 21 Nov 2026) follow the existing pitch timeline, and Diwali on 8 Nov 2026 is taken from that pitch. Dehleez therefore first runs at Diwali 2027.",
+  "A store-level WhatsApp action needs WhatsApp Business numbers per store and staff to answer them. That set-up, and its consent wording under DPDP, was not checked.",
+  "Target's apparel was still below expectations a year after the relaunch (Q2 FY2026, partly), so a style account alone is not evidence of an apparel sales lift.",
+  "The @westsidestores follower count is not verified for 2026 (the last snippet, about 1M, is stale), so do not set a style-handle follower target from it.",
+  "ASCI influencer-disclosure rules were not re-checked in this pass."
+ ],
+ "week_detail": [
+  [
+   "Mon",
+   "Seen In: one neighbourhood and its store, shot on Saturday, posted on Monday, a different city each week",
+   "RSVP SEEN to see the wall"
+  ],
+  [
+   "Tue",
+   "The Regulars: a member or creator who tagged their store",
+   "RSVP to Regulars Night"
+  ],
+  [
+   "Wed",
+   "The Trial Room: a new episode with a named store stylist",
+   "BOOK the room"
+  ],
+  [
+   "Thu",
+   "The season slot (Mausam, Dehleez or Five Functions), and the members' Window preview at 9 PM",
+   "BOOK a fitting"
+  ],
+  [
+   "Fri",
+   "The Window: the weekly numbered look",
+   "HOLD your size"
+  ],
+  [
+   "Sat",
+   "In-store Stories from one store (not live)",
+   "RSVP for the next event"
+  ],
+  [
+   "Sun",
+   "Stories only: reposts of customers who tagged their store, and a clue to Friday",
+   "no feed post"
+  ],
+  [
+   "Pilot weeks 1–4",
+   "Thursday and Friday carry the opening-month series (the maker's object in the bay, the store team as masthead, the countdown to Window No. 001); The Window takes Friday from week 5",
+   "RSVP"
+  ]
+ ]
+}
