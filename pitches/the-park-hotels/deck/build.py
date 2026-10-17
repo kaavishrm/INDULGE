@@ -4,7 +4,7 @@ Writes to pitches/the-park-hotels/dist/:
   the-park-proposal.html  the page fragment published as the claude.ai artifact
   index.html              the standalone page, for a website or for printing to PDF
 """
-import base64, os, pathlib, re, sys
+import base64, os, pathlib, re, shutil, sys
 
 V = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(V))
@@ -59,6 +59,18 @@ if hits:
     if os.environ.get('STRICT'):
         sys.exit(1)
 
+# the reference clips and their posters travel with the page, in dist/media (published with the artifact as its files)
+MEDIA = V / 'media'
+if MEDIA.is_dir():
+    out = DIST / 'media'
+    out.mkdir(exist_ok=True)
+    used = set(re.findall(r'media/([\w.-]+)', fragment))
+    for f in MEDIA.iterdir():
+        if f.name in used:
+            shutil.copy(f, out / f.name)
+    missing = [u for u in used if not (MEDIA / u).exists()]
+    if missing:
+        sys.exit(f'missing media: {missing}')
 (DIST / 'the-park-proposal.html').write_text(fragment)
 (DIST / 'index.html').write_text(standalone)
 print(f'{n} slides · fragment {len(fragment) / 1024:.0f} KB · standalone {len(standalone) / 1024:.0f} KB')

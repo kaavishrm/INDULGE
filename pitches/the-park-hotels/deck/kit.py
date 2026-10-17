@@ -73,3 +73,15 @@ def tile(kind, seed, no, title, dark_text=False, cls=''):
     """A cloth tile with a Didone number top left and a thin uppercase title bottom left."""
     return (f'<div class="tile{" d" if dark_text else ""}{" " + cls if cls else ""}">{fab(kind, seed)}'
             f'<div class="ov"><span class="no">{no}</span><span class="t">{title}</span></div></div>')
+
+
+def video_card(v, caption, meta=''):
+    """v: a row from media/manifest.json (file, poster, size). Nothing loads until play; play opens the clip over the deck."""
+    w, h = v['size']
+    name = esc(re.sub(r'<[^>]+>', '', caption))
+    return (f'<figure class="vcard"><div class="vbox" style="--ar:{w}/{h};--poster:url(media/{v["poster"]})">'
+            f'<video preload="none" playsinline poster="media/{v["poster"]}" aria-label="{name}">'
+            f'<source src="media/{v["file"]}" type="video/mp4"></video>'
+            f'<button class="vplay" type="button" aria-label="Play: {name}"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span></button>'
+            f'</div><figcaption class="cap">{caption}</figcaption>'
+            + (f'<div class="meta">{meta}</div>' if meta else '') + '</figure>')

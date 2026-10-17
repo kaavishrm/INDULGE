@@ -154,118 +154,278 @@ def hotels_grid(today=42, target=87, cols=12):
     return ''.join(o)
 
 
+def _phone(o, x, y, screen, w=200, h=356):
+    """A phone outline with its screen (fi night, fp bone, fw paper) and the speaker slot."""
+    o.append(f'<rect class="fw" x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/><rect class="ln" x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/>')
+    o.append(f'<rect class="{screen}" x="{x + 9}" y="{y + 9}" width="{w - 18}" height="{h - 18}" rx="15"/>')
+    o.append(f'<rect class="{"fw" if screen == "fi" else "fi"}" x="{x + w / 2 - 22}" y="{y + 17}" width="44" height="7" rx="3.5"/>')
+
+
+def _play(o, cx, cy, r=30, light=True):
+    col = 'var(--paper)' if light else 'var(--ink)'
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" style="fill:none;stroke:{col};stroke-width:1.3"/>')
+    o.append(f'<path d="M{cx - r * .3:.1f} {cy - r * .53:.1f} L{cx + r * .5:.1f} {cy} L{cx - r * .3:.1f} {cy + r * .53:.1f} Z" style="fill:{col}"/>')
+
+
+def _bars(o, x):
+    for k in range(3):
+        o.append(f'<line class="{"ln" if k == 0 else "ln2"}" x1="{x + 20 + k * 56}" y1="48" x2="{x + 68 + k * 56}" y2="48"/>')
+
+
+def _dots(o, cx, y=334):
+    for k in range(3):
+        o.append(f'<circle class="{"fi" if k == 0 else "ln2"}" cx="{cx - 12 + k * 12}" cy="{y}" r="3"/>')
+
+
+def _labels(o, labs):
+    for x, lab in zip((110, 360, 610), labs):
+        o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
+
+
 def phones():
     """Three sample posts for The Sessions, drawn as phones: a Reel cover, a story and a carousel card."""
     o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for The Sessions. '
          'A Reel cover reading Park Street still plays, a story reading 11:40 p.m. Someplace Else, and a carousel card '
          'reading the full set on YouTube">']
-    for i, x in enumerate((10, 260, 510)):
-        o.append(f'<rect class="fw" x="{x}" y="10" width="200" height="356" rx="22"/><rect class="ln" x="{x}" y="10" width="200" height="356" rx="22"/>')
-        screen = ('fi', 'fp', 'fw')[i]
-        o.append(f'<rect class="{screen}" x="{x + 9}" y="19" width="182" height="338" rx="15"/>')
-        o.append(f'<rect class="{"fw" if i == 0 else "fi"}" x="{x + 78}" y="27" width="44" height="7" rx="3.5"/>')
-    # 1: Reel cover, night
-    o.append(_t(110, 92, 'SET 01 · ONE TAKE', 11, anchor='middle', weight=500, ls=.18, fill='var(--paper)'))
-    o.append('<circle cx="110" cy="188" r="30" style="fill:none;stroke:var(--paper);stroke-width:1.3"/>')
-    o.append('<path d="M101 172 L125 188 L101 204 Z" style="fill:var(--paper)"/>')
+    for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
+        _phone(o, x, 10, sc)
+    o.append(_t(110, 92, 'SET 01', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    _play(o, 110, 188)
     o.append(_t(110, 290, 'PARK STREET', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
     o.append(_t(110, 320, 'STILL PLAYS', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
-    # 2: story, tonight
-    for k in range(3):
-        o.append(f'<line class="{"ln" if k == 0 else "ln2"}" x1="{280 + k * 56}" y1="48" x2="{328 + k * 56}" y2="48"/>')
+    _bars(o, 260)
     o.append(_t(360, 178, '11:40', 62, 'tx-n', anchor='middle'))
-    o.append(_t(360, 206, 'P.M. TONIGHT', 12, anchor='middle', weight=500, ls=.2))
+    o.append(_t(360, 206, 'P.M. TONIGHT', 13, anchor='middle', weight=500, ls=.16))
     o.append('<line class="ln2" x1="300" y1="236" x2="420" y2="236"/>')
     o.append(_t(360, 266, 'SOMEPLACE ELSE', 16, 'tx-d', anchor='middle', ls=.12))
-    o.append(_t(360, 288, 'PARK STREET, KOLKATA', 10, anchor='middle', weight=500, ls=.2, fill='var(--ink-3)'))
-    # 3: carousel card, the full set
+    o.append(_t(360, 290, 'KOLKATA', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     o.append('<rect class="fp" x="530" y="60" width="160" height="90"/><rect class="ln" x="530" y="60" width="160" height="90"/>')
     o.append('<circle class="fw" cx="610" cy="105" r="17"/><circle class="ln" cx="610" cy="105" r="17"/><path class="fi" d="M604 95 L620 105 L604 115 Z"/>')
     o.append(_t(610, 210, 'THE FULL SET', 21, 'tx-d', anchor='middle', ls=.04))
     o.append(_t(610, 238, 'ON YOUTUBE', 21, 'tx-d', anchor='middle', ls=.04))
-    o.append(_t(610, 270, 'START TO FINISH, NO CUTS', 10, anchor='middle', weight=500, ls=.18, fill='var(--ink-3)'))
-    for k in range(3):
-        o.append(f'<circle class="{"fi" if k == 0 else "ln2"}" cx="{598 + k * 12}" cy="334" r="3"/>')
-    for x, lab in ((110, 'Reel'), (360, 'Story'), (610, 'Carousel')):
-        o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
+    o.append(_t(610, 270, 'NO CUTS', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
+    _dots(o, 610)
+    _labels(o, ('Reel', 'Story', 'Carousel'))
     o.append('</svg>')
     return ''.join(o)
 
 
-MAP = [  # pillar, what it covers, side, series (name, formats)
-    ('After Hours', 'the night', 'left', [('The Sessions', 'Reel · YouTube · Spotify'), ('The 3 a.m. Menu', 'Reel series'),
-                                          ('Last Call', 'Story · the drink of the week'), ('Who Played', 'Carousel · every Monday')]),
-    ('By Design', 'the rooms', 'right', [('Room 1967', 'Launch night · carousel · press'), ('The Object', 'Macro Reel · weekly'),
-                                        ('The Architects', 'Carousel · monthly'), ('Boards', 'Pinterest · weekly')]),
-    ('The Table', 'the food', 'left', [('Flurys 100', 'All of 2027 · Reel · carousel'), ('Chef’s Counter', 'Reel · thirty seconds'),
-                                       ('The Recipe', 'Carousel · made to be saved'), ('Menu Drops', 'Story · as they land')]),
-    ('The City', 'the people', 'right', [('Night Shift', 'Portrait carousel · weekly'), ('The Night Map', 'Guide · written for search'),
-                                         ('Don’t Check Out', 'Writer in residence'), ('Ask the Concierge', 'DM answers as Reels')]),
+def room_posts():
+    """Three sample posts for Room 1967: the Reel from day one, the waiting-list story, the designer carousel."""
+    o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for Room 1967. '
+         'A Reel cover reading day 1, the empty suite; a story reading 1967, the waiting list opens tonight; and a carousel '
+         'card reading meet the designer">']
+    for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
+        _phone(o, x, 10, sc)
+    o.append(_t(110, 92, 'DAY 1', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    _play(o, 110, 178)
+    o.append(_t(110, 286, 'ROOM 1967', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    o.append(_t(110, 314, 'THE EMPTY SUITE', 13, anchor='middle', weight=500, ls=.14, fill='var(--paper)'))
+    _bars(o, 260)
+    o.append(_t(360, 186, '1967', 64, 'tx-n', anchor='middle'))
+    o.append(_t(360, 222, 'THE WAITING LIST', 13, anchor='middle', weight=500, ls=.14))
+    o.append(_t(360, 242, 'OPENS TONIGHT', 13, anchor='middle', weight=500, ls=.14))
+    o.append('<rect class="ln" x="305" y="276" width="110" height="34" rx="17"/>')
+    o.append(_t(360, 298, 'TAP TO JOIN', 12, anchor='middle', weight=500, ls=.14))
+    o.append('<rect class="fp" x="530" y="60" width="160" height="110"/><rect class="ln" x="530" y="60" width="160" height="110"/>')
+    o.append('<path class="ln" d="M574 150 C566 112 584 90 612 88 C636 86 648 102 644 124 L636 150 Z M572 150 L646 150 M584 150 L578 164 M634 150 L640 164"/>')
+    o.append(_t(610, 218, 'MEET THE', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 246, 'DESIGNER', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 276, 'SWIPE FOR SKETCHES', 12, anchor='middle', weight=500, ls=.12, fill='var(--ink-3)'))
+    _dots(o, 610)
+    _labels(o, ('Reel', 'Story', 'Carousel'))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def flurys_posts():
+    """Three sample posts for Flurys 100: a regular, a baker at 4 a.m., a recipe."""
+    o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for Flurys 100. '
+         'A Reel cover reading regular number 001, a story reading 4:00 a.m. on Park Street, and a carousel card reading '
+         'recipe number 01, save this">']
+    for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
+        _phone(o, x, 10, sc)
+    _play(o, 110, 96, r=18)
+    o.append(_t(110, 220, '001', 70, 'tx-n', anchor='middle', fill='var(--paper)'))
+    o.append(_t(110, 258, 'REGULAR', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    o.append(_t(110, 296, 'SAME TABLE', 21, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    o.append(_t(110, 322, 'EVERY SUNDAY', 21, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    _bars(o, 260)
+    o.append(_t(360, 180, '4:00', 64, 'tx-n', anchor='middle'))
+    o.append(_t(360, 210, 'A.M. AT THE OVEN', 13, anchor='middle', weight=500, ls=.14))
+    o.append('<line class="ln2" x1="300" y1="238" x2="420" y2="238"/>')
+    o.append(_t(360, 268, 'FLURYS', 18, 'tx-d', anchor='middle', ls=.14))
+    o.append(_t(360, 292, 'PARK STREET', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
+    o.append('<ellipse class="fw" cx="610" cy="140" rx="54" ry="10"/><ellipse class="ln" cx="610" cy="140" rx="54" ry="10"/>')
+    o.append('<path class="fw" d="M576 96 C578 124 594 136 610 136 C626 136 642 124 644 96 Z"/><path class="ln" d="M576 96 C578 124 594 136 610 136 C626 136 642 124 644 96"/>')
+    o.append('<ellipse class="fp" cx="610" cy="96" rx="34" ry="7"/><ellipse class="ln" cx="610" cy="96" rx="34" ry="7"/><path class="ln" d="M643 104 C662 102 662 124 640 122"/>')
+    o.append(_t(610, 218, 'RECIPE NO. 01', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 250, 'SAVE THIS', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
+    _dots(o, 610)
+    _labels(o, ('Reel', 'Story', 'Carousel'))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def reel_frame(k):
+    """One frame of Set 01, the Reel, for the second-by-second page: k is 0 to 4."""
+    names = ['the hook: 11:40 p.m., Park Street', 'the walk through the crowd', 'the chorus and the faces', 'the last note and the room',
+             'the end card: the full set on YouTube']
+    o = [f'<svg viewBox="0 0 220 376" role="img" aria-label="Line drawing of a phone showing the Reel at {names[k]}">']
+    _phone(o, 10, 10, ('fi', 'fp', 'fw', 'fi', 'fw')[k], w=200, h=356)
+    if k == 0:
+        o.append(_t(110, 150, '11:40', 56, 'tx-n', anchor='middle', fill='var(--paper)'))
+        o.append(_t(110, 178, 'P.M.', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+        o.append(_t(110, 250, 'PARK STREET', 22, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
+    elif k == 1:
+        o.append('<path class="ln" d="M44 196 L176 196 M110 196 L110 120 M110 120 L126 108"/><ellipse class="fi" cx="130" cy="104" rx="5" ry="8" transform="rotate(-35 130 104)"/>')
+        for j, cx in enumerate((40, 80, 120, 160, 200)):
+            cy = 300 - (j % 2) * 12
+            o.append(f'<circle class="fw" cx="{cx - 10}" cy="{cy}" r="22"/><circle class="ln2" cx="{cx - 10}" cy="{cy}" r="22"/>')
+        o.append('<path class="ln2" d="M110 340 L110 236 M100 248 L110 236 L120 248"/>')
+    elif k == 2:
+        for j, cx in enumerate((50, 110, 170)):
+            o.append(f'<circle class="fp" cx="{cx}" cy="210" r="22"/><circle class="ln" cx="{cx}" cy="210" r="22"/>')
+            o.append(f'<path class="ln" d="M{cx - 14} 176 L{cx - 24} 120 M{cx + 14} 176 L{cx + 24} 124"/>')
+            o.append(f'<path class="ln2" d="M{cx - 8} 216 C{cx - 4} 222 {cx + 4} 222 {cx + 8} 216"/>')
+        o.append('<path class="ln2" d="M30 290 C70 270 150 270 190 290"/>')
+    elif k == 3:
+        o.append('<path d="M24 80 Q110 130 196 80" style="fill:none;stroke:var(--paper);stroke-width:1"/>')
+        for j in range(1, 8):
+            t = j / 8
+            x = 24 + 172 * t
+            y = (1 - t) ** 2 * 80 + 2 * (1 - t) * t * 130 + t ** 2 * 80
+            o.append(f'<circle cx="{x:.1f}" cy="{y + 8:.1f}" r="4" style="fill:var(--bone)"/>')
+        o.append('<path d="M50 230 L170 230 L170 244 L50 244 Z" style="fill:none;stroke:var(--paper);stroke-width:1.2"/>')
+        for cx in (40, 70, 100, 130, 160, 190):
+            o.append(f'<circle cx="{cx - 5}" cy="290" r="11" style="fill:none;stroke:var(--night-2);stroke-width:1"/>')
+    else:
+        _play(o, 110, 150, r=30, light=False)
+        o.append(_t(110, 228, 'THE FULL SET', 19, 'tx-d', anchor='middle', ls=.04))
+        o.append(_t(110, 252, 'ON YOUTUBE', 19, 'tx-d', anchor='middle', ls=.04))
+        o.append('<rect class="ln" x="45" y="290" width="130" height="32" rx="16"/>')
+        o.append(_t(110, 311, 'MESSAGE US', 12, anchor='middle', weight=500, ls=.14))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def people(k):
+    """Small line drawings for the community page: 0 artists, 1 regulars, 2 creators, 3 direct messages."""
+    lab = ['a microphone and a guitar on a stand', 'a guest photo reposted with a credit line', 'a phone on a gimbal under string lights',
+           'a direct message thread that ends with a confirmed table']
+    o = [f'<svg viewBox="0 0 320 180" role="img" aria-label="Line drawing: {lab[k]}">']
+    if k == 0:
+        o.append('<path class="ln" d="M120 170 L120 70 M100 170 L140 170 M120 70 L144 54"/><ellipse class="fp" cx="150" cy="50" rx="8" ry="12" transform="rotate(-35 150 50)"/><ellipse class="ln" cx="150" cy="50" rx="8" ry="12" transform="rotate(-35 150 50)"/>')
+        o.append('<path class="fp" d="M210 166 C190 166 184 146 192 134 C186 122 190 102 210 102 C230 102 234 122 228 134 C236 146 230 166 210 166 Z"/>')
+        o.append('<path class="ln" d="M210 166 C190 166 184 146 192 134 C186 122 190 102 210 102 C230 102 234 122 228 134 C236 146 230 166 210 166 Z M207 102 L207 30 L213 30 L213 102 M204 30 L204 14 L216 14 L216 30"/><circle class="ln2" cx="210" cy="134" r="7"/>')
+    elif k == 1:
+        o.append('<rect class="fw" x="96" y="14" width="128" height="128"/><rect class="ln" x="96" y="14" width="128" height="128"/>')
+        o.append('<rect class="fp" x="106" y="24" width="108" height="86"/><circle class="ln" cx="140" cy="76" r="14"/><circle class="ln" cx="178" cy="76" r="14"/><path class="ln2" d="M106 96 L214 96"/>')
+        o.append(_t(160, 132, 'REPOSTED WITH CREDIT', 9, anchor='middle', weight=500, ls=.12, fill='var(--ink-3)'))
+        o.append('<path class="ln2" d="M236 60 C256 60 256 92 236 92 M244 52 L236 60 L244 68"/>')
+    elif k == 2:
+        o.append('<path class="ln2" d="M40 30 Q160 70 280 30"/>')
+        for j in range(1, 8):
+            t = j / 8
+            x = 40 + 240 * t
+            y = (1 - t) ** 2 * 30 + 2 * (1 - t) * t * 70 + t ** 2 * 30
+            o.append(f'<circle class="fp" cx="{x:.1f}" cy="{y + 8:.1f}" r="5"/><circle class="ln2" cx="{x:.1f}" cy="{y + 8:.1f}" r="5"/>')
+        o.append('<rect class="fw" x="140" y="70" width="40" height="70" rx="6"/><rect class="ln" x="140" y="70" width="40" height="70" rx="6"/><circle class="fi" cx="151" cy="82" r="3"/>')
+        o.append('<path class="ln" d="M160 140 L160 172 M140 104 L126 104 L126 150 L160 150"/>')
+    else:
+        o.append('<rect class="fp" x="70" y="22" width="150" height="40" rx="20"/>')
+        o.append(_t(145, 47, 'TABLE FOR TWO?', 12, anchor='middle', weight=500, ls=.1))
+        o.append('<rect class="fi" x="110" y="80" width="150" height="40" rx="20"/>')
+        o.append(_t(185, 105, '9 P.M., IT’S YOURS', 12, anchor='middle', weight=500, ls=.1, fill='var(--paper)'))
+        o.append('<rect class="ln" x="70" y="138" width="110" height="32" rx="16"/>')
+        o.append(_t(125, 159, 'SEE YOU THEN', 11, anchor='middle', weight=500, ls=.1))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+MAP = [  # pillar, what it covers, side, series (name, what you see, format, hero series?)
+    ('After Hours', 'the night', 'left', [('The Sessions', 'One take at Someplace Else', 'Reel · YouTube · Spotify', True),
+                                          ('The 3 a.m. Menu', 'The staff dinner after close', 'Reel', False),
+                                          ('Who’s Playing', 'Tonight’s line-up, every Friday', 'Reel', False),
+                                          ('Who Played', 'Last night’s set list', 'Carousel', False)]),
+    ('By Design', 'the rooms', 'right', [('Room 1967', 'One suite, one designer a year', 'Reel · story · carousel', True),
+                                        ('The Object', 'One design detail up close', 'Reel', False),
+                                        ('The Architects', 'Who built each hotel', 'Carousel', False),
+                                        ('Opening Night', 'A new hotel’s first night', 'Reel', False)]),
+    ('The Table', 'the food', 'left', [('Flurys 100', 'A regular, a recipe, a baker', 'Reel · story · carousel', True),
+                                       ('Chef’s Counter', 'One dish in thirty seconds', 'Reel', False),
+                                       ('The Recipe', 'A dish to cook at home', 'Carousel', False)]),
+    ('The City', 'the people', 'right', [('Night Shift', 'The people who work the night', 'Carousel', False),
+                                         ('The Night Map', 'The city, by our staff', 'Carousel', False),
+                                         ('The Night Off', 'A creator’s night at THE Park', 'Collab Reel', False),
+                                         ('Ask the Concierge', 'Your DMs, answered', 'Reel', False)]),
 ]
 
 
 def content_map():
-    """The content plan as a mind map: the idea in the middle, four pillars, sixteen series with their formats."""
-    W, H, cx, cy = 1720, 700, 860, 350
+    """The content plan as a mind map: the idea in the middle, four pillars, fifteen series, each with what you see and its format."""
+    W, H, cx, cy = 1720, 740, 860, 355
     o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the content plan. In the centre, the idea: Park Street, everywhere. '
-         'Four pillars branch from it, After Hours, By Design, The Table and The City, and each pillar branches into four series: '
-         + esc('; '.join(f'{p}: ' + ', '.join(n for n, _ in s) for p, _, _, s in MAP)) + '">']
-    spots = [(500, 170), (1220, 170), (500, 530), (1220, 530)]
-    # branches first, so the nodes sit on top of their lines
+         'Four pillars branch from it, and each pillar branches into its series: '
+         + esc('; '.join(f'{p}: ' + ', '.join(f'{n} ({w})' for n, w, _, _ in s) for p, _, _, s in MAP)) + '">']
+    spots = [(500, 150), (1220, 150), (500, 560), (1220, 560)]
     for (name, what, side, series), (px, py) in zip(MAP, spots):
-        sx = cx + (-118 if px < cx else 118) * 0.74
-        sy = cy + (-118 if py < cy else 118) * 0.67
-        o.append(f'<path class="ln" style="stroke-width:1.6" d="M{sx:.0f} {sy:.0f} C{(sx + px) / 2:.0f} {sy:.0f} {(sx + px) / 2:.0f} {py} {px} {py}"/>')
+        sx = cx + (-87 if px < cx else 87)
+        sy = cy + (-79 if py < cy else 79)
+        o.append(f'<path class="ln" style="stroke-width:1.6" d="M{sx} {sy} C{(sx + px) / 2:.0f} {sy} {(sx + px) / 2:.0f} {py} {px} {py}"/>')
         left = side == 'left'
         ex = px - 120 if left else px + 120
         dx = 330 if left else 1390
-        for k, (sname, fmts) in enumerate(series):
-            ly = py - 126 + k * 84
-            o.append(f'<path class="ln2" d="M{ex} {py} C{(ex + dx) / 2:.0f} {py} {(ex + dx) / 2:.0f} {ly} {dx} {ly}"/>')
-            o.append(f'<circle class="fi" cx="{dx}" cy="{ly}" r="4"/>')
-            tx, anchor = (dx - 16, 'end') if left else (dx + 16, 'start')
-            o.append(_t(tx, ly + 2, sname.upper(), 21, 'tx-d', anchor=anchor, ls=.02))
-            o.append(_t(tx, ly + 24, fmts.upper(), 11, anchor=anchor, weight=500, ls=.16, fill='var(--ink-3)'))
-    # the four pillars
+        n = len(series)
+        for k, (sname, see, fmt, hero) in enumerate(series):
+            ly = py + (k - (n - 1) / 2) * 76
+            o.append(f'<path class="ln2" d="M{ex} {py} C{(ex + dx) / 2:.0f} {py} {(ex + dx) / 2:.0f} {ly:.0f} {dx} {ly:.0f}"/>')
+            o.append(f'<circle class="fi" cx="{dx}" cy="{ly:.0f}" r="{7 if hero else 4}"/>')
+            tx, anchor = (dx - 18, 'end') if left else (dx + 18, 'start')
+            o.append(_t(tx, f'{ly + 2:.0f}', sname.upper(), 23, 'tx-d', anchor=anchor, ls=.02, weight=500 if hero else 400))
+            o.append(_t(tx, f'{ly + 24:.0f}', see, 15, anchor=anchor, fill='var(--ink-2)'))
+            o.append(_t(tx, f'{ly + 43:.0f}', fmt.upper(), 12, anchor=anchor, weight=500, ls=.14, fill='var(--ink-3)'))
     for (name, what, side, series), (px, py) in zip(MAP, spots):
-        o.append(f'<rect class="fi" x="{px - 120}" y="{py - 36}" width="240" height="72" rx="36"/>')
-        o.append(_t(px, py + 2, name.upper(), 22, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
-        o.append(_t(px, py + 22, what.upper(), 10, anchor='middle', weight=500, ls=.22, fill='var(--paper)'))
-    # the idea
+        o.append(f'<rect class="fi" x="{px - 120}" y="{py - 38}" width="240" height="76" rx="38"/>')
+        o.append(_t(px, py + 2, name.upper(), 23, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
+        o.append(_t(px, py + 24, what.upper(), 12, anchor='middle', weight=500, ls=.2, fill='var(--paper)'))
     o.append(f'<circle class="fp" cx="{cx}" cy="{cy}" r="118"/><circle class="ln" cx="{cx}" cy="{cy}" r="118"/>')
-    o.append(_t(cx, cy - 40, 'THE IDEA', 11, anchor='middle', weight=500, ls=.24, fill='var(--ink-3)'))
+    o.append(_t(cx, cy - 40, 'THE IDEA', 13, anchor='middle', weight=500, ls=.22, fill='var(--ink-3)'))
     o.append(_t(cx, cy + 4, 'PARK STREET,', 27, 'tx-d', anchor='middle', ls=.02))
     o.append(_t(cx, cy + 38, 'EVERYWHERE', 27, 'tx-d', anchor='middle', ls=.02))
     o.append('</svg>')
     return ''.join(o)
 
 
-HANDLES = [  # brand, voice, what it posts
-    ('THE Park', 'Seductive', 'City hotels and their bars post the night'),
-    ('THE Park Collection', 'Unhurried', 'Ran Baas: slow films, palace weekends'),
-    ('Flurys', 'Nostalgic', 'A hundred stories for the centenary'),
-    ('Zone by The Park', 'Playful', 'Design at a fair price, second cities'),
-    ('Zone Connect', 'Warm', 'Each town in its own language'),
-    ('Stop by Zone', 'Direct', 'Price and place, said plainly'),
+HANDLES = [  # brand, voice, what it posts, how it runs
+    ('THE Park', 'Seductive', 'Each hotel and its bars film the series', 'Someplace Else, Tantra, Agni, Aqua, Fire'),
+    ('THE Park Collection', 'Unhurried', 'Ran Baas: slow films, palace weekends', 'One film a month, made to be watched'),
+    ('Flurys', 'Nostalgic', 'A hundred stories for the centenary', '111 stores, and every new café'),
+    ('Zone by The Park', 'Playful', 'Design at a fair price, second cities', 'Each opening starts with nine posts'),
+    ('Zone Connect', 'Warm', 'Each town in its own language', 'Local creators and local festivals'),
+    ('Stop by Zone', 'Direct', 'Price and place, said plainly', 'Stories and maps for the road'),
 ]
 
 
 def handles_map():
-    """The handles as a hub: the group feed in the middle, each brand around it with its voice and what it posts."""
-    W, H, cx, cy = 1720, 640, 860, 320
+    """The handles as a hub: the group feed in the middle, each brand around it with its voice, what it posts and how."""
+    W, H, cx, cy = 1720, 700, 860, 350
     o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the accounts. The group feed, @theparkhotels, sits in the middle. '
-         'Around it: ' + esc('; '.join(f'{n}, {v}, {w}' for n, v, w in HANDLES)) + '">']
-    spots = [(250, 90), (860, 70), (1470, 90), (250, 550), (860, 570), (1470, 550)]
+         'Around it: ' + esc('; '.join(f'{n}, {v}: {w}, {h}' for n, v, w, h in HANDLES)) + '">']
+    spots = [(250, 94), (860, 94), (1470, 94), (250, 606), (860, 606), (1470, 606)]
     for (x, y) in spots:
         o.append(f'<path class="ln2" d="M{cx} {cy} C{cx} {(cy + y) / 2:.0f} {x} {(cy + y) / 2:.0f} {x} {y}"/>')
-    for (name, voice, what), (x, y) in zip(HANDLES, spots):
-        o.append(f'<rect class="fw" x="{x - 190}" y="{y - 52}" width="380" height="104"/><rect class="ln" x="{x - 190}" y="{y - 52}" width="380" height="104"/>')
-        o.append(_t(x - 166, y - 14, name.upper(), 21, 'tx-d', ls=.02))
-        o.append(_t(x + 166, y - 14, voice.upper(), 11, anchor='end', weight=500, ls=.18, fill='var(--ink-3)'))
-        o.append(f'<line class="ln2" x1="{x - 166}" y1="{y + 2}" x2="{x + 166}" y2="{y + 2}"/>')
-        o.append(_t(x - 166, y + 30, what, 15))
+    o.append(_t(cx + 16, 236, 'THE BEST OF EACH HOTEL RUNS HERE', 12, weight=500, ls=.14, fill='var(--ink-3)'))
+    o.append(_t(cx + 16, 474, 'EACH NEW HOTEL GETS A LAUNCH KIT', 12, weight=500, ls=.14, fill='var(--ink-3)'))
+    for (name, voice, what, how), (x, y) in zip(HANDLES, spots):
+        o.append(f'<rect class="fw" x="{x - 200}" y="{y - 70}" width="400" height="140"/><rect class="ln" x="{x - 200}" y="{y - 70}" width="400" height="140"/>')
+        o.append(_t(x - 176, y - 34, name.upper(), 21, 'tx-d', ls=.02))
+        o.append(_t(x - 176, y - 10, voice.upper(), 14, weight=500, ls=.14))
+        o.append(f'<line class="ln2" x1="{x - 176}" y1="{y + 4}" x2="{x + 176}" y2="{y + 4}"/>')
+        o.append(_t(x - 176, y + 32, what, 16))
+        o.append(_t(x - 176, y + 54, how, 14, fill='var(--ink-2)'))
     o.append(f'<rect class="fi" x="{cx - 180}" y="{cy - 50}" width="360" height="100" rx="50"/>')
     o.append(_t(cx, cy - 2, '@THEPARKHOTELS', 24, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
-    o.append(_t(cx, cy + 24, 'THE GROUP FEED LEADS', 10, anchor='middle', weight=500, ls=.22, fill='var(--paper)'))
+    o.append(_t(cx, cy + 24, 'THE GROUP FEED', 12, anchor='middle', weight=500, ls=.2, fill='var(--paper)'))
     o.append('</svg>')
     return ''.join(o)
