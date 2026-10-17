@@ -170,6 +170,24 @@ img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
 .stories .tile .ov .no{font-size:calc(var(--u)*1.8)}
 .stories .tile .ov .t{font-size:calc(var(--u)*1.25)}
 
+/* ---------- the Instagram profile, month one ---------- */
+.ig{border:1px solid var(--ink);border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*1.2);width:calc(var(--u)*27);max-width:100%;
+  justify-self:center;align-self:center;display:flex;flex-direction:column;gap:calc(var(--u)*.8)}
+.ig-top{display:flex;align-items:center;gap:calc(var(--u)*1)}
+.ig-av{width:calc(var(--u)*4.2);height:calc(var(--u)*4.2);border-radius:50%;border:1px solid var(--hair);display:grid;place-items:center;flex:none}
+.ig-av .cmark{display:block;width:62%;aspect-ratio:153/88;background:center/contain no-repeat;filter:brightness(0)}
+.ig-h{font-size:calc(var(--u)*1.05);font-weight:500;letter-spacing:.02em}
+.ig-bio{font-size:calc(var(--u)*.86);line-height:1.4;color:var(--ink-2)}
+.ig-hl{display:flex;gap:calc(var(--u)*.9)}
+.ig-hl span{display:grid;justify-items:center;gap:calc(var(--u)*.3);font-size:calc(var(--u)*.8);letter-spacing:.04em;text-transform:uppercase}
+.ig-hl i{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);border-radius:50%;border:1px solid var(--ink)}
+.ig-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
+.ig-grid .tile{aspect-ratio:1/1}
+.ig-grid .tile .ov{padding:calc(var(--u)*.6)}
+.ig-grid .tile .ov .no{font-family:var(--sans);font-size:calc(var(--u)*.8);letter-spacing:.06em;text-transform:uppercase}
+.ig-grid .tile .ov .t{font-size:calc(var(--u)*.9);line-height:1.15}
+.m-only{display:none}
+
 /* ---------- lists ---------- */
 .list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.7)}
 .list li{position:relative;padding-left:calc(var(--u)*1.4)}
@@ -353,7 +371,7 @@ html.lb-open{overflow:hidden}
   .spec>div:nth-child(even){padding-left:0;border-left:0}
   .bar{grid-template-columns:110px 1fr 70px}
   .folio .src{max-width:none}
-  .m-hide{display:none}
+  .m-hide{display:none} .m-only{display:block} .ig{width:100%}
   .mt-auto{margin-top:20px}
   .f-s{font-size:14.5px} .stat .s{font-size:13px} .stat .k{font-size:12.5px} .folio .src,.folio .pg{font-size:12px} .tbl.small td{font-size:14px} .label{font-size:12px}
   .tbl td{font-size:14px}.tbl th{font-size:11px}

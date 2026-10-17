@@ -124,3 +124,58 @@ def group():
     o.append(_t(400, 530, 'a kinder way to change the subject', 15, 'tx-d', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
+
+
+# the content, mapped: the platform in the middle, four pillars, three series on each (title, formats)
+MAP = [
+    ('ANSWER', '40%', 'L', 150, [('THE 1 A.M. QUESTIONS', 'Reels · Shorts'), ('MYTH OR FACT', 'Carousels'),
+                                 ('ASK A SPECIALIST', 'Instagram Live, monthly')]),
+    ('REASSURE', '20%', 'L', 570, [('YOUR FIRST VISIT', 'Carousels · Reels'), ('THE COUNSELLOR’S HOUR', 'Stories · question box'),
+                                   ('A CYCLE, EXPLAINED', 'Carousels · YouTube')]),
+    ('THE SCIENCE', '20%', 'R', 150, [('INSIDE THE LAB', 'Reels · YouTube'), ('MEET THE SPECIALIST', 'Reels · LinkedIn'),
+                                      ('SCIENCE, SIMPLY', 'YouTube long form')]),
+    ('BELONG', '20%', 'R', 570, [('HALF THE STORY', 'Creator series for men'), ('THE GOOD NEWS QUESTION', 'Stickers · a short film'),
+                                 ('YOUR QUESTIONS, ANSWERED', 'Reels that reply to comments')]),
+]
+
+
+def mindmap():
+    """The content plan as a mind map: the platform in an ellipse, four ink pillars with their share of the feed, and three
+    series off each pillar with the formats they run in. Hairline curves join them, in the deck's line-drawing manner."""
+    import math
+    cx, cy, rx, ry = 800, 360, 168, 74
+    pw, ph = 262, 66
+    o = ['<svg viewBox="0 0 1600 720" role="img" aria-label="Mind map of the content. In the middle, No question too quiet. Four '
+         'pillars branch from it: Answer, 40% of the feed, with The 1 a.m. Questions, Myth or fact and Ask a specialist; Reassure, '
+         '20%, with Your first visit, The counsellor’s hour and A cycle, explained; The science, 20%, with Inside the lab, Meet the '
+         'specialist and Science, simply; Belong, 20%, with Half the Story, The Good News Question and Your questions, answered.">']
+    for name, share, side, py, leaves in MAP:
+        px = 520 if side == 'L' else 1080
+        inner = px + pw / 2 if side == 'L' else px - pw / 2
+        outer = px - pw / 2 if side == 'L' else px + pw / 2
+        # the branch from the platform to the pillar
+        t = math.atan2((py - cy) / ry, (inner - cx) / rx)
+        ex, ey = cx + rx * math.cos(t), cy + ry * math.sin(t)
+        o.append(f'<path class="ln" d="M{ex:.1f} {ey:.1f} Q{ex:.1f} {py} {inner} {py}"/>')
+        # the three series off the pillar
+        for k, (title, fmt) in enumerate(leaves):
+            ly = py + (k - 1) * 100
+            x0, x1 = (40, 300) if side == 'L' else (1300, 1560)
+            near = x1 if side == 'L' else x0
+            mid = (outer + near) / 2
+            o.append(f'<path class="ln2" d="M{outer} {py} C{mid} {py} {mid} {ly} {near} {ly}"/>')
+            o.append(f'<line class="ln" x1="{x0}" y1="{ly}" x2="{x1}" y2="{ly}"/>')
+            o.append(f'<circle class="fi" cx="{near}" cy="{ly}" r="3.5"/>')
+            o.append(_t(x0, ly - 11, title, 17, 'tx-d', ls=.05))
+            o.append(_t(x0, ly + 24, fmt, 14, fill='var(--ink-3)'))
+        # the pillar, in ink, with its share of the feed
+        o.append(f'<rect class="fi" x="{px - pw / 2}" y="{py - ph / 2}" width="{pw}" height="{ph}"/>')
+        o.append(_t(px - pw / 2 + 20, py + 7, name, 19, 'tx-d', ls=.12, fill='#fff'))
+        o.append(_t(px + pw / 2 - 18, py + 10, share, 28, 'tx-n', anchor='end', fill='#fff'))
+    # the platform in the middle
+    o.append(f'<ellipse class="fw" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/><ellipse class="ln" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/>')
+    o.append(_t(cx, cy - 30, 'THE PLATFORM', 11, anchor='middle', ls=.22, fill='var(--ink-3)'))
+    o.append(_t(cx, cy + 2, 'NO QUESTION', 25, 'tx-d', anchor='middle', ls=.06))
+    o.append(_t(cx, cy + 32, 'TOO QUIET', 25, 'tx-d', anchor='middle', ls=.06))
+    o.append('</svg>')
+    return ''.join(o)

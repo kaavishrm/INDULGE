@@ -2,15 +2,16 @@
 line or two, the numbers, and a one-line source on each slide; the full sources are on the last page. Facts come from
 pitches/birla-fertility/README.md, which lists every source. The look is Westside v4's, kept as it is."""
 import art
-from kit import slide, stat, ul, table, tile, chapter, wordmark, M_MARK, LOGO, MARK, NAME
+from kit import slide, stat, ul, table, tile, chapter, wordmark, fab, M_MARK, LOGO, MARK, NAME
 
 TITLE = 'Birla Fertility & IVF × Mask360'
-DESCRIPTION = ('Mask360’s social media proposal to Birla Fertility &amp; IVF, October 2026: No question too quiet. One platform, three '
-               'sample campaigns and a sensitivity code written for the new NMC rules.')
+DESCRIPTION = ('Mask360’s social media proposal to Birla Fertility &amp; IVF, October 2026: No question too quiet. The content as a '
+               'mind map, the grid, a sample week, three campaigns and a sensitivity code for the new NMC rules.')
 
 # the slides in deck order; page references on the slides are looked up here
-ORDER = ['cover', 'promise', 'brief', 'ch-today', 'today', 'rivals', 'law', 'rule', 'insight', 'ch-idea', 'pillars', 'ideas',
-         'asked', 'feed', 'half', 'goodnews', 'ch-run', 'code', 'care', 'days', 'path', 'measure', 'mask360', 'next', 'close', 'sources']
+ORDER = ['cover', 'promise', 'brief', 'ch-today', 'audit', 'rivals', 'law', 'insight', 'ch-idea', 'map', 'platforms', 'grid',
+         'week', 'rule', 'ideas', 'asked', 'feed', 'half', 'goodnews', 'voices', 'ch-run', 'code', 'care', 'days', 'measure',
+         'mask360', 'next', 'close', 'sources']
 
 
 def pg(sid):
@@ -19,11 +20,12 @@ def pg(sid):
 
 # full sources, shown on the last page; each slide carries a short version
 SOURCES = [
-    ('The numbers', 'About 17.5% of adults, roughly 1 in 6, experience infertility in their lifetime: World Health Organization, 2023. '
-     'Male factors in 40 to 50% of cases in India: Indian Society of Assisted Reproduction, via BioSpectrum India. Over 90% of people '
-     'facing fertility problems feel emotionally exhausted and 29% seek timely help: Birla Fertility &amp; IVF study, released with '
-     'Fertility Circle, June 2025 (MediaBrief). About 200,000 to 250,000 IVF cycles a year in India, expected to reach 400,000 by 2030: '
-     'Business Standard, June 2025.'),
+    ('Social today', 'Public profiles, October 2026, approximate: @birlafertility about 35K Instagram followers; '
+     '@birlafertility_armcivf about 11K; Facebook about 12K; YouTube @birlafertilityivf 470+ videos and about 10M views; '
+     '@indiraivfgroup about 391K. 50+ centres: @birlafertility on Instagram.'),
+    ('The numbers', 'Male factors in 40 to 50% of cases in India: Indian Society of Assisted Reproduction, via BioSpectrum India. '
+     'Over 90% of people facing fertility problems feel emotionally exhausted and 29% seek timely help: Birla Fertility &amp; IVF '
+     'study, released with Fertility Circle, June 2025 (MediaBrief).'),
     ('Birla Fertility &amp; IVF', '50+ centres, 120+ experts and 1,40,000+ IVF cycles: @birlafertility on Instagram. 51 clinics in 38 '
      'cities across 18 states at the Jalandhar launch, 2025 (Medtech Spectrum). ARMC IVF, May 2024, and BabyScience, August 2024 '
      '(Venture Intelligence, BioSpectrum India). “All Heart. All Science.” (Digital Health News). Fertility Circle, 1800 123 1515, '
@@ -59,7 +61,7 @@ def cover():
 
 def promise():
     body = '''<div class="stack-l grow" style="justify-content:center">
-<h2 class="q">We will make Birla Fertility &amp; IVF the place India <u>asks first</u>.</h2>
+<h2 class="q">We will make @birlafertility the account India <u>asks first</u>.</h2>
 </div>
 <div class="terms">
   <div><span class="no label">01</span><p class="h3">Asked sooner</p><p class="mt-s ink2">People reach a specialist before the worry grows.</p></div>
@@ -72,7 +74,7 @@ def promise():
 def brief():
     rows = [['Proven healthcare and fertility experience', 'Live health and wellness work, and our fertility thinking in full.', pg('mask360')],
             ['Understands the category’s sensitivity', 'A sensitivity code, the new rules, and care for every DM.', pg('code')],
-            ['Strategic, creative leadership', 'One platform for all of your social, with three campaigns on it.', pg('ch-idea')],
+            ['Strategic, creative leadership', 'One content platform, mapped from the idea to the post.', pg('map')],
             ['Case studies or sample campaigns', 'Three sample campaigns, drawn and planned.', pg('ideas')]]
     body = f'''<div class="stack-l grow">
 <h2 class="h1">What you asked for.</h2>
@@ -82,22 +84,25 @@ def brief():
 
 
 def ch_today():
-    return chapter('ch-today', '01', 'The category today', 'Exhausted, unasked, and newly regulated.', ('kohl', 21))
+    return chapter('ch-today', '01', 'Your social today', 'Where @birlafertility stands, who else is posting, and the new rules.', ('kohl', 21))
 
 
-def today():
+def audit():
     body = f'''<div class="stack-l grow">
-<h2 class="h1">People are exhausted. Most still don’t ask.</h2>
+<div class="row c-7-5 top">
+  <h2 class="h1">Where @birlafertility stands.</h2>
+  <p class="ink2 lede-s">470+ YouTube videos are a strong library. On Instagram, the audience is split across two accounts.</p>
+</div>
 <div class="board grow" style="align-content:center;align-self:stretch">
-  {stat('1 in 6', 'adults experience infertility in their lifetime', 'WHO, 2023')}
-  {stat('40 to 50%', 'of cases in India involve male factors', 'Indian Society of Assisted Reproduction')}
-  {stat('90%+', 'feel emotionally exhausted by fertility problems', 'Birla Fertility &amp; IVF study, 2025')}
-  {stat('29%', 'seek timely help', 'the same study')}
-  {stat('50+', 'Birla Fertility &amp; IVF centres in India', '120+ experts')}
-  {stat('400K', 'IVF cycles a year in India expected by 2030', 'about 200K to 250K today')}
+  {stat('35K', 'followers on @birlafertility', 'Instagram')}
+  {stat('11K', 'on @birlafertility_armcivf', 'a second Instagram audience')}
+  {stat('470+', 'videos on YouTube', 'about 10M views')}
+  {stat('12K', 'on Facebook', 'the reach beyond the metros')}
+  {stat('50+', 'centres, each with a city to talk to', 'English, Hindi and regional languages')}
+  {stat('391K', 'on Instagram for Indira IVF', 'the category’s largest audience')}
 </div></div>'''
-    return slide('today', 'The category today', body,
-                 src='Sources: WHO; ISAR; Birla Fertility &amp; IVF Fertility Circle study, June 2025; Business Standard, June 2025. Full list at the end.')
+    return slide('audit', 'Your social today · the audit', body,
+                 src='Public profiles, October 2026. Counts are approximate. Full list at the end.')
 
 
 RIVALS = [  # brand, what we see on social
@@ -116,7 +121,7 @@ def rivals():
 <h2 class="h1">The category on social.</h2>
 <div class="grow v-center">{table(['Brand', 'What we see on social'], rows, cls='tbl rivals stackable')}</div>
 </div>'''
-    return slide('rivals', 'The category today · on social', body,
+    return slide('rivals', 'Your social today · the category', body,
                  src='Sources: trade press and public profiles, 2025 to 2026. Follower counts are approximate. Full list at the end.')
 
 
@@ -139,7 +144,7 @@ def law():
 </div>
 <div class="grow v-center">{table(['Rule', 'What it means on social'], rows, cls='tbl roomy stackable')}</div>
 </div>'''
-    return slide('law', 'The category today · the rules', body,
+    return slide('law', 'Your social today · the rules', body,
                  src='Sources: NMC notice as reported by The South First and BestMediaInfo; ASCI; India Code; Meta. Full list at the end.')
 
 
@@ -171,28 +176,104 @@ def insight():
 
 def ch_idea():
     return chapter('ch-idea', '02', 'No question too quiet.',
-                   'Birla Fertility &amp; IVF becomes the place India asks first. All heart, all science.', ('rani', 12))
+                   'The content: four pillars, twelve series and three campaigns. All heart, all science.', ('rani', 12))
 
 
-PILLARS = [  # no, name, cloth (kind, seed, dark text), line, where it runs
-    ('No. 01', 'Answer', ('ivory', 31, True), 'The 1 a.m. Questions, myth checks and plain explainers.', 'Reels · Shorts · search'),
-    ('No. 02', 'Reassure', ('bone', 32, True), 'What a first visit, a counsellor and a cycle look like.', 'Carousels · Lives · WhatsApp'),
-    ('No. 03', 'The science', ('slate', 33, False), 'Labs, embryologists and doctors, shown with care.', 'YouTube · LinkedIn · Reels'),
-    ('No. 04', 'Belong', ('rani', 34, False), 'Campaigns, counsellor voices and the community’s own questions.', 'Instagram · Facebook · creators'),
+def mapslide():
+    mob = ''.join(f'<div class="rule mt-s"><p class="h4">{n} · {sh}</p>'
+                  + ul([f'{t}<br><span class="mute f-s">{f}</span>' for t, f in lv]) + '</div>' for n, sh, _, _, lv in art.MAP)
+    body = f'''<div class="stack-l grow">
+<div class="row c-7-5 top">
+  <h2 class="h1">The content, mapped.</h2>
+  <p class="ink2 lede-s">Four pillars, twelve series, one platform. Each share is that pillar’s part of the feed.</p>
+</div>
+<div class="art grow m-hide">{art.mindmap()}</div>
+<div class="m-only">{mob}</div>
+</div>'''
+    return slide('map', 'The content · the map', body,
+                 src='Series names, formats and the mix are Mask360’s proposal, confirmed after the month-one audit.')
+
+
+PLATFORMS = [  # platform, its job, rhythm, formats
+    ('Instagram', 'Home of the questions', '5 posts a week, stories daily', 'Reels · carousels · Lives · highlights'),
+    ('YouTube', 'Answers people search for', '3 Shorts a week, 2 long answers a month', 'Shorts · explainers · the lab'),
+    ('Facebook', 'Reach beyond the metros', 'Mirrored, regional language first', 'Reels · Lives in Hindi'),
+    ('LinkedIn', 'The science and the people', '2 posts a week', 'Specialists · research · careers'),
+    ('WhatsApp channel', 'Cards made to forward', 'Weekly', 'Cards · the Fertility Circle line'),
 ]
 
 
-def pillars():
-    cols = ''.join(f'''<div class="idea">{tile(c[0], c[1], n, t, dark_text=c[2])}<p class="idea-d">{d}</p>
-<div class="rule"><p class="label mute">{w}</p></div></div>''' for n, t, c, d, w in PILLARS)
+def platforms():
+    cells = ''.join(f'<div><span class="dot label">{p}</span><p class="h3">{j}</p><p class="ink2 mt-s">{r}</p>'
+                    f'<p class="label mute mt-s">{f}</p></div>' for p, j, r, f in PLATFORMS)
+    body = f'''<div class="stack-l grow">
+<h2 class="h1">Five platforms, five jobs.</h2>
+<div class="row c5 flow vc grow">{cells}</div>
+</div>'''
+    return slide('platforms', 'The content · the platforms', body, src='Rhythms are Mask360’s proposal, set against your team’s review capacity.')
+
+
+GRID = [  # format, post, cloth (kind, seed, dark text)
+    ('Reel', 'Is it normal it’s taking this long?', ('midnight', 61, False)),
+    ('Carousel', 'Myth or fact: five things people say about IVF', ('bone', 62, True)),
+    ('Reel', 'Inside the embryology lab', ('slate', 63, False)),
+    ('Carousel', 'Your first visit, step by step', ('ivory', 64, True)),
+    ('Reel', 'Can he get tested too?', ('indigo', 65, False)),
+    ('Sticker drop', 'Ask me about my trip to Goa', ('shaadi', 66, False)),
+    ('Reel', 'What does AMH tell me?', ('kohl', 67, False)),
+    ('Carousel', 'A cycle, explained in six frames', ('sand', 68, True)),
+    ('Live', 'Ask a specialist, Thursday 8 p.m.', ('rani', 69, False)),
+]
+HIGHLIGHTS = ['1 a.m.', 'For him', 'First visit', 'The lab', 'Circle']
+
+
+def grid():
+    tiles = ''.join(tile(k, sd, f, t, dark_text=d) for f, t, (k, sd, d) in GRID)
+    hl = ''.join(f'<span><i></i>{h}</span>' for h in HIGHLIGHTS)
+    av = '<i class="cmark" aria-hidden="true"></i>' if MARK else ''
+    phone = f'''<div class="ig" role="img" aria-label="Mock-up of the @birlafertility Instagram profile and grid in month one">
+  <div class="ig-top"><div class="ig-av">{av}</div><div><p class="ig-h">birlafertility</p>
+    <p class="ig-bio">All Heart. All Science. No question too quiet.<br>Fertility Circle · 1800 123 1515</p></div></div>
+  <div class="ig-hl">{hl}</div>
+  <div class="ig-grid">{tiles}</div>
+</div>'''
+    body = f'''<div class="row c-6-6 grow">
+<div class="stack-l" style="justify-content:space-between">
+  <h2 class="h1">The grid, month one.</h2>
+  <div class="stack-l">
+    <p class="lede">The questions lead the grid. The highlights keep the answers people come back for.</p>
+    {ul(['Reels for the questions, carousels for the explainers', 'Highlights: 1 a.m., For him, First visit, The lab, Circle',
+         'The bio links to Fertility Circle and WhatsApp', 'Every comment answered within two hours'], 'list big-list')}
+  </div>
+</div>
+{phone}
+</div>'''
+    return slide('grid', 'The content · the grid', body, src='Mock-up. Post titles are samples; every answer is written with your specialists.')
+
+
+WEEK = [  # date, day, format, the post, time, cloth (kind, seed)
+    ('14', 'Mon', 'Reel', 'The 1 a.m. Questions: “Is it normal that it’s taking this long?”', '10 p.m.', ('midnight', 71)),
+    ('15', 'Tue', 'Carousel', 'Myth or fact: five things people say about IVF.', '1 p.m.', ('kohl', 72)),
+    ('16', 'Wed', 'Stories', 'The counsellor’s hour: a question box, answered that night.', '9 p.m.', ('slate', 73)),
+    ('17', 'Thu', 'Reel', 'Inside the lab: an embryologist’s first hour.', '7 p.m.', ('indigo', 74)),
+    ('18', 'Fri', 'Carousel', 'Your first visit, step by step.', '1 p.m.', ('rani', 75)),
+    ('19', 'Sat', 'Sticker drop', 'The Good News Question, before the wedding weekend.', '11 a.m.', ('shaadi', 76)),
+    ('20', 'Sun', 'Quiet day', 'No new post. Replies only.', 'All day', ('slate', 77)),
+]
+
+
+def week():
+    cols = ''.join(f'''<div class="m{' quiet' if f == 'Quiet day' else ''}"><div class="sw">{fab(k, sd)}<span class="mn">{d}<small>{day}</small></span></div>
+<p class="ev"><b>{f}</b>{w}</p><p class="rs">{t}</p></div>''' for d, day, f, w, t, (k, sd) in WEEK)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
-  <h2 class="h1">Four pillars, one promise.</h2>
-  <p class="ink2 lede-s">English and Hindi on every core post, plus the language of each centre’s city.</p>
+  <h2 class="h1">A week on @birlafertility.</h2>
+  <p class="ink2 lede-s">The first live week, 14 to 20 December. Comments and DMs are answered every day.</p>
 </div>
-<div class="row c4 grow vc">{cols}</div>
+<div class="months grow" style="grid-template-columns:repeat(7,minmax(0,1fr))">{cols}</div>
+<div class="rule-plan"><p class="f-l">A month: 12 Reels · 8 carousels · 4 drops · stories daily · 1 Live · 2 long YouTube answers.</p></div>
 </div>'''
-    return slide('pillars', 'The idea · four pillars', body, src='The mix and channels are Mask360’s proposal, confirmed after the month-one audit.')
+    return slide('week', 'The content · a sample week', body, src='Posting times follow when the questions come in, and move with the audit.')
 
 
 IDEAS = [  # title, line, when, cloth (kind, seed, dark text)
@@ -276,6 +357,25 @@ def goodnews():
                       'Concept drawing. Runs through the wedding season, December to February.')
 
 
+VOICES = [  # who, what they do, where
+    ('Your specialists', 'Named, filmed in daylight, one question each.', 'Reels · Lives · YouTube'),
+    ('Your counsellors', 'The question box at night, and words for hard days.', 'Stories · WhatsApp cards'),
+    ('Men’s health creators', 'They ask the questions men keep to themselves.', 'Half the Story'),
+    ('Family and wedding creators', 'They carry the sticker drop into the season.', 'The Good News Question'),
+]
+
+
+def voices():
+    cells = ''.join(f'<div class="rule-plan"><p class="h3">{w}</p><p class="ink2 mt-s">{d}</p><p class="label mute mt-s">{p}</p></div>'
+                    for w, d, p in VOICES)
+    body = f'''<div class="stack-l grow">
+<h2 class="h1">Who speaks on the feed.</h2>
+<div class="row c4 grow vc">{cells}</div>
+<p class="lede">Creators are paid a flat fee, disclose every partnership and never give medical advice. Your specialists answer.</p>
+</div>'''
+    return slide('voices', 'The content · the voices', body, src='In line with ASCI’s influencer guidelines and the October 2026 NMC notice.')
+
+
 def ch_run():
     return chapter('ch-run', '03', 'How it runs', 'The code, the care, the first 90 days and what we report.', ('indigo', 23))
 
@@ -343,21 +443,6 @@ def days():
                  src='Dates assume a start on Monday 16 November 2026. Weeks run Monday to Sunday.')
 
 
-def path():
-    steps = [('Found', 'Reels and search, captioned with the words people type.'),
-             ('Saved', 'Saves and shares, the first private signal we read.'),
-             ('Asked', 'A DM or the Fertility Circle line, answered by a person.'),
-             ('Consulted', 'A first visit at a centre, tracked with consent.'),
-             ('Supported', 'Counsellors stay close. New questions shape the next post.')]
-    cells = ''.join(f'<div><span class="dot label">{i + 1:02d}</span><p class="h3">{a}</p><p class="ink2 mt-s">{b}</p></div>'
-                    for i, (a, b) in enumerate(steps))
-    body = f'''<div class="stack-l grow">
-<h2 class="h1">How a quiet question reaches a consult.</h2>
-<div class="row c5 flow vc grow">{cells}</div>
-</div>'''
-    return slide('path', 'How it runs · question to consult', body, src='No patient data is ever used for ad targeting.')
-
-
 def measure():
     rows = [['Saves and shares per post', 'Platform reports, weekly'], ['Questions asked', 'Comments and DMs, monthly'],
             ['Care response', 'DMs inside an hour, crisis flags inside 15 minutes'], ['Search views', 'Instagram and YouTube search, monthly'],
@@ -423,8 +508,8 @@ def sources():
 
 
 def slides():
-    out = [cover(), promise(), brief(), ch_today(), today(), rivals(), law(), rule(), insight(), ch_idea(), pillars(), ideas(),
-           asked(), feed(), half(), goodnews(), ch_run(), code(), care(), days(), path(), measure(), mask360(), next_steps(), close(),
-           sources()]
+    out = [cover(), promise(), brief(), ch_today(), audit(), rivals(), law(), insight(), ch_idea(), mapslide(), platforms(), grid(),
+           week(), rule(), ideas(), asked(), feed(), half(), goodnews(), voices(), ch_run(), code(), care(), days(), measure(),
+           mask360(), next_steps(), close(), sources()]
     assert [s.split('id="', 1)[1].split('"', 1)[0] for s in out] == ORDER, 'ORDER is out of step with the slides'
     return out

@@ -2,7 +2,7 @@
 
 Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager, Birla Fertility & IVF) LinkedIn call for a social media agency with healthcare or fertility experience.
 
-**The proposal:** a 26-slide HTML page in Mask360's house style (the Westside v4 kit, as used for The Park Hotels): `dist/birla-fertility-proposal.html` is the claude.ai artifact, `dist/index.html` the standalone page for a website or for printing to PDF.
+**The proposal:** a 29-slide HTML page in Mask360's house style (the Westside v4 kit, as used for The Park Hotels): `dist/birla-fertility-proposal.html` is the claude.ai artifact, `dist/index.html` the standalone page for a website or for printing to PDF.
 
 **The client's logo:** `deck/client-logo.png` (the full lockup, on the cover and the close) and `deck/client-mark.png` (the three circles, beside the typeset name in every running head) are cut from the logo file supplied on 17 October 2026. Both are drawn in ink on paper and white on dark, as the Westside deck drew its W.
 
@@ -14,12 +14,12 @@ Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager
 
 | What the post says | What it means | How the proposal answers |
 |---|---|---|
-| "Seeking a social media agency with proven healthcare/fertility experience" | She will screen on category work first. | Swisse Wellness UAE as live health work, and the fertility thinking shown in full (slides 12 to 16, 23). |
-| "understands the category's sensitivity" | Language, stigma, loss, both partners, and the law. | The sensitivity code (18), the new NMC rules (7), community care (19). |
-| "strategic, creative leadership and not just execution" | A point of view, beyond a content calendar. | One platform (10) and three campaigns built on it (12). |
-| "Relevant healthcare/fertility work" and "a few case studies or sample campaigns" | Samples are welcome, which lets a new-to-category agency compete. | Three sample campaigns with concept drawings and mock posts (12 to 16). |
+| "Seeking a social media agency with proven healthcare/fertility experience" | She will screen on category work first. | Swisse Wellness UAE as live health work (slide 26), and the content shown in full (10 to 20). |
+| "understands the category's sensitivity" | Language, stigma, loss, both partners, and the law. | The sensitivity code (22), the new NMC rules (7), community care (23). |
+| "strategic, creative leadership and not just execution" | A point of view, beyond a content calendar. | The content as a mind map (10), the platforms (11), the grid (12) and a sample week (13). |
+| "Relevant healthcare/fertility work" and "a few case studies or sample campaigns" | Samples are welcome, which lets a new-to-category agency compete. | Three sample campaigns with concept drawings and mock posts (15 to 19). |
 | "DM me or send your portfolio to akanksha.rana@birlafertility.com" | Two routes; email carries the link. | DM and email drafts below. |
-| Posted by Brand & Marketing | Brand consistency and safety matter as much as reach. | Measures lead with trust, then consults (22). |
+| Posted by Brand & Marketing | Brand consistency and safety matter as much as reach. | Measures lead with trust, then consults (25). |
 
 ## 2. Research: what matters about Birla Fertility & IVF
 
@@ -53,7 +53,7 @@ Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager
 1. **The problem:** people are exhausted and still don't ask (29% seek timely help), and the rules on patient stories just tightened.
 2. **The insight:** the first fertility question gets typed at 1 a.m., alone.
 3. **The platform:** *No question too quiet.* Doctor-led education at the centre, which the NMC notice still allows.
-4. **Four pillars:** Answer, Reassure, The science, Belong. English and Hindi, plus each centre's city language.
+4. **The content, mapped:** four pillars (Answer 40%, Reassure, The science, Belong, 20% each) and twelve series, shown as a mind map; five platforms with five jobs; the month-one Instagram grid; a sample week, 14 to 20 December. English and Hindi, plus each centre's city language.
 5. **Three sample campaigns:** The 1 a.m. Questions (always on), Half the Story (men's fertility), The Good News Question (wedding season).
 6. **Safety:** an eight-rule sensitivity code, the rule book, and community care with a crisis path (Tele-MANAS 14416) and Fertility Circle.
 7. **First 90 days:** listen and sign the code, shoot, live from 14 December, Half the Story pilot from January, readout week of 8 February 2027.
@@ -72,7 +72,7 @@ Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager
 >
 > We put together a short point of view. Your own Fertility Circle study found over 90% of people facing fertility problems feel exhausted, and only 29% seek timely help. Our idea is *No question too quiet*: Birla Fertility & IVF becomes the place India asks first. It comes with three sample campaigns and a sensitivity code written for the NMC notice of 6 October.
 >
-> It's 26 pages: [link]. I'd love 20 minutes to walk you through it.
+> It's 29 pages: [link]. I'd love 20 minutes to walk you through it.
 >
 > Kaavish, Mask360
 
