@@ -123,6 +123,19 @@ em,.it{font-style:normal}
 .chap .ct{font-size:calc(var(--u)*5);line-height:.98;letter-spacing:-.03em;text-transform:uppercase;font-weight:300;max-width:13em}
 .chap .cl{font-size:calc(var(--u)*1.4);line-height:1.45;max-width:40em;opacity:.88}
 
+/* ---------- contents: one ruled row per chapter ---------- */
+.toc{border-top:1px solid var(--ink)}
+.toc .r{display:grid;grid-template-columns:calc(var(--u)*5.2) calc(var(--u)*19) minmax(0,1fr);gap:calc(var(--u)*1.8);align-items:center;padding:calc(var(--u)*.75) 0;border-bottom:1px solid var(--hair)}
+.toc .n{font-family:var(--fig);font-size:calc(var(--u)*2.3);line-height:1;border:1px solid var(--hair);height:calc(var(--u)*3.8);display:grid;place-items:center}
+.toc .t{font-size:calc(var(--u)*1.55);line-height:1.1;letter-spacing:-.01em;text-transform:uppercase;font-weight:300}
+.toc .r.app{color:var(--ink-3);border-top:1px solid var(--ink-3)}
+.toc .r.app .n{border-color:transparent}
+/* blocks on the idea pages: a small label, then the text */
+.blk{border-top:1px solid var(--hair);padding-top:calc(var(--u)*.7)}
+.blk .label{display:block;color:var(--ink-3);margin-bottom:calc(var(--u)*.4)}
+.ideap{gap:calc(var(--u)*1.2)}
+.list.menu-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*.5) calc(var(--u)*1.6)}
+
 /* ---------- statement (the promise) ---------- */
 .q{font-size:calc(var(--u)*4.4);line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;font-weight:300;max-width:18em}
 .q u{text-decoration-thickness:1px;text-underline-offset:.12em}
@@ -358,6 +371,7 @@ html.lb-open{overflow:hidden}
   .tbl td.r,.tbl th.r{padding-right:8px}
   .m-logo{width:80%}
   .close-mark .w{height:110px}
+  .toc .r{grid-template-columns:52px minmax(0,1fr);row-gap:4px} .toc .r .l{grid-column:2} .toc .n{height:44px;font-size:24px} .toc .t{font-size:18px}
   .chapter .frame{min-height:70vh} .chap .cn{font-size:72px} .chap .ct{font-size:40px} .chap .cl{font-size:17px}
 }
 @media print{

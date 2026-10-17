@@ -38,11 +38,12 @@ def photo(name, alt, pos='50% 50%'):
     return f'<img class="photo" src="media/{name}" alt="{esc(alt)}" loading="lazy" decoding="async" style="object-position:{pos}">'
 
 
-def chapter(sid, no, title, line, cloth):
-    """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line."""
+def chapter(sid, no, title, line, cloth, light=False):
+    """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line.
+    light=True sets ink on a pale cloth (the appendix opener, which follows the dark close)."""
     body = (f'<div class="chap grow"><span class="cn">{no}</span><h2 class="ct">{title}</h2>'
             + (f'<p class="cl">{line}</p>' if line else '') + '</div>')
-    return slide(sid, f'{no} · {title}', body, dark=True, cls='chapter scrim', cloth=cloth)
+    return slide(sid, f'{no} · {title}', body, dark=not light, cls='chapter' + ('' if light else ' scrim'), bare=True, cloth=cloth)
 
 
 def stat(num, label, source='', small=''):

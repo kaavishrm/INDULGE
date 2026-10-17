@@ -6,21 +6,18 @@ A 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. It keeps t
 - **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
 - **Print or PDF:** printing from a browser gives one slide per page.
 
-## The slides (22, plus a four-page appendix)
+## The pitch (29 main slides, six chapters, then the appendix)
 
-1. **Cover and our promise.** From the post to the billing counter, measured on footfall per store. The test is one city for twelve weeks, built around a store launch or the wedding season. If the numbers don't move, you lose nothing.
-2. **Westside today** (3 slides):
-   - the facts as of 16 Oct 2026;
-   - the last twelve months on one page;
-   - how Westside talks, and where we take it.
-3. **The market.** What seven rivals did lately, and how Westside wins. There is no Zara, and no rival is used as the source of an idea.
-4. **The plan.** Three ideas, 15 mn impressions, all of it measured in store. Each slide is a headline, a line or two and the numbers:
-   - **Styled by Westside:** stylists and creators build complete looks every week, distributed through Westside's pages, creators and clip, meme and city pages. 4.9 mn.
-   - **The Westside Coffee Cart:** a menu named after Westside labels, with a look code on every cup. 5.4 mn. Shown with the team's cart renders (`media/out/cart-*.webp`): one at a Westside entrance and four ways to build it.
-   - **Window Stories:** Rahul and Anjali getting ready for dinner, then a different story in every store. 4.7 mn.
-5. **The numbers.** Each line is units × average, with low, plan and high. The baseline is YNG's 6 mn views in January to March 2026 (Trent Q4 FY26 deck), plus a commitment to beat Westside's best comparable campaign by at least 20%. Organic lines count views (10.6 mn) and paid lines count impressions (4.4 mn).
-6. **Measurement, the test, the timeline, Mask360, next steps and a closing page.**
-7. **Appendix:** the full impressions model, all sources, and two slides of the team's reference clips (23 of the 24; the Target × Parke food truck is left out, see below). Press play and the clip opens large over the deck, with the browser's own controls (sound, volume, full screen).
+- **Front:** cover, our promise, contents (the six chapters with their conclusions).
+- **01 Westside today:** the business in six numbers; the last twelve months on one strip; how Westside talks; the market (what rivals did, how Westside wins).
+- **02 The opportunity:** what we found (sales happen in stores, marketing is counted in views); the look code that takes a shopper from a post to the billing counter.
+- **03 The three ideas:** overview (15 mn); Styled by Westside (idea and plan); the Westside Coffee Cart (idea, four cart designs, plan); Window Stories (idea and the 311-store library).
+- **04 The numbers:** how the 15 mn adds up against YNG's 6 mn; how we measure footfall per store.
+- **05 The test:** the offer and terms, with the founder's line "If the numbers don't move, you lose nothing."; the timeline.
+- **06 Mask360:** who we are; next steps; close.
+- **Appendix:** the full impressions model, the teams, the twelve months and the market in full, two pages of reference clips, all sources.
+
+Each content slide is a headline that makes a point, a line on why it matters to Westside, then the facts or the plan (about 3,200 words on the main slides).
 
 ## Sources
 
