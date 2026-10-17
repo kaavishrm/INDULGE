@@ -1,11 +1,33 @@
 """Small HTML helpers for the slides (from the Westside v4 deck). Every slide is a <section class="slide"> holding one 16:9 <div class="frame">."""
-import re
+import base64, pathlib, re
 from html import escape as esc
 
 M_MARK = '<svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg>'
 
-# Birla Fertility & IVF's name set in the deck's thin letterspaced sans: a typeset wordmark, no logo artwork
-WORDMARK = '<span class="wm" aria-label="Birla Fertility &amp; IVF"><span class="t" aria-hidden="true">Birla Fertility &amp; IVF</span></span>'
+NAME = 'Birla Fertility &amp; IVF'
+_MIME = {'.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp'}
+
+
+def _client_logo():
+    """Birla Fertility & IVF's own logo, when deck/client-logo.svg, .png or .webp is present, as a data URI."""
+    for ext, mime in _MIME.items():
+        f = pathlib.Path(__file__).resolve().parent / f'client-logo{ext}'
+        if f.exists():
+            return f'data:{mime};base64,' + base64.b64encode(f.read_bytes()).decode()
+    return ''
+
+
+LOGO = _client_logo()
+
+
+def wordmark(cls):
+    """The client's logo, drawn in ink like the Westside mark; without a logo file, its name set in the deck's thin letterspaced sans."""
+    if LOGO:
+        return f'<span class="{cls}"><img class="clogo" src="{LOGO}" alt="{NAME}"></span>'
+    return f'<span class="{cls}" aria-label="{NAME}"><span class="t" aria-hidden="true">{NAME}</span></span>'
+
+
+WORDMARK = wordmark('wm')
 
 
 def head(section):
@@ -35,7 +57,7 @@ def sep(n):
 def chapter(sid, no, title, line, cloth):
     """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line."""
     body = (f'<div class="chap grow"><span class="cn">{no}</span><h2 class="ct">{title}</h2>'
-            + (f'<p class="cl">{line}</p>' if line else '') + '</div>')
+            + (f'<p class="clogo">{line}</p>' if line else '') + '</div>')
     return slide(sid, f'{no} · {title}', body, dark=True, cls='chapter scrim', cloth=cloth)
 
 

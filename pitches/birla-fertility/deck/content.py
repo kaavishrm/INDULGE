@@ -2,7 +2,7 @@
 line or two, the numbers, and a one-line source on each slide; the full sources are on the last page. Facts come from
 pitches/birla-fertility/README.md, which lists every source. The look is Westside v4's, kept as it is."""
 import art
-from kit import slide, stat, ul, table, tile, chapter, M_MARK
+from kit import slide, stat, ul, table, tile, chapter, wordmark, M_MARK, LOGO, NAME
 
 TITLE = 'Birla Fertility & IVF × Mask360'
 DESCRIPTION = ('Mask360’s social media proposal to Birla Fertility &amp; IVF, October 2026: No question too quiet. One platform, three '
@@ -45,7 +45,7 @@ SOURCES = [
 
 def cover():
     body = f'''<div class="stack-l grow" style="justify-content:space-between">
-<div class="big-wm" aria-label="Birla Fertility &amp; IVF"><span class="t" aria-hidden="true">Birla Fertility &amp; IVF</span></div>
+{wordmark('big-wm')}
 <div class="cover-foot">
   <div class="stack-l">
     <span class="label">A social media proposal from Mask360 · October 2026</span>
@@ -406,7 +406,7 @@ def next_steps():
 def close():
     body = f'''<div class="grow" style="display:grid;place-items:center">
 <div class="close-mark">
-  <span class="wt" aria-label="Birla Fertility &amp; IVF">Birla Fertility &amp; IVF</span>
+  {f'<img class="clogo w" src="{LOGO}" alt="{NAME}">' if LOGO else f'<span class="wt" aria-label="{NAME}">{NAME}</span>'}
   <span class="label line">Birla Fertility &amp; IVF × Mask360 · No question too quiet</span>
   {M_MARK}
 </div></div>'''
