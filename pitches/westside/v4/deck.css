@@ -213,6 +213,17 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .pic .ov{position:absolute;inset:0;padding:calc(var(--u)*1.1);display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
 .pic .no{font-family:var(--fig);font-size:calc(var(--u)*2.6);line-height:.9;letter-spacing:-.02em}
 .pic svg{width:100%;height:100%;max-height:100%}
+.pic .photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pic.ph{background:var(--night)}
+.pic.ph .ov .no{align-self:flex-end}  /* the render's own sign sits top left */
+.pic.ph .ov{color:#fff;background:linear-gradient(180deg,rgba(0,0,0,.32) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 74%,rgba(0,0,0,.42) 100%)}
+/* the four cart renders, side by side like v3's product grid */
+.shots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;align-content:center}
+.shot{margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.7);min-width:0}
+.shot .photo{width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--wash)}
+.shot figcaption{display:grid;gap:calc(var(--u)*.25);padding-right:calc(var(--u)*.9)}
+.srcs{columns:2;column-gap:calc(var(--u)*3)}
+.srcs>div{break-inside:avoid;margin-bottom:calc(var(--u)*1.1)}
 .spec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--ink)}
 .spec>div{padding:calc(var(--u)*.8) calc(var(--u)*1.2) calc(var(--u)*.9) 0;border-bottom:1px solid var(--hair)}
 .spec>div:nth-child(even){padding-left:calc(var(--u)*1.2);border-left:1px solid var(--hair)}
@@ -315,6 +326,7 @@ html.lb-open{overflow:hidden}
   .stories{grid-template-columns:repeat(2,minmax(0,1fr))} .stories .tile{height:110px} .stories .tile .ov .no{font-size:26px} .stories .tile .ov .t{font-size:15px}
   .art{height:auto}.art svg{height:auto;max-height:70vh}
   .spec{grid-template-columns:minmax(0,1fr)}
+  .shots{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px} .srcs{columns:1}
   .spec>div:nth-child(even){padding-left:0;border-left:0}
   .bar{grid-template-columns:110px 1fr 70px}
   .folio .src{max-width:none}
@@ -334,6 +346,7 @@ html.lb-open{overflow:hidden}
   .tbl.stackable tr{display:block;padding:12px 0;border-bottom:1px solid var(--hair)}
   .tbl.stackable td{display:block;border:0;padding:2px 0;text-align:left;white-space:normal}
   .tbl.stackable td:first-child{font-weight:500;font-size:16px}
+  .tbl.stackable td:empty{display:none}
   .tbl.stackable td+td::before{content:attr(data-h) ": ";color:var(--ink-3);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
   .tbl td.r,.tbl th.r{padding-right:8px}
   .m-logo{width:80%}

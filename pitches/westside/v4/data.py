@@ -26,6 +26,22 @@ LAST12 = [
     ('Oct ’26', '<b>FRONT ROW</b> A fashion and culture platform: 80 looks, 150 culture-shapers, 30 New Faces.', 'Three national Dance Off challenges to come', False),
 ]
 
+# the same twelve months, cut to a title and one line each for the slide: (month, title, line, quiet?)
+LAST12_SHORT = [
+    ('Nov ’25', 'Wedding season', 'A men’s style guide on westside.com', True),
+    ('Dec ’25', 'Glitz &amp; Glam', 'Party capsule with W.i.S.H.', False),
+    ('Jan ’26', '', 'No campaign found', True),
+    ('Feb ’26', 'Wesness Fun Run', 'Mumbai · 3,600+', False),
+    ('Mar ’26', 'YNG', '6&nbsp;mn views, Jan–Mar', False),
+    ('Apr ’26', 'Run2Quiz, Run2Zumba', 'Wesness runs from stores', False),
+    ('May ’26', 'Wesness Fun Run', 'Bengaluru · 3,300+', False),
+    ('Jun ’26', 'AGM', 'About 50 new stores a year', True),
+    ('Jul ’26', 'Run2Stepup', 'Wesness run, Mumbai', False),
+    ('Aug ’26', '', 'No campaign found', True),
+    ('Sep ’26', '9 Days 9 Colours', 'Navratri edit · 311 stores', False),
+    ('Oct ’26', 'FRONT ROW', '80 looks · 30 New Faces', False),
+]
+
 POSITIONING = {
     'year_title': 'A year measured in turnout and views.',
     'year_line': 'Westside held Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com, as the chain added 50 stores.',

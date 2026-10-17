@@ -33,6 +33,11 @@ def sep(n):
     return re.sub(r'([,–~+])', r'<span class="sep">\1</span>', n)
 
 
+def photo(name, alt, pos='50% 50%'):
+    """An image from media/ (beside the page), cropped to its box around pos."""
+    return f'<img class="photo" src="media/{name}" alt="{esc(alt)}" loading="lazy" decoding="async" style="object-position:{pos}">'
+
+
 def stat(num, label, source='', small=''):
     s = f'<div class="s">{source}</div>' if source else ''
     sm = f'<small>{small}</small>' if small else ''
