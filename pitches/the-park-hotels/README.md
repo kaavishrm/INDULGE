@@ -13,15 +13,25 @@ Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels
 
 ## The slides
 
-1. **Cover, our promise, your brief.** The brief table answers the four things the post asked for, each with the page it is on.
-2. **01 · The Park today.** The numbers (RevPAR ₹6,858, 92% occupancy, 43% of revenue from food and nightlife, 42 hotels, 87 by FY2030, 111 Flurys), growth, the five hotel brands and Flurys, and the house rule: "We post what only THE Park can."
+A social media pitch in 26 slides. The content plan is drawn as two mind maps.
+
+1. **Cover, our promise, your brief.** The promise: THE Park's feed becomes the city's night out (found, saved, booked). The brief table answers the four things the post asked for, each with its page.
+2. **01 · The Park on social.**
+   - The numbers the feed has to sell: 92% occupancy, 43% of revenue from food and nightlife, RevPAR ₹6,858, 42 hotels, 87 by FY2030, 111 Flurys.
+   - The six channels linked from theparkhotels.com, each with a job and a weekly cadence, plus Spotify and WhatsApp.
+   - The house rule: "We post what only THE Park can."
 3. **The insight:** The Park is named after a street.
-4. **02 · Park Street, everywhere.** Four content collections, six ideas, and three idea pages with concept drawings:
-   - The Sessions, with sample posts (Reel, story, carousel) and a sample caption;
-   - Room 1967;
-   - Flurys 100.
-5. **03 · How it runs.** The next 100 days (from a 16 November start, around Christmas on Park Street, New Year's Eve and the literary festival), how a post reaches a table, and what we measure.
-6. **Mask360.** Hospitality accounts, the feeds we run and the Nexa Platinum Lounge result (530 tickets at ₹75,000). Then next steps ("Put us in the room."), the close and the sources.
+4. **02 · Park Street, everywhere.**
+   - **The content map:** a mind map with the idea at the centre, four pillars (After Hours, By Design, The Table, The City) and sixteen series with their formats.
+   - The pillar mix.
+   - The first fortnight of December on the @theparkhotels grid, drawn as a phone.
+   - Sample captions and three voice rules.
+   - Three series pages with concept drawings: The Sessions (with sample posts), Room 1967 and Flurys 100.
+5. **03 · How it runs.**
+   - December on the feed: a calendar of the series day by day, with Christmas on Park Street and New Year's Eve.
+   - **The handle map:** a second mind map, the group feed and the six brand accents.
+   - Community (residents, regulars, creators, the DMs), post to table, and social KPIs.
+6. **Mask360**, next steps ("Put us in the room."), the close and the sources.
 
 Mask360's rule for cold pitches applies: show the read, take one position, show how it extends into a system, and end on an open door. So there is no pricing and no team grid.
 

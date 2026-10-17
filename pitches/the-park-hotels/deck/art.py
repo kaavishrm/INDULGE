@@ -190,3 +190,82 @@ def phones():
         o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
+
+
+MAP = [  # pillar, what it covers, side, series (name, formats)
+    ('After Hours', 'the night', 'left', [('The Sessions', 'Reel · YouTube · Spotify'), ('The 3 a.m. Menu', 'Reel series'),
+                                          ('Last Call', 'Story · the drink of the week'), ('Who Played', 'Carousel · every Monday')]),
+    ('By Design', 'the rooms', 'right', [('Room 1967', 'Launch night · carousel · press'), ('The Object', 'Macro Reel · weekly'),
+                                        ('The Architects', 'Carousel · monthly'), ('Boards', 'Pinterest · weekly')]),
+    ('The Table', 'the food', 'left', [('Flurys 100', 'All of 2027 · Reel · carousel'), ('Chef’s Counter', 'Reel · thirty seconds'),
+                                       ('The Recipe', 'Carousel · made to be saved'), ('Menu Drops', 'Story · as they land')]),
+    ('The City', 'the people', 'right', [('Night Shift', 'Portrait carousel · weekly'), ('The Night Map', 'Guide · written for search'),
+                                         ('Don’t Check Out', 'Writer in residence'), ('Ask the Concierge', 'DM answers as Reels')]),
+]
+
+
+def content_map():
+    """The content plan as a mind map: the idea in the middle, four pillars, sixteen series with their formats."""
+    W, H, cx, cy = 1720, 700, 860, 350
+    o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the content plan. In the centre, the idea: Park Street, everywhere. '
+         'Four pillars branch from it, After Hours, By Design, The Table and The City, and each pillar branches into four series: '
+         + esc('; '.join(f'{p}: ' + ', '.join(n for n, _ in s) for p, _, _, s in MAP)) + '">']
+    spots = [(500, 170), (1220, 170), (500, 530), (1220, 530)]
+    # branches first, so the nodes sit on top of their lines
+    for (name, what, side, series), (px, py) in zip(MAP, spots):
+        sx = cx + (-118 if px < cx else 118) * 0.74
+        sy = cy + (-118 if py < cy else 118) * 0.67
+        o.append(f'<path class="ln" style="stroke-width:1.6" d="M{sx:.0f} {sy:.0f} C{(sx + px) / 2:.0f} {sy:.0f} {(sx + px) / 2:.0f} {py} {px} {py}"/>')
+        left = side == 'left'
+        ex = px - 120 if left else px + 120
+        dx = 330 if left else 1390
+        for k, (sname, fmts) in enumerate(series):
+            ly = py - 126 + k * 84
+            o.append(f'<path class="ln2" d="M{ex} {py} C{(ex + dx) / 2:.0f} {py} {(ex + dx) / 2:.0f} {ly} {dx} {ly}"/>')
+            o.append(f'<circle class="fi" cx="{dx}" cy="{ly}" r="4"/>')
+            tx, anchor = (dx - 16, 'end') if left else (dx + 16, 'start')
+            o.append(_t(tx, ly + 2, sname.upper(), 21, 'tx-d', anchor=anchor, ls=.02))
+            o.append(_t(tx, ly + 24, fmts.upper(), 11, anchor=anchor, weight=500, ls=.16, fill='var(--ink-3)'))
+    # the four pillars
+    for (name, what, side, series), (px, py) in zip(MAP, spots):
+        o.append(f'<rect class="fi" x="{px - 120}" y="{py - 36}" width="240" height="72" rx="36"/>')
+        o.append(_t(px, py + 2, name.upper(), 22, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
+        o.append(_t(px, py + 22, what.upper(), 10, anchor='middle', weight=500, ls=.22, fill='var(--paper)'))
+    # the idea
+    o.append(f'<circle class="fp" cx="{cx}" cy="{cy}" r="118"/><circle class="ln" cx="{cx}" cy="{cy}" r="118"/>')
+    o.append(_t(cx, cy - 40, 'THE IDEA', 11, anchor='middle', weight=500, ls=.24, fill='var(--ink-3)'))
+    o.append(_t(cx, cy + 4, 'PARK STREET,', 27, 'tx-d', anchor='middle', ls=.02))
+    o.append(_t(cx, cy + 38, 'EVERYWHERE', 27, 'tx-d', anchor='middle', ls=.02))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+HANDLES = [  # brand, voice, what it posts
+    ('THE Park', 'Seductive', 'City hotels and their bars post the night'),
+    ('THE Park Collection', 'Unhurried', 'Ran Baas: slow films, palace weekends'),
+    ('Flurys', 'Nostalgic', 'A hundred stories for the centenary'),
+    ('Zone by The Park', 'Playful', 'Design at a fair price, second cities'),
+    ('Zone Connect', 'Warm', 'Each town in its own language'),
+    ('Stop by Zone', 'Direct', 'Price and place, said plainly'),
+]
+
+
+def handles_map():
+    """The handles as a hub: the group feed in the middle, each brand around it with its voice and what it posts."""
+    W, H, cx, cy = 1720, 640, 860, 320
+    o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the accounts. The group feed, @theparkhotels, sits in the middle. '
+         'Around it: ' + esc('; '.join(f'{n}, {v}, {w}' for n, v, w in HANDLES)) + '">']
+    spots = [(250, 90), (860, 70), (1470, 90), (250, 550), (860, 570), (1470, 550)]
+    for (x, y) in spots:
+        o.append(f'<path class="ln2" d="M{cx} {cy} C{cx} {(cy + y) / 2:.0f} {x} {(cy + y) / 2:.0f} {x} {y}"/>')
+    for (name, voice, what), (x, y) in zip(HANDLES, spots):
+        o.append(f'<rect class="fw" x="{x - 190}" y="{y - 52}" width="380" height="104"/><rect class="ln" x="{x - 190}" y="{y - 52}" width="380" height="104"/>')
+        o.append(_t(x - 166, y - 14, name.upper(), 21, 'tx-d', ls=.02))
+        o.append(_t(x + 166, y - 14, voice.upper(), 11, anchor='end', weight=500, ls=.18, fill='var(--ink-3)'))
+        o.append(f'<line class="ln2" x1="{x - 166}" y1="{y + 2}" x2="{x + 166}" y2="{y + 2}"/>')
+        o.append(_t(x - 166, y + 30, what, 15))
+    o.append(f'<rect class="fi" x="{cx - 180}" y="{cy - 50}" width="360" height="100" rx="50"/>')
+    o.append(_t(cx, cy - 2, '@THEPARKHOTELS', 24, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
+    o.append(_t(cx, cy + 24, 'THE GROUP FEED LEADS', 10, anchor='middle', weight=500, ls=.22, fill='var(--paper)'))
+    o.append('</svg>')
+    return ''.join(o)

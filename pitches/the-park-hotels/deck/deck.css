@@ -324,6 +324,55 @@ svg .tx-n{font-family:var(--fig);font-weight:400}
   color:#fff;background:transparent;border:0;border-bottom:1px solid #fff;padding:8px 0;cursor:pointer}
 html.lb-open{overflow:hidden}
 
+/* ---------- social pages: the maps, the grid, the mix, the captions, the month ---------- */
+.map{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.map svg{width:100%;height:100%;max-height:100%}
+/* the pillar mix: one bar, four parts */
+.mixbar{display:flex;height:calc(var(--u)*1.4);gap:2px}
+.mixbar i{display:block;height:100%}
+.mixbar .p1{background:var(--ink)}.mixbar .p2{background:var(--ink-3)}.mixbar .p3{background:var(--bone)}.mixbar .p4{background:var(--wash);box-shadow:inset 0 0 0 1px var(--ink-3)}
+.mix .key{display:flex;align-items:center;gap:calc(var(--u)*.5)}
+.mix .key::before{content:"";width:calc(var(--u)*.8);height:calc(var(--u)*.8);flex:none}
+.mix .k1::before{background:var(--ink)}.mix .k2::before{background:var(--ink-3)}.mix .k3::before{background:var(--bone)}.mix .k4::before{background:var(--wash);box-shadow:inset 0 0 0 1px var(--ink-3)}
+.mix .share{font-family:var(--fig);font-size:calc(var(--u)*3.4);line-height:.9;letter-spacing:-.02em}
+/* the grid, drawn as a phone */
+.feed{display:grid;grid-template-columns:auto minmax(0,1fr);gap:calc(var(--u)*4);align-items:center;flex:1;min-height:0}
+.phone{width:calc(var(--u)*29);border:1px solid var(--ink);border-radius:calc(var(--u)*2.2);padding:calc(var(--u)*1.1) calc(var(--u)*.7) calc(var(--u)*.9);background:var(--paper)}
+.phone .ph-head{display:flex;align-items:center;gap:calc(var(--u)*.8);padding:0 calc(var(--u)*.4) calc(var(--u)*.7)}
+.phone .av{width:calc(var(--u)*3.4);height:calc(var(--u)*3.4);border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;flex:none}
+.phone .av svg{height:calc(var(--u)*1.7);width:auto;fill:currentColor}
+.phone .hd b{display:block;font-weight:500;font-size:calc(var(--u)*.92);letter-spacing:.02em}
+.phone .hd span{display:block;font-size:calc(var(--u)*.8);color:var(--ink-2);line-height:1.35}
+.phone .hl{display:flex;gap:calc(var(--u)*.8);padding:0 calc(var(--u)*.4) calc(var(--u)*.8)}
+.phone .hl span{display:grid;justify-items:center;gap:calc(var(--u)*.25);font-size:calc(var(--u)*.62);letter-spacing:.06em;text-transform:uppercase}
+.phone .hl i{width:calc(var(--u)*2.2);height:calc(var(--u)*2.2);border-radius:50%;border:1px solid var(--ink-3);display:block}
+.phone .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
+.ptile{aspect-ratio:1/1}
+.ptile .ov{justify-content:flex-end;padding:calc(var(--u)*.5)}
+.ptile .ov .t{font-size:calc(var(--u)*.72);line-height:1.15;letter-spacing:.02em}
+.ptile .ov .f{font-size:calc(var(--u)*.55);letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:calc(var(--u)*.2)}
+.week{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:calc(var(--u)*1.6);border-top:1px solid var(--ink)}
+.week>*{padding:calc(var(--u)*.62) 0;border-bottom:1px solid var(--hair)}
+.week .d{color:var(--ink-3)}
+.week .s{letter-spacing:.03em;text-transform:uppercase}
+/* captions */
+.cap-card{border:1px solid var(--hair);padding:calc(var(--u)*1.5);display:flex;flex-direction:column;gap:calc(var(--u)*.9)}
+.cap-card .say{font-size:calc(var(--u)*1.35);line-height:1.45}
+/* the month */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:auto repeat(5,minmax(0,1fr));gap:0 2px;flex:1;min-height:0}
+.cal .wd{color:var(--ink-3);padding-bottom:calc(var(--u)*.4);border-bottom:1px solid var(--ink)}
+.cal .day{border-bottom:1px solid var(--hair);padding:calc(var(--u)*.45) calc(var(--u)*.5) calc(var(--u)*.5) 0;display:flex;flex-direction:column;gap:calc(var(--u)*.3);min-height:0}
+.cal .day .n{font-family:var(--fig);font-size:calc(var(--u)*1.6);line-height:1}
+.cal .day.out{opacity:.35}
+.cal .day.tent{background:var(--wash);padding-left:calc(var(--u)*.5)}
+.cal .tag{display:flex;align-items:flex-start;gap:calc(var(--u)*.4);font-size:calc(var(--u)*.8);line-height:1.25}
+.cal .tag::before{content:"";width:calc(var(--u)*.6);height:calc(var(--u)*.6);flex:none;margin-top:calc(var(--u)*.22)}
+.cal .tag.a::before{background:var(--ink)}.cal .tag.b::before{background:var(--ink-3)}.cal .tag.c::before{background:var(--bone)}.cal .tag.d::before{background:var(--paper);box-shadow:inset 0 0 0 1px var(--ink-3)}
+.cal-key{display:flex;gap:calc(var(--u)*2);flex-wrap:wrap}
+.cal-key .tag{display:flex;align-items:center;gap:calc(var(--u)*.4)}
+.cal-key .tag::before{content:"";width:calc(var(--u)*.7);height:calc(var(--u)*.7)}
+.cal-key .a::before{background:var(--ink)}.cal-key .b::before{background:var(--ink-3)}.cal-key .c::before{background:var(--bone)}.cal-key .d::before{background:var(--paper);box-shadow:inset 0 0 0 1px var(--ink-3)}
+
 /* ---------- phones and narrow windows: slides become one scrolling document ---------- */
 @media (max-width:760px),(max-aspect-ratio:4/5){
   html{scroll-snap-type:none}
@@ -349,7 +398,10 @@ html.lb-open{overflow:hidden}
   .tbl.brief td:last-child::before{font-family:var(--sans)}
   .stories>div>p{padding-right:10px}
   .phones svg{width:100%;height:auto}
-  .stories{grid-template-columns:repeat(2,minmax(0,1fr))} .stories .tile{height:110px} .stories .tile .ov .no{font-size:26px} .stories .tile .ov .t{font-size:15px}
+  .stories{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feed{grid-template-columns:minmax(0,1fr)} .phone{width:100%;max-width:340px;margin:0 auto}
+  .cal{grid-template-columns:repeat(7,minmax(0,1fr))} .cal .tag{font-size:10px} .cal .day .n{font-size:18px}
+  .map svg{height:auto} .mix .share{font-size:34px} .stories .tile{height:110px} .stories .tile .ov .no{font-size:26px} .stories .tile .ov .t{font-size:15px}
   .art{height:auto}.art svg{height:auto;max-height:70vh}
   .spec{grid-template-columns:minmax(0,1fr)}
   .shots{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px} .srcs{columns:1}
