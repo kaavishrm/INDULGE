@@ -121,8 +121,9 @@ em,.it{font-style:normal}
 /* the client's own logo (deck/client-logo.*): ink on paper, white on dark, like the Westside mark */
 img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
 .dark img.clogo{filter:brightness(0) invert(1)}
-.wm img.clogo{height:calc(var(--u)*2)}
-.big-wm img.clogo{height:calc(var(--u)*7)}
+.wm .cmark{display:block;height:calc(var(--u)*1.5);aspect-ratio:153/88;background:center/contain no-repeat;filter:brightness(0)}
+.dark .wm .cmark{filter:brightness(0) invert(1)}
+.big-wm img.clogo{height:calc(var(--u)*8)}
 
 /* ---------- chapter openers: cloth, a big Didone number, the chapter title ---------- */
 .chap{display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*1.2)}
@@ -358,7 +359,7 @@ html.lb-open{overflow:hidden}
   .tbl td{font-size:14px}.tbl th{font-size:11px}
   .head .sec{max-width:60%;text-align:right;line-height:1.35}
   .wm svg{height:22px} .wm .t{font-size:11px}
-  .big-wm svg{height:56px} .wm img.clogo{height:24px} .big-wm img.clogo{height:60px} .big-wm .t{font-size:24px;letter-spacing:.28em}
+  .big-wm svg{height:56px} .wm .cmark{height:18px} .big-wm img.clogo{height:72px} .big-wm .t{font-size:24px;letter-spacing:.28em}
   .cover-foot{flex-wrap:wrap}
   .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
   .gantt{grid-template-columns:90px repeat(17,minmax(0,1fr));column-gap:1px}

@@ -4,6 +4,8 @@ Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager
 
 **The proposal:** a 26-slide HTML page in Mask360's house style (the Westside v4 kit, as used for The Park Hotels): `dist/birla-fertility-proposal.html` is the claude.ai artifact, `dist/index.html` the standalone page for a website or for printing to PDF.
 
+**The client's logo:** `deck/client-logo.png` (the full lockup, on the cover and the close) and `deck/client-mark.png` (the three circles, beside the typeset name in every running head) are cut from the logo file supplied on 17 October 2026. Both are drawn in ink on paper and white on dark, as the Westside deck drew its W.
+
 **The idea in one line:** *No question too quiet.* Birla Fertility & IVF becomes the place India asks first, with every answer given with "All Heart. All Science.", the brand's own line.
 
 ---

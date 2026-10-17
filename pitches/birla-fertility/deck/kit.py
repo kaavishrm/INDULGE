@@ -8,23 +8,26 @@ NAME = 'Birla Fertility &amp; IVF'
 _MIME = {'.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp'}
 
 
-def _client_logo():
-    """Birla Fertility & IVF's own logo, when deck/client-logo.svg, .png or .webp is present, as a data URI."""
+def _asset(stem):
+    """A client asset beside this file (stem.svg, .png or .webp) as a data URI, or '' when there is none."""
     for ext, mime in _MIME.items():
-        f = pathlib.Path(__file__).resolve().parent / f'client-logo{ext}'
+        f = pathlib.Path(__file__).resolve().parent / f'{stem}{ext}'
         if f.exists():
             return f'data:{mime};base64,' + base64.b64encode(f.read_bytes()).decode()
     return ''
 
 
-LOGO = _client_logo()
+LOGO = _asset('client-logo')   # the full lockup: the three circles and the name
+MARK = _asset('client-mark')   # the three circles alone
 
 
 def wordmark(cls):
-    """The client's logo, drawn in ink like the Westside mark; without a logo file, its name set in the deck's thin letterspaced sans."""
-    if LOGO:
+    """The running head carries the client's mark beside its name in the deck's thin letterspaced sans, as the Westside deck
+    did with its W; the cover (big-wm) carries the full logo. Both are drawn in ink on paper and white on dark."""
+    if cls == 'big-wm' and LOGO:
         return f'<span class="{cls}"><img class="clogo" src="{LOGO}" alt="{NAME}"></span>'
-    return f'<span class="{cls}" aria-label="{NAME}"><span class="t" aria-hidden="true">{NAME}</span></span>'
+    mark = '<i class="cmark" aria-hidden="true"></i>' if MARK else ''  # painted once from the stylesheet (build.py)
+    return f'<span class="{cls}" aria-label="{NAME}">{mark}<span class="t" aria-hidden="true">{NAME}</span></span>'
 
 
 WORDMARK = wordmark('wm')
