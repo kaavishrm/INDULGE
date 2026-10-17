@@ -1,7 +1,9 @@
-"""Line-art illustrations for the Birla Fertility & IVF deck, drawn in SVG in the Westside v4 manner. Colours come from the deck's
-CSS classes: ln (ink line), ln2 (fine grey line), fp (bone fill), fi (ink fill), fw (paper fill), fpanel (panel fill); tx-d is the
-thin uppercase sans, tx-n the Didone (numbers only)."""
+"""Line drawings and maps for Mask360's proposal to Birla Fertility & IVF, in the Hanza look (deck.css). Colours come from the
+deck's CSS classes: ln (ink line), ln2 (fine line), fp (pale pink fill), fi (ink fill), fw (paper fill), fa (the pink accent),
+fpanel (panel fill); tx-d is the uppercase sans, tx-m the mono for small labels, tx-n the sans for numbers."""
 from html import escape as esc
+
+MUTE = 'var(--ink-2)'
 
 
 def _t(x, y, s, size=12, cls='', anchor='start', weight=400, ls=0, fill=None):
@@ -126,56 +128,251 @@ def group():
     return ''.join(o)
 
 
-# the content, mapped: the platform in the middle, four pillars, three series on each (title, formats)
-MAP = [
-    ('ANSWER', '40%', 'L', 150, [('THE 1 A.M. QUESTIONS', 'Reels · Shorts'), ('MYTH OR FACT', 'Carousels'),
-                                 ('ASK A SPECIALIST', 'Instagram Live, monthly')]),
-    ('REASSURE', '20%', 'L', 570, [('YOUR FIRST VISIT', 'Carousels · Reels'), ('THE COUNSELLOR’S HOUR', 'Stories · question box'),
-                                   ('A CYCLE, EXPLAINED', 'Carousels · YouTube')]),
-    ('THE SCIENCE', '20%', 'R', 150, [('INSIDE THE LAB', 'Reels · YouTube'), ('MEET THE SPECIALIST', 'Reels · LinkedIn'),
-                                      ('SCIENCE, SIMPLY', 'YouTube long form')]),
-    ('BELONG', '20%', 'R', 570, [('HALF THE STORY', 'Creator series for men'), ('THE GOOD NEWS QUESTION', 'Stickers · a short film'),
-                                 ('YOUR QUESTIONS, ANSWERED', 'Reels that reply to comments')]),
+def _phone(o, x, y, screen, w=200, h=356):
+    """A phone outline with its screen (fi night, fp bone, fw paper) and the speaker slot."""
+    o.append(f'<rect class="fw" x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/><rect class="ln" x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/>')
+    o.append(f'<rect class="{screen}" x="{x + 9}" y="{y + 9}" width="{w - 18}" height="{h - 18}" rx="15"/>')
+    o.append(f'<rect class="{"fw" if screen == "fi" else "fi"}" x="{x + w / 2 - 22}" y="{y + 17}" width="44" height="7" rx="3.5"/>')
+
+
+def _play(o, cx, cy, r=30, light=True):
+    col = 'var(--paper)' if light else 'var(--ink)'
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" style="fill:none;stroke:{col};stroke-width:1.3"/>')
+    o.append(f'<path d="M{cx - r * .3:.1f} {cy - r * .53:.1f} L{cx + r * .5:.1f} {cy} L{cx - r * .3:.1f} {cy + r * .53:.1f} Z" style="fill:{col}"/>')
+
+
+def _bars(o, x):
+    for k in range(3):
+        o.append(f'<line class="{"ln" if k == 0 else "ln2"}" x1="{x + 20 + k * 56}" y1="48" x2="{x + 68 + k * 56}" y2="48"/>')
+
+
+def _dots(o, cx, y=334):
+    for k in range(3):
+        o.append(f'<circle class="{"fi" if k == 0 else "ln2"}" cx="{cx - 12 + k * 12}" cy="{y}" r="3"/>')
+
+
+def _labels(o, labs):
+    for x, lab in zip((110, 360, 610), labs):
+        o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
+
+
+def _three(label, lines):
+    return f'<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for {label}. {lines}">'
+
+
+def asked_posts():
+    """The 1 a.m. Questions as three posts: the Reel cover, the night story, the carousel to save."""
+    o = [_three('The 1 a.m. Questions', 'A Reel cover asking is it normal that it is taking this long, a story at 1:04 a.m. with a '
+                'question box, and a carousel card that says save this for later')]
+    for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
+        _phone(o, x, 10, sc)
+    o.append(_t(110, 92, 'QUESTION 01', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    _play(o, 110, 178)
+    for i, w in enumerate(('IS IT NORMAL', 'IT’S TAKING', 'THIS LONG?')):
+        o.append(_t(110, 268 + i * 28, w, 22, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    _bars(o, 260)
+    o.append(_t(360, 166, '1:04', 62, 'tx-n', anchor='middle'))
+    o.append(_t(360, 194, 'A.M. TONIGHT', 13, anchor='middle', weight=500, ls=.16))
+    o.append('<rect class="fw" x="292" y="222" width="136" height="70" rx="12"/><rect class="ln" x="292" y="222" width="136" height="70" rx="12"/>')
+    o.append(_t(360, 246, 'ASK A SPECIALIST', 11, anchor='middle', weight=500, ls=.12))
+    o.append('<line class="ln2" x1="306" y1="272" x2="414" y2="272"/>')
+    o.append('<rect class="fa" x="530" y="60" width="160" height="90"/>')
+    o.append(_t(610, 112, 'Q', 44, 'tx-n', anchor='middle'))
+    o.append(_t(610, 210, 'SAVE THIS', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 238, 'FOR LATER', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 270, 'A SPECIALIST ANSWERS', 11, anchor='middle', weight=500, ls=.12, fill=MUTE))
+    _dots(o, 610)
+    _labels(o, ('Reel', 'Story', 'Carousel'))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def half_posts():
+    """Half the Story as three posts: the creator Reel, the Live notice, the first-test carousel."""
+    o = [_three('Half the Story', 'A creator Reel titled part 01, can he get tested too, a story announcing a men-only Live on '
+                'Thursday at 8 p.m., and a carousel card about the first test for him')]
+    for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
+        _phone(o, x, 10, sc)
+    o.append(_t(110, 92, 'PART 01', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    _play(o, 110, 178)
+    for i, w in enumerate(('CAN HE GET', 'TESTED TOO?')):
+        o.append(_t(110, 282 + i * 28, w, 22, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    _bars(o, 260)
+    o.append(_t(360, 150, 'LIVE', 46, 'tx-d', anchor='middle'))
+    o.append(_t(360, 178, 'MEN ONLY', 13, anchor='middle', weight=500, ls=.16))
+    o.append('<line class="ln2" x1="300" y1="206" x2="420" y2="206"/>')
+    o.append(_t(360, 238, 'THURSDAY', 17, 'tx-d', anchor='middle', ls=.08))
+    o.append(_t(360, 262, '8 P.M.', 17, 'tx-d', anchor='middle', ls=.08))
+    o.append('<rect class="ln" x="300" y="284" width="120" height="30" rx="15"/>')
+    o.append(_t(360, 304, 'REMIND ME', 11, anchor='middle', weight=500, ls=.14))
+    o.append('<rect class="fp" x="530" y="60" width="160" height="90"/><rect class="ln" x="530" y="60" width="160" height="90"/>')
+    o.append('<circle class="ln" cx="595" cy="105" r="18"/><circle class="ln" cx="625" cy="105" r="18"/>')
+    o.append(_t(610, 210, 'HIS FIRST', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 238, 'TEST', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 270, 'WHAT TO EXPECT', 11, anchor='middle', weight=500, ls=.12, fill=MUTE))
+    _dots(o, 610)
+    _labels(o, ('Creator Reel', 'Story', 'Carousel'))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def goodnews_posts():
+    """The Good News Question as three posts: the sticker pack, the aunt film, the counsellor's Live."""
+    o = [_three('The Good News Question', 'A sticker pack reading ask me about my trip, the new job and the wedding food, a short '
+                'film titled Masi learns a new question, and a story for a counsellor-led Live')]
+    for x, sc in zip((10, 260, 510), ('fp', 'fi', 'fw')):
+        _phone(o, x, 10, sc)
+    _bars(o, 10)
+    o.append(_t(110, 92, 'ASK ME ABOUT…', 15, 'tx-d', anchor='middle', ls=.04))
+    for i, (w, cls) in enumerate((('MY TRIP', 'fw'), ('THE NEW JOB', 'fa'), ('THE WEDDING FOOD', 'fw'))):
+        y = 124 + i * 56
+        o.append(f'<rect class="{cls}" x="34" y="{y}" width="152" height="38" rx="19"/><rect class="ln" x="34" y="{y}" width="152" height="38" rx="19"/>')
+        o.append(_t(110, y + 24, w, 11, anchor='middle', weight=500, ls=.1))
+    o.append(_t(360, 92, 'A SHORT FILM', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+    _play(o, 360, 178)
+    for i, w in enumerate(('MASI LEARNS', 'A NEW QUESTION')):
+        o.append(_t(360, 282 + i * 28, w, 20, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    o.append('<rect class="fp" x="530" y="60" width="160" height="90"/><rect class="ln" x="530" y="60" width="160" height="90"/>')
+    o.append(_t(610, 112, 'LIVE', 30, 'tx-d', anchor='middle'))
+    o.append(_t(610, 210, 'WORDS FOR', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 238, 'THE WEDDING', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 270, 'WITH A COUNSELLOR', 11, anchor='middle', weight=500, ls=.12, fill=MUTE))
+    _dots(o, 610)
+    _labels(o, ('Sticker pack', 'Film', 'Story'))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def people(k):
+    """Small line drawings for the voices page: 0 specialists, 1 counsellors, 2 men's health creators, 3 family creators."""
+    lab = ['a camera on a tripod facing an empty chair by a sunlit window', 'a question box sticker and a reply from a counsellor',
+           'a phone on a gimbal beside a dumbbell', 'a string of marigolds over a phone showing an ask me about sticker']
+    o = [f'<svg viewBox="0 0 320 180" role="img" aria-label="Line drawing: {lab[k]}">']
+    if k == 0:
+        o.append('<rect class="fw" x="210" y="18" width="80" height="70"/><rect class="ln" x="210" y="18" width="80" height="70"/><path class="ln2" d="M250 18 V88 M210 53 H290"/>')
+        o.append('<path class="ln2" d="M206 96 L170 140 M226 96 L214 150 M246 96 L256 152"/>')
+        o.append('<path class="fp" d="M190 120 h44 v26 h-44 z"/><path class="ln" d="M190 120 h44 v26 h-44 z M194 120 L188 96 M230 120 L236 96 M196 146 V172 M228 146 V172"/>')
+        o.append('<rect class="fi" x="70" y="62" width="58" height="36" rx="4"/><circle class="fw" cx="112" cy="80" r="9"/>')
+        o.append('<path class="ln" d="M99 98 L99 120 M99 120 L74 172 M99 120 L124 172 M99 120 L99 172"/>')
+    elif k == 1:
+        o.append('<rect class="fp" x="60" y="18" width="160" height="78" rx="14"/><rect class="ln" x="60" y="18" width="160" height="78" rx="14"/>')
+        o.append(_t(140, 46, 'ASK A COUNSELLOR', 11, anchor='middle', weight=500, ls=.1))
+        o.append('<rect class="fw" x="76" y="58" width="128" height="24" rx="12"/><rect class="ln2" x="76" y="58" width="128" height="24" rx="12"/>')
+        o.append('<rect class="fi" x="120" y="116" width="170" height="40" rx="20"/>')
+        o.append(_t(205, 141, 'WE’RE HERE TILL 10 P.M.', 11, anchor='middle', weight=500, ls=.08, fill='var(--paper)'))
+    elif k == 2:
+        o.append('<rect class="fw" x="140" y="34" width="40" height="70" rx="6"/><rect class="ln" x="140" y="34" width="40" height="70" rx="6"/><circle class="fi" cx="151" cy="46" r="3"/>')
+        o.append('<path class="ln" d="M160 104 L160 140 M140 70 L126 70 L126 116 L160 116 M144 172 L176 172 M160 140 L160 172"/>')
+        o.append('<rect class="fi" x="214" y="132" width="10" height="34" rx="2"/><rect class="fi" x="262" y="132" width="10" height="34" rx="2"/>')
+        o.append('<path class="ln" d="M224 149 L262 149"/><rect class="fp" x="226" y="140" width="34" height="18"/>')
+    else:
+        o.append('<path class="ln2" d="M30 22 Q160 60 290 22"/>')
+        for j in range(1, 10):
+            t = j / 10
+            x = 30 + 260 * t
+            y = (1 - t) ** 2 * 22 + 2 * (1 - t) * t * 60 + t ** 2 * 22
+            o.append(f'<circle class="fa" cx="{x:.1f}" cy="{y + 9:.1f}" r="6"/>')
+        o.append('<rect class="fw" x="128" y="62" width="64" height="110" rx="9"/><rect class="ln" x="128" y="62" width="64" height="110" rx="9"/>')
+        o.append('<rect class="fp" x="136" y="96" width="48" height="40" rx="8"/>')
+        o.append(_t(160, 113, 'ASK ME', 8, anchor='middle', weight=500, ls=.1))
+        o.append(_t(160, 125, 'ABOUT…', 8, anchor='middle', weight=500, ls=.1))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+MAP = [  # pillar, what it covers, side, series (name, what you see, format, hero series?)
+    ('Answer', 'the questions', 'left', [('The 1 a.m. Questions', 'A specialist answers one question', 'Reel · Short', True),
+                                        ('Myth or Fact', 'A myth, checked by a specialist', 'Carousel', False),
+                                        ('Ask a Specialist', 'Your questions, live, once a month', 'Instagram Live', False)]),
+    ('The Science', 'the lab', 'right', [('Inside the Lab', 'An embryologist’s first hour', 'Reel · YouTube', False),
+                                        ('Meet the Specialist', 'Who answers, and why', 'Reel · LinkedIn', False),
+                                        ('Science, Simply', 'One idea in five minutes', 'YouTube', False)]),
+    ('Reassure', 'the journey', 'left', [('Your First Visit', 'What happens, step by step', 'Carousel · Reel', False),
+                                        ('The Counsellor’s Hour', 'A question box at night', 'Stories', False),
+                                        ('A Cycle, Explained', 'Six frames, one cycle', 'Carousel', False)]),
+    ('Belong', 'the people', 'right', [('Half the Story', 'Men’s fertility, for men', 'Creator series', True),
+                                      ('The Good News Question', 'A kind way out', 'Stickers · film', True),
+                                      ('Your Questions, Answered', 'Reels that reply to comments', 'Reel', False)]),
 ]
 
 
-def mindmap():
-    """The content plan as a mind map: the platform in an ellipse, four ink pillars with their share of the feed, and three
-    series off each pillar with the formats they run in. Hairline curves join them, in the deck's line-drawing manner."""
-    import math
-    cx, cy, rx, ry = 800, 360, 168, 74
-    pw, ph = 262, 66
-    o = ['<svg viewBox="0 0 1600 720" role="img" aria-label="Mind map of the content. In the middle, No question too quiet. Four '
-         'pillars branch from it: Answer, 40% of the feed, with The 1 a.m. Questions, Myth or fact and Ask a specialist; Reassure, '
-         '20%, with Your first visit, The counsellor’s hour and A cycle, explained; The science, 20%, with Inside the lab, Meet the '
-         'specialist and Science, simply; Belong, 20%, with Half the Story, The Good News Question and Your questions, answered.">']
-    for name, share, side, py, leaves in MAP:
-        px = 520 if side == 'L' else 1080
-        inner = px + pw / 2 if side == 'L' else px - pw / 2
-        outer = px - pw / 2 if side == 'L' else px + pw / 2
-        # the branch from the platform to the pillar
-        t = math.atan2((py - cy) / ry, (inner - cx) / rx)
-        ex, ey = cx + rx * math.cos(t), cy + ry * math.sin(t)
-        o.append(f'<path class="ln" d="M{ex:.1f} {ey:.1f} Q{ex:.1f} {py} {inner} {py}"/>')
-        # the three series off the pillar
-        for k, (title, fmt) in enumerate(leaves):
-            ly = py + (k - 1) * 100
-            x0, x1 = (40, 300) if side == 'L' else (1300, 1560)
-            near = x1 if side == 'L' else x0
-            mid = (outer + near) / 2
-            o.append(f'<path class="ln2" d="M{outer} {py} C{mid} {py} {mid} {ly} {near} {ly}"/>')
-            o.append(f'<line class="ln" x1="{x0}" y1="{ly}" x2="{x1}" y2="{ly}"/>')
-            o.append(f'<circle class="fpk" cx="{near}" cy="{ly}" r="4.5"/>')
-            o.append(_t(x0, ly - 11, title, 17, 'tx-d', ls=.05))
-            o.append(_t(x0, ly + 24, fmt, 14, fill='var(--ink-3)'))
-        # the pillar, in ink, with its share of the feed
-        o.append(f'<rect class="fi" x="{px - pw / 2}" y="{py - ph / 2}" width="{pw}" height="{ph}"/>')
-        o.append(_t(px - pw / 2 + 20, py + 7, name, 19, 'tx-d', ls=.12, fill='#fff'))
-        o.append(_t(px + pw / 2 - 18, py + 10, share, 28, 'tx-n', anchor='end', fill='var(--pink)'))
-    # the platform in the middle
-    o.append(f'<ellipse class="fp" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/><ellipse class="ln" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/>')
-    o.append(_t(cx, cy - 30, 'THE PLATFORM', 11, anchor='middle', ls=.22, fill='var(--ink-3)'))
-    o.append(_t(cx, cy + 2, 'NO QUESTION', 25, 'tx-d', anchor='middle', ls=.06))
-    o.append(_t(cx, cy + 32, 'TOO QUIET', 25, 'tx-d', anchor='middle', ls=.06))
+def content_map():
+    """The content plan as a mind map in the Hanza manner: the idea in a pink block in the middle, four pillars in navy blocks,
+    twelve series on square-cornered branches, each with what you see and its format; the three campaigns carry a pink square."""
+    W, H, cx, cy = 1720, 740, 860, 355
+    o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the content plan. In the centre, the idea: No question too quiet. '
+         'Four pillars branch from it, and each pillar branches into its series: '
+         + esc('; '.join(f'{p}: ' + ', '.join(f'{n} ({w})' for n, w, _, _ in s) for p, _, _, s in MAP)) + '">']
+    spots = [(500, 150), (1220, 150), (500, 560), (1220, 560)]
+    for (name, what, side, series), (px, py) in zip(MAP, spots):
+        left = px < cx
+        sx = cx + (-140 if left else 140)
+        sy = cy + (-46 if py < cy else 46)
+        ex = px + (120 if left else -120)
+        kx = (sx + ex) / 2
+        o.append(f'<path class="ln" style="stroke-width:1.4" d="M{sx} {sy} H{kx:.0f} V{py} H{ex}"/>')
+        ox = px - 120 if left else px + 120
+        dx = ox - 50 if left else ox + 50
+        n = len(series)
+        for k, (sname, see, fmt, hero) in enumerate(series):
+            ly = py + (k - (n - 1) / 2) * 92
+            bx = ox - 24 if left else ox + 24
+            o.append(f'<path class="ln2" d="M{ox} {py} H{bx} V{ly:.0f} H{dx}"/>')
+            z = 12 if hero else 9
+            o.append(f'<rect class="{"fa" if hero else "fi"}" x="{dx - z / 2:.1f}" y="{ly - z / 2:.1f}" width="{z}" height="{z}"'
+                     + ('' if hero else ' style="opacity:.32"') + '/>')
+            tx, anchor = (dx - 18, 'end') if left else (dx + 18, 'start')
+            o.append(_t(tx, f'{ly + 8:.0f}', sname.upper(), 23, 'tx-d', anchor=anchor))
+            o.append(_t(tx, f'{ly + 31:.0f}', see, 18, anchor=anchor, fill=MUTE))
+            o.append(_t(tx, f'{ly - 15:.0f}', fmt.upper(), 14, 'tx-m', anchor=anchor, fill=MUTE))
+    for (name, what, side, series), (px, py) in zip(MAP, spots):
+        o.append(f'<rect class="fi" x="{px - 120}" y="{py - 38}" width="240" height="76"/>')
+        o.append(_t(px, py + 4, name.upper(), 23, 'tx-d', anchor='middle', fill='var(--paper)'))
+        o.append(_t(px, py + 26, what.upper(), 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
+    o.append(f'<rect class="fa" x="{cx - 140}" y="{cy - 92}" width="280" height="184"/>')
+    o.append(_t(cx - 116, cy - 60, 'THE IDEA', 14, 'tx-m'))
+    o.append(_t(cx - 116, cy + 26, 'NO QUESTION', 31, 'tx-d', ls=-.02))
+    o.append(_t(cx - 116, cy + 62, 'TOO QUIET.', 31, 'tx-d', ls=-.02))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+HANDLES = [  # account, voice, what it posts, how it runs
+    ('ARMC IVF', 'Warm', 'The series in Malayalam, for Kerala', 'Its own handle, Kerala and the Gulf'),
+    ('YouTube', 'Patient', 'Answers people search for', '470+ videos, two long answers a month'),
+    ('Facebook', 'Familiar', 'Reach beyond the metros', 'Hindi first, regional edits next'),
+    ('LinkedIn', 'Expert', 'The science and the people', 'Specialists, research, careers'),
+    ('WhatsApp', 'Kind', 'Cards made to forward', 'A weekly channel, and Fertility Circle'),
+    ('Every centre', 'Local', 'Each series in the city’s language', '50+ centres, one voice book'),
+]
+
+
+def handles_map():
+    """The accounts as a hub in the Hanza manner: the main feed in a navy block, each account in a white card with a pink rule,
+    joined by square-cornered lines."""
+    W, H, cx, cy = 1720, 700, 860, 350
+    o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Map of the accounts. The main feed, @birlafertility, sits in the middle. '
+         'Around it: ' + esc('; '.join(f'{n}, {v}: {w}, {h}' for n, v, w, h in HANDLES)) + '">']
+    spots = [(250, 94), (860, 94), (1470, 94), (250, 606), (860, 606), (1470, 606)]
+    for (x, y) in spots:
+        top = y < cy
+        y0 = cy - 50 if top else cy + 50
+        y1 = y + 70 if top else y - 70
+        my = (y0 + y1) / 2
+        o.append(f'<path class="ln2" d="M{cx} {y0} V{my:.0f} H{x} V{y1}"/>')
+    o.append(_t(cx + 14, 278, 'ONE VOICE BOOK FOR EVERY ACCOUNT', 14, 'tx-m', fill=MUTE))
+    o.append(_t(cx + 14, 440, 'EACH CITY GETS ITS OWN LANGUAGE', 14, 'tx-m', fill=MUTE))
+    for (name, voice, what, how), (x, y) in zip(HANDLES, spots):
+        o.append(f'<rect class="fw" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
+                 f'<rect class="ln2" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
+                 f'<rect class="fa" x="{x - 200}" y="{y - 70}" width="400" height="3"/>')
+        o.append(_t(x - 176, y - 30, name.upper(), 21, 'tx-d'))
+        o.append(_t(x + 176, y - 30, voice.upper(), 14, 'tx-m', anchor='end', fill=MUTE))
+        o.append(f'<line class="ln2" x1="{x - 176}" y1="{y - 12}" x2="{x + 176}" y2="{y - 12}"/>')
+        o.append(_t(x - 176, y + 20, what, 18))
+        o.append(_t(x - 176, y + 46, how, 16, fill=MUTE))
+    o.append(f'<rect class="fi" x="{cx - 180}" y="{cy - 50}" width="360" height="100"/>')
+    o.append(_t(cx, cy + 4, '@BIRLAFERTILITY', 25, 'tx-d', anchor='middle', fill='var(--paper)'))
+    o.append(_t(cx, cy + 30, 'THE MAIN FEED', 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
     o.append('</svg>')
     return ''.join(o)

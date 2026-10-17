@@ -11,7 +11,7 @@ for f in (HERE / 'web').iterdir():
 t = (HERE / 'dist' / 'index.html').read_text()
 title = 'Birla Fertility & IVF × Mask360'
 desc = ('Mask360’s social media proposal to Birla Fertility &amp; IVF: No question too quiet. The content as a mind map, '
-        'the grid, a sample week and three campaigns.')
+        'the grid, a month on the feed and three campaigns.')
 img = (base + '/og.jpg') if base else 'og.jpg'
 head = f'''<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="favicon.png" type="image/png">
