@@ -2,7 +2,7 @@
 
 Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels), in reply to the LinkedIn call for social media agencies.
 
-**The deck:** [The Park Hotels × Mask360](https://claude.ai/artifact/7iHP59dK2NgHFLfiwzWX4e), 30 slides with 20 reference clips. It is private until shared from the page's Share menu.
+**The deck:** [The Park Hotels × Mask360](https://claude.ai/artifact/7iHP59dK2NgHFLfiwzWX4e), 31 slides with 20 reference clips. It is private until shared from the page's Share menu.
 
 **The idea in one line:** The Park is named after a street. *Park Street, everywhere*: each THE Park hotel becomes the Park Street of its city, told through a magazine of its nights.
 
@@ -12,6 +12,15 @@ Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels
 - one orange accent (#FF6044) for squares, rules and button ends;
 - Hanza's cards, buttons, accordion rows and case-study rows;
 - dark grain sections between the white ones.
+
+**The motion** follows Hanza's own settings, read from its scripts and a recording of the site (`fetch_refs.py motion`, kept in `ref/hanza-motion/`):
+- Lenis-style smooth scrolling at the measured rate, and one flick of the wheel or trackpad glides exactly one slide on Lenis's 1.2 s curve;
+- headings rise line by line (20 px, 0.8 s, 50 ms a line), blocks fade up in order, the column guides draw down, orange rules sweep in, progress squares light one by one, numbers count up and the mind maps draw their lines;
+- as a page leaves, its cloth drifts, grows and fades; as a page arrives, its card columns trail and meet;
+- labels roll up on hover, posters zoom, the clip player fades in, and the cover shows Kolkata time.
+Reduced motion, print and phones keep a still, fully visible deck.
+
+**The copy** borrows Hanza's logic within Mask360's rules: a promise in the reader's terms on the cover, two-beat headings, ledes that read as a journey, a "Sells" line on each idea page, a Quick answers page for the six questions the brand team will ask, and a low-risk "Ready to start? What you get" ask on next steps.
 
 Procedural cloth (`fabric.js`) and line drawings stand in for photography. The Park's corporate mark (`deck/park.svg`, from theparkhotels.com) sits in every running head and on the cover. Both fonts are open-licence (SIL OFL, notes in `deck/fonts/`).
 
@@ -25,7 +34,7 @@ The sandbox cannot reach framer.website or Google Drive, so the `park-refs` work
 
 ## The slides
 
-A social media pitch in 30 slides. The content plan is drawn as two mind maps, and four pages of reference clips show how it should look.
+A social media pitch in 31 slides. The content plan is drawn as two mind maps, and four pages of reference clips show how it should look.
 
 1. **Cover, our promise, your brief.** The promise: THE Park's feed becomes the city's night out (found, saved, booked). The brief answers the five things the post asked for, each with its pages.
 2. **01 · The Park today (pages 4 to 8).**
@@ -38,7 +47,7 @@ A social media pitch in 30 slides. The content plan is drawn as two mind maps, a
    - **The references (pages 11 to 14):** the 20 clips from the shared folder, five a page and grouped by what they teach: name the series, film the craft up close, put the people first, make the room the story. Each card names the brand only where the clip shows it, says what is on screen, what we take from it and which of our series it feeds.
    - Eight posts a week, by pillar; the grid on Saturday 12 December, drawn as a phone; the voice, as three sample captions.
    - Three series pages with concept drawings: The Sessions (and its Reel, second by second), Room 1967 and Flurys 100.
-4. **03 · How it runs (pages 22 to 28).** December on the feed, day by day; the handle map (the group feed and the six brands); the people who make the feed; what we measure; Mask360; next steps ("Put us in the room.").
+4. **03 · How it runs (pages 22 to 29).** December on the feed, day by day; the handle map (the group feed and the six brands); the people who make the feed; what we measure; Mask360; quick answers to the six questions the brand team will ask; next steps ("Put us in the room.", with a "Ready to start?" ask).
 5. **The close and the sources.**
 
 Mask360's rule for cold pitches applies: show the read, take one position, show how it extends into a system, and end on an open door. So there is no pricing and no team grid.
@@ -108,7 +117,7 @@ This follows Kaavish's BD flow: a LinkedIn DM in proper case, then a cold email 
 
 **LinkedIn DM**
 
-> Anmol, The Park took its name from Park Street, Calcutta's night out. We built our reply around that: Park Street, everywhere. Someplace Else filmed in one take every month, one suite a year remade by a young Indian designer, and Flurys at 100. It is 30 pages, with twenty reference clips and the hospitality work behind it: [link]. Thirty minutes with your team would be enough to walk through it.
+> Anmol, The Park took its name from Park Street, Calcutta's night out. We built our reply around that: Park Street, everywhere. Someplace Else filmed in one take every month, one suite a year remade by a young Indian designer, and Flurys at 100. It is 31 pages, with twenty reference clips and the hospitality work behind it: [link]. Thirty minutes with your team would be enough to walk through it.
 >
 > Kaavish Ramchandani, Mask360
 
@@ -122,7 +131,7 @@ This follows Kaavish's BD flow: a LinkedIn DM in proper case, then a cold email 
 >
 > Our reply to your call for agencies builds on it: each THE Park becomes the Park Street of its city. At 92% occupancy, growth comes from rate, tables and 45 new hotels, so we measure covers and direct bookings.
 >
-> The 30-page point of view: [link]
+> The 31-page point of view: [link]
 >
 > Could we have thirty minutes with the brand team?
 >
