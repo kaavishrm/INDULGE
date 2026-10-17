@@ -19,13 +19,14 @@ def _asset(stem):
 
 LOGO = _asset('client-logo')   # the full lockup: the three circles and the name
 MARK = _asset('client-mark')   # the three circles alone
+LOGO_REV = _asset('client-logo-rev')   # the lockup with its name in white, for navy grounds
 
 
 def wordmark(cls):
     """The running head carries the client's mark beside its name in the deck's thin letterspaced sans, as the Westside deck
-    did with its W; the cover (big-wm) carries the full logo. Both are drawn in ink on paper and white on dark."""
-    if cls == 'big-wm' and LOGO:
-        return f'<span class="{cls}"><img class="clogo" src="{LOGO}" alt="{NAME}"></span>'
+    did with its W; the cover (big-wm) carries the full logo. Both keep the brand's own pink and navy."""
+    if cls == 'big-wm' and (LOGO_REV or LOGO):
+        return f'<span class="{cls}"><img class="clogo" src="{LOGO_REV or LOGO}" alt="{NAME}"></span>'
     mark = '<i class="cmark" aria-hidden="true"></i>' if MARK else ''  # painted once from the stylesheet (build.py)
     return f'<span class="{cls}" aria-label="{NAME}">{mark}<span class="t" aria-hidden="true">{NAME}</span></span>'
 

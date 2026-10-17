@@ -2,7 +2,7 @@
 line or two, the numbers, and a one-line source on each slide; the full sources are on the last page. Facts come from
 pitches/birla-fertility/README.md, which lists every source. The look is Westside v4's, kept as it is."""
 import art
-from kit import slide, stat, ul, table, tile, chapter, wordmark, fab, M_MARK, LOGO, MARK, NAME
+from kit import slide, stat, ul, table, tile, chapter, wordmark, fab, M_MARK, LOGO, LOGO_REV, MARK, NAME
 
 TITLE = 'Birla Fertility & IVF × Mask360'
 DESCRIPTION = ('Mask360’s social media proposal to Birla Fertility &amp; IVF, October 2026: No question too quiet. The content as a '
@@ -56,7 +56,7 @@ def cover():
   {M_MARK}
 </div></div>'''
     return slide('cover', 'Proposal', body, src='For the brand team at Birla Fertility &amp; IVF · Confidential', bare=True, dark=True,
-                 cls='cover scrim', cloth=('midnight', 7))
+                 cls='cover scrim', cloth=('navy', 7))
 
 
 def promise():
@@ -84,7 +84,7 @@ def brief():
 
 
 def ch_today():
-    return chapter('ch-today', '01', 'Your social today', 'Where @birlafertility stands, who else is posting, and the new rules.', ('kohl', 21))
+    return chapter('ch-today', '01', 'Your social today', 'Where @birlafertility stands, who else is posting, and the new rules.', ('navy', 21))
 
 
 def audit():
@@ -176,7 +176,7 @@ def insight():
 
 def ch_idea():
     return chapter('ch-idea', '02', 'No question too quiet.',
-                   'The content: four pillars, twelve series and three campaigns. All heart, all science.', ('rani', 12))
+                   'The content: four pillars, twelve series and three campaigns. All heart, all science.', ('blush', 12))
 
 
 def mapslide():
@@ -214,15 +214,15 @@ def platforms():
 
 
 GRID = [  # format, post, cloth (kind, seed, dark text)
-    ('Reel', 'Is it normal it’s taking this long?', ('midnight', 61, False)),
-    ('Carousel', 'Myth or fact: five things people say about IVF', ('bone', 62, True)),
-    ('Reel', 'Inside the embryology lab', ('slate', 63, False)),
-    ('Carousel', 'Your first visit, step by step', ('ivory', 64, True)),
-    ('Reel', 'Can he get tested too?', ('indigo', 65, False)),
-    ('Sticker drop', 'Ask me about my trip to Goa', ('shaadi', 66, False)),
-    ('Reel', 'What does AMH tell me?', ('kohl', 67, False)),
-    ('Carousel', 'A cycle, explained in six frames', ('sand', 68, True)),
-    ('Live', 'Ask a specialist, Thursday 8 p.m.', ('rani', 69, False)),
+    ('Reel', 'Is it normal it’s taking this long?', ('navy', 61, False)),
+    ('Carousel', 'Myth or fact: five things people say about IVF', ('petal', 62, True)),
+    ('Reel', 'Inside the embryology lab', ('blush', 63, True)),
+    ('Carousel', 'Your first visit, step by step', ('petal', 64, True)),
+    ('Reel', 'Can he get tested too?', ('navy', 65, False)),
+    ('Sticker drop', 'Ask me about my trip to Goa', ('blush', 66, True)),
+    ('Reel', 'What does AMH tell me?', ('navy', 67, False)),
+    ('Carousel', 'A cycle, explained in six frames', ('petal', 68, True)),
+    ('Live', 'Ask a specialist, Thursday 8 p.m.', ('blush', 69, True)),
 ]
 HIGHLIGHTS = ['1 a.m.', 'For him', 'First visit', 'The lab', 'Circle']
 
@@ -252,18 +252,18 @@ def grid():
 
 
 WEEK = [  # date, day, format, the post, time, cloth (kind, seed)
-    ('14', 'Mon', 'Reel', 'The 1 a.m. Questions: “Is it normal that it’s taking this long?”', '10 p.m.', ('midnight', 71)),
-    ('15', 'Tue', 'Carousel', 'Myth or fact: five things people say about IVF.', '1 p.m.', ('kohl', 72)),
-    ('16', 'Wed', 'Stories', 'The counsellor’s hour: a question box, answered that night.', '9 p.m.', ('slate', 73)),
-    ('17', 'Thu', 'Reel', 'Inside the lab: an embryologist’s first hour.', '7 p.m.', ('indigo', 74)),
-    ('18', 'Fri', 'Carousel', 'Your first visit, step by step.', '1 p.m.', ('rani', 75)),
-    ('19', 'Sat', 'Sticker drop', 'The Good News Question, before the wedding weekend.', '11 a.m.', ('shaadi', 76)),
-    ('20', 'Sun', 'Quiet day', 'No new post. Replies only.', 'All day', ('slate', 77)),
+    ('14', 'Mon', 'Reel', 'The 1 a.m. Questions: “Is it normal that it’s taking this long?”', '10 p.m.', ('navy', 71)),
+    ('15', 'Tue', 'Carousel', 'Myth or fact: five things people say about IVF.', '1 p.m.', ('blush', 72)),
+    ('16', 'Wed', 'Stories', 'The counsellor’s hour: a question box, answered that night.', '9 p.m.', ('navy', 73)),
+    ('17', 'Thu', 'Reel', 'Inside the lab: an embryologist’s first hour.', '7 p.m.', ('blush', 74)),
+    ('18', 'Fri', 'Carousel', 'Your first visit, step by step.', '1 p.m.', ('navy', 75)),
+    ('19', 'Sat', 'Sticker drop', 'The Good News Question, before the wedding weekend.', '11 a.m.', ('blush', 76)),
+    ('20', 'Sun', 'Quiet day', 'No new post. Replies only.', 'All day', ('petal', 77)),
 ]
 
 
 def week():
-    cols = ''.join(f'''<div class="m{' quiet' if f == 'Quiet day' else ''}"><div class="sw">{fab(k, sd)}<span class="mn">{d}<small>{day}</small></span></div>
+    cols = ''.join(f'''<div class="m{' quiet' if f == 'Quiet day' else ''}{' lt' if k in ('blush', 'petal') else ''}"><div class="sw">{fab(k, sd)}<span class="mn">{d}<small>{day}</small></span></div>
 <p class="ev"><b>{f}</b>{w}</p><p class="rs">{t}</p></div>''' for d, day, f, w, t, (k, sd) in WEEK)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
@@ -277,9 +277,9 @@ def week():
 
 
 IDEAS = [  # title, line, when, cloth (kind, seed, dark text)
-    ('The 1 a.m. Questions', 'Real questions, answered in daylight by your specialists.', 'Always on', ('midnight', 41, False)),
-    ('Half the Story', 'Men’s fertility, spoken to men directly.', 'Pilot from January', ('indigo', 42, False)),
-    ('The Good News Question', 'A kind way out of the season’s hardest question.', 'Wedding season', ('shaadi', 43, False)),
+    ('The 1 a.m. Questions', 'Real questions, answered in daylight by your specialists.', 'Always on', ('navy', 41, False)),
+    ('Half the Story', 'Men’s fertility, spoken to men directly.', 'Pilot from January', ('blush', 42, True)),
+    ('The Good News Question', 'A kind way out of the season’s hardest question.', 'Wedding season', ('petal', 43, True)),
 ]
 
 
@@ -319,10 +319,10 @@ def asked():
 
 
 QUESTIONS = [  # no, question, format, cloth (kind, seed, dark text)
-    ('Q. 01', 'Is it normal that it’s taking us more than a year?', 'Reel, 45 seconds', ('bone', 51, True)),
-    ('Q. 02', 'Can he get tested too?', 'Reel with a male fertility specialist', ('kohl', 52, False)),
-    ('Q. 03', 'What does my AMH number actually tell me?', 'Carousel, six frames', ('sand', 53, True)),
-    ('Q. 04', 'Is IVF our only option?', 'Instagram Live, monthly', ('midnight', 54, False)),
+    ('Q. 01', 'Is it normal that it’s taking us more than a year?', 'Reel, 45 seconds', ('petal', 51, True)),
+    ('Q. 02', 'Can he get tested too?', 'Reel with a male fertility specialist', ('navy', 52, False)),
+    ('Q. 03', 'What does my AMH number actually tell me?', 'Carousel, six frames', ('blush', 53, True)),
+    ('Q. 04', 'Is IVF our only option?', 'Instagram Live, monthly', ('navy', 54, False)),
 ]
 
 
@@ -377,7 +377,7 @@ def voices():
 
 
 def ch_run():
-    return chapter('ch-run', '03', 'How it runs', 'The code, the care, the first 90 days and what we report.', ('indigo', 23))
+    return chapter('ch-run', '03', 'How it runs', 'The code, the care, the first 90 days and what we report.', ('navy', 23))
 
 
 CODE = [  # title, line
@@ -491,11 +491,11 @@ def next_steps():
 def close():
     body = f'''<div class="grow" style="display:grid;place-items:center">
 <div class="close-mark">
-  {f'<img class="clogo w" src="{LOGO}" alt="{NAME}">' if LOGO else f'<span class="wt" aria-label="{NAME}">{NAME}</span>'}
+  {f'<img class="clogo w" src="{LOGO_REV or LOGO}" alt="{NAME}">' if LOGO else f'<span class="wt" aria-label="{NAME}">{NAME}</span>'}
   <span class="label line">Birla Fertility &amp; IVF × Mask360 · No question too quiet</span>
   {M_MARK}
 </div></div>'''
-    return slide('close', 'Birla Fertility &amp; IVF × Mask360', body, bare=True, dark=True, cloth=('ink', 11))
+    return slide('close', 'Birla Fertility &amp; IVF × Mask360', body, bare=True, dark=True, cloth=('navy', 11))
 
 
 def sources():

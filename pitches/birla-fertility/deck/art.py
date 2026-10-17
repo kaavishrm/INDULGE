@@ -165,15 +165,15 @@ def mindmap():
             mid = (outer + near) / 2
             o.append(f'<path class="ln2" d="M{outer} {py} C{mid} {py} {mid} {ly} {near} {ly}"/>')
             o.append(f'<line class="ln" x1="{x0}" y1="{ly}" x2="{x1}" y2="{ly}"/>')
-            o.append(f'<circle class="fi" cx="{near}" cy="{ly}" r="3.5"/>')
+            o.append(f'<circle class="fpk" cx="{near}" cy="{ly}" r="4.5"/>')
             o.append(_t(x0, ly - 11, title, 17, 'tx-d', ls=.05))
             o.append(_t(x0, ly + 24, fmt, 14, fill='var(--ink-3)'))
         # the pillar, in ink, with its share of the feed
         o.append(f'<rect class="fi" x="{px - pw / 2}" y="{py - ph / 2}" width="{pw}" height="{ph}"/>')
         o.append(_t(px - pw / 2 + 20, py + 7, name, 19, 'tx-d', ls=.12, fill='#fff'))
-        o.append(_t(px + pw / 2 - 18, py + 10, share, 28, 'tx-n', anchor='end', fill='#fff'))
+        o.append(_t(px + pw / 2 - 18, py + 10, share, 28, 'tx-n', anchor='end', fill='var(--pink)'))
     # the platform in the middle
-    o.append(f'<ellipse class="fw" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/><ellipse class="ln" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/>')
+    o.append(f'<ellipse class="fp" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/><ellipse class="ln" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"/>')
     o.append(_t(cx, cy - 30, 'THE PLATFORM', 11, anchor='middle', ls=.22, fill='var(--ink-3)'))
     o.append(_t(cx, cy + 2, 'NO QUESTION', 25, 'tx-d', anchor='middle', ls=.06))
     o.append(_t(cx, cy + 32, 'TOO QUIET', 25, 'tx-d', anchor='middle', ls=.06))

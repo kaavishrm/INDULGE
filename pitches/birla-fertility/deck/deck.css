@@ -1,9 +1,11 @@
-/* Layout: Mask360's proposal look, from the Westside v4 deck. White paper and black ink, thin uppercase Inter Tight for
+/* Layout: Mask360's proposal look, from the Westside v4 deck, in Birla Fertility & IVF's navy and pink. White paper and ink, thin uppercase Inter Tight for
    words, a Didone only for numbers, hairline rules, and procedurally drawn cloth and line drawings as the only imagery.
    Every slide is one 16:9 page that scales as a whole (so what fits once fits everywhere); there is no app chrome. */
 :root{
-  --paper:#ffffff; --ink:#000000; --ink-2:#3d3d3d; --ink-3:#767676; --hair:rgba(0,0,0,.14); --wash:#f4f4f2; --bone:#e7e3da;
-  --night:#000000; --night-ink:#ffffff; --night-2:#b8b8b8; --night-hair:rgba(255,255,255,.22);
+  /* Birla Fertility & IVF's colours, taken from its logo: navy #1E2F7A is the ink, pink #DF94AB the accent */
+  --paper:#ffffff; --ink:#1E2F7A; --ink-2:#44507F; --ink-3:#6B7396; --hair:rgba(30,47,122,.16); --wash:#FBF1F4; --bone:#F6DCE4;
+  --pink:#DF94AB;
+  --night:#1E2F7A; --night-ink:#ffffff; --night-2:#C9CEE6; --night-hair:rgba(255,255,255,.24);
   --sans:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;
   --fig:'PK Figures','Bodoni Moda','Didot','Bodoni 72',Georgia,serif;     /* the Didone for numbers: Bodoni Moda's text cut, whose hairlines hold on screen */
   --num:var(--fig);
@@ -33,7 +35,7 @@ img,svg,video,canvas{max-width:100%;display:block}
 .frame>*{min-width:0}
 .dark{background:var(--night);color:var(--night-ink)}
 .slide>canvas.fab{position:absolute;inset:0;width:100%;height:100%;z-index:0}
-.slide.scrim::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.28) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 50%,rgba(0,0,0,.5) 100%)}
+.slide.scrim::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(22,35,94,.3) 0%,rgba(22,35,94,0) 30%,rgba(22,35,94,0) 50%,rgba(22,35,94,.55) 100%)}
 .panel-bg{background:var(--wash)}
 
 /* ---------- type: thin uppercase words, Didone numbers ---------- */
@@ -119,10 +121,8 @@ em,.it{font-style:normal}
 .close-mark .line{border-bottom:1px solid currentColor;padding-bottom:calc(var(--u)*.3)}
 
 /* the client's own logo (deck/client-logo.*): ink on paper, white on dark, like the Westside mark */
-img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
-.dark img.clogo{filter:brightness(0) invert(1)}
-.wm .cmark{display:block;height:calc(var(--u)*1.5);aspect-ratio:153/88;background:center/contain no-repeat;filter:brightness(0)}
-.dark .wm .cmark{filter:brightness(0) invert(1)}
+img.clogo{display:block;width:auto;max-width:100%}
+.wm .cmark{display:block;height:calc(var(--u)*1.5);aspect-ratio:153/88;background:center/contain no-repeat}
 .big-wm img.clogo{height:calc(var(--u)*8)}
 
 /* ---------- chapter openers: cloth, a big Didone number, the chapter title ---------- */
@@ -133,7 +133,7 @@ img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
 
 /* ---------- statement (the promise) ---------- */
 .q{font-size:calc(var(--u)*4.4);line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;font-weight:300;max-width:18em}
-.q u{text-decoration-thickness:1px;text-underline-offset:.12em}
+.q u{text-decoration-thickness:2px;text-decoration-color:var(--pink);text-underline-offset:.12em}
 .terms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid currentColor}
 .terms>div{padding:calc(var(--u)*1) calc(var(--u)*2) calc(var(--u)*1.2) 0;border-right:1px solid var(--hair)}
 .terms>div+div{padding-left:calc(var(--u)*1.4)}
@@ -161,6 +161,7 @@ img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
 .months .mn{position:absolute;left:calc(var(--u)*.6);bottom:calc(var(--u)*.9);font-family:var(--fig);font-size:calc(var(--u)*2.5);line-height:.9;color:#fff;letter-spacing:-.02em}
 .months .mn small{font-family:var(--sans);font-size:max(12px,calc(var(--u)*.8));letter-spacing:.06em;margin-left:.25em;vertical-align:top}
 .months .m.quiet .mn{color:#fff;opacity:.72}
+.months .m.lt .mn{color:var(--ink);opacity:1}
 .months .ev{margin-top:calc(var(--u)*.7);padding-right:calc(var(--u)*.5);font-size:calc(var(--u)*.98);line-height:1.38;color:var(--ink-2)}
 .months .ev b{display:block;font-weight:400;color:var(--ink);letter-spacing:.03em;text-transform:uppercase;font-size:calc(var(--u)*.9);margin-bottom:calc(var(--u)*.25)}
 .months .rs{margin-top:calc(var(--u)*.5);padding-right:calc(var(--u)*.5);font-size:calc(var(--u)*.98);font-weight:500;line-height:1.3}
@@ -175,12 +176,12 @@ img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
   justify-self:center;align-self:center;display:flex;flex-direction:column;gap:calc(var(--u)*.8)}
 .ig-top{display:flex;align-items:center;gap:calc(var(--u)*1)}
 .ig-av{width:calc(var(--u)*4.2);height:calc(var(--u)*4.2);border-radius:50%;border:1px solid var(--hair);display:grid;place-items:center;flex:none}
-.ig-av .cmark{display:block;width:62%;aspect-ratio:153/88;background:center/contain no-repeat;filter:brightness(0)}
+.ig-av .cmark{display:block;width:62%;aspect-ratio:153/88;background:center/contain no-repeat}
 .ig-h{font-size:calc(var(--u)*1.05);font-weight:500;letter-spacing:.02em}
 .ig-bio{font-size:calc(var(--u)*.86);line-height:1.4;color:var(--ink-2)}
 .ig-hl{display:flex;gap:calc(var(--u)*.9)}
 .ig-hl span{display:grid;justify-items:center;gap:calc(var(--u)*.3);font-size:calc(var(--u)*.8);letter-spacing:.04em;text-transform:uppercase}
-.ig-hl i{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);border-radius:50%;border:1px solid var(--ink)}
+.ig-hl i{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);border-radius:50%;border:2px solid var(--pink)}
 .ig-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
 .ig-grid .tile{aspect-ratio:1/1}
 .ig-grid .tile .ov{padding:calc(var(--u)*.6)}
@@ -191,7 +192,7 @@ img.clogo{display:block;width:auto;max-width:100%;filter:brightness(0)}
 /* ---------- lists ---------- */
 .list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.7)}
 .list li{position:relative;padding-left:calc(var(--u)*1.4)}
-.list li::before{content:"";position:absolute;left:0;top:.72em;width:calc(var(--u)*.6);height:1px;background:currentColor;opacity:.55}
+.list li::before{content:"";position:absolute;left:0;top:.72em;width:calc(var(--u)*.6);height:2px;background:var(--pink)}
 .list.mt-s{margin-top:calc(var(--u)*.9)}
 .big-list li{font-size:calc(var(--u)*1.22);line-height:1.45}
 .big-list{gap:calc(var(--u)*1)}
@@ -272,7 +273,7 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .num.step{font-size:calc(var(--u)*1)}
 .flow>div{position:relative;border-top:1px solid var(--ink);padding-top:calc(var(--u)*1)}
 .flow .dot{display:flex;align-items:center;gap:calc(var(--u)*.5);font-size:calc(var(--u)*.92);letter-spacing:.06em}
-.flow .dot::before{content:"";width:calc(var(--u)*.55);height:calc(var(--u)*.55);border-radius:50%;background:currentColor}
+.flow .dot::before{content:"";width:calc(var(--u)*.55);height:calc(var(--u)*.55);border-radius:50%;background:var(--pink)}
 .flow .h3{font-size:calc(var(--u)*1.9);line-height:1.05;letter-spacing:-.015em;font-weight:300;margin-top:calc(var(--u)*1.4);min-height:2.1em}
 .flow p.ink2{font-size:calc(var(--u)*1.12);line-height:1.5}
 
@@ -294,8 +295,8 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .gantt .ph{grid-column:1;margin:0;padding-top:calc(var(--u)*.5)}
 .gantt i{display:block;height:calc(var(--u)*1);grid-row:span 1}
 .gantt .bar-line{background:var(--bone);box-shadow:inset 0 0 0 1px var(--ink-3)}
-.gantt .bar-plan{background:var(--ink)}
-.gantt .bar-ink{background:var(--ink-3)}
+.gantt .bar-plan{background:var(--pink)}
+.gantt .bar-ink{background:var(--ink)}
 .gantt .note{grid-column:2/-1;margin:0 0 calc(var(--u)*.35)}
 .dates p:not(.label){font-size:calc(var(--u)*1.12)}
 
@@ -313,6 +314,7 @@ svg .ln2{fill:none;stroke:var(--ink-3);stroke-width:1;stroke-linecap:round;strok
 svg .lnp{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 svg .fp{fill:var(--bone);stroke:none}
 svg .fi{fill:var(--ink);stroke:none}
+svg .fpk{fill:var(--pink);stroke:none}
 svg .fw{fill:var(--paper);stroke:none}
 svg .fpanel{fill:var(--paper);stroke:none}
 svg text{font-family:var(--sans);fill:var(--ink)}
