@@ -4,6 +4,8 @@ Prepared 17 October 2026, in reply to Akanksha Rana's (Brand & Marketing Manager
 
 **The proposal:** a 29-slide HTML page in Mask360's house style (the Westside v4 kit, as used for The Park Hotels): `dist/birla-fertility-proposal.html` is the claude.ai artifact, `dist/index.html` the standalone page for a website or for printing to PDF.
 
+**The live site:** `.github/workflows/deploy-birla.yml` builds the page with `web.py` (adds a no-index rule, the icon and the link-preview image from `web/`) and deploys it to EdgeOne Pages as `mask360birla`. Without the `EDGEONE_API_TOKEN` secret, a commit message with `[deploy]` or a run started by hand makes an anonymous deployment that must be claimed within an hour from the link in the run summary.
+
 **The client's logo:** `deck/client-logo.png` (the full lockup, on the cover and the close) and `deck/client-mark.png` (the three circles, beside the typeset name in every running head) are cut from the logo file supplied on 17 October 2026. Both keep the brand's own pink and navy; on navy slides the lockup's name turns white (`deck/client-logo-rev.png`). The whole page uses the brand colours: navy #1E2F7A as the ink and pink #DF94AB as the accent.
 
 **The idea in one line:** *No question too quiet.* Birla Fertility & IVF becomes the place India asks first, with every answer given with "All Heart. All Science.", the brand's own line.
