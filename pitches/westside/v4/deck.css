@@ -5,14 +5,13 @@
   --paper:#ffffff; --ink:#000000; --ink-2:#3d3d3d; --ink-3:#767676; --hair:rgba(0,0,0,.14); --wash:#f4f4f2; --bone:#e7e3da;
   --night:#000000; --night-ink:#ffffff; --night-2:#b8b8b8; --night-hair:rgba(255,255,255,.22);
   --sans:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;
-  --num:'WS Numerals','Bodoni Moda','Didot','Bodoni 72',Georgia,serif;    /* 96pt cut, for the biggest numbers only */
-  --fig:'WS Figures','Bodoni Moda','Didot','Bodoni 72',Georgia,serif;     /* text cut: hairlines that hold at smaller sizes */
+  --fig:'WS Figures','Bodoni Moda','Didot','Bodoni 72',Georgia,serif;     /* the Didone for numbers: Bodoni Moda's text cut, whose hairlines hold on screen */
+  --num:var(--fig);
   color-scheme:light;
 }
 @font-face{font-family:'Inter Tight';src:url({{FONT:intertight-300}}) format('woff2');font-weight:300;font-display:swap}
 @font-face{font-family:'Inter Tight';src:url({{FONT:intertight-400}}) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'Inter Tight';src:url({{FONT:intertight-500}}) format('woff2');font-weight:500;font-display:swap}
-@font-face{font-family:'WS Numerals';src:url({{FONT:bodoni-num}}) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'WS Figures';src:url({{FONT:bm-400}}) format('woff2');font-weight:400;font-display:swap}
 
 *{box-sizing:border-box}
@@ -137,7 +136,7 @@ em,.it{font-style:normal}
 /* a board of numbers: ruled boxes, the number centred in each, the label under the box */
 .board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:2px;row-gap:calc(var(--u)*1.6)}
 .board .stat{display:flex;flex-direction:column}
-.board .stat .num{font-family:var(--num);white-space:nowrap;display:grid;place-items:center;border:1px solid var(--hair);height:calc(var(--u)*9.4);font-size:calc(var(--u)*5.6)}
+.board .stat .num{font-family:var(--fig);white-space:nowrap;display:grid;place-items:center;border:1px solid var(--hair);height:calc(var(--u)*9.4);font-size:calc(var(--u)*5.6)}
 .board .stat .k{margin-top:calc(var(--u)*.7)}
 
 /* ---------- twelve months: a strip of cloth swatches, one per month, all on one page ---------- */
@@ -145,12 +144,17 @@ em,.it{font-style:normal}
 .months .m{min-width:0;display:flex;flex-direction:column}
 .months .sw{position:relative;height:calc(var(--u)*7.2);background:var(--wash);overflow:hidden}
 .months .sw canvas{position:absolute;inset:0;width:100%;height:100%}
-.months .mn{position:absolute;left:calc(var(--u)*.6);bottom:calc(var(--u)*.45);font-family:var(--num);font-size:calc(var(--u)*2.5);line-height:.9;color:#fff;letter-spacing:-.02em}
-.months .mn small{font-family:var(--sans);font-size:calc(var(--u)*.72);letter-spacing:.06em;margin-left:.25em;vertical-align:top}
-.months .m.quiet .mn{color:var(--ink-3)}
+.months .mn{position:absolute;left:calc(var(--u)*.6);bottom:calc(var(--u)*.9);font-family:var(--fig);font-size:calc(var(--u)*2.5);line-height:.9;color:#fff;letter-spacing:-.02em}
+.months .mn small{font-family:var(--sans);font-size:max(12px,calc(var(--u)*.8));letter-spacing:.06em;margin-left:.25em;vertical-align:top}
+.months .m.quiet .mn{color:#fff;opacity:.72}
 .months .ev{margin-top:calc(var(--u)*.7);padding-right:calc(var(--u)*.5);font-size:calc(var(--u)*.98);line-height:1.38;color:var(--ink-2)}
 .months .ev b{display:block;font-weight:400;color:var(--ink);letter-spacing:.03em;text-transform:uppercase;font-size:calc(var(--u)*.9);margin-bottom:calc(var(--u)*.25)}
 .months .rs{margin-top:calc(var(--u)*.5);padding-right:calc(var(--u)*.5);font-size:calc(var(--u)*.98);font-weight:500;line-height:1.3}
+
+.stories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*1) 2px}
+.stories .tile{height:calc(var(--u)*6.4)}
+.stories .tile .ov .no{font-size:calc(var(--u)*1.8)}
+.stories .tile .ov .t{font-size:calc(var(--u)*1.25)}
 
 /* ---------- lists ---------- */
 .list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:calc(var(--u)*.7)}
@@ -218,12 +222,12 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .flow>div{position:relative;border-top:1px solid var(--ink);padding-top:calc(var(--u)*1)}
 .flow .dot{display:flex;align-items:center;gap:calc(var(--u)*.5);font-size:calc(var(--u)*.92);letter-spacing:.06em}
 .flow .dot::before{content:"";width:calc(var(--u)*.55);height:calc(var(--u)*.55);border-radius:50%;background:currentColor}
-.flow .h3{font-size:calc(var(--u)*1.9);line-height:1.05;letter-spacing:-.015em;font-weight:300;margin-top:calc(var(--u)*1.4)}
+.flow .h3{font-size:calc(var(--u)*1.9);line-height:1.05;letter-spacing:-.015em;font-weight:300;margin-top:calc(var(--u)*1.4);min-height:2.1em}
 .flow p.ink2{font-size:calc(var(--u)*1.12);line-height:1.5}
 
 /* ---------- bars: target against baseline ---------- */
 .bars{display:flex;flex-direction:column;gap:calc(var(--u)*1.1)}
-.bar{display:grid;grid-template-columns:calc(var(--u)*8.5) 1fr calc(var(--u)*4.4);align-items:center;gap:calc(var(--u)*1.1)}
+.bar{display:grid;grid-template-columns:calc(var(--u)*8.5) 1fr calc(var(--u)*5.2);align-items:center;gap:calc(var(--u)*1.1)}
 .bar .t{height:calc(var(--u)*2);background:var(--wash);position:relative}
 .bar .t i{position:absolute;inset:0 auto 0 0;background:var(--ink-3)}
 .bar.us .t i{background:var(--ink)}
@@ -238,7 +242,7 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .gantt .wk{text-align:center;color:var(--ink-3);border-bottom:1px solid var(--ink);padding-bottom:calc(var(--u)*.4)}
 .gantt .ph{grid-column:1;margin:0;padding-top:calc(var(--u)*.5)}
 .gantt i{display:block;height:calc(var(--u)*1);grid-row:span 1}
-.gantt .bar-line{background:var(--bone)}
+.gantt .bar-line{background:var(--bone);box-shadow:inset 0 0 0 1px var(--ink-3)}
 .gantt .bar-plan{background:var(--ink)}
 .gantt .bar-ink{background:var(--ink-3)}
 .gantt .note{grid-column:2/-1;margin:0 0 calc(var(--u)*.35)}
@@ -274,7 +278,7 @@ svg .tx-d{font-family:var(--sans);font-weight:300;font-style:normal!important;te
 .vbox .vplay span{width:calc(var(--u)*3);height:calc(var(--u)*3);border-radius:50%;border:1px solid rgba(255,255,255,.85);background:rgba(0,0,0,.35);display:grid;place-items:center}
 .vbox .vplay svg{width:34%;height:34%;fill:currentColor;margin-left:8%}
 .vbox .vplay:hover span{background:rgba(0,0,0,.6)}
-.vcard .cap{font-size:calc(var(--u)*.92);line-height:1.3;letter-spacing:.04em;text-transform:uppercase}
+.vcard .cap{font-size:calc(var(--u)*.92);line-height:1.3;letter-spacing:.04em;text-transform:uppercase;padding-right:calc(var(--u)*.9)}
 .vcard .cap b{font-weight:400}
 .vempty{position:absolute;inset:0;display:grid;place-items:center;color:var(--night-2);font-size:calc(var(--u)*.9);text-align:center;padding:calc(var(--u)*2)}
 /* the clip, opened large over the deck (outside the slide, so sized in px) */
@@ -307,7 +311,8 @@ html.lb-open{overflow:hidden}
   .stat .num{font-size:44px}
   .idea .imp{font-size:42px}
   .idea .tile{height:180px}
-  .pic{min-height:300px}
+  .pic{min-height:300px;padding:56px 10px 48px}
+  .stories{grid-template-columns:repeat(2,minmax(0,1fr))} .stories .tile{height:110px} .stories .tile .ov .no{font-size:26px} .stories .tile .ov .t{font-size:15px}
   .art{height:auto}.art svg{height:auto;max-height:70vh}
   .spec{grid-template-columns:minmax(0,1fr)}
   .spec>div:nth-child(even){padding-left:0;border-left:0}
@@ -324,7 +329,7 @@ html.lb-open{overflow:hidden}
   .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
   .gantt{grid-template-columns:90px repeat(17,minmax(0,1fr));column-gap:1px}
   .gantt .wk{font-size:10.5px;letter-spacing:0} .gantt .wk:nth-child(odd){color:transparent}
-  .flow .h3{font-size:24px} .flow p.ink2{font-size:15.5px}
+  .flow .h3{font-size:24px;min-height:0} .flow p.ink2{font-size:15.5px}
   .tbl.stackable thead{display:none}
   .tbl.stackable tr{display:block;padding:12px 0;border-bottom:1px solid var(--hair)}
   .tbl.stackable td{display:block;border:0;padding:2px 0;text-align:left;white-space:normal}

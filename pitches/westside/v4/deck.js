@@ -10,10 +10,10 @@
   const go = i => slides[Math.max(0, Math.min(total - 1, i))].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 
   addEventListener('keydown', e => {
-    if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } return; }
+    if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } else if (e.key === 'PageDown' || e.key === 'PageUp') e.preventDefault(); return; }
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
-    if (t.closest && t.closest('video, input, textarea, select, button, [contenteditable]')) return;
+    if (t.closest && (t.closest('video, input, textarea, select, [contenteditable]') || (e.key === ' ' && t.closest('button')))) return;
     const k = e.key;
     if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'PageDown' || (k === ' ' && !e.shiftKey)) { e.preventDefault(); go(cur + 1); }
     else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'PageUp' || (k === ' ' && e.shiftKey)) { e.preventDefault(); go(cur - 1); }
@@ -68,6 +68,8 @@
     });
   });
   vids.forEach(v => v.addEventListener('webkitendfullscreen', close));
+  // the browser's seek bar keeps Esc to itself; hand focus back to the clip after a seek or a volume change
+  vids.forEach(v => ['seeked', 'volumechange'].forEach(t => v.addEventListener(t, () => { if (open) v.focus({ preventScroll: true }); })));
 
   // cloth: each canvas is painted (fabric.js) when it comes near the screen, and again when its size changes
   const fabs = [...document.querySelectorAll('canvas[data-fab]')];

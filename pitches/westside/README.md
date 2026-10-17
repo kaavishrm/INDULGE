@@ -20,7 +20,7 @@ A 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. It keeps t
    - **Window Stories:** Rahul and Anjali getting ready for dinner, then a different story in every store. 4.7 mn.
 5. **The numbers.** Each line is units × average, with low, plan and high. The baseline is YNG's 6 mn views in January to March 2026 (Trent Q4 FY26 deck), plus a commitment to beat Westside's best comparable campaign by at least 20%. Organic lines count views (10.6 mn) and paid lines count impressions (4.4 mn).
 6. **Measurement, the test, the timeline, Mask360, next steps and a closing page.**
-7. **Appendix:** two slides of the team's 24 reference clips. Press play and the clip opens large over the deck, with the browser's own controls (sound, volume, full screen).
+7. **Appendix:** two slides of the team's reference clips (23 of the 24; the Target × Parke food truck is left out, see below). Press play and the clip opens large over the deck, with the browser's own controls (sound, volume, full screen).
 
 ## Sources
 
@@ -68,4 +68,4 @@ The deck loads nothing until someone presses play.
 - **Coffee cart.** About 300 cups a day and the build cost are planning figures. Confirm them with a coffee partner. The partner operates under its own FSSAI licence, and every site needs mall or landlord consent.
 - **Client list.** AJIO Luxe was removed from the Mask360 slide because it belongs to Reliance Retail, a Westside competitor. Confirm the nine years, the five office cities and each brand name (with permission to name it) before sending.
 - **Commercial terms.** Slide 17 now reads: if it works, Westside pays our fee plus production and media within the cap; if it doesn't, no fee, and Mask360 carries production and media within the cap.
-- **Reference clips.** Several clips show another retailer's logo in the footage (posters were picked to avoid it). They are the team's references; replace them if the deck goes beyond the room.
+- **Reference clips.** Eight of the remaining clips show Target's logo or a Target store in the footage (18-19-48, 18-20-15, 18-20-10, 18-20-19, 18-20-04, 18-20-13, 18-42-50-2, 18-42-51-1). Posters were picked to avoid the logo, and 18-20-10 plays only from 0:04 to 0:35, between its opening and closing bullseye. The Target × Parke food truck (18-20-03) was removed: every frame is branded, and a branded truck with a menu right after our coffee cart invites the reading that the idea came from Target. Restore it by adding its `_v(...)` line back in `v4/data.py`.

@@ -78,8 +78,8 @@ def tile(kind, seed, no, title, dark_text=False, cls=''):
             f'<div class="ov"><span class="no">{no}</span><span class="t">{title}</span></div></div>')
 
 
-def video_card(v, caption, meta=''):
-    """v: manifest item or None (placeholder)."""
+def video_card(v, caption, meta='', span=''):
+    """v: manifest item or None (placeholder); span like '#t=4,35' plays only that part of the clip."""
     if not v:
         return (f'<figure class="vcard" style="margin:0"><div class="vbox"><div class="vempty">Video to come</div></div>'
                 f'<figcaption class="cap">{caption}</figcaption></figure>')
@@ -87,8 +87,8 @@ def video_card(v, caption, meta=''):
     slug = v['slug']
     return (f'<figure class="vcard" style="margin:0"><div class="vbox" style="--ar:{ar};--poster:url(media/{slug}.webp)">'
             f'<video preload="none" playsinline poster="media/{slug}.webp" aria-label="{esc(v.get("title", slug))}">'
-            f'<source src="media/{slug}.av1.mp4" type=\'video/mp4; codecs="av01.0.12M.08"\'>'
-            f'<source src="media/{slug}.mp4" type="video/mp4"></video>'
+            f'<source src="media/{slug}.av1.mp4{span}" type=\'video/mp4; codecs="av01.0.12M.08"\'>'
+            f'<source src="media/{slug}.mp4{span}" type="video/mp4"></video>'
             f'<button class="vplay" type="button" aria-label="Play: {esc(v.get("title", slug))}"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span></button>'
             f'</div><figcaption class="cap">{caption}</figcaption>'
             + (f'<div class="meta">{meta}</div>' if meta else '') + '</figure>')

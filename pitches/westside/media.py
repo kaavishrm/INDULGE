@@ -12,7 +12,8 @@ import json, pathlib, re, subprocess, sys
 VIDEO = {'.mp4', '.mov', '.m4v', '.webm', '.mkv', '.avi'}
 # poster frame times that avoid a logo under the play button or a large warm frame
 POSTER_AT = {'whatsapp-video-2026-10-16-at-18-20-10': 4.0, 'whatsapp-video-2026-10-16-at-18-42-51-2': 12.0,
-             'whatsapp-video-2026-10-16-at-18-20-25': 7.0, 'whatsapp-video-2026-10-16-at-18-42-50-2': 6.0}
+             'whatsapp-video-2026-10-16-at-18-20-25': 7.0, 'whatsapp-video-2026-10-16-at-18-42-50-2': 6.0,
+             'whatsapp-video-2026-10-16-at-18-19-48': 5.0, 'whatsapp-video-2026-10-16-at-18-42-51-1': 6.0}
 SRC, OUT = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'review').mkdir(exist_ok=True)

@@ -12,15 +12,15 @@ F = {'stores': '311', 'stores_added': '50', 'cities': '97', 'members': '19 mn+',
 
 # (month, event html, result html, quiet?) — research note 03 and the Trent documents above
 LAST12 = [
-    ('Nov ’25', '<b>Wedding season</b> A men’s wedding style guide on westside.com, featuring Kala by E.T.A.', 'An edit page; we found no campaign', True),
+    ('Nov ’25', '<b>Wedding season</b> A men’s wedding style guide on westside.com, featuring Kala by E.T.A.', '', True),
     ('Dec ’25', '<b>Glitz &amp; Glam</b> A party capsule with the I-pop group W.i.S.H.', 'In store and online', False),
     ('Jan ’26', 'We found no Republic Day or end-of-season sale campaign.', '', True),
     ('Feb ’26', '<b>Wesness Fun Run</b> Mumbai, 8 February, with a W.i.S.H. live set.', '3,600+ participants', False),
-    ('Mar ’26', '<b>YNG</b> Trent’s Q4 deck reports on the creator community, January to March.', '4,000 members, 6&nbsp;mn views', False),
-    ('Apr ’26', '<b>Run2Quiz, Run2Zumba</b> Wesness runs that start at stores in Bengaluru and Mumbai.', '₹499 entry; no results found', False),
+    ('Mar ’26', '<b>YNG</b> Westside’s creator community, January to March.', '4,000 members, 6&nbsp;mn views', False),
+    ('Apr ’26', '<b>Run2Quiz, Run2Zumba</b> Wesness runs that start at stores in Bengaluru and Mumbai.', '₹499 entry', False),
     ('May ’26', '<b>Wesness Fun Run</b> Bengaluru, plus Run2Rave, pickleball and heritage runs in four cities.', '3,300+ participants', False),
     ('Jun ’26', '<b>AGM</b> Trent plans about 50 new Westside stores a year.', '', True),
-    ('Jul ’26', '<b>Run2Stepup</b> Mumbai, 19 July, the last Wesness event we found.', '', False),
+    ('Jul ’26', '<b>Run2Stepup</b> A Wesness run in Mumbai, 19 July.', '', False),
     ('Aug ’26', 'We found no Independence Day or back-to-college work.', '', True),
     ('Sep ’26', '<b>9 Days 9 Colours</b> The Navratri edit on westside.com, live ahead of Navratri on 11 October.', '311 stores at quarter end', False),
     ('Oct ’26', '<b>FRONT ROW</b> A fashion and culture platform: 80 looks, 150 culture-shapers, 30 New Faces.', 'Three national Dance Off challenges to come', False),
@@ -28,7 +28,7 @@ LAST12 = [
 
 POSITIONING = {
     'year_title': 'A year measured in turnout and views.',
-    'year_line': 'Westside ran Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com, while the chain grew by 50 stores.',
+    'year_line': 'Westside held Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com, as the chain added 50 stores.',
     'year_stats': [('6&nbsp;mn', 'views from YNG, Westside’s 4,000-member creator community, January to March 2026', 'Trent Q4 FY26 investor presentation'),
                    ('3,600+', 'people at the biggest Wesness run, Mumbai, February 2026', 'Trent Q4 FY26 investor presentation'),
                    ('Footfall', 'not yet reported for any campaign; this test adds it', 'our review of Trent filings, decks and press, to 16 Oct 2026')],
@@ -59,7 +59,7 @@ COMPETITORS = [
      'win': 'Almost every piece is Westside’s own, so each weekly look is stocked in a named store. A multi&#8209;brand floor cannot promise that.'},
     {'name': 'Max Fashion', 'stores': 'Landmark Group',
      'did': '“How New Is Your New?” films with Siddhant Chaturvedi, Kalki Koechlin and Alaya F, selling weekly newness (Aug to Sep 2025).',
-     'win': 'Show this week’s new looks on Westside’s pages, styled in its own stores.'},
+     'win': 'Max sold newness with star films. Westside shows the new looks themselves, styled and stocked in a named store.'},
     {'name': 'Pantaloons', 'stores': 'ABFRL',
      'did': 'First-ever ambassador, Samantha Ruth Prabhu, with the festive “Spark Your Imagination” campaign (Oct 2025).',
      'win': 'Westside stylists and local creators instead of one star, each tied to a named store.'},
@@ -80,8 +80,8 @@ COMPETITORS = [
 # The biggest content figure Westside has published in the last twelve months: YNG, Trent Q4 FY26 investor presentation.
 BASELINE = {
     'label': 'YNG views, Jan to Mar 2026', 'value': '6&nbsp;mn', 'pct_base': 40, 'pct_plan': 100,
-    'plan_line': ('Westside’s biggest published content figure in the last year is 6&nbsp;mn YNG views, in January to March 2026. '
-                  'The test also aims for at least 20% more views and impressions than Westside’s best comparable campaign of the last year.'),
+    'plan_line': ('Westside’s biggest published content figure of the last year is 6&nbsp;mn YNG views, from January to March 2026. '
+                  'We commit to beat Westside’s best comparable campaign of the last year by at least 20%.'),
     'compare_line': '',  # filled below from the model
     'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the model on the numbers slide.',
 }
@@ -151,11 +151,11 @@ MODEL = {
     'total_label': '15&nbsp;mn',
     'by_idea': _by_idea,
     'table': {'rows': _rows, 'total': ['Total', '', '', '', _mn(_tot[0]), _mn(_tot[1]), _mn(_tot[2])]},
-    'src': ('Inputs: clip, city and food pages at 35,000 views a post, the midpoint of a Qoruz figure for film meme pages (Social Samosa, 31 Dec 2025: '
+    'src': ('Inputs: clip, city and food pages at 35,000 views a post, inside the 25,000–50,000 a post implied by a Qoruz figure for film meme pages (Social Samosa, 31 Dec 2025: '
             '₹1 lakh of creator spend drives 10–20 posts and 500,000+ organic views); city and food pages use it until we have their own Insights. '
             f'Reels ads at ₹45–140 per 1,000 impressions in India (Upgrowth, 2026), planned at ₹120; the same source puts fashion at ₹140–280, and at ₹140 the '
             f'boosts give {_label(PAID * 120 / 140)} and the plan {_label(_tot[1] - PAID + PAID * 120 / 140)}. Westside and creator averages are planning figures, '
-            'replaced with real averages in week two. Low = 60% of organic, high = 150%; paid is fixed. Totals are summed before rounding.'),
+            'replaced with real averages in week two. Low = 60% of post views, high = 150%; boosts are fixed. Totals are summed before rounding.'),
     'styling': {
         'label': _label(_by_idea['Styled by Westside'][1]), 'note': _range('Styled by Westside'),
         'ends': 'Each look has a code. Show it at the store and the team brings the outfit in your size.',
@@ -166,7 +166,7 @@ MODEL = {
                  ['Creators', 'YNG members first, then fashion and lifestyle creators with 50,000 to 500,000 followers', '40', '3 to 4 a week', 'One styled look each, posted on their page'],
                  ['Clip and city pages', 'Paid posts on pages people already follow; Westside approves the list', '55', '4 to 5 a week', 'Reach beyond Westside’s followers'],
                  ['Westside’s pages', 'Instagram and YouTube Shorts', '36', '3 a week', 'Every look in one place'],
-                 ['Store features', 'Each look tagged to a named store in the test city and its rail', '48', '4 a week', 'A code to show at the counter']],
+                 ['Store visits', 'Two per shoot day; each look tagged to its rail', '48', '4 a week', 'A code to show at the counter']],
         'src': 'Plan figures are Mask360’s proposal for the twelve-week test. Impressions from the model on the numbers slide.',
     },
     'cart': {
@@ -185,7 +185,7 @@ MODEL = {
     },
     'windows': {
         'label': _label(_by_idea['Window Stories'][1]), 'note': _range('Window Stories'),
-        'ends': 'Each window shows two complete outfits, priced on a card and stocked inside.',
+        'ends': 'Each window card shows the prices and a look code to ask for in store.',
         'people': '6', 'people_note': 'a VM lead, two set stylists, a story writer, a rollout coordinator and a pages manager, working with Westside’s VM team',
         'grid_n': 311,
         'stories': [('Rahul and Anjali', 'Getting ready for a date'), ('The first invite', 'Dressing for a cousin’s mehendi'),
@@ -193,7 +193,7 @@ MODEL = {
                     ('New Year’s Eve', 'The party at home'), ('Ten years on', 'The college reunion')],
         'rows': [['Stories written and designed', '12 a quarter', 'A library each store picks from'],
                  ['Window changes', 'Every four weeks', 'A new story to stop for'],
-                 ['Stores in the test', 'Every Westside in the test city', 'Then every store, in waves'],
+                 ['Stores in the test', 'Every Westside in the test city', 'Then the rest, after a go'],
                  ['Reels from the windows, in total', '60', 'Filmed by store teams and local creators']],
         'src': 'Rollout is a planning figure to confirm with Westside’s VM team. Impressions from the model on the numbers slide.',
     },
@@ -201,10 +201,10 @@ MODEL = {
 
 # lines computed from the model, so the copy always matches the table
 _organic = _tot[1] - PAID
-BASELINE['compare_line'] = (f'Our organic lines count views, as YNG’s 6&nbsp;mn does ({_label(_organic)} of the {MODEL["total_label"]}); the paid lines '
+BASELINE['compare_line'] = (f'Posts count views, as YNG’s 6&nbsp;mn does ({_label(_organic)} of the {MODEL["total_label"]}); the Reels boosts '
                             f'count impressions ({_label(PAID)}). In week one we swap in Westside’s best comparable campaign of the last twelve months '
-                            'and commit to beat its views or impressions, whichever Westside reported, by at least 20%. If organic views are behind '
-                            'plan by week six, we move budget into paid Reels.')
+                            'and commit to beat its views or impressions, whichever Westside reported, by at least 20%. If post views are behind '
+                            'plan by week six, we move budget into the Reels boosts.')
 _by_line, _c = {}, ''
 for idea, ch, ut, u, at, a, paid in LINES:
     _c = idea or _c
@@ -220,8 +220,8 @@ _items = {v['slug']: v for v in json.loads(MANIFEST.read_text())} if MANIFEST.ex
 
 # Reference clips from the team's Drive folder (WhatsApp exports, 576x1024), captioned by format only.
 # 18-42-50-1 repeats 18-20-19 and is left out.
-def _v(key, caption):
-    return {'item': _items.get('whatsapp-video-2026-10-16-at-' + key), 'caption': caption}
+def _v(key, caption, span=''):
+    return {'item': _items.get('whatsapp-video-2026-10-16-at-' + key), 'caption': caption, 'span': span}
 
 
 REF_GROUPS = [
@@ -242,14 +242,13 @@ REF_GROUPS = [
     ('Store moments and craft', [
         _v('18-20-13', '<b>Fit, captioned on screen</b>'),
         _v('18-20-15', '<b>One studio, quick cuts</b>'),
-        _v('18-20-10', '<b>A rail of jackets, outdoors</b>'),
+        _v('18-20-10', '<b>A rail of jackets, outdoors</b>', '#t=4,35'),
         _v('18-20-19', '<b>One denim jacket</b>'),
         _v('18-20-25', '<b>One bag, told as a story</b>'),
         _v('18-42-50-2', '<b>Straight from the rails</b>'),
         _v('18-42-52', '<b>A creator’s afternoon in store</b>'),
         _v('18-19-48', '<b>A drop launched in store</b>'),
         _v('18-19-55', '<b>A photo booth in store</b>'),
-        _v('18-20-03', '<b>A pop-up truck</b>'),
         _v('18-42-51-2', '<b>From dress form to look</b>'),
         _v('18-42-51-3', '<b>A look built on the form</b>'),
     ]),
