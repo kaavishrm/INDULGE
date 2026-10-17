@@ -23,10 +23,10 @@ MONTH_CLOTH = [('shaadi', 11, False), ('rani', 12, False), ('bone', 13, True), (
 IDEA_CLOTH = {'styling': ('chikankari', 31, True), 'cart': ('kohl', 32, False), 'windows': ('slate', 33, False)}
 
 # the cart renders the team made (media/out/cart-*.webp): file, name, one line, crop focus
-CARTS = [('cart-ape.webp', 'Three-wheeler', 'Sage and cream, open on one side', '58% 50%'),
-         ('cart-van.webp', 'Vintage van', 'Two hatches and a pastry counter', '22% 50%'),
-         ('cart-awning.webp', 'Cream cart', 'Scalloped awning, brass wheel', '62% 50%'),
-         ('cart-kiosk.webp', 'Green kiosk', 'Towable, fits a mall forecourt', '50% 60%')]
+CARTS = [('cart-ape.webp', 'Three-wheeler', 'Sage and cream, open on one side', '0% 50%'),
+         ('cart-van.webp', 'Vintage van', 'Two hatches and a pastry counter', '30% 50%'),
+         ('cart-awning.webp', 'Cream cart', 'Scalloped awning, brass wheel', '100% 50%'),
+         ('cart-kiosk.webp', 'Green kiosk', 'Towable, fits a mall forecourt', '50% 50%')]
 
 # full sources, shown on the last appendix page; each slide carries a short version
 SOURCES = [
@@ -82,13 +82,13 @@ def today():
 <h2 class="h1">Westside is growing by opening stores.</h2>
 <div class="board grow" style="align-content:center;align-self:stretch">
   {stat(s['stores'], 'stores, 30&nbsp;Sep&nbsp;2026', f"+{s['stores_added']} in a year")}
-  {stat(s['cities'], 'cities')}
+  {stat(s['cities'], 'cities', 'Jun 2026')}
   {stat(s['members'], 'WestStyleClub members', 'Sep 2025')}
   {stat(s['online'], 'of Westside revenue online', 'the rest is in stores')}
   {stat(s['growth'], 'Trent revenue, Jul–Sep 2026')}
   {stat('400–500', 'new designs a week')}
 </div></div>'''
-    return slide('today', 'Westside today', body, src='Sources: Trent filings and business updates, 2025–26. Full list at the end.')
+    return slide('today', 'Westside today', body, src='Sources: Trent filings and press reports, 2025–26. Full list at the end.')
 
 
 def last12():
@@ -99,7 +99,7 @@ def last12():
 <div class="row c3">
   <div class="rule">{stat('6&nbsp;mn', 'YNG views, Jan–Mar 2026')}</div>
   <div class="rule">{stat('3,600+', 'at the biggest Wesness run')}</div>
-  <div class="rule">{stat('Footfall', 'not yet measured. This test adds it.')}</div>
+  <div class="rule">{stat('Footfall', 'not yet reported. This test adds it.')}</div>
 </div></div>'''
     return slide('last12', 'Westside today · the last twelve months', body, src='Sources: Trent decks and press releases, trade press, westside.com. Full list at the end.')
 
@@ -120,10 +120,10 @@ RIVALS = [  # condensed from data.COMPETITORS (the long rows are in research not
     ('Shoppers Stop', '115 dept. stores', 'Wedding, travel and HYBE campaigns', 'Own labels, so every look is stocked in a named store'),
     ('Max Fashion', 'Landmark Group', 'Star films selling weekly newness', 'Real looks, styled and stocked in a named store'),
     ('Pantaloons', 'ABFRL', 'A first star ambassador', 'Local stylists and creators, each tied to a store'),
-    ('Trends', 'Reliance Retail', 'Spend ₹1,499, enter a holiday contest', 'No discounts or contests. A look, a coffee, a story'),
-    ('H&amp;M', '71 stores', 'HYBE pop-ups in six cities', 'Runs on Westside’s calendar and ends in its stores'),
-    ('Uniqlo', 'Uniqlo India', 'New stores, a star fleece campaign', '311 stores, a local launch for each'),
-    ('Myntra', 'online only', 'Creator School, paid festive posts', 'Every creator post counted at a till'),
+    ('Trends', 'Reliance Retail', 'Spend ₹1,499, enter a holiday contest', 'No discounts or contests. People come for the looks'),
+    ('H&amp;M', '71 stores, Apr 2026', 'HYBE pop-ups in six cities', 'Runs on Westside’s calendar and ends in its stores'),
+    ('Uniqlo', 'Uniqlo India', 'New stores, a star fleece campaign', 'Every new store gets a local launch'),
+    ('Myntra', 'online only', 'Creator School, triple festive earnings', 'Every creator post counted at billing'),
 ]
 
 
@@ -139,13 +139,13 @@ def competition():
 def plan():
     ideas = [('No. 01', 'Styled by Westside', 'Stylists and creators build looks in store, every week.', MODEL['styling'], IDEA_CLOTH['styling']),
              ('No. 02', 'The Westside Coffee Cart', 'Drinks named after Westside labels, a look code on every cup.', MODEL['cart'], IDEA_CLOTH['cart']),
-             ('No. 03', 'Window Stories', 'Two mannequins, one story, every piece sold inside.', MODEL['windows'], IDEA_CLOTH['windows'])]
+             ('No. 03', 'Window Stories', 'Two mannequins in a story, every piece sold inside.', MODEL['windows'], IDEA_CLOTH['windows'])]
     cols = ''.join(f'''<div class="idea">{tile(c[0], c[1], n, t, dark_text=c[2])}<p>{d}</p>
 <div class="imp">{m['label']}<small>impressions</small></div></div>''' for n, t, d, m, c in ideas)
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
   <h2 class="h1">{MODEL['total_label']} impressions in twelve weeks, in one city.</h2>
-  <p class="ink2 lede-s">At least 20% more than Westside’s best comparable campaign of the last year.</p>
+  <p class="ink2 lede-s">We commit to beat Westside’s best comparable campaign by at least 20%.</p>
 </div>
 <div class="row c3 grow vc">{cols}</div>
 </div>'''
@@ -164,7 +164,7 @@ def styling():
   <div class="spec">{f}</div>
 </div>
 </div>'''
-    return slide('styling', 'Idea 1 of 3', body, src='Designs: Bloomberg via Retail Insight Network, 20 Jul 2026. Full list at the end.')
+    return slide('styling', 'Idea 1 of 3', body, src='Featured looks use lines with stock depth. Full list at the end.')
 
 
 def styling_plan():
@@ -262,7 +262,7 @@ def windows_scale():
 
 def look_path():
     steps = [('Made in store', 'From one store’s rails.'), ('Posted that week', 'Westside, creators, city pages.'), ('Tagged with a code', 'On every post, cup and window.'),
-             ('Shown at the store', 'The team brings it in your size.'), ('Logged at billing', 'Store totals, never personal data.')]
+             ('Shown at the store', 'The team brings it in your size.'), ('Logged at billing', 'We see store totals only.')]
     cells = ''.join(f'<div><span class="dot label">{i + 1:02d}</span><p class="h3">{a}</p><p class="ink2 mt-s">{b}</p></div>' for i, (a, b) in enumerate(steps))
     body = f'''<div class="stack-l grow">
 <h2 class="h1">How every idea reaches the billing counter.</h2>
@@ -294,7 +294,7 @@ def numbers():
     body = f'''<div class="stack-l grow">
 <div class="row c-7-5 top">
   <h2 class="h1">How we get to {MODEL['total_label']}.</h2>
-  <p class="ink2 lede-s">Range {lo / 1e6:.1f} to {hi / 1e6:.1f}&nbsp;mn. The full model is in the appendix.</p>
+  <p class="ink2 lede-s">Range {lo / 1e6:.1f} to {hi / 1e6:.1f}&nbsp;mn.</p>
 </div>
 <div class="row c-7-5 grow vc">
   {table(['Idea', 'What runs', 'mn'], rows, cls='tbl roomy stackable', right=(2,), total=['Total', '', f'<b>{base / 1e6:.1f}</b>'])}
@@ -427,7 +427,7 @@ def sources():
 <h2 class="h1">Sources.</h2>
 <div class="srcs">{items}</div>
 </div>'''
-    return slide('sources', 'Appendix · sources', body, src='Primary documents are saved as text in the proposal’s research notes.')
+    return slide('sources', 'Appendix · sources', body, src='Full sources for every slide.')
 
 
 def slides():

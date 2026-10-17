@@ -50,7 +50,7 @@ POSITIONING = {
                    ('Footfall', 'not yet reported for any campaign; this test adds it', 'our review of Trent filings, decks and press, to 16 Oct 2026')],
     'year_src': ('Sources: Trent investor presentations Q4 FY26 (22 Apr 2026) and Q1 FY27 (6 Aug 2026); Trent store updates; Trent Wesness press release, '
                  '10 Feb 2026; 74th AGM, 23 Jun 2026, as reported by CNBC-TV18; Indian Retailer, 3 Oct 2026 (FRONT ROW); westside.com; Wesness listings. '
-                 '“We found no” means not in Trent filings, trade press or event listings; we have not yet reviewed Westside’s Instagram feed.'),
+                 '“No campaign found” means not in Trent filings, trade press or event listings; we have not yet reviewed Westside’s Instagram feed.'),
     'voice_title': 'Westside speaks through YNG, Wesness and FRONT ROW.',
     'voice_lede': 'The everyday voice is warm and inclusive; the events are editorial. We found nothing that links the two, or takes people from a post into a store.',
     'themes': ['<b>New Indian talent.</b> YNG creators, 30 New Faces, FRONT ROW.',
@@ -99,7 +99,7 @@ BASELINE = {
     'plan_line': ('Westside’s biggest published content figure of the last year is 6&nbsp;mn YNG views, from January to March 2026. '
                   'We commit to beat Westside’s best comparable campaign of the last year by at least 20%.'),
     'compare_line': '',  # filled below from the model
-    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the model on the numbers slide.',
+    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the model on the previous page.',
 }
 
 # Inputs. Clip and city pages 25,000-50,000 views a post (Qoruz 2025: Rs 1 lakh buys 10-20 meme-page posts and 500,000+ views);
