@@ -98,7 +98,7 @@ def brief():
     acc = ''.join(f'''<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"><span class="mute">P.</span> {p}</span>
 <p class="a">{a}</p></div>''' for i, (q, a, p) in enumerate(rows))
     body = f'''<div class="g4 grow">
-  <div class="c12 stack-l pr">{lab('Your brief', pg('brief'))}{hh('What you', 'asked for.')}
+  <div class="c12 stack-l pr">{lab('Your brief', pg('brief'))}{hh('What you', 'asked for.', cls='h1 h1-l')}
     <p class="lede-s" style="max-width:24em">Your call for agencies on LinkedIn, <b>answered page by page.</b></p></div>
   <div class="c34 acc mid">{acc}</div>
 </div>'''
@@ -113,16 +113,19 @@ def ch_today():
 
 
 def today():
-    nums = [('92%', 'Occupancy', 'Rooms are full: Q1 FY27.'),
-            ('43%', 'Of revenue', 'From food, drink and nightlife: Q1 FY27.'),
-            ('42', 'Hotels', 'In 32 cities, October 2026.'),
-            ('45', 'New hotels', 'By FY2030, each one opening with nine posts ready.')]
-    cells = ''.join(f'<div><div class="big">{n}</div><p class="lab"><span class="t">{k}</span></p><p class="ink2">{d}</p></div>' for n, k, d in nums)
+    nums = [('92%', 'Occupancy', 'Rooms are full: Q1 FY27.', 92, '92 of 100 rooms sold'),
+            ('43%', 'Of revenue', 'From food, drink and nightlife: Q1 FY27.', 43, '43 of every 100 rupees'),
+            ('42', 'Hotels today', 'In 32 cities, October 2026.', 42 / 87 * 100, '42 of 87 hotels by FY2030'),
+            ('45', 'New hotels', 'By FY2030, each one opening with nine posts ready.', 45 / 87 * 100, '45 of 87 still to open')]
+    cells = ''.join(f'''<div class="card stat-card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{k}</span>{dots(i + 1, 4)}</div>
+<div class="big">{n}</div>
+<div class="track" role="img" aria-label="{a}"><i style="width:{w:.0f}%"></i></div><p class="mono mute">{a}</p>
+<p class="ink2">{d}</p></div>''' for i, (n, k, d, w, a) in enumerate(nums))
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.')}</div>
+  <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">Rooms are full. <b>The feed’s job is the bars, the tables and the new hotels.</b></p>
 </div>
-<div class="g4 nums big-nums mt-auto">{cells}</div>'''
+<div class="g4 mt-auto cardrow">{cells}</div>'''
     return slide('today', 'The Park today · the numbers', body, src='Sources: Q1 FY27 results and investor material, 2026. Full list on the last page.')
 
 
@@ -144,7 +147,7 @@ def channels():
         return f'<b>{c}</b> {tag}'
     rows = [[name(c, h), j, w] for c, h, j, w in CHANNELS]
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Each gets a job.')}</div>
+  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Each gets a job.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">We add two: <b>a Sessions playlist on Spotify and a WhatsApp line that books tables.</b></p>
 </div>
 <div class="mt-auto">{table(['Channel', 'Its job', 'Cadence'], rows, cls='tbl g4t tight stackable')}</div>'''
@@ -157,7 +160,7 @@ def rule():
             ('The city after dark', 'The Night Map', 'Every Saturday')]
     trs = [[f'<span class="f-l" style="font-weight:500">{a}</span>', f'<span class="sq"></span>&ensp;<b>{b}</b>', f'<span class="mono">{c}</span>'] for a, b, c in rows]
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The house rule', pg('rule'))}{hh('We post what', 'only THE Park can.')}</div>
+  <div class="c12 stack-l">{lab('The house rule', pg('rule'))}{hh('We post what', 'only THE Park can.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">“Anything but ordinary” has been the line since 2013. <b>On a feed, it means this.</b></p>
 </div>
 <div class="mt-auto">{table(['What only THE Park can post', 'The series it becomes', 'How often'], rows=trs, cls='tbl half stackable')}</div>'''
@@ -286,7 +289,7 @@ def mix():
 <div class="pic-t">{tile(c[0], c[1], d, str(k), dark_text=c[2], cls='fill')}</div>
 <div class="pc-b"><p class="lab">{n}</p><p class="h3">{f}</p></div></div>''' for n, k, c, f, d in MIX)
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The mix', pg('mix'))}{hh('Eight posts', 'a week.')}</div>
+  <div class="c12 stack-l">{lab('The mix', pg('mix'))}{hh('Eight posts', 'a week.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">Food, drink and nightlife are 43% of revenue, <b>so the night and the table get five of the eight.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{cols}</div>'''
@@ -398,7 +401,7 @@ def reel():
             ('End card', 'The full set on YouTube'), ('Then', 'Message us for a table')]
     sp = ''.join(f'<div><p class="mono mute">{k}</p><p class="h4 mt-s" style="margin-top:calc(var(--u)*.35)">{v}</p></div>' for k, v in spec)
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The Reel', pg('reel'))}{hh('Set 01,', 'second by second.')}</div>
+  <div class="c12 stack-l">{lab('The Reel', pg('reel'))}{hh('Set 01,', 'second by second.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">A thirty-second Reel cut from the one take, <b>made for the first three seconds and the save.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{cells}</div>
@@ -501,7 +504,7 @@ def community():
     c = ''.join(f'''<div class="post-card ppl"><div class="pc-h"><span class="mono"><span class="k">0{i + 1}</span>{a}</span>{dots(i + 1, 4)}</div>
 <div class="art">{art.people(i)}</div><div class="pc-b"><p class="h3">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (a, b) in enumerate(cols))
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The people', pg('community'))}{hh('The people who', 'make the feed.')}</div>
+  <div class="c12 stack-l">{lab('The people', pg('community'))}{hh('The people who', 'make the feed.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">Four groups, <b>each with a job on the feed.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{c}</div>'''
@@ -517,7 +520,7 @@ def measure():
     acc = ''.join(f'<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{a}</p><span class="x"></span><p class="a">{b}</p></div>'
                   for i, (a, b) in enumerate(rows))
     body = f'''<div class="g4 grow">
-  <div class="c12 stack-l pr">{lab('The numbers', pg('measure'))}{hh('Measured in', 'your numbers.')}
+  <div class="c12 stack-l pr">{lab('The numbers', pg('measure'))}{hh('Measured in', 'your numbers.', cls='h1 h1-l')}
     <div class="mt-auto" style="width:calc(50% + var(--u))">{stat('2×', 'Saves', 'Saves per post against your last 30: a draft threshold, set from your data in week 2.', '01', 2)}</div></div>
   <div class="c34 acc mid">{acc}</div>
 </div>'''
