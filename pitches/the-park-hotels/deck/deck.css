@@ -25,6 +25,8 @@ a{color:inherit;text-decoration:none}
 img,svg,video,canvas{max-width:100%;display:block}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.slide:not(.dark):not(.scrim) :focus-visible{outline-color:var(--ink)}  /* orange is under 3:1 on white */
+.tile .ov>.btn:focus-visible{outline-color:#fff;outline-offset:-3px}
 
 /* ---------- slide, frame and the four column guides ---------- */
 .slide{position:relative;min-height:100vh;min-height:100dvh;display:grid;place-items:center;scroll-snap-align:start;overflow:hidden;
@@ -430,10 +432,6 @@ html.lb-open{overflow:hidden}
 .cta .btn i{background:var(--paper)} .cta .btn i svg{stroke:var(--ink)}
 .tbl.g4t td,.tbl.half td{padding-block:calc(var(--u)*.85);font-size:calc(var(--u)*1.1)}
 
-/* the cloth on dark pages sits under a soft blur toward the bottom, as Hanza's hero does */
-.slide.scrim::before{content:"";position:absolute;left:0;right:0;bottom:0;height:36%;z-index:1;pointer-events:none;
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 75%);mask-image:linear-gradient(to bottom,transparent,#000 75%)}
-
 /* ---------- phones and narrow windows: slides become one scrolling document ---------- */
 @media screen and (max-width:760px),screen and (max-aspect-ratio:4/5){
   html{scroll-snap-type:none}
@@ -531,5 +529,4 @@ html.lb-open{overflow:hidden}
   .slide{min-height:0;height:900px;padding:0;break-after:page}
   .frame{width:1600px;height:900px;aspect-ratio:auto}
   .q .w{color:inherit!important}
-  .slide.scrim::before{display:none}
 }

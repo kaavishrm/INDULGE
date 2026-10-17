@@ -91,9 +91,9 @@ def promise():
 def brief():
     rows = [('A social media agency', 'A content map, twenty references, a month on the feed and every handle.',
              f'{pg("mindmap")} · {pg("ref-named")} · {pg("calendar")} · {pg("handles")}'),
-            ('Hospitality and luxury', 'THE Park in its own numbers, and the hotels we work with.', f'{pg("today")} · {pg("mask360")}'),
+            ('Hospitality and luxury', 'THE Park in its own numbers, and the hotels we have worked with.', f'{pg("today")} · {pg("mask360")}'),
             ('Think beyond the obvious', 'We post what only THE Park can.', pg('rule')),
-            ('Have the work to back it up', 'Feeds we run for St. Regis and Moxy, and a lounge that sold 530 tickets at ₹75,000.', pg('mask360')),
+            ('Have the work to back it up', 'Feeds we run for The Penthouse at St. Regis Mumbai and Moxy Mumbai, and a lounge that sold 530 tickets at ₹75,000.', pg('mask360')),
             ('An upcoming pitch', 'This is our point of view, with quick answers. We bring the full plan to the pitch.', f'{pg("faq")} · {pg("next")}')]
     acc = ''.join(f'''<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"><span class="mute">P.</span> {p}</span>
 <p class="a">{a}</p></div>''' for i, (q, a, p) in enumerate(rows))
@@ -106,24 +106,24 @@ def brief():
 
 
 def ch_today():
-    return chapter('ch-today', '01', ('The Park', 'today.'), 'Full rooms, famous bars, six channels <b>and 45 hotels to come.</b>',
+    return chapter('ch-today', '01', ('The Park', 'today.'), '92% full, 43% of revenue from food, drink and nightlife, six channels <b>and 45 hotels to come.</b>',
                    ('midnight', 21),
                    [(pg('today'), 'The numbers', 'today'), (pg('channels'), 'The channels', 'channels'),
                     (pg('rule'), 'The house rule', 'rule'), (pg('insight'), 'The insight', 'insight')])
 
 
 def today():
-    nums = [('92%', 'Occupancy', 'Rooms are full: Q1 FY27.', 92, '92 of 100 rooms sold'),
+    nums = [('92%', 'Occupancy', 'Rooms sold, Q1 FY27.', 92, '92 of 100 rooms sold'),
             ('43%', 'Of revenue', 'From food, drink and nightlife: Q1 FY27.', 43, '43 of every 100 rupees'),
             ('42', 'Hotels today', 'In 32 cities, October 2026.', 42 / 87 * 100, '42 of 87 hotels by FY2030'),
-            ('45', 'New hotels', 'By FY2030, each one opening with nine posts ready.', 45 / 87 * 100, '45 of 87 still to open')]
+            ('45', 'New hotels', 'Under development, for 87 hotels by FY2030.', 45 / 87 * 100, '45 of 87 still to open')]
     cells = ''.join(f'''<div class="card stat-card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{k}</span>{dots(i + 1, 4)}</div>
 <div class="big">{n}</div>
 <div class="track" role="img" aria-label="{a}"><i style="width:{w:.0f}%"></i></div><p class="mono mute">{a}</p>
 <p class="ink2">{d}</p></div>''' for i, (n, k, d, w, a) in enumerate(nums))
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.', cls='h1 h1-l')}</div>
-  <p class="lede-s c4 end">Rooms are full. <b>The feed’s job is the bars, the tables and the new hotels.</b></p>
+  <p class="lede-s c4 end">Nine rooms in ten are sold. <b>The feed’s job is the bars, the tables, direct bookings and the new hotels.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{cells}</div>'''
     return slide('today', 'The Park today · the numbers', body, src='Sources: Q1 FY27 results and investor material, 2026. Full list on the last page.')
@@ -383,7 +383,7 @@ def _posts(drawing, caption):
 def sessions():
     return _idea_page('sessions', 'No. 01', 'After Hours', 'The Sessions',
                       [('Format', 'Reel · YouTube · Spotify'), ('Cadence', 'One set a month'), ('Where', 'Someplace Else, Kolkata'),
-                       ('Sells', 'Saturday tables, and the full set on YouTube')],
+                       ('Sells', 'Saturday tables, booked on WhatsApp')],
                       art.stage(), 'Someplace Else, <b>one take a month.</b>',
                       'A live set filmed at Someplace Else in a single take, with bands playing their own songs. Reels from the set '
                       'run all month and the full set goes on YouTube. Then Agni in Delhi, and each city’s own venue.',
@@ -424,7 +424,7 @@ def room():
 def flurys():
     return _idea_page('flurys', 'No. 03', 'The Table', 'Flurys 100',
                       [('Format', 'Reel · story · carousel'), ('Cadence', 'All of 2027'), ('Where', 'Park Street to Gurugram'),
-                       ('Sells', 'Visits to 111 stores in the centenary year')],
+                       ('Sells', 'Visits to 111 stores, and every new café')],
                       art.cup(), 'A hundred stories <b>for a hundred years.</b>',
                       'Flurys turns 100 in 2027. All year we tell one story at a time: a regular, a recipe, a baker at 4 a.m. '
                       'From the tea room on Park Street to the 24-hour café in Gurugram.',
@@ -433,7 +433,7 @@ def flurys():
 
 
 def ch_run():
-    return chapter('ch-run', '03', ('How it', 'runs.'), 'From the first post to the first readout, <b>week by week.</b>',
+    return chapter('ch-run', '03', ('How it', 'runs.'), 'From December on the feed to the first readout in February, <b>and the people behind it.</b>',
                    ('kohl', 23),
                    [(pg('calendar'), 'A month', 'calendar'), (pg('handles'), 'The handles', 'handles'), (pg('community'), 'The people', 'community'),
                     (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('faq'), 'Quick answers', 'faq'),
@@ -483,7 +483,7 @@ def calendar():
 </div>
 <div class="cal mt-m">{head}{''.join(cells)}</div>
 <p class="cal-note ink2">The weekly series repeat all month.</p>'''
-    return slide('calendar', 'How it runs · a month', body, src='Assumes a start on 16 November 2026. The big nights go on sale a fortnight ahead.')
+    return slide('calendar', 'How it runs · a month', body, src='Assumes a start on 16 November 2026. New Year’s Eve tables open on 1 December, a month ahead.')
 
 
 def _handles_tree():
@@ -494,7 +494,7 @@ def _handles_tree():
 def handles():
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('The handles', pg('handles'))}{hh('Every brand speaks', 'in its own voice.')}</div>
-  <p class="lede-s c4 end">Each hotel films its own version of the series. <b>A new hotel opens with nine posts ready.</b></p>
+  <p class="lede-s c4 end">Each THE Park hotel films its own version of the series. <b>A new hotel opens with nine posts ready.</b></p>
 </div>
 <div class="map mt-s">{art.handles_map()}{_handles_tree()}</div>'''
     return slide('handles', 'How it runs · the handles', body, src='Venue accounts to confirm with the brand team. Voices and roles are Mask360’s proposal.')
@@ -549,13 +549,13 @@ def mask360():
 
 def faq():
     qa = [('When could it start?', 'The plan assumes a start on 16 November 2026, which puts Set 01 on the feed on Saturday 12 December.'),
-          ('Will every hotel post the same thing?', 'Each hotel films its own version of each series, and the best of every city runs on @theparkhotels. '
-           'A new hotel opens with nine posts ready.'),
+          ('Will every hotel post the same thing?', f'No. Each THE Park hotel films its own version of the series, and every other brand speaks in its own '
+           f'voice (P. {pg("handles")}). The best of every city runs on @theparkhotels.'),
           ('What about music rights and drinks rules?', 'Bands play their own songs and sign a release, so the full set can run on YouTube. '
            'No drinks brands appear in frame.'),
           ('How will we know it works?', 'We count saves, WhatsApp chats and tables booked from social, every week. The first readout is in '
            'the week of 22 February 2027, and a series that trails is replaced.'),
-          ('What do you need from us?', 'Thirty minutes with the brand team, a contact at each venue, and a hotel for Room 1967.'),
+          ('What do you need from us?', 'Thirty minutes with the brand team, a contact at each venue, tagged links in the booking engine, and a hotel for Room 1967.'),
           ('What will it cost?', 'We bring a costed plan to the pitch, handle by handle.')]
     acc = ''.join(f'<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"></span><p class="a">{a}</p></div>'
                   for i, (q, a) in enumerate(qa))
@@ -570,7 +570,7 @@ def faq():
 def next_steps():
     steps = ['Shortlist Mask360', 'Thirty minutes with the brand team', 'The pitch: the full plan, handle by handle', 'Set 01 at Someplace Else in December']
     path = ''.join(f'<div><span class="mn">0{i + 1}</span><p class="q">{s}</p></div>' for i, s in enumerate(steps))
-    gets = ['The plan for your hotels, walked through', 'A fit check, both ways', 'Clear next steps to the pitch']
+    gets = ['This proposal, walked through for your hotels', 'A fit check, both ways', 'Clear next steps to the pitch']
     checks = ''.join(f'<li>{g}</li>' for g in gets)
     body = f'''<div class="g4 grow">
   <div class="c12 stack-l pr">{lab('Next steps', pg('next'))}

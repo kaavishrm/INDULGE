@@ -8,12 +8,21 @@
   }, { threshold: 0.55 });
   slides.forEach(s => io.observe(s));
   // the next slide is taken from cur, which go() sets at once, so two quick presses move two slides; focus follows, so Tab starts there
-  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); cur = j; slides[j].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); slides[j].focus({ preventScroll: true }); };
+  // a jump of more than one slide lands at once, so the deck does not fly through every page in between
+  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); const far = Math.abs(j - cur) > 1; cur = j; slides[j].scrollIntoView({ behavior: reduce || far ? 'instant' : 'smooth', block: 'start' }); slides[j].focus({ preventScroll: true }); };
   // phones and portrait windows read the slides as one scrolling document (deck.css), where the browser's own keys scroll
   const doc = matchMedia('(max-width:760px),(max-aspect-ratio:4/5)');
+  // switching between the slide and phone layouts keeps the reader on the page they were reading
+  let topIdx = 0;
+  addEventListener('scroll', () => { const k = slides.findIndex(s => s.getBoundingClientRect().bottom > innerHeight * 0.4); if (k >= 0) topIdx = k; }, { passive: true });
+  doc.addEventListener('change', () => requestAnimationFrame(() => slides[topIdx].scrollIntoView({ block: 'start', behavior: 'instant' })));
 
   addEventListener('keydown', e => {
-    if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } else if (e.key === 'PageDown' || e.key === 'PageUp') e.preventDefault(); return; }
+    if (open) {  // the deck stays put under an open clip; the video keeps its own keys
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+      else if (!(e.target.closest && e.target.closest('video')) && ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) e.preventDefault();
+      return;
+    }
     if (doc.matches || e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
     if (t.closest && (t.closest('video, input, textarea, select, [contenteditable]') || (e.key === ' ' && t.closest('button')))) return;
@@ -30,7 +39,7 @@
   let lb = null, open = null;
   function close() {
     if (!open) return;
-    const { v, box } = open;
+    const { v, box, y } = open;
     open = null;
     v.pause();
     v.controls = false;
@@ -38,6 +47,7 @@
     lb.hidden = true;
     document.documentElement.classList.remove('lb-open');
     document.querySelector('main').inert = false;
+    scrollTo({ top: y, behavior: 'instant' });
     const b = box.querySelector('.vplay');
     if (b) b.focus({ preventScroll: true });
   }
@@ -59,7 +69,7 @@
       if (open) close();
       const box = b.closest('.vbox');
       const v = box.querySelector('video');
-      open = { v, box };
+      open = { v, box, y: scrollY };
       const stage = lb.querySelector('.vl-stage');
       stage.style.setProperty('--ar', box.style.getPropertyValue('--ar') || '9/16');
       stage.appendChild(v);
@@ -103,6 +113,6 @@
 
   if (location.hash) {
     const el = document.getElementById(location.hash.slice(1));
-    if (el) el.scrollIntoView({ block: 'start' });
+    if (el) el.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
 })();
