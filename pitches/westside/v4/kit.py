@@ -38,6 +38,13 @@ def photo(name, alt, pos='50% 50%'):
     return f'<img class="photo" src="media/{name}" alt="{esc(alt)}" loading="lazy" decoding="async" style="object-position:{pos}">'
 
 
+def chapter(sid, no, title, line, cloth):
+    """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line."""
+    body = (f'<div class="chap grow"><span class="cn">{no}</span><h2 class="ct">{title}</h2>'
+            + (f'<p class="cl">{line}</p>' if line else '') + '</div>')
+    return slide(sid, f'{no} · {title}', body, dark=True, cls='chapter scrim', cloth=cloth)
+
+
 def stat(num, label, source='', small=''):
     s = f'<div class="s">{source}</div>' if source else ''
     sm = f'<small>{small}</small>' if small else ''

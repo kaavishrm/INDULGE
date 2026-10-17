@@ -117,6 +117,12 @@ em,.it{font-style:normal}
 .close-mark .m{height:calc(var(--u)*1.8);width:auto;fill:currentColor}
 .close-mark .line{border-bottom:1px solid currentColor;padding-bottom:calc(var(--u)*.3)}
 
+/* ---------- chapter openers: cloth, a big Didone number, the chapter title ---------- */
+.chap{display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*1.2)}
+.chap .cn{font-family:var(--fig);font-size:calc(var(--u)*8);line-height:.85;letter-spacing:-.03em}
+.chap .ct{font-size:calc(var(--u)*5);line-height:.98;letter-spacing:-.03em;text-transform:uppercase;font-weight:300;max-width:13em}
+.chap .cl{font-size:calc(var(--u)*1.4);line-height:1.45;max-width:40em;opacity:.88}
+
 /* ---------- statement (the promise) ---------- */
 .q{font-size:calc(var(--u)*4.4);line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;font-weight:300;max-width:18em}
 .q u{text-decoration-thickness:1px;text-underline-offset:.12em}
@@ -352,6 +358,7 @@ html.lb-open{overflow:hidden}
   .tbl td.r,.tbl th.r{padding-right:8px}
   .m-logo{width:80%}
   .close-mark .w{height:110px}
+  .chapter .frame{min-height:70vh} .chap .cn{font-size:72px} .chap .ct{font-size:40px} .chap .cl{font-size:17px}
 }
 @media print{
   @page{size:1600px 900px;margin:0}
