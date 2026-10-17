@@ -144,7 +144,12 @@ def videos(out):
     out.mkdir(parents=True, exist_ok=True)
     manifest = {'folder': FOLDER, 'files': []}
     try:
-        got = gdown.download_folder(FOLDER, output=str(raw), quiet=False, use_cookies=False, remaining_ok=True)
+        try:
+            got = gdown.download_folder(FOLDER, output=str(raw), quiet=False, use_cookies=False)
+        except Exception:  # fall back to the command line, which some gdown versions handle differently
+            manifest['api_error'] = traceback.format_exc()[-1500:]
+            subprocess.run(['gdown', '--folder', FOLDER, '-O', str(raw)], check=False)
+            got = [p for p in raw.rglob('*') if p.is_file()]
         manifest['downloaded'] = [str(g) for g in (got or [])]
         if not got:
             manifest['error'] = 'gdown returned nothing: the folder may not be shared as anyone with the link'

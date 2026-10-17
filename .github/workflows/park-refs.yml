@@ -30,7 +30,10 @@ jobs:
           command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -yq ffmpeg)
       - name: Capture the Hanza template
         continue-on-error: true
-        run: python3 pitches/the-park-hotels/fetch_refs.py site pitches/the-park-hotels/ref/hanza 2>&1 | tee site.log
+        run: |
+          # captured once already; delete ref/hanza to capture again
+          if [ -f pitches/the-park-hotels/ref/hanza/report.json ]; then cp pitches/the-park-hotels/ref/site.log site.log; exit 0; fi
+          python3 pitches/the-park-hotels/fetch_refs.py site pitches/the-park-hotels/ref/hanza 2>&1 | tee site.log
       - name: Download and encode the videos
         continue-on-error: true
         run: python3 pitches/the-park-hotels/fetch_refs.py videos pitches/the-park-hotels/deck/media 2>&1 | tee videos.log
