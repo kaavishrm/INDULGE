@@ -315,8 +315,7 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
 .vbox video{width:100%;height:100%;object-fit:cover;background:var(--night)}
 .vbox .vplay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;border:0;padding:0;cursor:pointer;overflow:hidden;
   background:var(--night);color:#fff}
-.vbox .pv{position:absolute;inset:0;background:center/cover no-repeat var(--poster);transition:scale 1s cubic-bezier(.22,1,.36,1)}
-.vbox:hover .pv{scale:1.06}
+.vbox .pv{position:absolute;inset:0;background:center/cover no-repeat var(--poster)}
 .vbox .vplay::after{content:"";position:absolute;inset:0;background:var(--grain),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%);background-size:180px,auto;pointer-events:none}
 .vbox .vplay>span:not(.pv){position:relative;z-index:1;display:inline-flex;align-items:stretch;height:calc(var(--u)*2.3);margin:0 0 calc(var(--u)*.8) calc(var(--u)*.8);
   background:var(--ink);font-family:var(--mono);font-size:calc(var(--u)*.72);font-weight:500;text-transform:uppercase;letter-spacing:.02em}
@@ -340,8 +339,7 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
   padding:calc(env(safe-area-inset-top,0px) + 60px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(16px,env(safe-area-inset-left,0px))}
 .vl-stage{--ar:9/16;height:min(calc(100vh - 140px),calc((100vw - 32px) / (var(--ar))));height:min(calc(100dvh - 140px),calc((100vw - 32px) / (var(--ar))));aspect-ratio:var(--ar);max-width:100%}
 .vl-stage video{width:100%;height:100%;object-fit:contain;background:#000}
-.vlight{opacity:0;transition:opacity .32s cubic-bezier(.44,0,.56,1)} .vlight.on{opacity:1}
-.vlight .vl-stage{transform:translateY(18px) scale(.97);transition:transform .6s cubic-bezier(.22,1,.36,1)} .vlight.on .vl-stage{transform:none}
+
 .vl-cap{color:#fff;font:500 12px/1.35 var(--mono);text-transform:uppercase;text-align:center;max-width:680px}
 .vl-cap::before{content:"";display:inline-block;width:7px;height:7px;background:var(--accent);margin-right:9px;vertical-align:1px}
 .vl-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:stretch;height:34px;
@@ -440,49 +438,9 @@ html.lb-open{overflow:hidden}
 .cta .btn i{background:var(--paper)} .cta .btn i svg{stroke:var(--ink)}
 .tbl.g4t td,.tbl.half td{padding-block:calc(var(--u)*.85);font-size:calc(var(--u)*1.1)}
 
-/* ---------- motion: deck.js adds html.motion (unless reduced motion is asked for) and html.smooth (with a mouse) ----------
-   Curves and timings follow Hanza: appear on cubic-bezier(.44,0,.56,1); headings rise 20 px over 0.8 s, line by line;
-   labels roll up to a copy of themselves on hover; the cloth on dark pages sits under a soft blur toward the bottom. */
-html.smooth{scroll-snap-type:none;scroll-behavior:auto}
-.roll{display:inline-grid;overflow:hidden;vertical-align:top}
-.roll>span{grid-area:1/1;transition:transform .55s cubic-bezier(.65,0,.35,1)}
-.roll>span+span{transform:translateY(110%)}
-:is(a,button):hover .roll>span:first-child{transform:translateY(-110%)}
-:is(a,button):hover .roll>span+span{transform:none}
-.btn i svg{transition:transform .45s cubic-bezier(.65,0,.35,1)} .btn:hover i svg{transform:translateX(18%)}
+/* the cloth on dark pages sits under a soft blur toward the bottom, as Hanza's hero does */
 .slide.scrim::before{content:"";position:absolute;left:0;right:0;bottom:0;height:36%;z-index:1;pointer-events:none;
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 75%);mask-image:linear-gradient(to bottom,transparent,#000 75%)}
-html.motion .rv{opacity:.001;transform:translateY(24px);transition:opacity .7s cubic-bezier(.44,0,.56,1) var(--d,0ms),transform .9s cubic-bezier(.22,1,.36,1) var(--d,0ms)}
-html.motion :is(.in .rv,.rv.in-el){opacity:1;transform:none}
-html.motion .rh .wi{display:inline-block;opacity:.001;transform:translateY(20px);
-  transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1);transition-delay:calc(var(--d,0ms) + 200ms + var(--l,0) * 50ms)}
-html.motion :is(.in .rh,.rh.in-el) .wi{opacity:1;transform:none}
-html.motion .frame::before{transform:scaleY(0);transform-origin:top;transition:transform 1.5s cubic-bezier(.65,0,.35,1)}
-html.motion :is(.in,.in-doc) .frame::before{transform:none}
-html.motion :is(.card:not(.plain),.post){border-top-color:transparent}
-html.motion :is(.card:not(.plain),.post)::before{content:"";position:absolute;left:0;right:0;top:-2px;height:2px;background:var(--accent);
-  transform:scaleX(0);transform-origin:left;transition:transform 1.1s cubic-bezier(.22,1,.36,1) calc(var(--d,0ms) + 150ms)}
-html.motion :is(.in :is(.card,.post),:is(.card,.post).in-el,.in-el :is(.card,.post))::before{transform:none}
-html.motion .track i{transform:scaleX(0);transform-origin:left;transition:transform 1.4s cubic-bezier(.22,1,.36,1) calc(var(--d,0ms) + 350ms)}
-html.motion :is(.in,.in-el) .track i{transform:none}
-html.motion .dots i.on{background:var(--hair);transition:background-color .35s cubic-bezier(.44,0,.56,1)}
-html.motion .dark .dots i.on{background:var(--night-hair)}
-html.motion :is(.in,.in-el) .dots i.on{background:var(--accent);transition-delay:calc(var(--d,0ms) + 500ms + var(--n,0) * 150ms)}
-html.motion .slide>canvas.fab{transform:scale(1.06);transition:transform 2s cubic-bezier(.22,1,.36,1)}
-html.motion .slide.in>canvas.fab,html.motion .slide.in-doc>canvas.fab{transform:none}
-html.motion .tile>canvas{transform:scale(1.12);transition:transform 1.6s cubic-bezier(.22,1,.36,1) var(--d,0ms),scale .9s cubic-bezier(.22,1,.36,1)}
-html.motion :is(.in,.in-el) .tile>canvas{transform:none}
-.post-card:hover .tile>canvas{scale:1.05}
-.post-card .pic-t,.tile{overflow:hidden}
-.map svg.drawn :is(text,rect,circle){animation:mapin .6s cubic-bezier(.44,0,.56,1) both;animation-delay:inherit}
-@keyframes mapin{from{opacity:0}to{opacity:1}}
-/* scroll-linked: the leaving page's cloth drifts, grows and fades; the arriving page's columns trail and meet */
-html.motion.smooth .slide>canvas.fab{translate:0 calc(var(--pl,0) * 30vh);scale:calc(1 + var(--pl,0) * .2)}
-html.motion.smooth .slide.scrim>canvas.fab{opacity:calc(1 - var(--pl,0) * .5)}
-html.motion.smooth :is(.cardrow,.refs,.stagger)>*{translate:0 calc(var(--pa,0) * var(--k,0) * 1vh)}
-html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(2){--k:8} html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(3){--k:16}
-html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(5){--k:32}
-@media (prefers-reduced-motion:reduce){.roll>span,.btn i svg,.vbox .pv,.post-card .tile>canvas{transition:none}}
 
 /* ---------- phones and narrow windows: slides become one scrolling document ---------- */
 @media screen and (max-width:760px),screen and (max-aspect-ratio:4/5){
@@ -581,8 +539,6 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
   .slide{min-height:0;height:900px;padding:0;break-after:page}
   .frame{width:1600px;height:900px;aspect-ratio:auto}
   .q .w{color:inherit!important}
-  html.motion .rv,html.motion .rh .wi,html.motion .frame::before,html.motion .track i,html.motion .slide>canvas.fab,html.motion .tile>canvas{opacity:1!important;transform:none!important;translate:none!important;scale:none!important}
-  html.motion :is(.card,.post)::before{transform:none!important}
   .slide.scrim::before{display:none}
 }
 </style>
@@ -593,13 +549,13 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
 <section class="slide dark cover scrim" id="cover" tabindex="-1" aria-label="Proposal"><canvas class="fab" data-fab="slate" data-seed="7" aria-hidden="true"></canvas><div class="frame"><div class="body"><div class="top"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="mono clock"><b data-clock>Kolkata</b> <span class="k">Park Street time</span></p><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg></div>
 <div class="g4 grow" style="grid-template-rows:1fr auto auto;row-gap:calc(var(--u)*1.5)">
   <p class="lede-s c3 end pr" style="grid-row:2">A social media proposal from Mask360: <b>turn THE Park’s nights into a feed the city saves.</b></p>
-  <ul class="svc c4 end" style="grid-row:2"><li><span class="mn">/04</span><a href="#ch-today"><span class="roll"><span>The Park today</span><span aria-hidden="true">The Park today</span></span></a></li><li><span class="mn">/09</span><a href="#ch-idea"><span class="roll"><span>Park Street, everywhere</span><span aria-hidden="true">Park Street, everywhere</span></span></a></li><li><span class="mn">/11</span><a href="#ref-named"><span class="roll"><span>The references</span><span aria-hidden="true">The references</span></span></a></li><li><span class="mn">/22</span><a href="#ch-run"><span class="roll"><span>How it runs</span><span aria-hidden="true">How it runs</span></span></a></li></ul>
+  <ul class="svc c4 end" style="grid-row:2"><li><span class="mn">/04</span><a href="#ch-today">The Park today</a></li><li><span class="mn">/09</span><a href="#ch-idea">Park Street, everywhere</a></li><li><span class="mn">/11</span><a href="#ref-named">The references</a></li><li><span class="mn">/22</span><a href="#ch-run">How it runs</a></li></ul>
   <p class="who c12 end" style="grid-row:3">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
   <h1 class="h-display cover-h c34" style="grid-row:3"><span class="g">Park Street,</span> everywhere.</h1>
 </div></div><div class="folio"><span class="src"></span><span class="pg"><span class="k">Page</span>01/31</span></div></div></section>
 <section class="slide" id="promise" tabindex="-1" aria-label="Proposal · our promise"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="mono" style="grid-column:3"><span class="k">October</span>2026</p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4 grow" style="grid-template-rows:auto 1fr auto">
   <div class="c1 tile m-hide" style="grid-row:1/4;align-self:stretch;margin-right:calc(var(--u)*2)"><canvas class="fab" data-fab="kohl" data-seed="41" aria-hidden="true"></canvas>
-    <div class="ov"><span class="no">The promise</span><a class="btn" href="#mindmap"><span><span class="roll"><span>See the map</span><span aria-hidden="true">See the map</span></span> <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div></div>
+    <div class="ov"><span class="no">The promise</span><a class="btn" href="#mindmap"><span>See the map <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div></div>
   <p class="lab c3"><span class=mn>02</span><span>Our promise</span></p>
   <h2 class="q c34" style="grid-row:2;align-self:center"><span class="w">We</span> <span class="w">will</span> <span class="w">make</span> <span class="w">THE</span> <span class="w">Park’s</span> <span class="w">feed</span> <span class="w">the</span> <span class="w">city’s</span> <span class="w or">night</span> <span class="w or">out.</span></h2>
   <div class="c24 g4 g3 stagger" style="grid-row:3"><div class="card"><div class="card-h"><span class="mono"><span class="k">01</span></span><span class="dots" aria-hidden="true"><i class=on style="--n:0"></i><i style="--n:1"></i><i style="--n:2"></i></span></div>
@@ -621,10 +577,10 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
   <p class="lab c1" style="grid-row:1"><span class="mn">01</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>The Park today.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>05 to 08</p>
-  <div class="inset"><a class="btn" href="#today"><span><span class="roll"><span>Begin</span><span aria-hidden="true">Begin</span></span> <em>/05</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#today"><span>Begin <em>/05</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">The Park</span> today.</h2></div>
   <p class="cl lede-s">Full rooms, famous bars, six channels <b>and 45 hotels to come.</b></p>
-  <ul class="pages"><li><span class="mn">/05</span><a href="#today"><span class="roll"><span>The numbers</span><span aria-hidden="true">The numbers</span></span></a></li><li><span class="mn">/06</span><a href="#channels"><span class="roll"><span>The channels</span><span aria-hidden="true">The channels</span></span></a></li><li><span class="mn">/07</span><a href="#rule"><span class="roll"><span>The house rule</span><span aria-hidden="true">The house rule</span></span></a></li><li><span class="mn">/08</span><a href="#insight"><span class="roll"><span>The insight</span><span aria-hidden="true">The insight</span></span></a></li></ul>
+  <ul class="pages"><li><span class="mn">/05</span><a href="#today">The numbers</a></li><li><span class="mn">/06</span><a href="#channels">The channels</a></li><li><span class="mn">/07</span><a href="#rule">The house rule</a></li><li><span class="mn">/08</span><a href="#insight">The insight</a></li></ul>
 </div></div><div class="folio"><span class="src"></span><span class="pg"><span class="k">Page</span>04/31</span></div></div></section>
 <section class="slide" id="today" tabindex="-1" aria-label="The Park today · the numbers"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">01</span><span>The Park today</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4">
   <div class="c12 stack-l"><p class="lab"><span class=mn>05</span><span>The numbers</span></p><h2 class="h1 h1-l"><span class="g">At 92% full,</span> the feed sells the nights.</h2></div>
@@ -663,10 +619,10 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
   <p class="lab c1" style="grid-row:1"><span class="mn">02</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>Park Street, everywhere.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>10 to 21</p>
-  <div class="inset"><a class="btn" href="#mindmap"><span><span class="roll"><span>Begin</span><span aria-hidden="true">Begin</span></span> <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#mindmap"><span>Begin <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">Park Street,</span> everywhere.</h2></div>
   <p class="cl lede-s">Each THE Park hotel becomes the Park Street of its city, <b>told through a magazine of its nights.</b></p>
-  <ul class="pages"><li><span class="mn">/10</span><a href="#mindmap"><span class="roll"><span>The content map</span><span aria-hidden="true">The content map</span></span></a></li><li><span class="mn">/11</span><a href="#ref-named"><span class="roll"><span>The references</span><span aria-hidden="true">The references</span></span></a></li><li><span class="mn">/15</span><a href="#mix"><span class="roll"><span>The mix</span><span aria-hidden="true">The mix</span></span></a></li><li><span class="mn">/16</span><a href="#feed"><span class="roll"><span>The grid</span><span aria-hidden="true">The grid</span></span></a></li><li><span class="mn">/17</span><a href="#voice"><span class="roll"><span>The voice</span><span aria-hidden="true">The voice</span></span></a></li><li><span class="mn">/18</span><a href="#sessions"><span class="roll"><span>The Sessions</span><span aria-hidden="true">The Sessions</span></span></a></li><li><span class="mn">/19</span><a href="#reel"><span class="roll"><span>The Reel</span><span aria-hidden="true">The Reel</span></span></a></li><li><span class="mn">/20</span><a href="#room"><span class="roll"><span>Room 1967</span><span aria-hidden="true">Room 1967</span></span></a></li><li><span class="mn">/21</span><a href="#flurys"><span class="roll"><span>Flurys 100</span><span aria-hidden="true">Flurys 100</span></span></a></li></ul>
+  <ul class="pages"><li><span class="mn">/10</span><a href="#mindmap">The content map</a></li><li><span class="mn">/11</span><a href="#ref-named">The references</a></li><li><span class="mn">/15</span><a href="#mix">The mix</a></li><li><span class="mn">/16</span><a href="#feed">The grid</a></li><li><span class="mn">/17</span><a href="#voice">The voice</a></li><li><span class="mn">/18</span><a href="#sessions">The Sessions</a></li><li><span class="mn">/19</span><a href="#reel">The Reel</a></li><li><span class="mn">/20</span><a href="#room">Room 1967</a></li><li><span class="mn">/21</span><a href="#flurys">Flurys 100</a></li></ul>
 </div></div><div class="folio"><span class="src"></span><span class="pg"><span class="k">Page</span>09/31</span></div></div></section>
 <section class="slide" id="mindmap" tabindex="-1" aria-label="The idea · the content map"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">02</span><span>Park Street, everywhere</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4">
   <div class="c12 stack-l"><p class="lab"><span class=mn>10</span><span>The content map</span></p><h2 class="h1"><span class="g">The content</span> map.</h2></div>
@@ -678,28 +634,28 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
     <p class="lede-s">The Savoy, Raffles and The Roseate name each format <b>and put the name on screen.</b></p>
     <p class="ink2 f-s rule">The Sessions, Room 1967 and Flurys 100 run the same way.</p>
     <div class="mt-auto stack"><span class="dots" aria-hidden="true"><i class=on style="--n:0"></i><i style="--n:1"></i><i style="--n:2"></i><i style="--n:3"></i></span><p class="mono mute">Press play for sound</p></div></div>
-  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>01</span><span class="mono">The Savoy</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/savoy-breakfast.jpg)"><video preload="none" playsinline poster="media/savoy-breakfast.jpg" aria-label="Ref 01, The Savoy. Breakfast at the Savoy: the trolley, the butler, the London Eye."><source src="media/savoy-breakfast.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 01, The Savoy. Breakfast at the Savoy: the trolley, the butler, the London Eye."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:25</span></div><figcaption class="vb"><p class="lab">The Table · Flurys 100</p><p class="cap">Breakfast at the Savoy: the trolley, the butler, the London Eye.</p><p class="take">A title card and a ritual. Flurys 100 opens like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>02</span><span class="mono">Amankila</span></div><div class="vbox" style="--ar:464/832;--poster:url(media/amankila-hotel-diaries.jpg)"><video preload="none" playsinline poster="media/amankila-hotel-diaries.jpg" aria-label="Ref 02, Amankila. Hotel Diaries: one stay, with the series name over every shot."><source src="media/amankila-hotel-diaries.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 02, Amankila. Hotel Diaries: one stay, with the series name over every shot."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">The City · The Night Off</p><p class="cap">Hotel Diaries: one stay, with the series name over every shot.</p><p class="take">A creator with a named format. The Night Off.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>03</span><span class="mono">Raffles Jaipur</span></div><div class="vbox" style="--ar:1024/576;--poster:url(media/raffles-jaipur-postcards.jpg)"><video preload="none" playsinline poster="media/raffles-jaipur-postcards.jpg" aria-label="Ref 03, Raffles Jaipur. Postcards from Raffles Jaipur: a vintage car, the courtyards, guests."><source src="media/raffles-jaipur-postcards.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 03, Raffles Jaipur. Postcards from Raffles Jaipur: a vintage car, the courtyards, guests."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:31</span></div><figcaption class="vb"><p class="lab">THE Park Collection</p><p class="cap">Postcards from Raffles Jaipur: a vintage car, the courtyards, guests.</p><p class="take">A palace told as postcards. Ran Baas, the same way.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>04</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/presidential-suite.jpg)"><video preload="none" playsinline poster="media/presidential-suite.jpg" aria-label="Ref 04, Hotel not named. The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace."><source src="media/presidential-suite.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 04, Hotel not named. The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:32</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace.</p><p class="take">One suite remade, shown detail by detail. Room 1967.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>05</span><span class="mono">The Roseate</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/roseate-food.jpg)"><video preload="none" playsinline poster="media/roseate-food.jpg" aria-label="Ref 05, The Roseate. Food by Roseate: a drink built by hand, under the series name."><source src="media/roseate-food.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 05, The Roseate. Food by Roseate: a drink built by hand, under the series name."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:12</span></div><figcaption class="vb"><p class="lab">The Table · Chef’s Counter</p><p class="cap">Food by Roseate: a drink built by hand, under the series name.</p><p class="take">One title held on screen. Chef’s Counter keeps its name.</p></figcaption></figure></div>
+  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>01</span><span class="mono">The Savoy</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/savoy-breakfast.jpg)"><video preload="none" playsinline poster="media/savoy-breakfast.jpg" aria-label="Ref 01, The Savoy. Breakfast at the Savoy: the trolley, the butler, the London Eye."><source src="media/savoy-breakfast.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 01, The Savoy. Breakfast at the Savoy: the trolley, the butler, the London Eye."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:25</span></div><figcaption class="vb"><p class="lab">The Table · Flurys 100</p><p class="cap">Breakfast at the Savoy: the trolley, the butler, the London Eye.</p><p class="take">A title card and a ritual. Flurys 100 opens like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>02</span><span class="mono">Amankila</span></div><div class="vbox" style="--ar:464/832;--poster:url(media/amankila-hotel-diaries.jpg)"><video preload="none" playsinline poster="media/amankila-hotel-diaries.jpg" aria-label="Ref 02, Amankila. Hotel Diaries: one stay, with the series name over every shot."><source src="media/amankila-hotel-diaries.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 02, Amankila. Hotel Diaries: one stay, with the series name over every shot."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">The City · The Night Off</p><p class="cap">Hotel Diaries: one stay, with the series name over every shot.</p><p class="take">A creator with a named format. The Night Off.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>03</span><span class="mono">Raffles Jaipur</span></div><div class="vbox" style="--ar:1024/576;--poster:url(media/raffles-jaipur-postcards.jpg)"><video preload="none" playsinline poster="media/raffles-jaipur-postcards.jpg" aria-label="Ref 03, Raffles Jaipur. Postcards from Raffles Jaipur: a vintage car, the courtyards, guests."><source src="media/raffles-jaipur-postcards.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 03, Raffles Jaipur. Postcards from Raffles Jaipur: a vintage car, the courtyards, guests."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:31</span></div><figcaption class="vb"><p class="lab">THE Park Collection</p><p class="cap">Postcards from Raffles Jaipur: a vintage car, the courtyards, guests.</p><p class="take">A palace told as postcards. Ran Baas, the same way.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>04</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/presidential-suite.jpg)"><video preload="none" playsinline poster="media/presidential-suite.jpg" aria-label="Ref 04, Hotel not named. The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace."><source src="media/presidential-suite.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 04, Hotel not named. The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:32</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace.</p><p class="take">One suite remade, shown detail by detail. Room 1967.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>05</span><span class="mono">The Roseate</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/roseate-food.jpg)"><video preload="none" playsinline poster="media/roseate-food.jpg" aria-label="Ref 05, The Roseate. Food by Roseate: a drink built by hand, under the series name."><source src="media/roseate-food.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 05, The Roseate. Food by Roseate: a drink built by hand, under the series name."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:12</span></div><figcaption class="vb"><p class="lab">The Table · Chef’s Counter</p><p class="cap">Food by Roseate: a drink built by hand, under the series name.</p><p class="take">One title held on screen. Chef’s Counter keeps its name.</p></figcaption></figure></div>
 </div></div><div class="folio"><span class="src">Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.</span><span class="pg"><span class="k">Page</span>11/31</span></div></div></section>
 <section class="slide" id="ref-craft" tabindex="-1" aria-label="The idea · references 2 of 4"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">02</span><span>Park Street, everywhere</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4 grow">
   <div class="c1 stack-l pr"><p class="lab"><span class=mn>12</span><span>References · 2 of 4</span></p><h2 class="h1 h1-s"><span class="g">Film the craft</span> up close.</h2>
     <p class="lede-s">Hands, steel, steam and one line of type. <b>The chef never has to talk.</b></p>
     <p class="ink2 f-s rule">Chef’s Counter, The Object and The 3 a.m. Menu are filmed this way.</p>
     <div class="mt-auto stack"><span class="dots" aria-hidden="true"><i class=on style="--n:0"></i><i class=on style="--n:1"></i><i style="--n:2"></i><i style="--n:3"></i></span><p class="mono mute">Press play for sound</p></div></div>
-  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>06</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-niko-romito.jpg)"><video preload="none" playsinline poster="media/bulgari-niko-romito.jpg" aria-label="Ref 06, Bulgari Dubai. Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”"><source src="media/bulgari-niko-romito.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 06, Bulgari Dubai. Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”"><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">1:08</span></div><figcaption class="vb"><p class="lab">The Table · Chef’s Counter</p><p class="cap">Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”</p><p class="take">The kitchen speaks in captions. Chef’s Counter in thirty seconds.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>07</span><span class="mono">Rosewood</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/rosewood-dinner.jpg)"><video preload="none" playsinline poster="media/rosewood-dinner.jpg" aria-label="Ref 07, Rosewood. Dinner: the lamps, the chef, the pantry, the pour."><source src="media/rosewood-dinner.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 07, Rosewood. Dinner: the lamps, the chef, the pantry, the pour."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:41</span></div><figcaption class="vb"><p class="lab">After Hours · The 3 a.m. Menu</p><p class="cap">Dinner: the lamps, the chef, the pantry, the pour.</p><p class="take">Low light and warm wood. The 3 a.m. Menu looks like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>08</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-la-terrazza.jpg)"><video preload="none" playsinline poster="media/bulgari-la-terrazza.jpg" aria-label="Ref 08, Bulgari Dubai. La Terrazza: old photographs, the chef, the orange trees, the cones."><source src="media/bulgari-la-terrazza.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 08, Bulgari Dubai. La Terrazza: old photographs, the chef, the orange trees, the cones."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:48</span></div><figcaption class="vb"><p class="lab">The Table · Flurys 100</p><p class="cap">La Terrazza: old photographs, the chef, the orange trees, the cones.</p><p class="take">The archive and the kitchen in one cut. Flurys 100.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>09</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-dubai-details.jpg)"><video preload="none" playsinline poster="media/bulgari-dubai-details.jpg" aria-label="Ref 09, Bulgari Dubai. Details in eighteen seconds: a plate, a cushion, the cones, a pizza."><source src="media/bulgari-dubai-details.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 09, Bulgari Dubai. Details in eighteen seconds: a plate, a cushion, the cones, a pizza."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:18</span></div><figcaption class="vb"><p class="lab">By Design · The Object</p><p class="cap">Details in eighteen seconds: a plate, a cushion, the cones, a pizza.</p><p class="take">One object a beat, the name at the end. The Object.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>10</span><span class="mono">Bulgari Roma</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-roma.jpg)"><video preload="none" playsinline poster="media/bulgari-roma.jpg" aria-label="Ref 10, Bulgari Roma. Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”."><source src="media/bulgari-roma.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 10, Bulgari Roma. Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:14</span></div><figcaption class="vb"><p class="lab">By Design · The Architects</p><p class="cap">Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”.</p><p class="take">A building with a past, told by its details. The Architects.</p></figcaption></figure></div>
+  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>06</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-niko-romito.jpg)"><video preload="none" playsinline poster="media/bulgari-niko-romito.jpg" aria-label="Ref 06, Bulgari Dubai. Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”"><source src="media/bulgari-niko-romito.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 06, Bulgari Dubai. Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”"><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">1:08</span></div><figcaption class="vb"><p class="lab">The Table · Chef’s Counter</p><p class="cap">Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”</p><p class="take">The kitchen speaks in captions. Chef’s Counter in thirty seconds.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>07</span><span class="mono">Rosewood</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/rosewood-dinner.jpg)"><video preload="none" playsinline poster="media/rosewood-dinner.jpg" aria-label="Ref 07, Rosewood. Dinner: the lamps, the chef, the pantry, the pour."><source src="media/rosewood-dinner.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 07, Rosewood. Dinner: the lamps, the chef, the pantry, the pour."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:41</span></div><figcaption class="vb"><p class="lab">After Hours · The 3 a.m. Menu</p><p class="cap">Dinner: the lamps, the chef, the pantry, the pour.</p><p class="take">Low light and warm wood. The 3 a.m. Menu looks like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>08</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-la-terrazza.jpg)"><video preload="none" playsinline poster="media/bulgari-la-terrazza.jpg" aria-label="Ref 08, Bulgari Dubai. La Terrazza: old photographs, the chef, the orange trees, the cones."><source src="media/bulgari-la-terrazza.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 08, Bulgari Dubai. La Terrazza: old photographs, the chef, the orange trees, the cones."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:48</span></div><figcaption class="vb"><p class="lab">The Table · Flurys 100</p><p class="cap">La Terrazza: old photographs, the chef, the orange trees, the cones.</p><p class="take">The archive and the kitchen in one cut. Flurys 100.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>09</span><span class="mono">Bulgari Dubai</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-dubai-details.jpg)"><video preload="none" playsinline poster="media/bulgari-dubai-details.jpg" aria-label="Ref 09, Bulgari Dubai. Details in eighteen seconds: a plate, a cushion, the cones, a pizza."><source src="media/bulgari-dubai-details.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 09, Bulgari Dubai. Details in eighteen seconds: a plate, a cushion, the cones, a pizza."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:18</span></div><figcaption class="vb"><p class="lab">By Design · The Object</p><p class="cap">Details in eighteen seconds: a plate, a cushion, the cones, a pizza.</p><p class="take">One object a beat, the name at the end. The Object.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>10</span><span class="mono">Bulgari Roma</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/bulgari-roma.jpg)"><video preload="none" playsinline poster="media/bulgari-roma.jpg" aria-label="Ref 10, Bulgari Roma. Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”."><source src="media/bulgari-roma.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 10, Bulgari Roma. Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:14</span></div><figcaption class="vb"><p class="lab">By Design · The Architects</p><p class="cap">Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”.</p><p class="take">A building with a past, told by its details. The Architects.</p></figcaption></figure></div>
 </div></div><div class="folio"><span class="src">Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.</span><span class="pg"><span class="k">Page</span>12/31</span></div></div></section>
 <section class="slide" id="ref-people" tabindex="-1" aria-label="The idea · references 3 of 4"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">02</span><span>Park Street, everywhere</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4 grow">
   <div class="c1 stack-l pr"><p class="lab"><span class=mn>13</span><span>References · 3 of 4</span></p><h2 class="h1 h1-s"><span class="g">Put the people</span> first.</h2>
     <p class="lede-s">The team is the cast: <b>the housekeeper, the doorman, the cook at the pass.</b></p>
     <p class="ink2 f-s rule">Night Shift, Ask the Concierge and Who’s Playing start here.</p>
     <div class="mt-auto stack"><span class="dots" aria-hidden="true"><i class=on style="--n:0"></i><i class=on style="--n:1"></i><i class=on style="--n:2"></i><i style="--n:3"></i></span><p class="mono mute">Press play for sound</p></div></div>
-  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>11</span><span class="mono">Mama Shelter</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/mama-shelter.jpg)"><video preload="none" playsinline poster="media/mama-shelter.jpg" aria-label="Ref 11, Mama Shelter. The chefs and a dog out front, then fast cuts, food and laughs."><source src="media/mama-shelter.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 11, Mama Shelter. The chefs and a dog out front, then fast cuts, food and laughs."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:52</span></div><figcaption class="vb"><p class="lab">After Hours · Who’s Playing</p><p class="cap">The chefs and a dog out front, then fast cuts, food and laughs.</p><p class="take">The team as the cast, at full speed. Who’s Playing.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>12</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/housekeeping.jpg)"><video preload="none" playsinline poster="media/housekeeping.jpg" aria-label="Ref 12, Hotel not named. A housekeeper at work: the bed, the terrace, the flowers, the doors."><source src="media/housekeeping.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 12, Hotel not named. A housekeeper at work: the bed, the terrace, the flowers, the doors."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">The City · Night Shift</p><p class="cap">A housekeeper at work: the bed, the terrace, the flowers, the doors.</p><p class="take">The people who make the room, on camera. Night Shift.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>13</span><span class="mono">The Savoy</span></div><div class="vbox" style="--ar:352/448;--poster:url(media/savoy-check-in.jpg)"><video preload="none" playsinline poster="media/savoy-check-in.jpg" aria-label="Ref 13, The Savoy. The Check-in: the revolving door, the bell, the desk, a card."><source src="media/savoy-check-in.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 13, The Savoy. The Check-in: the revolving door, the bell, the desk, a card."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:09</span></div><figcaption class="vb"><p class="lab">The City · Ask the Concierge</p><p class="cap">The Check-in: the revolving door, the bell, the desk, a card.</p><p class="take">Nine seconds of service, named as a series. Ask the Concierge.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>14</span><span class="mono">Hoxton × Lacoste</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/lacoste-collab.jpg)"><video preload="none" playsinline poster="media/lacoste-collab.jpg" aria-label="Ref 14, Hoxton × Lacoste. Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends."><source src="media/lacoste-collab.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 14, Hoxton × Lacoste. Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:38</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends.</p><p class="take">A partner you can see in every object. Room 1967’s designer.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>15</span><span class="mono">Four Seasons</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/white-lotus-loop.jpg)"><video preload="none" playsinline poster="media/white-lotus-loop.jpg" aria-label="Ref 15, Four Seasons. A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds."><source src="media/white-lotus-loop.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 15, Four Seasons. A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:07</span></div><figcaption class="vb"><p class="lab">After Hours · Who Played</p><p class="cap">A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds.</p><p class="take">One shot that loops. The cover of every Who Played post.</p></figcaption></figure></div>
+  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>11</span><span class="mono">Mama Shelter</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/mama-shelter.jpg)"><video preload="none" playsinline poster="media/mama-shelter.jpg" aria-label="Ref 11, Mama Shelter. The chefs and a dog out front, then fast cuts, food and laughs."><source src="media/mama-shelter.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 11, Mama Shelter. The chefs and a dog out front, then fast cuts, food and laughs."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:52</span></div><figcaption class="vb"><p class="lab">After Hours · Who’s Playing</p><p class="cap">The chefs and a dog out front, then fast cuts, food and laughs.</p><p class="take">The team as the cast, at full speed. Who’s Playing.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>12</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/housekeeping.jpg)"><video preload="none" playsinline poster="media/housekeeping.jpg" aria-label="Ref 12, Hotel not named. A housekeeper at work: the bed, the terrace, the flowers, the doors."><source src="media/housekeeping.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 12, Hotel not named. A housekeeper at work: the bed, the terrace, the flowers, the doors."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">The City · Night Shift</p><p class="cap">A housekeeper at work: the bed, the terrace, the flowers, the doors.</p><p class="take">The people who make the room, on camera. Night Shift.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>13</span><span class="mono">The Savoy</span></div><div class="vbox" style="--ar:352/448;--poster:url(media/savoy-check-in.jpg)"><video preload="none" playsinline poster="media/savoy-check-in.jpg" aria-label="Ref 13, The Savoy. The Check-in: the revolving door, the bell, the desk, a card."><source src="media/savoy-check-in.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 13, The Savoy. The Check-in: the revolving door, the bell, the desk, a card."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:09</span></div><figcaption class="vb"><p class="lab">The City · Ask the Concierge</p><p class="cap">The Check-in: the revolving door, the bell, the desk, a card.</p><p class="take">Nine seconds of service, named as a series. Ask the Concierge.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>14</span><span class="mono">Hoxton × Lacoste</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/lacoste-collab.jpg)"><video preload="none" playsinline poster="media/lacoste-collab.jpg" aria-label="Ref 14, Hoxton × Lacoste. Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends."><source src="media/lacoste-collab.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 14, Hoxton × Lacoste. Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:38</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends.</p><p class="take">A partner you can see in every object. Room 1967’s designer.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>15</span><span class="mono">Four Seasons</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/white-lotus-loop.jpg)"><video preload="none" playsinline poster="media/white-lotus-loop.jpg" aria-label="Ref 15, Four Seasons. A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds."><source src="media/white-lotus-loop.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 15, Four Seasons. A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:07</span></div><figcaption class="vb"><p class="lab">After Hours · Who Played</p><p class="cap">A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds.</p><p class="take">One shot that loops. The cover of every Who Played post.</p></figcaption></figure></div>
 </div></div><div class="folio"><span class="src">Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.</span><span class="pg"><span class="k">Page</span>13/31</span></div></div></section>
 <section class="slide" id="ref-rooms" tabindex="-1" aria-label="The idea · references 4 of 4"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">02</span><span>Park Street, everywhere</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4 grow">
   <div class="c1 stack-l pr"><p class="lab"><span class=mn>14</span><span>References · 4 of 4</span></p><h2 class="h1 h1-s"><span class="g">Make the room</span> the story.</h2>
     <p class="lede-s">A door, a window, a view, <b>in one move and in under a minute.</b></p>
     <p class="ink2 f-s rule">Room 1967, The Architects and every launch kit open this way.</p>
     <div class="mt-auto stack"><span class="dots" aria-hidden="true"><i class=on style="--n:0"></i><i class=on style="--n:1"></i><i class=on style="--n:2"></i><i class=on style="--n:3"></i></span><p class="mono mute">Press play for sound</p></div></div>
-  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>16</span><span class="mono">The Roseate</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/roseate-delhi.jpg)"><video preload="none" playsinline poster="media/roseate-delhi.jpg" aria-label="Ref 16, The Roseate. New Delhi at dusk: water, walls and lamps, the name held still."><source src="media/roseate-delhi.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 16, The Roseate. New Delhi at dusk: water, walls and lamps, the name held still."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:12</span></div><figcaption class="vb"><p class="lab">By Design · The Architects</p><p class="cap">New Delhi at dusk: water, walls and lamps, the name held still.</p><p class="take">Architecture at the blue hour. THE Park New Delhi has the light.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>17</span><span class="mono">Four Seasons</span></div><div class="vbox" style="--ar:576/864;--poster:url(media/four-seasons-suites.jpg)"><video preload="none" playsinline poster="media/four-seasons-suites.jpg" aria-label="Ref 17, Four Seasons. Just got suite-er: suites by the sea and in the city, then the booking line."><source src="media/four-seasons-suites.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 17, Four Seasons. Just got suite-er: suites by the sea and in the city, then the booking line."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:15</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">Just got suite-er: suites by the sea and in the city, then the booking line.</p><p class="take">The last frame says where to book. For Room 1967, a WhatsApp line.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>18</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/room-walk.jpg)"><video preload="none" playsinline poster="media/room-walk.jpg" aria-label="Ref 18, Hotel not named. Door to window in one walk: the hall, the lamp, the cornice, the marble."><source src="media/room-walk.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 18, Hotel not named. Door to window in one walk: the hall, the lamp, the cornice, the marble."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">By Design · Opening Night</p><p class="cap">Door to window in one walk: the hall, the lamp, the cornice, the marble.</p><p class="take">One move through a room. Each launch kit starts here.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>19</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/small-room.jpg)"><video preload="none" playsinline poster="media/small-room.jpg" aria-label="Ref 19, Hotel not named. A small room in big type: the case, the hangers, the screen, sleep."><source src="media/small-room.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 19, Hotel not named. A small room in big type: the case, the hangers, the screen, sleep."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:43</span></div><figcaption class="vb"><p class="lab">Zone by The Park</p><p class="cap">A small room in big type: the case, the hangers, the screen, sleep.</p><p class="take">Wit for a small room. Zone by The Park speaks like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>20</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/florence-villa.jpg)"><video preload="none" playsinline poster="media/florence-villa.jpg" aria-label="Ref 20, Hotel not named. Florence from the window: the tea, the pool, a fresco, the Duomo."><source src="media/florence-villa.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 20, Hotel not named. Florence from the window: the tea, the pool, a fresco, the Duomo."><span class="pv" aria-hidden="true"></span><span><b><span class="roll"><span>Play</span><span aria-hidden="true">Play</span></span></b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:22</span></div><figcaption class="vb"><p class="lab">THE Park Collection</p><p class="cap">Florence from the window: the tea, the pool, a fresco, the Duomo.</p><p class="take">A day in under thirty seconds, slow. THE Park Collection.</p></figcaption></figure></div>
+  <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))"><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>16</span><span class="mono">The Roseate</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/roseate-delhi.jpg)"><video preload="none" playsinline poster="media/roseate-delhi.jpg" aria-label="Ref 16, The Roseate. New Delhi at dusk: water, walls and lamps, the name held still."><source src="media/roseate-delhi.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 16, The Roseate. New Delhi at dusk: water, walls and lamps, the name held still."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:12</span></div><figcaption class="vb"><p class="lab">By Design · The Architects</p><p class="cap">New Delhi at dusk: water, walls and lamps, the name held still.</p><p class="take">Architecture at the blue hour. THE Park New Delhi has the light.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>17</span><span class="mono">Four Seasons</span></div><div class="vbox" style="--ar:576/864;--poster:url(media/four-seasons-suites.jpg)"><video preload="none" playsinline poster="media/four-seasons-suites.jpg" aria-label="Ref 17, Four Seasons. Just got suite-er: suites by the sea and in the city, then the booking line."><source src="media/four-seasons-suites.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 17, Four Seasons. Just got suite-er: suites by the sea and in the city, then the booking line."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:15</span></div><figcaption class="vb"><p class="lab">By Design · Room 1967</p><p class="cap">Just got suite-er: suites by the sea and in the city, then the booking line.</p><p class="take">The last frame says where to book. For Room 1967, a WhatsApp line.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>18</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/room-walk.jpg)"><video preload="none" playsinline poster="media/room-walk.jpg" aria-label="Ref 18, Hotel not named. Door to window in one walk: the hall, the lamp, the cornice, the marble."><source src="media/room-walk.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 18, Hotel not named. Door to window in one walk: the hall, the lamp, the cornice, the marble."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:17</span></div><figcaption class="vb"><p class="lab">By Design · Opening Night</p><p class="cap">Door to window in one walk: the hall, the lamp, the cornice, the marble.</p><p class="take">One move through a room. Each launch kit starts here.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>19</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/small-room.jpg)"><video preload="none" playsinline poster="media/small-room.jpg" aria-label="Ref 19, Hotel not named. A small room in big type: the case, the hangers, the screen, sleep."><source src="media/small-room.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 19, Hotel not named. A small room in big type: the case, the hangers, the screen, sleep."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:43</span></div><figcaption class="vb"><p class="lab">Zone by The Park</p><p class="cap">A small room in big type: the case, the hangers, the screen, sleep.</p><p class="take">Wit for a small room. Zone by The Park speaks like this.</p></figcaption></figure><figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>20</span><span class="mono">Hotel not named</span></div><div class="vbox" style="--ar:576/1024;--poster:url(media/florence-villa.jpg)"><video preload="none" playsinline poster="media/florence-villa.jpg" aria-label="Ref 20, Hotel not named. Florence from the window: the tea, the pool, a fresco, the Duomo."><source src="media/florence-villa.mp4" type="video/mp4"></video><button class="vplay" type="button" aria-label="Play: Ref 20, Hotel not named. Florence from the window: the tea, the pool, a fresco, the Duomo."><span class="pv" aria-hidden="true"></span><span><b>Play</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></i></span></button><span class="dur">0:22</span></div><figcaption class="vb"><p class="lab">THE Park Collection</p><p class="cap">Florence from the window: the tea, the pool, a fresco, the Duomo.</p><p class="take">A day in under thirty seconds, slow. THE Park Collection.</p></figcaption></figure></div>
 </div></div><div class="folio"><span class="src">Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.</span><span class="pg"><span class="k">Page</span>14/31</span></div></div></section>
 <section class="slide" id="mix" tabindex="-1" aria-label="The idea · the mix"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">02</span><span>Park Street, everywhere</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4">
   <div class="c12 stack-l"><p class="lab"><span class=mn>15</span><span>The mix</span></p><h2 class="h1 h1-l"><span class="g">Eight posts</span> a week.</h2></div>
@@ -794,10 +750,10 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
   <p class="lab c1" style="grid-row:1"><span class="mn">03</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>How it runs.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>23 to 29</p>
-  <div class="inset"><a class="btn" href="#calendar"><span><span class="roll"><span>Begin</span><span aria-hidden="true">Begin</span></span> <em>/23</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#calendar"><span>Begin <em>/23</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">How it</span> runs.</h2></div>
   <p class="cl lede-s">From the first post to the first readout, <b>week by week.</b></p>
-  <ul class="pages"><li><span class="mn">/23</span><a href="#calendar"><span class="roll"><span>A month</span><span aria-hidden="true">A month</span></span></a></li><li><span class="mn">/24</span><a href="#handles"><span class="roll"><span>The handles</span><span aria-hidden="true">The handles</span></span></a></li><li><span class="mn">/25</span><a href="#community"><span class="roll"><span>The people</span><span aria-hidden="true">The people</span></span></a></li><li><span class="mn">/26</span><a href="#measure"><span class="roll"><span>The numbers</span><span aria-hidden="true">The numbers</span></span></a></li><li><span class="mn">/27</span><a href="#mask360"><span class="roll"><span>Mask360</span><span aria-hidden="true">Mask360</span></span></a></li><li><span class="mn">/28</span><a href="#faq"><span class="roll"><span>Quick answers</span><span aria-hidden="true">Quick answers</span></span></a></li><li><span class="mn">/29</span><a href="#next"><span class="roll"><span>Next steps</span><span aria-hidden="true">Next steps</span></span></a></li></ul>
+  <ul class="pages"><li><span class="mn">/23</span><a href="#calendar">A month</a></li><li><span class="mn">/24</span><a href="#handles">The handles</a></li><li><span class="mn">/25</span><a href="#community">The people</a></li><li><span class="mn">/26</span><a href="#measure">The numbers</a></li><li><span class="mn">/27</span><a href="#mask360">Mask360</a></li><li><span class="mn">/28</span><a href="#faq">Quick answers</a></li><li><span class="mn">/29</span><a href="#next">Next steps</a></li></ul>
 </div></div><div class="folio"><span class="src"></span><span class="pg"><span class="k">Page</span>22/31</span></div></div></section>
 <section class="slide" id="calendar" tabindex="-1" aria-label="How it runs · a month"><div class="frame"><div class="head"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab"><span class="mn">03</span><span>How it runs</span></p><a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span><svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg> <em>/Proposal</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div><div class="body"><div class="g4">
   <div class="c12 stack-l"><p class="lab"><span class=mn>23</span><span>A month</span></p><h2 class="h1"><span class="g">December</span> on the feed.</h2></div>
@@ -852,12 +808,12 @@ html.motion.smooth :is(.cardrow,.refs,.stagger)>:nth-child(4){--k:24} html.motio
     <h3 class="h2"><span class="g">Ready</span> to start?</h3>
     <p class="mono">What you get</p>
     <ul class="checks"><li>The plan for your hotels, walked through</li><li>A fit check, both ways</li><li>Clear next steps to the pitch</li></ul>
-    <a class="btn" href="mailto:kaavish@mask360.agency?subject=Park%20Street%2C%20everywhere"><span><span class="roll"><span>Book a call</span><span aria-hidden="true">Book a call</span></span> <em>/Kaavish</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a>
+    <a class="btn" href="mailto:kaavish@mask360.agency?subject=Park%20Street%2C%20everywhere"><span>Book a call <em>/Kaavish</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a>
   </div>
 </div></div><div class="folio"><span class="src"></span><span class="pg"><span class="k">Page</span>29/31</span></div></div></section>
 <section class="slide dark close scrim" id="close" tabindex="-1" aria-label="The Park Hotels × Mask360"><canvas class="fab" data-fab="ink" data-seed="11" aria-hidden="true"></canvas><div class="frame"><div class="body"><div class="g4"><span class="wm pk" role="img" aria-label="The Park Hotels"><svg viewBox="0 0 97 77" aria-hidden="true"><use href="#logo-p"/></svg></span><p class="lab c3"><span>Thank you</span></p></div>
 <div class="g4 grow" style="grid-template-rows:1fr auto;row-gap:calc(var(--u)*2.4)">
-  <ul class="nav c3 end"><li><a href="#ch-today"><span class="roll"><span>The Park today</span><span aria-hidden="true">The Park today</span></span></a></li><li><a href="#mindmap"><span class="roll"><span>The content map</span><span aria-hidden="true">The content map</span></span></a></li><li><a href="#ref-named"><span class="roll"><span>The references</span><span aria-hidden="true">The references</span></span></a></li><li><a href="#feed"><span class="roll"><span>The grid</span><span aria-hidden="true">The grid</span></span></a></li><li><a href="#calendar"><span class="roll"><span>A month</span><span aria-hidden="true">A month</span></span></a></li><li><a href="#handles"><span class="roll"><span>The handles</span><span aria-hidden="true">The handles</span></span></a></li><li><a href="#next"><span class="roll"><span>Next steps</span><span aria-hidden="true">Next steps</span></span></a></li><li><a href="#sources"><span class="roll"><span>Sources</span><span aria-hidden="true">Sources</span></span></a></li></ul>
+  <ul class="nav c3 end"><li><a href="#ch-today">The Park today</a></li><li><a href="#mindmap">The content map</a></li><li><a href="#ref-named">The references</a></li><li><a href="#feed">The grid</a></li><li><a href="#calendar">A month</a></li><li><a href="#handles">The handles</a></li><li><a href="#next">Next steps</a></li><li><a href="#sources">Sources</a></li></ul>
   <div class="c4 end stack">
     <h2 class="lede-s">Park Street, <b>everywhere.</b></h2>
     <a class="mail" href="mailto:kaavish@mask360.agency" style="font-size:calc(var(--u)*1.6)">kaavish@mask360.agency</a>
@@ -957,84 +913,18 @@ return {draw,TX,rng,flat:pattern};
 })();
 
 (() => {
-  const root = document.documentElement;
   const slides = [...document.querySelectorAll('.slide')];
   const total = slides.length;
   let cur = 0;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // phones and portrait windows read the slides as one scrolling document (deck.css); keep this query in step with its screen query
-  const doc = matchMedia('(max-width:760px),(max-aspect-ratio:4/5)');
-  const fine = matchMedia('(hover:hover) and (pointer:fine)');
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  if (!reduce) root.classList.add('motion');
-
   const io = new IntersectionObserver(es => {
     es.forEach(e => { if (e.isIntersecting) cur = slides.indexOf(e.target); });
   }, { threshold: 0.55 });
   slides.forEach(s => io.observe(s));
-
-  /* ---------- smooth scroll, the way Hanza's Lenis moves ----------
-     Wheel input eases toward its target at the rate measured on Hanza (about 0.08 a frame at 60 Hz, frame-rate independent:
-     one wheel tick settles in about a second, 80% of it in the first 400 ms). On the 16:9 slides one flick
-     glides to the next slide on Lenis's own curve (1.2 s, exponential ease out) and the rest of that flick is swallowed, so
-     a trackpad's inertia cannot run on past it. Touch keeps the browser's own scrolling. */
-  const smooth = () => !reduce && fine.matches;
-  const syncClass = () => root.classList.toggle('smooth', smooth());
-  syncClass();
-  fine.addEventListener('change', syncClass);
-  let target = scrollY, pos = scrollY, raf = 0, last = 0, tween = null;
-  const maxY = () => root.scrollHeight - innerHeight;
-  const topOf = s => s.offsetTop;
-  const ease = t => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
-  function frame(t) {
-    const dt = last ? Math.min(64, t - last) : 16.7;
-    last = t;
-    if (tween) {
-      const k = clamp((t - tween.t0) / tween.dur, 0, 1);
-      pos = tween.from + (tween.to - tween.from) * ease(k);
-      if (k >= 1) { pos = tween.to; tween = null; }
-      target = pos;
-    } else {
-      pos += (target - pos) * (1 - Math.exp(-dt * 0.005));
-      if (Math.abs(target - pos) < 0.4) pos = target;
-    }
-    scrollTo(0, pos);
-    if (tween || pos !== target) raf = requestAnimationFrame(frame);
-    else { raf = 0; last = 0; }
-  }
-  const run = () => { if (!raf) raf = requestAnimationFrame(frame); };
-  function glideTo(y, dur = 1200) {
-    y = clamp(y, 0, maxY());
-    if (!smooth()) { scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' }); return; }
-    tween = { from: scrollY, to: y, t0: performance.now(), dur };
-    pos = scrollY;
-    run();
-  }
-  // the scroll bar, find in page, touch and the browser's own keys move the page without us: follow them
-  addEventListener('scroll', () => { if (!raf) target = pos = scrollY; }, { passive: true });
-  addEventListener('resize', () => { if (!raf) target = pos = scrollY; });
-
-  let acc = 0, cool = 0, lastWheel = 0, lastAbs = 0, idle = 0;
-  addEventListener('wheel', e => {
-    if (!smooth() || open || e.ctrlKey) return;
-    e.preventDefault();
-    const d = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-    const t = performance.now(), abs = Math.abs(d);
-    if (doc.matches) { tween = null; target = clamp(target + d, 0, maxY()); run(); return; }
-    if (t < cool) {  // the tail of the flick that already moved a slide: let it die away
-      if (t - lastWheel < 120 && abs < lastAbs * 0.98) cool = t + 140;
-      lastWheel = t; lastAbs = abs;
-      return;
-    }
-    lastWheel = t; lastAbs = abs;
-    acc += d;
-    if (Math.abs(acc) > 40) { const dir = Math.sign(acc); acc = 0; go(cur + dir); cool = t + 650; return; }
-    clearTimeout(idle);
-    idle = setTimeout(() => { acc = 0; }, 180);
-  }, { passive: false });
-
   // the next slide is taken from cur, which go() sets at once, so two quick presses move two slides; focus follows, so Tab starts there
-  const go = i => { const j = clamp(i, 0, total - 1); cur = j; glideTo(topOf(slides[j])); slides[j].focus({ preventScroll: true }); };
+  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); cur = j; slides[j].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); slides[j].focus({ preventScroll: true }); };
+  // phones and portrait windows read the slides as one scrolling document (deck.css), where the browser's own keys scroll
+  const doc = matchMedia('(max-width:760px),(max-aspect-ratio:4/5)');
 
   addEventListener('keydown', e => {
     if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } else if (e.key === 'PageDown' || e.key === 'PageUp') e.preventDefault(); return; }
@@ -1048,159 +938,6 @@ return {draw,TX,rng,flat:pattern};
     else if (k === 'End') { e.preventDefault(); go(total - 1); }
   });
 
-  // links inside the deck glide too
-  document.addEventListener('click', e => {
-    const a = e.target.closest && e.target.closest('a[href^="#"]');
-    if (!a || a.getAttribute('href').length < 2) return;
-    const el = document.getElementById(a.getAttribute('href').slice(1));
-    if (!el) return;
-    e.preventDefault();
-    const i = slides.indexOf(el);
-    if (i >= 0 && !doc.matches) go(i); else glideTo(el.getBoundingClientRect().top + scrollY);
-    history.replaceState(null, '', a.getAttribute('href'));
-  });
-
-  /* ---------- reveals, with the settings read from Hanza's own scripts ----------
-     Headings rise line by line (opacity 0 to 1, 20 px, 0.8 s, 50 ms a line, from 0.2 s); each page's other blocks fade up in
-     order; the column guides draw down; orange rules sweep in; progress squares light one by one; numbers count up; the
-     mind maps draw their lines. They replay when a page comes back. On phones each block reveals as it scrolls into view.
-     Nothing is hidden unless this script runs, and a failsafe shows everything if it stops part way. */
-  const BLOCKS = ['.lab', '.lede-s', '.lede', '.q', '.card', '.post-card', '.vcard', '.acc>div', '.tbl thead', '.tbl tbody tr', '.kv', '.pic',
-    '.phone', '.post', '.map', '.cal', '.srcs>div', '.cta', '.mail', '.svc li', '.pages li', '.chap .inset', '.chap>.mono', '.who',
-    '.giant', '.nav li', '.spec>div', '.m-logo', '.art.phones', '.rule-plan', '.top>*', '.stack>.mono', '.checks li', '.close .g4>.wm',
-    '.cal-key', '.idea-body>p'].join(',');
-  const HEADS = '.h1,.h-display,.ct,.idea-name,.cta .h2';
-  function splitWords(h) {
-    let n = 0;
-    const walk = node => {
-      [...node.childNodes].forEach(c => {
-        if (c.nodeType === 3) {
-          const parts = c.textContent.split(/(\s+)/);
-          const frag = document.createDocumentFragment();
-          parts.forEach(p => {
-            if (!p) return;
-            if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
-            const o = document.createElement('span'); o.className = 'wd';
-            const i = document.createElement('span'); i.className = 'wi'; i.textContent = p;
-            i.style.setProperty('--w', n++);
-            o.appendChild(i); frag.appendChild(o);
-          });
-          c.replaceWith(frag);
-        } else if (c.nodeType === 1) walk(c);
-      });
-    };
-    walk(h);
-  }
-  const heads = [];
-  // each word learns which line it sits on, so a heading rises line by line (and again after a resize reflows it)
-  const lineUp = () => heads.forEach(h => {
-    let top = null, l = -1;
-    h.querySelectorAll('.wi').forEach(w => { const t = Math.round(w.offsetTop); if (top === null || Math.abs(t - top) > 4) { top = t; l++; } w.style.setProperty('--l', l); });
-  });
-  if (!reduce) {
-    slides.forEach(s => {
-      const body = s.querySelector('.body');
-      if (!body) return;
-      body.querySelectorAll(HEADS).forEach(h => { splitWords(h); h.classList.add('rh'); heads.push(h); });
-      const els = [...body.querySelectorAll(BLOCKS + ',' + HEADS)].filter((el, _, all) => !all.some(o => o !== el && o.contains(el)));
-      els.forEach((el, i) => { el.classList.add(el.matches(HEADS) ? 'rh' : 'rv'); el.style.setProperty('--d', Math.min(i * 70, 980) + 'ms'); });
-    });
-  }
-
-  lineUp();
-  let lt;
-  addEventListener('resize', () => { clearTimeout(lt); lt = setTimeout(lineUp, 200); });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(lineUp);
-
-  // numbers count up when they come into view (years and labels stay as they are)
-  const counters = [...document.querySelectorAll('.big')].filter(el => /^\d{1,4}(%|×|\+)?$/.test(el.textContent.trim()) && !/^(19|20)\d\d$/.test(el.textContent.trim()));
-  function count(el) {
-    if (el.dataset.done) return;
-    el.dataset.done = 1;
-    const m = el.textContent.trim().match(/^(\d+)(.*)$/), to = +m[1], suf = m[2];
-    if (reduce) return;
-    const t0 = performance.now(), dur = 1400;
-    const step = t => { const k = clamp((t - t0) / dur, 0, 1); el.textContent = Math.round(to * ease(k)) + suf; if (k < 1) requestAnimationFrame(step); };
-    el.textContent = '0' + suf;
-    requestAnimationFrame(step);
-  }
-
-  // the mind maps draw their lines, then their words
-  function drawMap(svg) {
-    if (svg.dataset.drawn || reduce || !svg.getBoundingClientRect().width) return;
-    svg.dataset.drawn = 1;
-    const lines = [...svg.querySelectorAll('path, line')];
-    lines.forEach((p, i) => {
-      let len = 0;
-      try { len = p.getTotalLength ? p.getTotalLength() : 0; } catch (e) {}
-      if (!len) return;
-      p.style.strokeDasharray = len;
-      p.style.strokeDashoffset = len;
-      p.getBoundingClientRect();
-      p.style.transition = `stroke-dashoffset 1.1s cubic-bezier(.65,0,.35,1) ${200 + i * 18}ms`;
-      p.style.strokeDashoffset = 0;
-    });
-    [...svg.querySelectorAll('text, rect, circle')].forEach((t, i) => { t.style.animationDelay = 500 + Math.min(i * 6, 900) + 'ms'; });
-    svg.classList.add('drawn');
-  }
-
-  function reveal(s) {
-    if (s.classList.contains('in')) return;
-    s.classList.add('in');
-    s.querySelectorAll('.map svg').forEach(drawMap);
-  }
-  const rio = new IntersectionObserver(es => es.forEach(e => {
-    const s = e.target;
-    if (doc.matches) { if (e.isIntersecting) s.classList.add('in-doc'); return; }
-    if (e.intersectionRatio >= 0.3) reveal(s);
-    else if (!e.isIntersecting) s.classList.remove('in');  // off screen: ready to play again
-  }), { threshold: [0, 0.3] });
-  slides.forEach(s => rio.observe(s));
-  // phones: each block reveals on its own as it scrolls in
-  let batch = 0, bt = 0;
-  const eio = new IntersectionObserver(es => es.forEach(e => {
-    if (!e.isIntersecting || !doc.matches) return;
-    e.target.style.setProperty('--d', (batch++ % 6) * 70 + 'ms');
-    clearTimeout(bt); bt = setTimeout(() => { batch = 0; }, 120);
-    e.target.classList.add('in-el');
-    eio.unobserve(e.target);
-  }), { rootMargin: '0px 0px -6% 0px' });
-  document.querySelectorAll('.rv, .rh').forEach(el => eio.observe(el));
-  const nio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { count(e.target); nio.unobserve(e.target); } }), { threshold: 0.6 });
-  counters.forEach(el => nio.observe(el));
-  const mio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) drawMap(e.target); }), { threshold: 0.2 });
-  document.querySelectorAll('.map svg').forEach(svg => mio.observe(svg));
-  addEventListener('beforeprint', () => { slides.forEach(s => s.classList.add('in')); counters.forEach(el => { el.dataset.done = 1; }); });
-  // failsafe: if nothing has revealed after four seconds, show everything
-  setTimeout(() => { if (root.classList.contains('motion') && !document.querySelector('.slide.in, .slide.in-doc, .in-el')) root.classList.remove('motion'); }, 4000);
-
-  /* ---------- scroll-linked motion, as Hanza's transform effects ----------
-     As a page leaves, its cloth drifts down, grows to 1.2 and fades to half (Hanza's hero); as a page arrives, its columns
-     of cards trail behind and meet as it lands (Hanza's stat columns, which start 100 and 250 px low). */
-  let sr = 0;
-  const link = () => {
-    sr = 0;
-    if (reduce || doc.matches) return;
-    const vh = innerHeight, y = scrollY;
-    slides.forEach(s => {
-      const p = (s.offsetTop - y) / vh;
-      if (p > 1.3 || p < -1.3) return;
-      s.style.setProperty('--pa', clamp(p, 0, 1).toFixed(4));
-      s.style.setProperty('--pl', clamp(-p, 0, 1).toFixed(4));
-    });
-  };
-  addEventListener('scroll', () => { if (!sr) sr = requestAnimationFrame(link); }, { passive: true });
-  link();
-
-  // the cover's clock: Kolkata time, the way Hanza shows its local time
-  const clock = document.querySelector('[data-clock]');
-  if (clock) {
-    const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
-    const tickClock = () => { clock.textContent = fmt.format(new Date()); };
-    tickClock();
-    setInterval(tickClock, 15000);
-  }
-
   // reference videos: nothing loads until someone presses play. Play opens the clip large, over the deck, with the browser's own
   // controls (play, sound, volume, full screen); Esc, the close button or a click outside puts it back on its slide.
   const vids = [...document.querySelectorAll('.vbox video')];
@@ -1212,9 +949,8 @@ return {draw,TX,rng,flat:pattern};
     v.pause();
     v.controls = false;
     box.insertBefore(v, box.firstChild);
-    lb.classList.remove('on');
-    setTimeout(() => { if (!open) lb.hidden = true; }, reduce ? 0 : 320);  // after the fade
-    root.classList.remove('lb-open');
+    lb.hidden = true;
+    document.documentElement.classList.remove('lb-open');
     document.querySelector('main').inert = false;
     const b = box.querySelector('.vplay');
     if (b) b.focus({ preventScroll: true });
@@ -1244,8 +980,7 @@ return {draw,TX,rng,flat:pattern};
       lb.querySelector('.vl-cap').textContent = v.getAttribute('aria-label') || '';
       v.controls = true;
       lb.hidden = false;
-      requestAnimationFrame(() => lb.classList.add('on'));
-      root.classList.add('lb-open');
+      document.documentElement.classList.add('lb-open');
       document.querySelector('main').inert = true;  // keeps Tab inside the clip while it is open
       const p = v.play();
       if (p && p.catch) p.catch(() => {});
@@ -1266,14 +1001,23 @@ return {draw,TX,rng,flat:pattern};
   addEventListener('beforeprint', () => fabs.forEach(c => paint(c, true)));
 
   // the statement: its words turn from grey to ink, one after another, when the page arrives (Hanza's scroll reveal)
-  document.querySelectorAll('.q').forEach(q => q.querySelectorAll('.w').forEach((w, i) => { w.style.transitionDelay = reduce ? '0ms' : 400 + i * 70 + 'ms'; }));
+  document.querySelectorAll('.q').forEach(q => q.querySelectorAll('.w').forEach((w, i) => { w.style.transitionDelay = reduce ? '0ms' : i * 70 + 'ms'; }));
   const qio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); qio.unobserve(e.target); } }), { threshold: 0.6 });
   document.querySelectorAll('.q').forEach(q => qio.observe(q));
   addEventListener('beforeprint', () => document.querySelectorAll('.q').forEach(q => q.classList.add('on')));
 
+  // the cover's clock: Kolkata time, the way Hanza shows its local time
+  const clock = document.querySelector('[data-clock]');
+  if (clock) {
+    const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+    const tickClock = () => { clock.textContent = fmt.format(new Date()); };
+    tickClock();
+    setInterval(tickClock, 15000);
+  }
+
   if (location.hash) {
     const el = document.getElementById(location.hash.slice(1));
-    if (el) { el.scrollIntoView({ block: 'start' }); target = pos = scrollY; }
+    if (el) el.scrollIntoView({ block: 'start' });
   }
 })();
 </script>

@@ -13,13 +13,6 @@ Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels
 - Hanza's cards, buttons, accordion rows and case-study rows;
 - dark grain sections between the white ones.
 
-**The motion** follows Hanza's own settings, read from its scripts and a recording of the site (`fetch_refs.py motion`, kept in `ref/hanza-motion/`):
-- Lenis-style smooth scrolling at the measured rate, and one flick of the wheel or trackpad glides exactly one slide on Lenis's 1.2 s curve;
-- headings rise line by line (20 px, 0.8 s, 50 ms a line), blocks fade up in order, the column guides draw down, orange rules sweep in, progress squares light one by one, numbers count up and the mind maps draw their lines;
-- as a page leaves, its cloth drifts, grows and fades; as a page arrives, its card columns trail and meet;
-- labels roll up on hover, posters zoom, the clip player fades in, and the cover shows Kolkata time.
-Reduced motion, print and phones keep a still, fully visible deck.
-
 **The copy** borrows Hanza's logic within Mask360's rules: a promise in the reader's terms on the cover, two-beat headings, ledes that read as a journey, a "Sells" line on each idea page, a Quick answers page for the six questions the brand team will ask, and a low-risk "Ready to start? What you get" ask on next steps.
 
 Procedural cloth (`fabric.js`) and line drawings stand in for photography. The Park's corporate mark (`deck/park.svg`, from theparkhotels.com) sits in every running head and on the cover. Both fonts are open-licence (SIL OFL, notes in `deck/fonts/`).

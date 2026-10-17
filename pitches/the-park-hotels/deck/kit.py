@@ -14,8 +14,8 @@ PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.
 
 
 def roll(text):
-    """Hanza's hover: the label rolls up and a copy of it rolls in from below."""
-    return f'<span class="roll"><span>{text}</span><span aria-hidden="true">{text}</span></span>'
+    """A link or button label (kept as a hook: the hover roll was taken out with the rest of the motion)."""
+    return text
 
 
 def btn(text, sub='', href='', cls=''):
