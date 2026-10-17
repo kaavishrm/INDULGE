@@ -1,4 +1,5 @@
-"""Small HTML helpers for the slides (from the Westside v4 deck). Every slide is a <section class="slide"> holding one 16:9 <div class="frame">."""
+"""Small HTML helpers for the slides, in the Hanza look (deck.css). Every slide is a <section class="slide"> holding one 16:9
+<div class="frame"> laid on four column guides."""
 import re
 from html import escape as esc
 
@@ -8,11 +9,40 @@ M_MARK = '<svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#l
 P_VIEW = '0 0 97 77'  # the symbol carries the logo's own coordinates (257.5 357.5 97 77)
 P_MARK = f'<svg viewBox="{P_VIEW}" aria-hidden="true"><use href="#logo-p"/></svg>'
 WORDMARK = f'<span class="wm pk" role="img" aria-label="The Park Hotels">{P_MARK}</span>'
+CHEV = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg>'
+PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>'
+
+
+def btn(text, sub='', href='', cls=''):
+    """Hanza's button: a black block, mono words with a grey /suffix, an orange end with a chevron."""
+    inner = f'<span>{text}{f" <em>/{sub}</em>" if sub else ""}</span><i>{CHEV}</i>'
+    if href:
+        return f'<a class="btn{" " + cls if cls else ""}" href="{href}">{inner}</a>'
+    return f'<span class="btn{" " + cls if cls else ""}">{inner}</span>'
+
+
+def lab(text, no='', cls=''):
+    """The section label: an orange square, a mono number, the name."""
+    return f'<p class="lab{" " + cls if cls else ""}">{f"<span class=mn>{no}</span>" if no else ""}<span>{text}</span></p>'
+
+
+def dots(on, of=3):
+    return '<span class="dots" aria-hidden="true">' + ''.join(f'<i{" class=on" if i < on else ""}></i>' for i in range(of)) + '</span>'
+
+
+def hh(grey, ink, cls='h1', tag='h2'):
+    """A two-tone heading: the grey line, then the ink line."""
+    return f'<{tag} class="{cls}"><span class="g">{grey}</span> {ink}</{tag}>'
+
+
+CHAPTERS = {'The Park today': '01', 'The idea': '02', 'How it runs': '03'}
 
 
 def head(section):
-    return (f'<div class="head">{WORDMARK}'
-            f'<span class="sec"><span class="label">{section}</span>{M_MARK}</span></div>')
+    """The running head: The Park's mark left, the section label on the third guide, the Mask360 button right."""
+    ch = section.split(' · ')[0]
+    return (f'<div class="head">{WORDMARK}<p class="lab">{f"<span class=mn>{CHAPTERS[ch]}</span>" if ch in CHAPTERS else ""}<span>{ch}</span></p>'
+            f'<a class="btn" href="#next"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
 
 
 def fab(kind, seed=1, cls='fab'):
@@ -24,27 +54,37 @@ def slide(sid, section, body, src='', dark=False, cls='', bare=False, cloth=None
     """bare=True drops the running head (cover, close); cloth=(kind, seed) paints the whole slide with cloth."""
     hd = '' if bare else head(section)
     bg = fab(*cloth) if cloth else ''
-    folio = f'<div class="folio"><span class="src">{src}</span><span class="pg label" data-pg></span></div>'
+    folio = f'<div class="folio"><span class="src">{src}</span><span class="pg" data-pg></span></div>'
     return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" aria-label="{esc(section)}">{bg}'
             f'<div class="frame">{hd}<div class="body">{body}</div>{folio}</div></section>')
 
 
 def sep(n):
-    """Set the separators inside a Didone number in the sans (the Didone's are hairlines that vanish)."""
-    return re.sub(r'([,–~+])', r'<span class="sep">\1</span>', n)
+    return re.sub(r'([,~+])', r'<span class="sep">\1</span>', n)
 
 
-def chapter(sid, no, title, line, cloth):
-    """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line."""
-    body = (f'<div class="chap grow"><span class="cn">{no}</span><h2 class="ct">{title}</h2>'
-            + (f'<p class="cl">{line}</p>' if line else '') + '</div>')
-    return slide(sid, f'{no} · {title}', body, dark=True, cls='chapter scrim', cloth=cloth)
+def chapter(sid, no, title, line, cloth, inset, pages):
+    """A chapter opener in the manner of Hanza's case-study rows: cloth full bleed, the meta row on the guides, an inset
+    cloth card with a button to the first page, the title bottom right, the chapter's pages listed beside the line.
+    title is (grey line, white line); pages is [(page number, name, slide id)]."""
+    first = pages[0]
+    lst = ''.join(f'<li><span class="mn">/{p}</span><a href="#{i}">{n}</a></li>' for p, n, i in pages)
+    body = f'''<div class="chap grow">
+  <p class="lab c1" style="grid-row:1"><span class="mn">{no}</span><span>Chapter</span></p>
+  <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>{title[0]} {title[1]}</p>
+  <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>{pages[0][0]} to {pages[-1][0]}</p>
+  <div class="inset tile">{fab(*inset)}{btn("Begin", first[0], "#" + first[2])}</div>
+  <div class="ttl"><h2 class="ct"><span class="g">{title[0]}</span> {title[1]}</h2></div>
+  <p class="cl lede-s">{line}</p>
+  <ul class="pages">{lst}</ul>
+</div>'''
+    return slide(sid, f'{no} · {title[0]} {title[1]}', body, dark=True, cls='chapter scrim', cloth=cloth, bare=True)
 
 
-def stat(num, label, source='', small=''):
-    s = f'<div class="s">{source}</div>' if source else ''
-    sm = f'<small>{small}</small>' if small else ''
-    return f'<div class="stat"><div class="num"><span>{sep(num)}{sm}</span></div><div class="k">{label}</div>{s}</div>'
+def stat(num, label, source='', idx='', on=1, of=3):
+    """Hanza's stat card: an orange rule, a mono number and label with progress squares, the big number, the line."""
+    return (f'<div class="card"><div class="card-h"><p class="lab" style="gap:.5em"><span class="mn">{idx}</span><span>{label}</span></p>'
+            f'{dots(on, of)}</div><div class="big mt-m">{sep(num)}</div><p class="ink2">{source}</p></div>')
 
 
 def ul(items, cls='list'):
@@ -70,18 +110,22 @@ def table(cols, rows, cls='tbl', right=(), total=None, col_cls=None):
 
 
 def tile(kind, seed, no, title, dark_text=False, cls=''):
-    """A cloth tile with a Didone number top left and a thin uppercase title bottom left."""
+    """A cloth tile under grain, a mono number top left and an uppercase title bottom left."""
     return (f'<div class="tile{" d" if dark_text else ""}{" " + cls if cls else ""}">{fab(kind, seed)}'
             f'<div class="ov"><span class="no">{no}</span><span class="t">{title}</span></div></div>')
 
 
-def video_card(v, caption, meta=''):
-    """v: a row from media/manifest.json (file, poster, size). Nothing loads until play; play opens the clip over the deck."""
+def video_card(v, no, source, caption, take, series):
+    """A reference clip as a Hanza card: a mono row, the still with a play button and the running time, the series it feeds,
+    the caption and what we take from it. v is a row from media/manifest.json. Nothing loads until play; play opens the
+    clip over the deck."""
     w, h = v['size']
-    name = esc(re.sub(r'<[^>]+>', '', caption))
-    return (f'<figure class="vcard"><div class="vbox" style="--ar:{w}/{h};--poster:url(media/{v["poster"]})">'
+    secs = round(v['src']['duration'])
+    name = esc(re.sub(r'<[^>]+>', '', f'Ref {no}, {source}. {caption}'))
+    return (f'<figure class="vcard"><div class="pc-h"><span class="mono"><span class="k">Ref</span>{no}</span><span class="mono">{source}</span></div>'
+            f'<div class="vbox" style="--ar:{w}/{h};--poster:url(media/{v["poster"]})">'
             f'<video preload="none" playsinline poster="media/{v["poster"]}" aria-label="{name}">'
             f'<source src="media/{v["file"]}" type="video/mp4"></video>'
-            f'<button class="vplay" type="button" aria-label="Play: {name}"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span></button>'
-            f'</div><figcaption class="cap">{caption}</figcaption>'
-            + (f'<div class="meta">{meta}</div>' if meta else '') + '</figure>')
+            f'<button class="vplay" type="button" aria-label="Play: {name}"><span><b>Play</b><i>{PLAY}</i></span></button>'
+            f'<span class="dur">{secs // 60}:{secs % 60:02d}</span></div>'
+            f'<figcaption class="vb"><p class="lab">{series}</p><p class="cap">{caption}</p><p class="take">{take}</p></figcaption></figure>')

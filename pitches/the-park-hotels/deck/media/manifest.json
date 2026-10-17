@@ -11,15 +11,16 @@
     "audio": true,
     "duration": 6.846667
    },
-   "file": "10.mp4",
+   "file": "white-lotus-loop.mp4",
    "out_bytes": 801118,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "10.jpg",
-   "strip": "10.strip.jpg"
+   "poster": "white-lotus-loop.jpg",
+   "strip": "../../ref/video-strips/white-lotus-loop.jpg",
+   "slug": "white-lotus-loop"
   },
   {
    "source": "11.mp4",
@@ -31,15 +32,16 @@
     "audio": true,
     "duration": 25.033333
    },
-   "file": "11.mp4",
+   "file": "savoy-breakfast.mp4",
    "out_bytes": 2680501,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "11.jpg",
-   "strip": "11.strip.jpg"
+   "poster": "savoy-breakfast.jpg",
+   "strip": "../../ref/video-strips/savoy-breakfast.jpg",
+   "slug": "savoy-breakfast"
   },
   {
    "source": "12.mp4",
@@ -51,15 +53,16 @@
     "audio": true,
     "duration": 8.568345
    },
-   "file": "12.mp4",
+   "file": "savoy-check-in.mp4",
    "out_bytes": 353451,
    "crf": 26,
    "size": [
     352,
     448
    ],
-   "poster": "12.jpg",
-   "strip": "12.strip.jpg"
+   "poster": "savoy-check-in.jpg",
+   "strip": "../../ref/video-strips/savoy-check-in.jpg",
+   "slug": "savoy-check-in"
   },
   {
    "source": "13.mp4",
@@ -71,15 +74,16 @@
     "audio": true,
     "duration": 15.016667
    },
-   "file": "13.mp4",
+   "file": "four-seasons-suites.mp4",
    "out_bytes": 1628089,
    "crf": 26,
    "size": [
     576,
     864
    ],
-   "poster": "13.jpg",
-   "strip": "13.strip.jpg"
+   "poster": "four-seasons-suites.jpg",
+   "strip": "../../ref/video-strips/four-seasons-suites.jpg",
+   "slug": "four-seasons-suites"
   },
   {
    "source": "2.mp4",
@@ -91,15 +95,16 @@
     "audio": true,
     "duration": 11.7
    },
-   "file": "2.mp4",
+   "file": "roseate-delhi.mp4",
    "out_bytes": 1565547,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "2.jpg",
-   "strip": "2.strip.jpg"
+   "poster": "roseate-delhi.jpg",
+   "strip": "../../ref/video-strips/roseate-delhi.jpg",
+   "slug": "roseate-delhi"
   },
   {
    "source": "3.mp4",
@@ -111,15 +116,16 @@
     "audio": true,
     "duration": 12.233333
    },
-   "file": "3.mp4",
+   "file": "roseate-food.mp4",
    "out_bytes": 1040582,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "3.jpg",
-   "strip": "3.strip.jpg"
+   "poster": "roseate-food.jpg",
+   "strip": "../../ref/video-strips/roseate-food.jpg",
+   "slug": "roseate-food"
   },
   {
    "source": "4.mp4",
@@ -131,15 +137,16 @@
     "audio": true,
     "duration": 68.32
    },
-   "file": "4.mp4",
+   "file": "bulgari-niko-romito.mp4",
    "out_bytes": 6720115,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "4.jpg",
-   "strip": "4.strip.jpg"
+   "poster": "bulgari-niko-romito.jpg",
+   "strip": "../../ref/video-strips/bulgari-niko-romito.jpg",
+   "slug": "bulgari-niko-romito"
   },
   {
    "source": "5.mp4",
@@ -151,15 +158,16 @@
     "audio": true,
     "duration": 48.08
    },
-   "file": "5.mp4",
+   "file": "bulgari-la-terrazza.mp4",
    "out_bytes": 5619554,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "5.jpg",
-   "strip": "5.strip.jpg"
+   "poster": "bulgari-la-terrazza.jpg",
+   "strip": "../../ref/video-strips/bulgari-la-terrazza.jpg",
+   "slug": "bulgari-la-terrazza"
   },
   {
    "source": "6.mp4",
@@ -171,15 +179,16 @@
     "audio": true,
     "duration": 18.08
    },
-   "file": "6.mp4",
+   "file": "bulgari-dubai-details.mp4",
    "out_bytes": 1853885,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "6.jpg",
-   "strip": "6.strip.jpg"
+   "poster": "bulgari-dubai-details.jpg",
+   "strip": "../../ref/video-strips/bulgari-dubai-details.jpg",
+   "slug": "bulgari-dubai-details"
   },
   {
    "source": "7.mp4",
@@ -191,15 +200,16 @@
     "audio": true,
     "duration": 40.748333
    },
-   "file": "7.mp4",
+   "file": "rosewood-dinner.mp4",
    "out_bytes": 3076300,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "7.jpg",
-   "strip": "7.strip.jpg"
+   "poster": "rosewood-dinner.jpg",
+   "strip": "../../ref/video-strips/rosewood-dinner.jpg",
+   "slug": "rosewood-dinner"
   },
   {
    "source": "8.mp4",
@@ -211,15 +221,16 @@
     "audio": true,
     "duration": 16.9
    },
-   "file": "8.mp4",
+   "file": "amankila-hotel-diaries.mp4",
    "out_bytes": 1358686,
    "crf": 26,
    "size": [
     464,
     832
    ],
-   "poster": "8.jpg",
-   "strip": "8.strip.jpg"
+   "poster": "amankila-hotel-diaries.jpg",
+   "strip": "../../ref/video-strips/amankila-hotel-diaries.jpg",
+   "slug": "amankila-hotel-diaries"
   },
   {
    "source": "9.mp4",
@@ -231,35 +242,16 @@
     "audio": true,
     "duration": 16.835011
    },
-   "file": "9.mp4",
+   "file": "room-walk.mp4",
    "out_bytes": 1130076,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "9.jpg",
-   "strip": "9.strip.jpg"
-  },
-  {
-   "source": "WhatsApp Video 2026-10-17 at 6.58.05 PM (1).mp4",
-   "bytes": 10785927,
-   "src": {
-    "width": 576,
-    "height": 1024,
-    "fps": "30/1",
-    "audio": true,
-    "duration": 51.833333
-   },
-   "file": "whatsapp-video-2026-10-17-at-6-58-05-pm-1.mp4",
-   "out_bytes": 7790877,
-   "crf": 26,
-   "size": [
-    576,
-    1024
-   ],
-   "poster": "whatsapp-video-2026-10-17-at-6-58-05-pm-1.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-6-58-05-pm-1.strip.jpg"
+   "poster": "room-walk.jpg",
+   "strip": "../../ref/video-strips/room-walk.jpg",
+   "slug": "room-walk"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 6.58.05 PM.mp4",
@@ -271,35 +263,16 @@
     "audio": true,
     "duration": 51.833333
    },
-   "file": "whatsapp-video-2026-10-17-at-6-58-05-pm.mp4",
+   "file": "mama-shelter.mp4",
    "out_bytes": 7790877,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-6-58-05-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-6-58-05-pm.strip.jpg"
-  },
-  {
-   "source": "WhatsApp Video 2026-10-17 at 7.01.11 PM (1).mp4",
-   "bytes": 4603834,
-   "src": {
-    "width": 576,
-    "height": 1024,
-    "fps": "24/1",
-    "audio": true,
-    "duration": 21.75
-   },
-   "file": "whatsapp-video-2026-10-17-at-7-01-11-pm-1.mp4",
-   "out_bytes": 2216844,
-   "crf": 26,
-   "size": [
-    576,
-    1024
-   ],
-   "poster": "whatsapp-video-2026-10-17-at-7-01-11-pm-1.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-01-11-pm-1.strip.jpg"
+   "poster": "mama-shelter.jpg",
+   "strip": "../../ref/video-strips/mama-shelter.jpg",
+   "slug": "mama-shelter"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.01.11 PM.mp4",
@@ -311,15 +284,16 @@
     "audio": true,
     "duration": 21.75
    },
-   "file": "whatsapp-video-2026-10-17-at-7-01-11-pm.mp4",
+   "file": "florence-villa.mp4",
    "out_bytes": 2216844,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-01-11-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-01-11-pm.strip.jpg"
+   "poster": "florence-villa.jpg",
+   "strip": "../../ref/video-strips/florence-villa.jpg",
+   "slug": "florence-villa"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.01.43 PM.mp4",
@@ -331,15 +305,16 @@
     "audio": true,
     "duration": 16.708333
    },
-   "file": "whatsapp-video-2026-10-17-at-7-01-43-pm.mp4",
+   "file": "housekeeping.mp4",
    "out_bytes": 1908239,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-01-43-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-01-43-pm.strip.jpg"
+   "poster": "housekeeping.jpg",
+   "strip": "../../ref/video-strips/housekeeping.jpg",
+   "slug": "housekeeping"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.02.34 PM.mp4",
@@ -351,15 +326,16 @@
     "audio": true,
     "duration": 31.333333
    },
-   "file": "whatsapp-video-2026-10-17-at-7-02-34-pm.mp4",
+   "file": "raffles-jaipur-postcards.mp4",
    "out_bytes": 3177344,
    "crf": 26,
    "size": [
     1024,
     576
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-02-34-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-02-34-pm.strip.jpg"
+   "poster": "raffles-jaipur-postcards.jpg",
+   "strip": "../../ref/video-strips/raffles-jaipur-postcards.jpg",
+   "slug": "raffles-jaipur-postcards"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.03.03 PM.mp4",
@@ -371,15 +347,16 @@
     "audio": true,
     "duration": 43.085
    },
-   "file": "whatsapp-video-2026-10-17-at-7-03-03-pm.mp4",
+   "file": "small-room.mp4",
    "out_bytes": 3932275,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-03-03-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-03-03-pm.strip.jpg"
+   "poster": "small-room.jpg",
+   "strip": "../../ref/video-strips/small-room.jpg",
+   "slug": "small-room"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.03.29 PM.mp4",
@@ -391,15 +368,16 @@
     "audio": true,
     "duration": 32.266667
    },
-   "file": "whatsapp-video-2026-10-17-at-7-03-29-pm.mp4",
+   "file": "presidential-suite.mp4",
    "out_bytes": 3667331,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-03-29-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-03-29-pm.strip.jpg"
+   "poster": "presidential-suite.jpg",
+   "strip": "../../ref/video-strips/presidential-suite.jpg",
+   "slug": "presidential-suite"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.03.49 PM.mp4",
@@ -411,15 +389,16 @@
     "audio": true,
     "duration": 13.5
    },
-   "file": "whatsapp-video-2026-10-17-at-7-03-49-pm.mp4",
+   "file": "bulgari-roma.mp4",
    "out_bytes": 1638950,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-03-49-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-03-49-pm.strip.jpg"
+   "poster": "bulgari-roma.jpg",
+   "strip": "../../ref/video-strips/bulgari-roma.jpg",
+   "slug": "bulgari-roma"
   },
   {
    "source": "WhatsApp Video 2026-10-17 at 7.04.39 PM.mp4",
@@ -431,39 +410,17 @@
     "audio": true,
     "duration": 38.2
    },
-   "file": "whatsapp-video-2026-10-17-at-7-04-39-pm.mp4",
+   "file": "lacoste-collab.mp4",
    "out_bytes": 5243754,
    "crf": 26,
    "size": [
     576,
     1024
    ],
-   "poster": "whatsapp-video-2026-10-17-at-7-04-39-pm.jpg",
-   "strip": "whatsapp-video-2026-10-17-at-7-04-39-pm.strip.jpg"
+   "poster": "lacoste-collab.jpg",
+   "strip": "../../ref/video-strips/lacoste-collab.jpg",
+   "slug": "lacoste-collab"
   }
  ],
- "downloaded": [
-  "raw-videos/10.mp4",
-  "raw-videos/11.mp4",
-  "raw-videos/12.mp4",
-  "raw-videos/13.mp4",
-  "raw-videos/2.mp4",
-  "raw-videos/3.mp4",
-  "raw-videos/4.mp4",
-  "raw-videos/5.mp4",
-  "raw-videos/6.mp4",
-  "raw-videos/7.mp4",
-  "raw-videos/8.mp4",
-  "raw-videos/9.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 6.58.05 PM (1).mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 6.58.05 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.01.11 PM (1).mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.01.11 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.01.43 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.02.34 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.03.03 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.03.29 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.03.49 PM.mp4",
-  "raw-videos/WhatsApp Video 2026-10-17 at 7.04.39 PM.mp4"
- ]
+ "note": "Renamed by hand after the fetch; the two WhatsApp (1) copies were byte-identical duplicates and are dropped."
 }

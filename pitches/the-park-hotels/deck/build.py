@@ -35,7 +35,7 @@ symbols = ('<svg width="0" height="0" style="position:absolute" aria-hidden="tru
 
 slides = content.slides()
 n = len(slides)
-slides = [s.replace('<span class="pg label" data-pg></span>', f'<span class="pg label">{i + 1:02d} / {n:02d}</span>') for i, s in enumerate(slides)]
+slides = [s.replace('<span class="pg" data-pg></span>', f'<span class="pg"><span class="k">Page</span>{i + 1:02d}/{n:02d}</span>') for i, s in enumerate(slides)]
 
 title = content.TITLE
 fragment = (f'<title>{title}</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n'
