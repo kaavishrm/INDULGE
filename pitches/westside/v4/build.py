@@ -1,4 +1,4 @@
-"""Builds the v4 proposal: python3 pitches/westside/v4/build.py  (STRICT=1 fails on banned words or leftovers)
+"""Builds the proposal: python3 pitches/westside/v4/build.py  (STRICT=1 fails on banned words or leftovers)
 
 Writes to pitches/westside/dist/:
   westside-proposal.html  the page fragment published as the claude.ai artifact
@@ -23,7 +23,7 @@ def path_d(svg):
 
 
 css = re.sub(r'\{\{FONT:([\w-]+)\}\}', lambda m: font(m.group(1)), (V / 'deck.css').read_text())
-js = (V / 'deck.js').read_text()
+js = (V / 'fabric.js').read_text() + '\n' + (V / 'deck.js').read_text()
 symbols = ('<svg width="0" height="0" style="position:absolute" aria-hidden="true">'
            f'<symbol id="logo-w" viewBox="0 0 1506 1194"><path fill-rule="evenodd" d="{path_d("w.svg")}"/></symbol>'
            f'<symbol id="logo-m" viewBox="0 0 1632 473"><path fill-rule="evenodd" d="{path_d("m360.svg")}"/></symbol></svg>')

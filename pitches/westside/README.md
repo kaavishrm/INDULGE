@@ -1,12 +1,12 @@
 # Westside × Mask360 · proposal, version 4
 
-A plain 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. Version 4 replaces the app-style v3 ("Seen at Westside"), which is still in git history.
+A 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. It keeps the v3 look (white paper and black ink, thin uppercase Inter Tight, Bodoni numbers in ruled boxes, procedurally drawn cloth, a dark silk cover) without v3's app layer: no menu, search, tabs, "Details +" sheets, buttons, carousels or orange. The content is version 4's (verified facts, three ideas, the 15 mn plan). The v3 sources are in git history.
 
 - **Send:** the website link (see `web.py` and `.github/workflows/deploy-westside.yml`). The page is `dist/index.html` plus the reference videos in `media/out/`.
 - **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
 - **Print or PDF:** printing from a browser gives one slide per page.
 
-## The 22 slides
+## The 23 slides
 
 1. **Cover and our promise.** From the post to the billing counter, measured on footfall per store. The test is one city for twelve weeks, built around a store launch or the wedding season. If the numbers don't move, you lose nothing.
 2. **Westside today** (3 slides):
@@ -19,7 +19,7 @@ A plain 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. Vers
    - **The Westside Coffee Cart:** a menu named after Westside labels, with a look code on every cup. 5.4 mn.
    - **Window Stories:** Rahul and Anjali getting ready for dinner, then a different story in every store. 4.7 mn.
 5. **The numbers.** Each line is units × average, with low, plan and high. The baseline is YNG's 6 mn views in January to March 2026 (Trent Q4 FY26 deck), plus a commitment to beat Westside's best comparable campaign by at least 20%. Organic lines count views (10.6 mn) and paid lines count impressions (4.4 mn).
-6. **Measurement, the test, the timeline, Mask360 and next steps.**
+6. **Measurement, the test, the timeline, Mask360, next steps and a closing page.**
 7. **Appendix:** two slides of the team's 24 reference clips. Press play and the clip opens large over the deck, with the browser's own controls (sound, volume, full screen).
 
 ## Sources
@@ -40,7 +40,8 @@ Every number has its source on the slide.
 - `v4/content.py`: slide copy and layout.
 - `v4/data.py`: facts, the twelve months, the competitor rows and the impressions model. Totals are computed, so the parts always add up.
 - `v4/art.py`: the line illustrations.
-- `v4/deck.css`, `v4/deck.js`: the deck's styles and keyboard navigation.
+- `v4/fabric.js`: the cloth on the cover, the month strip and the idea tiles, drawn in the browser (from v3, with the warm textiles removed).
+- `v4/deck.css`, `v4/deck.js`: the deck's styles, keyboard navigation, cloth painting and the video player.
 
 Build with:
 

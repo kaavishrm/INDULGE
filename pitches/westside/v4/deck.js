@@ -69,6 +69,15 @@
   });
   vids.forEach(v => v.addEventListener('webkitendfullscreen', close));
 
+  // cloth: each canvas is painted (fabric.js) when it comes near the screen, and again when its size changes
+  const fabs = [...document.querySelectorAll('canvas[data-fab]')];
+  const paint = (cv, force) => { try { Fabric.draw(cv, cv.dataset.fab, +cv.dataset.seed || 1, undefined, force); } catch (e) {} };
+  const fio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) paint(e.target); }), { rootMargin: '100% 0px' });
+  fabs.forEach(c => fio.observe(c));
+  let rt;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => fabs.forEach(c => { fio.unobserve(c); fio.observe(c); }), 150); });
+  addEventListener('beforeprint', () => fabs.forEach(c => paint(c, true)));
+
   if (location.hash) {
     const el = document.getElementById(location.hash.slice(1));
     if (el) el.scrollIntoView({ block: 'start' });
