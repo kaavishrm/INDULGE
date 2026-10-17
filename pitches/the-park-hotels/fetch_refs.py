@@ -1,4 +1,4 @@
-"""Fetches the references for The Park deck: python3 pitches/the-park-hotels/fetch_refs.py site|videos <out-dir>
+"""Fetches the references for The Park deck: python3 pitches/the-park-hotels/fetch_refs.py site|videos|motion <out-dir>
 
 Runs in GitHub Actions (.github/workflows/park-refs.yml), because the coding sandbox cannot reach framer.website or
 Google Drive.
@@ -6,6 +6,9 @@ Google Drive.
           each page's text and HTML, the computed type scale, the colours in use and the font files it loads.
   videos  downloads the shared Google Drive folder of video references, re-encodes each one small enough to publish
           with the deck (H.264, faststart, under 12 MB), and writes a poster, a frame strip and manifest.json.
+  motion  records how the Hanza template moves: a video of the intro, one wheel tick, a burst, a slow scroll through the
+          page and the hovers, a frame-by-frame log of scrollY (the smooth-scroll curve), contact sheets of frames after
+          each event, and the animation settings found in the site's own scripts (js-grep.txt).
 """
 import json, pathlib, re, shutil, subprocess, sys, traceback
 from urllib.parse import urlparse, urldefrag
@@ -199,5 +202,136 @@ def videos(out):
     print(json.dumps(manifest, indent=1))
 
 
+MOTION_PATTERNS = ['__framer__presenceAnimate', '__framer__presenceInitial', '__framer__animate', '__framer__enter', '__framer__exit',
+                   '__framer__threshold', '__framer__styleTransformEffectEnabled', '__framer__transformTargets', '__framer__transformTrigger',
+                   '__framer__spring', '__framer__loopEffectEnabled', '__framer__loop', '__framer__variantAppearEffectEnabled',
+                   '__framer__targetOpacity', 'tokenization', 'whileHover', 'whileTap', 'new Lenis', 'lerp:', 'smoothWheel', 'wheelMultiplier',
+                   'useScroll', 'scrollYProgress', 'perspective', '"Hover"', 'Hover:', 'backdropFilter', 'mask-image', 'Ticker', 'marquee']
+
+
+def motion(out):
+    import time
+    from playwright.sync_api import sync_playwright
+    out.mkdir(parents=True, exist_ok=True)
+    (out / 'sheets').mkdir(exist_ok=True)
+    js_dir = pathlib.Path('hanza-js'); js_dir.mkdir(exist_ok=True)
+    marks, js = [], {}
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={'width': 1440, 'height': 900}, record_video_dir='hanza-video',
+                                  record_video_size={'width': 1440, 'height': 900})
+        ctx.add_init_script("window.__log=[];(function f(){window.__log.push([Math.round(performance.now()),Math.round(scrollY)]);requestAnimationFrame(f)})();")
+        page = ctx.new_page()
+        t0 = time.monotonic()
+
+        def keep_js(resp):
+            u = resp.url
+            if resp.request.resource_type == 'script' and u not in js:
+                try:
+                    body = resp.body()
+                    name = re.sub(r'[^\w.-]+', '_', urlparse(u).path)[-90:] or 'script'
+                    (js_dir / name).write_bytes(body)
+                    js[u] = name
+                except Exception as e:  # a script that cannot be read should not stop the capture
+                    js[u] = f'failed: {e!r}'
+        page.on('response', keep_js)
+
+        def mark(name):
+            marks.append({'name': name, 'video_s': round(time.monotonic() - t0, 3), 'perf_ms': page.evaluate('Math.round(performance.now())')})
+
+        def hover(text, name):
+            try:
+                el = page.get_by_text(text, exact=False).first
+                el.scroll_into_view_if_needed(timeout=5000)
+                page.wait_for_timeout(1500)
+                box = el.bounding_box()
+                page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2, steps=4)
+                mark(f'hover-{name}')
+                page.wait_for_timeout(1200)
+                page.mouse.move(5, 450, steps=4)
+                mark(f'unhover-{name}')
+                page.wait_for_timeout(1200)
+            except Exception as e:
+                marks.append({'name': f'hover-{name}-failed', 'error': repr(e)})
+
+        page.goto(SITE, wait_until='domcontentloaded', timeout=120000)
+        mark('load')
+        page.wait_for_timeout(3500)
+        page.mouse.move(720, 450)
+        mark('wheel-one-tick')
+        page.mouse.wheel(0, 100)
+        page.wait_for_timeout(1800)
+        mark('wheel-burst')
+        for _ in range(10):
+            page.mouse.wheel(0, 100)
+            page.wait_for_timeout(16)
+        page.wait_for_timeout(2200)
+        mark('cruise')
+        h = page.evaluate('document.documentElement.scrollHeight')
+        n = 0
+        while page.evaluate('scrollY') + 900 < h - 50 and n < 260:
+            page.mouse.wheel(0, 90)
+            page.wait_for_timeout(110)
+            n += 1
+        mark('cruise-end')
+        page.wait_for_timeout(1500)
+        page.keyboard.press('Home')
+        page.wait_for_timeout(2500)
+        mark('top')
+        hover('Start Project', 'cta')
+        hover('Menu', 'menu')
+        try:
+            page.get_by_text('Menu', exact=False).first.click()
+            mark('menu-open')
+            page.wait_for_timeout(1800)
+            page.keyboard.press('Escape')
+            page.mouse.click(1400, 60)
+            mark('menu-close')
+            page.wait_for_timeout(1500)
+        except Exception as e:
+            marks.append({'name': 'menu-failed', 'error': repr(e)})
+        hover('View Project', 'view-project')
+        hover('All Projects', 'all-projects')
+        hover('Book a Call', 'book-call')
+        hover('What Makes A Website', 'blog-card')
+        hover('Strategy', 'accordion')
+        log = page.evaluate('window.__log')
+        video_path = page.video.path()
+        ctx.close()
+        browser.close()
+    (out / 'scroll-log.json').write_text(json.dumps({'marks': marks, 'log': log}))
+    (out / 'marks.json').write_text(json.dumps(marks, indent=1))
+    # a small copy of the recording, and contact sheets of the frames after each event (10 fps, 1.6 s)
+    subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', str(video_path), '-vf', 'scale=960:-2', '-c:v', 'libx264', '-crf', '30',
+                    '-preset', 'slow', '-pix_fmt', 'yuv420p', '-an', str(out / 'hanza-motion.mp4')], check=False)
+    for m in marks:
+        if 'video_s' not in m:
+            continue
+        span = 6 if m['name'] in ('cruise',) else 1.6
+        cols = 8
+        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f"{max(0, m['video_s'] - 0.1):.2f}", '-t', f'{span}', '-i', str(video_path),
+                        '-vf', f'fps={10 if span < 2 else 4},scale=360:-2,tile={cols}x2', '-frames:v', '1', '-q:v', '4',
+                        str(out / 'sheets' / f"{m['name']}.jpg")], check=False)
+    # the animation settings, read from the site's own scripts
+    lines = [f'{len(js)} scripts', *[f'{v}  <-  {k}' for k, v in js.items()], '']
+    blob = {f: (js_dir / f).read_text(errors='replace') for f in js.values() if (js_dir / f).exists()}
+    for pat in MOTION_PATTERNS:
+        hits = []
+        for f, text in blob.items():
+            for m_ in re.finditer(re.escape(pat), text):
+                hits.append((f, text[max(0, m_.start() - 260):m_.end() + 420].replace('\n', ' ')))
+        seen, uniq = set(), []
+        for f, ctx_ in hits:
+            key = re.sub(r'\w{6,}', '', ctx_)[:180]
+            if key not in seen:
+                seen.add(key)
+                uniq.append((f, ctx_))
+        lines.append(f'===== {pat}: {len(hits)} hits, {len(uniq)} distinct')
+        for f, ctx_ in uniq[:14]:
+            lines.append(f'--- {f}\n{ctx_}\n')
+    (out / 'js-grep.txt').write_text('\n'.join(lines))
+    print(json.dumps(marks, indent=1))
+
+
 if __name__ == '__main__':
-    {'site': site, 'videos': videos}[sys.argv[1]](pathlib.Path(sys.argv[2]))
+    {'site': site, 'videos': videos, 'motion': motion}[sys.argv[1]](pathlib.Path(sys.argv[2]))

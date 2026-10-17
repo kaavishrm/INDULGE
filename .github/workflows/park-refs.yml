@@ -36,15 +36,21 @@ jobs:
           python3 pitches/the-park-hotels/fetch_refs.py site pitches/the-park-hotels/ref/hanza 2>&1 | tee site.log
       - name: Download and encode the videos
         continue-on-error: true
-        run: python3 pitches/the-park-hotels/fetch_refs.py videos pitches/the-park-hotels/deck/media 2>&1 | tee videos.log
+        run: |
+          # fetched once already; empty deck/media/manifest.json's files to fetch again
+          if python3 -c "import json,sys;sys.exit(0 if json.load(open('pitches/the-park-hotels/deck/media/manifest.json')).get('files') else 1)"; then cp pitches/the-park-hotels/ref/videos.log videos.log; exit 0; fi
+          python3 pitches/the-park-hotels/fetch_refs.py videos pitches/the-park-hotels/deck/media 2>&1 | tee videos.log
+      - name: Record how the Hanza template moves
+        continue-on-error: true
+        run: python3 pitches/the-park-hotels/fetch_refs.py motion pitches/the-park-hotels/ref/hanza-motion 2>&1 | tee motion.log
       - name: Commit the files
         run: |
           mkdir -p pitches/the-park-hotels/ref
-          cp site.log videos.log pitches/the-park-hotels/ref/ 2>/dev/null || true
+          cp site.log videos.log motion.log pitches/the-park-hotels/ref/ 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pitches/the-park-hotels/ref pitches/the-park-hotels/deck/media
-          git commit -m "The Park deck: Hanza template capture and the video references" || exit 0
+          git commit -m "The Park deck: Hanza template capture, motion and the video references" || exit 0
           for i in 1 2 3 4 5; do
             git pull --rebase -q origin "${{ github.ref_name }}" && git push origin "HEAD:${{ github.ref_name }}" && exit 0
             sleep $((i * 5))
