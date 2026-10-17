@@ -57,7 +57,7 @@ def sep(n):
 def chapter(sid, no, title, line, cloth):
     """A chapter opener: cloth full bleed, a Didone chapter number, the chapter title and one line."""
     body = (f'<div class="chap grow"><span class="cn">{no}</span><h2 class="ct">{title}</h2>'
-            + (f'<p class="clogo">{line}</p>' if line else '') + '</div>')
+            + (f'<p class="cl">{line}</p>' if line else '') + '</div>')
     return slide(sid, f'{no} · {title}', body, dark=True, cls='chapter scrim', cloth=cloth)
 
 
