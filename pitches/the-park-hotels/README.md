@@ -1,37 +1,45 @@
 # The Park Hotels × Mask360 · proposal
 
-Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels), in reply to his LinkedIn call for social media agencies.
+Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels), in reply to the LinkedIn call for social media agencies.
 
-**The deck:** [The Park Hotels × Mask360](https://claude.ai/artifact/7iHP59dK2NgHFLfiwzWX4e), 23 slides. It is private until shared from the page's Share menu.
+**The deck:** [The Park Hotels × Mask360](https://claude.ai/artifact/7iHP59dK2NgHFLfiwzWX4e), 30 slides with 20 reference clips. It is private until shared from the page's Share menu.
 
 **The idea in one line:** The Park is named after a street. *Park Street, everywhere*: each THE Park hotel becomes the Park Street of its city, told through a magazine of its nights.
 
-**The look:** Mask360's house proposal style, from the Westside v4 deck (`claude/wizardly-bardeen-2oc2qq`, `pitches/westside/v4/`). It uses white paper and black ink, thin uppercase Inter Tight, Bodoni only for numbers, hairline rules, procedural cloth, line drawings and the m360 mark. The kit (`deck.css`, `deck.js`, `fabric.js`, `kit.py`, the fonts) is copied from that deck. The Park's corporate mark (`deck/park.svg`, taken from https://www.theparkhotels.com/images/site-specific/park-corporate-logo.svg) sits in the running heads, on the cover and on the close, drawn in each slide's ink. `fetch_logo.py` and the `park-logo` workflow fetch it again if it changes, since the coding sandbox cannot reach theparkhotels.com.
+**The look:** the Hanza Framer template (https://hanza-template.framer.website), as asked:
+- four column guides that stay visible;
+- uppercase Zalando Sans headings in two tones (a grey line, then an ink line), with Geist Mono for small labels;
+- one orange accent (#FF6044) for squares, rules and button ends;
+- Hanza's cards, buttons, accordion rows and case-study rows;
+- dark grain sections between the white ones.
 
-- **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
-- **Print or PDF:** printing `dist/index.html` from a browser gives one slide per page.
+Procedural cloth (`fabric.js`) and line drawings stand in for photography. The Park's corporate mark (`deck/park.svg`, from theparkhotels.com) sits in every running head and on the cover. Both fonts are open-licence (SIL OFL, notes in `deck/fonts/`).
+
+The sandbox cannot reach framer.website or Google Drive, so the `park-refs` workflow fetches them:
+- `fetch_refs.py site` captured the template into `ref/hanza/`: full-page screenshots at desktop and phone width, page text, the computed type and colours, and the fonts.
+- `fetch_refs.py videos` downloaded the shared Drive folder and re-encoded each clip small enough to publish (H.264, under 12 MB) into `deck/media/`, with a poster and a frame strip (`ref/video-strips/`).
+
+- **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page, the mind maps become branching lists and the calendar becomes an agenda.
+- **Play a reference:** press Play on any clip card. The clip opens over the deck with sound and the browser's own controls. Esc, Close or a click outside puts it back.
+- **Print or PDF:** printing `dist/index.html` from a browser gives one slide per page. The clips print as their stills.
 
 ## The slides
 
-A social media pitch in 26 slides. The content plan is drawn as two mind maps.
+A social media pitch in 30 slides. The content plan is drawn as two mind maps, and four pages of reference clips show how it should look.
 
-1. **Cover, our promise, your brief.** The promise: THE Park's feed becomes the city's night out (found, saved, booked). The brief table answers the four things the post asked for, each with its page.
-2. **01 · The Park on social.**
-   - The numbers the feed has to sell: 92% occupancy, 43% of revenue from food and nightlife, RevPAR ₹6,858, 42 hotels, 87 by FY2030, 111 Flurys.
-   - The six channels linked from theparkhotels.com, each with a job and a weekly cadence, plus Spotify and WhatsApp.
-   - The house rule: "We post what only THE Park can."
-3. **The insight:** The Park is named after a street.
-4. **02 · Park Street, everywhere.**
-   - **The content map:** a mind map with the idea at the centre, four pillars (After Hours, By Design, The Table, The City) and sixteen series with their formats.
-   - The pillar mix.
-   - The first fortnight of December on the @theparkhotels grid, drawn as a phone.
-   - Sample captions and three voice rules.
-   - Three series pages with concept drawings: The Sessions (with sample posts), Room 1967 and Flurys 100.
-5. **03 · How it runs.**
-   - December on the feed: a calendar of the series day by day, with Christmas on Park Street and New Year's Eve.
-   - **The handle map:** a second mind map, the group feed and the six brand accents.
-   - Community (residents, regulars, creators, the DMs), post to table, and social KPIs.
-6. **Mask360**, next steps ("Put us in the room."), the close and the sources.
+1. **Cover, our promise, your brief.** The promise: THE Park's feed becomes the city's night out (found, saved, booked). The brief answers the five things the post asked for, each with its pages.
+2. **01 · The Park today (pages 4 to 8).**
+   - The numbers: 92% occupancy, 43% of revenue from food, drink and nightlife, 42 hotels in 32 cities, 45 new hotels by FY2030.
+   - The six channels linked from theparkhotels.com, each with a job and a cadence, plus Spotify and WhatsApp.
+   - The house rule: "We post what only THE Park can", and the series each idea becomes.
+   - The insight: The Park is named after a street.
+3. **02 · Park Street, everywhere (pages 9 to 21).**
+   - **The content map:** a mind map with the idea at the centre, four pillars (After Hours, By Design, The Table, The City) and fifteen series. Each series shows what you see and its format, and the three hero series are marked in orange.
+   - **The references (pages 11 to 14):** the 20 clips from the shared folder, five a page and grouped by what they teach: name the series, film the craft up close, put the people first, make the room the story. Each card names the brand only where the clip shows it, says what is on screen, what we take from it and which of our series it feeds.
+   - Eight posts a week, by pillar; the grid on Saturday 12 December, drawn as a phone; the voice, as three sample captions.
+   - Three series pages with concept drawings: The Sessions (and its Reel, second by second), Room 1967 and Flurys 100.
+4. **03 · How it runs (pages 22 to 28).** December on the feed, day by day; the handle map (the group feed and the six brands); the people who make the feed; what we measure; Mask360; next steps ("Put us in the room.").
+5. **The close and the sources.**
 
 Mask360's rule for cold pitches applies: show the read, take one position, show how it extends into a system, and end on an open door. So there is no pricing and no team grid.
 
@@ -41,9 +49,10 @@ Mask360's rule for cold pitches applies: show the read, take one position, show 
 STRICT=1 python3 pitches/the-park-hotels/deck/build.py
 ```
 
-- `deck/content.py` holds the slide copy and layout. Page references in the brief table are looked up from `ORDER`.
-- `deck/art.py` holds the line drawings: the stage, the suite, the cup and pastry box, the hotel grid and the sample-post phones.
-- The build writes `dist/the-park-proposal.html` (the claude.ai artifact) and `dist/index.html` (the standalone page).
+- `deck/content.py` holds the slide copy and layout. Page references are looked up from `ORDER`, and the clip captions are in `REFS`.
+- `deck/art.py` holds the line drawings and the two mind maps.
+- `deck/kit.py` holds the Hanza pieces: the running head, labels, buttons, cards, chapter rows and the video card.
+- The build writes `dist/the-park-proposal.html` (the claude.ai artifact) and `dist/index.html` (the standalone page). It also copies the clips and stills the page uses into `dist/media/`. Publish those with the page: about 55 MB, the largest file 7.4 MB.
 - `STRICT=1` fails the build on:
   - em or en dashes;
   - contrast constructions ("X, not Y", "rather than", "instead of");
@@ -54,12 +63,14 @@ STRICT=1 python3 pitches/the-park-hotels/deck/build.py
 ## Before sending
 
 - **Share the link.** The artifact is private until shared. To send a website link like the Westside one (`mask360westside`), the same EdgeOne deploy can be added for this deck. It has not been set up.
-- **Client names on slide 20.** These are taken from Kaavish's credentials notes: Anantara Jewel Bagh, The St. Regis Mumbai, Moxy Mumbai, Alta Stella, Onrique and DEA, Atlantis The Royal and SANA, the Penthouse and Moxy feeds, the Nexa Platinum Lounge result, and Dior, Ferrari India, L'Oréal, Dyson and Lollapalooza India. Confirm permission to name each one in a pitch; his notes say press uses career framing because of NDAs.
-- **Contact details on slide 21:** kaavish@mask360.agency, +91 959 107 5100, mask360.agency, mask360.work. Confirm they are the ones to show.
-- **The house rule (slide 8).** Check the last 30 posts on @theparkhotels. If any "what most hotel feeds post" item appears there, swap it out, so the slide doesn't criticise the team it is written to.
+- **The reference clips** come from other hotels' feeds (The Savoy, Four Seasons, The Roseate, Bulgari, Rosewood, Amankila, Mama Shelter, Raffles Jaipur, Lacoste, a White Lotus tie-in, and five hotels not named on screen). Every reference page and the sources say Mask360 did not make them. Before sharing the deck beyond The Park, decide whether third-party clips should travel with it.
+- **The feed audit.** Check the last 30 posts on @theparkhotels. If any idea on the house rule page already runs there, credit it or swap it, so the page doesn't sell the team its own work.
+- **Venue accounts.** Confirm which bars and restaurants have their own handles before the handle map is shown as fact.
+- **Client names on the Mask360 page.** These are taken from Kaavish's credentials notes: Anantara Jewel Bagh, Alta Stella, Onrique and DEA, Atlantis The Royal and SANA, the Penthouse at St. Regis and Moxy feeds, the Nexa Platinum Lounge result, and Dior, Ferrari India, L'Oréal and Dyson. Confirm permission to name each one in a pitch; Kaavish's notes say press uses career framing because of NDAs.
+- **Contact details on the next steps page and the close:** kaavish@mask360.agency, +91 959 107 5100, mask360.agency, mask360.work. Confirm they are the ones to show.
 - **The Sessions.** The deck says bands play original songs and sign a release, with no drinks brands in frame. Keep that, because full sets on YouTube need music rights.
-- **Dates** assume a start on Monday 16 November 2026. The literary festival row assumes the group's festival team agrees.
-- **Growth figure.** 87 hotels by FY2030 is the company's latest (Q1 FY27 material and the 2 Sep 2026 investor meet filing). It replaces the 85 from an earlier Priya Paul interview.
+- **Dates** assume a start on Monday 16 November 2026, with the first readout in the week of 22 February 2027.
+- **Growth figure.** 45 new hotels is the company's own pipeline (87 hotels by FY30, Q1 FY27 material and the 2 Sep 2026 investor meet filing).
 
 ## Research: what matters about The Park
 
@@ -97,7 +108,7 @@ This follows Kaavish's BD flow: a LinkedIn DM in proper case, then a cold email 
 
 **LinkedIn DM**
 
-> Anmol, The Park took its name from Park Street, Calcutta's night out. We built our reply around that: Park Street, everywhere. Someplace Else filmed in one take every month, one suite a year remade by a young Indian designer, and Flurys at 100. It is 23 pages, with the hospitality work behind it: [link]. Thirty minutes with your team would be enough to walk through it.
+> Anmol, The Park took its name from Park Street, Calcutta's night out. We built our reply around that: Park Street, everywhere. Someplace Else filmed in one take every month, one suite a year remade by a young Indian designer, and Flurys at 100. It is 30 pages, with twenty reference clips and the hospitality work behind it: [link]. Thirty minutes with your team would be enough to walk through it.
 >
 > Kaavish Ramchandani, Mask360
 
@@ -111,7 +122,7 @@ This follows Kaavish's BD flow: a LinkedIn DM in proper case, then a cold email 
 >
 > Our reply to your call for agencies builds on it: each THE Park becomes the Park Street of its city. At 92% occupancy, growth comes from rate, tables and 45 new hotels, so we measure covers and direct bookings.
 >
-> The 23-page point of view: [link]
+> The 30-page point of view: [link]
 >
 > Could we have thirty minutes with the brand team?
 >
