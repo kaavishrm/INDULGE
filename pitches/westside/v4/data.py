@@ -32,7 +32,7 @@ LAST12_SHORT = [
     ('Dec ’25', 'Glitz &amp; Glam', 'Party capsule with W.i.S.H.', False),
     ('Jan ’26', '', 'No campaign found', True),
     ('Feb ’26', 'Wesness Fun Run', 'Mumbai · 3,600+', False),
-    ('Mar ’26', 'YNG', '6&nbsp;mn views, Jan–Mar', False),
+    ('Mar ’26', 'YNG', '6&nbsp;mn views, Jan&#8288;–&#8288;Mar', False),
     ('Apr ’26', 'Run2Quiz, Run2Zumba', 'Wesness runs from stores', False),
     ('May ’26', 'Wesness Fun Run', 'Bengaluru · 3,300+', False),
     ('Jun ’26', 'AGM', 'About 50 new stores a year', True),
@@ -99,7 +99,7 @@ BASELINE = {
     'plan_line': ('Westside’s biggest published content figure of the last year is 6&nbsp;mn YNG views, from January to March 2026. '
                   'We commit to beat Westside’s best comparable campaign of the last year by at least 20%.'),
     'compare_line': '',  # filled below from the model
-    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the model on the previous page.',
+    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the impressions model in this appendix.',
 }
 
 # Inputs. Clip and city pages 25,000-50,000 views a post (Qoruz 2025: Rs 1 lakh buys 10-20 meme-page posts and 500,000+ views);

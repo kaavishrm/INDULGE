@@ -34,6 +34,7 @@ img,svg,video,canvas{max-width:100%;display:block}
 .dark{background:var(--night);color:var(--night-ink)}
 .slide>canvas.fab{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 .slide.scrim::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.28) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 50%,rgba(0,0,0,.5) 100%)}
+.slide.chapter:not(.dark)::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.42) 100%)}
 .panel-bg{background:var(--wash)}
 
 /* ---------- type: thin uppercase words, Didone numbers ---------- */
@@ -138,6 +139,8 @@ em,.it{font-style:normal}
 
 /* ---------- statement (the promise) ---------- */
 .q{font-size:calc(var(--u)*4.4);line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;font-weight:300;max-width:18em}
+.q-s{font-size:calc(var(--u)*3.6);max-width:20em}
+.h-next{font-size:calc(var(--u)*5.4)}
 .q u{text-decoration-thickness:1px;text-underline-offset:.12em}
 .terms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid currentColor}
 .terms>div{padding:calc(var(--u)*1) calc(var(--u)*2) calc(var(--u)*1.2) 0;border-right:1px solid var(--hair)}
@@ -161,7 +164,7 @@ em,.it{font-style:normal}
 /* ---------- twelve months: a strip of cloth swatches, one per month, all on one page ---------- */
 .months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:2px;flex:1;min-height:0;align-content:start}
 .months .m{min-width:0;display:flex;flex-direction:column}
-.months .sw{position:relative;height:calc(var(--u)*15);background:var(--wash);overflow:hidden}
+.months .sw{position:relative;height:calc(var(--u)*19);background:var(--wash);overflow:hidden}
 .months .sw canvas{position:absolute;inset:0;width:100%;height:100%}
 .months .mn{position:absolute;left:calc(var(--u)*.6);bottom:calc(var(--u)*.9);font-family:var(--fig);font-size:calc(var(--u)*2.5);line-height:.9;color:#fff;letter-spacing:-.02em}
 .months .mn small{font-family:var(--sans);font-size:max(12px,calc(var(--u)*.8));letter-spacing:.06em;margin-left:.25em;vertical-align:top}
@@ -208,6 +211,7 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .tbl.model tr:has(td b) td{border-bottom-color:var(--ink-3)}
 .tbl .plan-col{font-weight:500}
 .tbl.tight td{padding-block:calc(var(--u)*.42)}
+.tbl.model td{padding-block:calc(var(--u)*.34)}
 .tbl.small td{font-size:calc(var(--u)*.98)}
 .dark .tbl th{color:var(--night-2);border-color:var(--night-ink)}
 .dark .tbl td{border-color:var(--night-hair)}
@@ -222,8 +226,8 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .tile.d{color:var(--ink)}
 .idea{display:flex;flex-direction:column;gap:calc(var(--u)*.9);min-width:0}
 .idea .tile{height:calc(var(--u)*13)}
-.idea .idea-d{min-height:calc(1.5em*3)}
-.idea .rule p.mt-s{min-height:calc(1.5em*2)}
+.idea .idea-d{min-height:calc(1.5em*2)}
+.idea .rule p{min-height:calc(1.5em*2)}
 .idea .imp{font-family:var(--fig);font-size:calc(var(--u)*3.9);line-height:.9;letter-spacing:-.02em}
 .idea .imp small{font-size:.3em;font-family:var(--sans);letter-spacing:.06em;text-transform:uppercase;margin-left:.4em;color:var(--ink-3)}
 
@@ -288,6 +292,8 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 /* ---------- line drawings (monochrome) ---------- */
 .art{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center}
 .art svg{width:100%;height:100%;max-height:100%}
+.art svg{overflow:visible}
+.art svg rect{vector-effect:non-scaling-stroke}
 svg .ln{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 svg .ln2{fill:none;stroke:var(--ink-3);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
 svg .lnp{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
@@ -304,6 +310,7 @@ svg .tx-d{font-family:var(--sans);font-weight:300;font-style:normal!important;te
 .vgrid.two-rows{grid-template-columns:repeat(6,calc(var(--u)*9.8));justify-content:end;column-gap:2px;row-gap:calc(var(--u)*1)}
 .vbox{position:relative;background:var(--night);aspect-ratio:var(--ar,16/9);overflow:hidden}
 .vgrid .vbox{aspect-ratio:9/16}
+.vgrid .vbox::after{content:"";position:absolute;inset:0;border:1px solid var(--hair);pointer-events:none}
 .vbox video{width:100%;height:100%;object-fit:contain;background:var(--night)}
 .vbox .vplay{position:absolute;inset:0;display:grid;place-items:center;border:0;padding:0;cursor:pointer;background:center/cover no-repeat var(--poster),var(--night);color:#fff}
 .vbox .vplay span{width:calc(var(--u)*3);height:calc(var(--u)*3);border-radius:50%;border:1px solid rgba(255,255,255,.85);background:rgba(0,0,0,.35);display:grid;place-items:center}

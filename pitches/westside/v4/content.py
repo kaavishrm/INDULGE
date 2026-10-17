@@ -124,13 +124,13 @@ def opener(i):
 def today():
     s = F
     body = f'''<div class="stack-l grow">
-{_head('Westside is growing by opening stores.', 'Westside has 50 more stores than a year ago, while like-for-like growth in Trent’s fashion portfolio was in low single digits from April to June 2026. The next gain is more people walking into each store.')}
+{_head('Westside’s next gain is more people in each store.', 'Like-for-like growth in Trent’s fashion portfolio was in low single digits from April to June 2026, so growth is coming mainly from new stores.')}
 <div class="board grow" style="align-content:center;align-self:stretch">
   {stat(s['stores'], 'stores on 30&nbsp;Sep&nbsp;2026', f"{s['stores_added']} more than a year earlier")}
   {stat(s['cities'], 'cities', '30 June 2026, the latest count')}
   {stat(s['members'], 'WestStyleClub members', '30 Sep 2025, the latest confirmed')}
   {stat(s['online'], 'of Westside revenue is online', 'April to June 2026; the rest is spent in stores')}
-  {stat(s['growth'], 'Trent revenue, Jul–Sep 2026', 'Trent as a whole, as reported')}
+  {stat(s['growth'], 'Trent revenue, Jul–Sep 2026', 'Trent standalone, not Westside alone')}
   {stat('400–500', 'new designs a week', 'as reported, July 2026')}
 </div></div>'''
     return slide('today', '01 · Westside today · The business', body, src='Sources: Trent filings and press reports, 2025–26. Full list in the appendix.')
@@ -142,7 +142,7 @@ def year():
                ('Not reported', 'Footfall, for any campaign we found.')]
     cols = ''.join(f'<div class="rule"><p class="h4">{a}</p><p class="ink2 mt-s">{b}</p></div>' for a, b in noticed)
     body = f'''<div class="stack-l grow">
-{_head('Westside spent the year building communities.', 'It held Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com. These are people Westside can bring into its stores.')}
+{_head('Westside spent the year building communities.', 'It held Wesness runs, grew YNG, launched FRONT ROW and put festive edits on westside.com. These communities are people Westside can bring into its stores.')}
 {months(items)}
 <div class="stack"><p class="label mute">What we noticed</p><div class="row c3">{cols}</div></div>
 </div>'''
@@ -153,10 +153,10 @@ def year():
 def voice():
     says = ['<b>New Indian talent.</b> YNG creators, 30 New Faces, FRONT ROW.', '<b>Culture beyond clothes.</b> I-pop, dance-offs, fitness runs.',
             '<b>Women together.</b> Wesness runs in four cities.', '<b>Own labels first.</b> Bombay Paisley, E.T.A, Utsa, Vark, W Edit.']
-    take = ['Show shoppers the 400–500 new designs a week, store by store.', 'Tell one festive story from Navratri to the wedding season.',
+    take = ['Show shoppers the 400–500 new designs a week, store by store.', 'Tell one wedding-season story, in the windows and on Instagram.',
             'Give every new store the same local launch, styled from its rails.', 'End every post and every event in a store, and count the visit.']
     body = f'''<div class="stack-l grow">
-{_head('Westside’s everyday voice is warm, and its events are editorial.', 'Four themes run through both. We found nothing that links the two, or takes people from a post into a store.')}
+{_head('Westside’s everyday voice is warm, and its events are editorial.', 'Four themes run through both, but we found nothing that takes people from a post or an event into a store.')}
 <div class="row c2 grow vc">
   <div class="rule stack"><p class="label mute">What Westside says now</p>{ul(says, 'list big-list')}</div>
   <div class="rule-plan stack"><p class="label">Where we take it</p>{ul(take, 'list big-list')}</div>
@@ -188,11 +188,11 @@ def market():
 def insight():
     cols = [('6%+', 'of Westside revenue is online, April to June 2026. The rest is spent in its stores.'),
             ('6&nbsp;mn', 'YNG views, January to March 2026, Westside’s biggest published content figure of the year.'),
-            ('400–500', 'new designs a week, as reported in July 2026. Shoppers rarely hear about them.')]
+            ('400–500', 'new designs a week, as reported in July 2026. We found that pace told only to investors and press.')]
     c = ''.join(f'<div class="rule">{stat(n, "")}<p class="ink2 mt-s">{t}</p></div>' for n, t in cols)
     body = f'''<div class="stack-l grow" style="justify-content:center">
-<h2 class="q" style="font-size:calc(var(--u)*3.6);max-width:20em">Westside’s sales happen in its stores. Its marketing is counted in views and turnout.</h2>
-<p class="lede">No result we found counts a store visit, so no one can yet show which post or event brought a shopper in.</p>
+<h2 class="q q-s">Westside’s sales happen in its stores. Its marketing is counted in views and turnout.</h2>
+<p class="lede">No result we found counts a store visit, so nothing published yet shows which post or event brought a shopper in.</p>
 </div>
 <div class="row c3">{c}</div>'''
     return slide('insight', '02 · The opportunity · What we found', body,
@@ -215,12 +215,12 @@ def look_code():
 # ---------------------------------------------------------------- 03 The three ideas
 def ideas():
     rows = [('No. 01', 'Styled by Westside', 'Stylists and creators build looks in store every week, each with a code.', 'Builds on YNG’s creators and the weekly new designs.', MODEL['styling'], IDEA_CLOTH['styling']),
-            ('No. 02', 'The Westside Coffee Cart', 'Drinks named after Westside labels, with a look code on every cup.', 'Builds on Westside’s stores as venues, as Wesness already uses them.', MODEL['cart'], IDEA_CLOTH['cart']),
+            ('No. 02', 'The Westside Coffee Cart', 'Drinks named after Westside labels, with a look code on every cup.', 'Builds on Wesness, which already starts runs at Westside stores.', MODEL['cart'], IDEA_CLOTH['cart']),
             ('No. 03', 'Window Stories', 'Two mannequins in a story, with every piece sold inside.', 'Builds on FRONT ROW’s New Faces, cast in the window Reels.', MODEL['windows'], IDEA_CLOTH['windows'])]
-    cols = ''.join(f'''<div class="idea">{tile(c[0], c[1], n, t, dark_text=c[2])}<p>{d}</p>
+    cols = ''.join(f'''<div class="idea">{tile(c[0], c[1], n, t, dark_text=c[2])}<p class="idea-d">{d}</p>
 <div class="rule"><p class="ink2">{b}</p></div><div class="imp">{m['label']}<small>impressions</small></div></div>''' for n, t, d, b, m, c in rows)
     body = f'''<div class="stack-l grow">
-{_head(f"Three ideas target {MODEL['total_label']} impressions in one city over twelve weeks.", 'We commit to beat Westside’s best comparable campaign of the last year by at least 20%. Each idea builds on something Westside already runs.')}
+{_head('Each idea builds on something Westside already runs.', f"Together they target {MODEL['total_label']} impressions in one city over twelve weeks. We commit to beat Westside’s best comparable campaign of the last year by at least 20%.")}
 <div class="row c3 grow vc">{cols}</div>
 </div>'''
     return slide('ideas', '03 · The three ideas · Overview', body, src='Baseline: Trent Q4 FY26 deck (YNG). Plan: the model in the appendix.')
@@ -252,7 +252,7 @@ def _plan_stats(m, k, people_label, people_note=''):
 def styling_plan():
     m = MODEL['styling']
     rows = [['Stylists', '3', 'every week'], ['Shoot days, on the shop floor', '24', '2 a week'], ['Creator Reels, YNG members first', '40', '3 to 4 a week'],
-            ['Clip and city page posts', '55', '4 to 5 a week'], ['Westside Reels', '36', '3 a week'], ['Store visits', '48', '4 a week']]
+            ['Clip and city page posts', '55', '4 to 5 a week'], ['Westside Reels', '36', '3 a week'], ['Crew visits to stores, two per shoot day', '48', '4 a week']]
     body = f'''<div class="stack-l grow">
 {_head('Three stylists make 120 coded looks in twelve weeks.', 'That is ten complete looks a week, each filmed on the shop floor and tagged to its rail. These are the numbers we commit to.')}
 <div class="row c-7-5 grow vc">
@@ -309,9 +309,10 @@ def windows():
 <div class="stack-l ideap">
   <span class="label">Window Stories</span>
   <h2 class="h1">Rahul and Anjali are getting ready for a date.</h2>
-  <p class="ink2">It gives people walking past a Westside store a reason to stop. A moment they recognise is one they photograph and share.</p>
+  <p class="ink2">A window that tells a familiar story gives people walking past a Westside store a reason to stop and photograph it.</p>
   {_blk('What it is', 'Two mannequins dressed for a moment everyone knows, with every piece on them for sale inside. The story changes every four weeks, and each store picks its own.')}
   {_blk('How it ends in a store', 'Each look is priced on a card in the window, with a code to ask for it in store. Anjali’s dressing table is set with Studiowest, priced on the same card.')}
+  {_blk('Who is in the Reels', 'FRONT ROW’s New Faces play the couples, filmed at the window by store teams and local creators.')}
 </div>
 </div>'''
     return slide('windows', '03 · Idea 3 of 3', body, src='Concept drawing. Character names are working titles.')
@@ -331,7 +332,7 @@ def windows_scale():
 <div class="stack-l" style="justify-content:space-between">
   <div class="stories">{stories}</div>
   <div class="row c3">
-    <div class="rule">{stat(m['label'], 'impressions', _range('Window Stories'))}</div>
+    <div class="rule">{stat(m['label'], 'impressions, test city', _range('Window Stories'))}</div>
     <div class="rule">{stat('60', 'Reels from the windows', 'by store teams and local creators')}</div>
     <div class="rule">{stat(m['people'], 'people', 'with Westside’s VM team')}</div>
   </div>
@@ -394,7 +395,7 @@ def measure():
 def test():
     body = '''<div class="stack-l grow">
 <h2 class="h1">Start with one city. If the numbers don’t move, you lose nothing.</h2>
-<p class="ink2 lede-s">All three ideas run for twelve weeks, read on footfall per store. You choose what the test is built around.</p>
+<p class="ink2 lede-s">All three ideas run in one twelve-week test, read on footfall per store. You choose what the test is built around.</p>
 <div class="row c2 vc grow">
   <div class="opt rec stack"><p class="label">Option A · recommended</p><h3 class="h2">A store launch</h3><p class="ink2">Your next opening and its city, with looks styled from its rails before it opens and a cart outside from opening weekend.</p></div>
   <div class="opt stack"><p class="label mute">Option B</p><h3 class="h2">The wedding season</h3><p class="ink2">One city through the wedding dates, with looks for every function and wedding Window Stories in every store.</p></div>
@@ -409,7 +410,7 @@ def test():
 
 def timeline():
     weeks = 17
-    phases = [('Set up', 1, 3, 'line', 'Codes at billing and store teams briefed, after Diwali'), ('Cast and build', 2, 5, 'line', 'Stylists, creators and carts'),
+    phases = [('Codes and briefings', 1, 3, 'line', 'Codes at billing and store teams briefed, after Diwali'), ('Cast and build', 2, 7, 'line', 'Stylists and creators by week 4, carts by week 6'),
               ('Styled by Westside', 5, 17, 'plan', '120 looks'), ('Coffee Cart', 7, 13, 'plan', 'Thursday to Sunday, six weeks'),
               ('Window Stories', 5, 17, 'plan', 'A new story every four weeks'), ('Readout', 17, 18, 'ink', 'Go or no&#8209;go')]
     head = ''.join(f'<span class="wk label">{i}</span>' for i in range(1, weeks + 1))
@@ -422,7 +423,7 @@ def timeline():
   <div class="rule-plan"><p class="label">Live</p><p class="mt-s">30 November to 21 February</p></div>
   <div class="rule"><p class="label mute">Readout</p><p class="mt-s">Week of 22 February 2027</p></div>
 </div></div>'''
-    return slide('timeline', '05 · The test · Timeline', body, src='Dates assume a working session by 27 October and signature by 30 October.')
+    return slide('timeline', '05 · The test · Timeline', body, src='Dates assume entry counters already in your stores, a session by 27 October and signing by 30 October.')
 
 
 # ---------------------------------------------------------------- 06 Mask360
@@ -444,12 +445,12 @@ def mask360():
 def next_steps():
     body = '''<div class="row c-6-6 grow" style="align-items:end">
 <div class="stack-l">
-  <h2 class="h-display" style="font-size:calc(var(--u)*5.4)">Choose the first city.</h2>
+  <h2 class="h-display h-next">Choose the first city.</h2>
   <p class="lede">One working session with your marketing, retail operations and analytics leads. We bring a store shortlist and a draft threshold; within 72 hours you get a fixed scope and terms.</p>
 </div>
 <div class="stack-l">
-  <ol class="list steps"><li>Pick the test, a store launch or the wedding season.</li><li>Share counter and bill data for the test and matched stores.</li><li>Agree the threshold, our fee and the cap.</li><li>Week one starts the Monday after you sign.</li></ol>
-  <p class="h4">Meet by 27 October to go live on 30 November.</p>
+  <ol class="list steps"><li>Pick a store launch or the wedding season, and the city.</li><li>Share counter and bill data for the test and matched stores.</li><li>Agree the threshold, our fee and the cap.</li><li>Week one starts the Monday after you sign.</li></ol>
+  <p class="h4">Meet by 27 October and sign by 30 October to go live on 30 November.</p>
   <div class="rule-plan"><p class="h3">Kaavish · Mask360</p><p class="ink2 mt-s">mask360.agency</p></div>
 </div></div>'''
     return slide('next', '06 · Mask360 · Next steps', body)
@@ -497,7 +498,7 @@ def a_teams():
 def a_year():
     rows = [[m, e, r] for m, e, r, _ in LAST12]
     body = f'''<div class="stack-l grow">
-{_head('The last twelve months in full.', 'Every entry and result is from Trent filings, trade press or event listings. “We found no” means none in those sources; we have not yet reviewed the Instagram feed.')}
+{_head('The last twelve months in full.', 'Every entry and result is from Trent filings, trade press, westside.com or event listings. “We found no” means none in those sources; we have not yet reviewed the Instagram feed.')}
 {table(['Month', 'What Westside did', 'Result'], rows, cls='tbl small tight stackable')}
 </div>'''
     return slide('a-year', 'Appendix · The last twelve months', body, src=POSITIONING['year_src'])
