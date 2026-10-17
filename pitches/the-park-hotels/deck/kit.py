@@ -13,9 +13,14 @@ CHEV = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 
 PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>'
 
 
+def roll(text):
+    """Hanza's hover: the label rolls up and a copy of it rolls in from below."""
+    return f'<span class="roll"><span>{text}</span><span aria-hidden="true">{text}</span></span>'
+
+
 def btn(text, sub='', href='', cls=''):
     """Hanza's button: a black block, mono words with a grey /suffix, an orange end with a chevron."""
-    inner = f'<span>{text}{f" <em>/{sub}</em>" if sub else ""}</span><i>{CHEV}</i>'
+    inner = f'<span>{roll(text)}{f" <em>/{sub}</em>" if sub else ""}</span><i>{CHEV}</i>'
     if href:
         return f'<a class="btn{" " + cls if cls else ""}" href="{href}">{inner}</a>'
     return f'<span class="btn{" " + cls if cls else ""}">{inner}</span>'
@@ -27,7 +32,8 @@ def lab(text, no='', cls=''):
 
 
 def dots(on, of=3):
-    return '<span class="dots" aria-hidden="true">' + ''.join(f'<i{" class=on" if i < on else ""}></i>' for i in range(of)) + '</span>'
+    return ('<span class="dots" aria-hidden="true">'
+            + ''.join(f'<i{" class=on" if i < on else ""} style="--n:{i}"></i>' for i in range(of)) + '</span>')
 
 
 def hh(grey, ink, cls='h1', tag='h2'):
@@ -72,7 +78,7 @@ def chapter(sid, no, title, line, cloth, pages):
     to the first page bottom left, the title bottom right, the chapter's pages listed beside the line.
     title is (grey line, white line); pages is [(page number, name, slide id)]."""
     first = pages[0]
-    lst = ''.join(f'<li><span class="mn">/{p}</span><a href="#{i}">{n}</a></li>' for p, n, i in pages)
+    lst = ''.join(f'<li><span class="mn">/{p}</span><a href="#{i}">{roll(n)}</a></li>' for p, n, i in pages)
     body = f'''<div class="chap grow">
   <p class="lab c1" style="grid-row:1"><span class="mn">{no}</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>{title[0]} {title[1]}</p>
@@ -130,6 +136,6 @@ def video_card(v, no, source, caption, take, series):
             f'<div class="vbox" style="--ar:{w}/{h};--poster:url(media/{v["poster"]})">'
             f'<video preload="none" playsinline poster="media/{v["poster"]}" aria-label="{name}">'
             f'<source src="media/{v["file"]}" type="video/mp4"></video>'
-            f'<button class="vplay" type="button" aria-label="Play: {name}"><span><b>Play</b><i>{PLAY}</i></span></button>'
+            f'<button class="vplay" type="button" aria-label="Play: {name}"><span class="pv" aria-hidden="true"></span><span><b>{roll("Play")}</b><i>{PLAY}</i></span></button>'
             f'<span class="dur">{secs // 60}:{secs % 60:02d}</span></div>'
             f'<figcaption class="vb"><p class="lab">{series}</p><p class="cap">{caption}</p><p class="take">{take}</p></figcaption></figure>')

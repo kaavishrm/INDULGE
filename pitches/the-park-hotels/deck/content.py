@@ -8,7 +8,7 @@ import datetime as dt
 import json
 import pathlib
 import art
-from kit import (slide, ul, table, tile, fab, chapter, btn, lab, dots, hh, stat, video_card, M_MARK, P_MARK, P_VIEW, WORDMARK)
+from kit import (slide, ul, table, tile, fab, chapter, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
 
 TITLE = 'The Park Hotels × Mask360'
 DESCRIPTION = ('Mask360’s social media proposal to The Park Hotels, October 2026: Park Street, everywhere. The content map, '
@@ -17,7 +17,7 @@ DESCRIPTION = ('Mask360’s social media proposal to The Park Hotels, October 20
 # the slides in deck order; page references on the slides are looked up here
 ORDER = ['cover', 'promise', 'brief', 'ch-today', 'today', 'channels', 'rule', 'insight', 'ch-idea', 'mindmap', 'ref-named',
          'ref-craft', 'ref-people', 'ref-rooms', 'mix', 'feed', 'voice', 'sessions', 'reel', 'room', 'flurys', 'ch-run', 'calendar',
-         'handles', 'community', 'measure', 'mask360', 'next', 'close', 'sources']
+         'handles', 'community', 'measure', 'mask360', 'faq', 'next', 'close', 'sources']
 
 MEDIA = {v['slug']: v for v in json.loads((pathlib.Path(__file__).parent / 'media' / 'manifest.json').read_text())['files']}
 
@@ -62,10 +62,10 @@ SOURCES = [
 def cover():
     chapters = [(pg('ch-today'), 'The Park today', 'ch-today'), (pg('ch-idea'), 'Park Street, everywhere', 'ch-idea'),
                 (pg('ref-named'), 'The references', 'ref-named'), (pg('ch-run'), 'How it runs', 'ch-run')]
-    svc = ''.join(f'<li><span class="mn">/{n}</span><a href="#{i}">{t}</a></li>' for n, t, i in chapters)
-    body = f'''<div class="top">{WORDMARK}<p class="lab"><span>A social media proposal</span></p>{M_MARK}</div>
+    svc = ''.join(f'<li><span class="mn">/{n}</span><a href="#{i}">{roll(t)}</a></li>' for n, t, i in chapters)
+    body = f'''<div class="top">{WORDMARK}<p class="mono clock"><b data-clock>Kolkata</b> <span class="k">Park Street time</span></p>{M_MARK}</div>
 <div class="g4 grow" style="grid-template-rows:1fr auto auto;row-gap:calc(var(--u)*1.5)">
-  <p class="lede-s c3 end pr" style="grid-row:2">A social media proposal from Mask360, <b>for the brand team at The Park Hotels.</b></p>
+  <p class="lede-s c3 end pr" style="grid-row:2">A social media proposal from Mask360: <b>turn THE Park’s nights into a feed the city saves.</b></p>
   <ul class="svc c4 end" style="grid-row:2">{svc}</ul>
   <p class="who c12 end" style="grid-row:3">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
   <h1 class="h-display cover-h c34" style="grid-row:3"><span class="g">Park Street,</span> everywhere.</h1>
@@ -94,7 +94,7 @@ def brief():
             ('Hospitality and luxury', 'THE Park in its own numbers, and the hotels we work with.', f'{pg("today")} · {pg("mask360")}'),
             ('Think beyond the obvious', 'We post what only THE Park can.', pg('rule')),
             ('Have the work to back it up', 'Feeds we run for St. Regis and Moxy, and a lounge that sold 530 tickets at ₹75,000.', pg('mask360')),
-            ('An upcoming pitch', 'This is our point of view. We bring the full plan to the pitch.', pg('next'))]
+            ('An upcoming pitch', 'This is our point of view, with quick answers. We bring the full plan to the pitch.', f'{pg("faq")} · {pg("next")}')]
     acc = ''.join(f'''<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"><span class="mute">P.</span> {p}</span>
 <p class="a">{a}</p></div>''' for i, (q, a, p) in enumerate(rows))
     body = f'''<div class="g4 grow">
@@ -382,7 +382,8 @@ def _posts(drawing, caption):
 
 def sessions():
     return _idea_page('sessions', 'No. 01', 'After Hours', 'The Sessions',
-                      [('Format', 'Reel · YouTube · Spotify'), ('Cadence', 'One set a month'), ('Where', 'Someplace Else, Kolkata')],
+                      [('Format', 'Reel · YouTube · Spotify'), ('Cadence', 'One set a month'), ('Where', 'Someplace Else, Kolkata'),
+                       ('Sells', 'Saturday tables, and the full set on YouTube')],
                       art.stage(), 'Someplace Else, <b>one take a month.</b>',
                       'A live set filmed at Someplace Else in a single take, with bands playing their own songs. Reels from the set '
                       'run all month and the full set goes on YouTube. Then Agni in Delhi, and each city’s own venue.',
@@ -411,7 +412,8 @@ def reel():
 
 def room():
     return _idea_page('room', 'No. 02', 'By Design', 'Room 1967',
-                      [('Format', 'Reel · story · carousel'), ('Cadence', 'One suite a year'), ('Where', 'A THE Park hotel')],
+                      [('Format', 'Reel · story · carousel'), ('Cadence', 'One suite a year'), ('Where', 'A THE Park hotel'),
+                       ('Sells', 'Room nights, from a waiting list')],
                       art.suite(), 'One suite a year, <b>revealed on the feed.</b>',
                       'A young Indian designer remakes one suite at THE Park every year. We film it from the empty room to the '
                       'first guest, one Reel a week, and open a waiting list in stories.',
@@ -421,7 +423,8 @@ def room():
 
 def flurys():
     return _idea_page('flurys', 'No. 03', 'The Table', 'Flurys 100',
-                      [('Format', 'Reel · story · carousel'), ('Cadence', 'All of 2027'), ('Where', 'Park Street to Gurugram')],
+                      [('Format', 'Reel · story · carousel'), ('Cadence', 'All of 2027'), ('Where', 'Park Street to Gurugram'),
+                       ('Sells', 'Visits to 111 stores in the centenary year')],
                       art.cup(), 'A hundred stories <b>for a hundred years.</b>',
                       'Flurys turns 100 in 2027. All year we tell one story at a time: a regular, a recipe, a baker at 4 a.m. '
                       'From the tea room on Park Street to the 24-hour café in Gurugram.',
@@ -430,10 +433,11 @@ def flurys():
 
 
 def ch_run():
-    return chapter('ch-run', '03', ('How it', 'runs.'), 'A month on the feed, the handles, <b>the people and the numbers.</b>',
+    return chapter('ch-run', '03', ('How it', 'runs.'), 'From the first post to the first readout, <b>week by week.</b>',
                    ('kohl', 23),
                    [(pg('calendar'), 'A month', 'calendar'), (pg('handles'), 'The handles', 'handles'), (pg('community'), 'The people', 'community'),
-                    (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('next'), 'Next steps', 'next')])
+                    (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('faq'), 'Quick answers', 'faq'),
+                    (pg('next'), 'Next steps', 'next')])
 
 
 # a month on the feed: the series by weekday (pillar class a After Hours, b By Design, c The Table, d The City), then the one-offs
@@ -543,13 +547,36 @@ def mask360():
     return slide('mask360', 'How it runs · Mask360', body, dark=True, src='From Mask360’s own records.')
 
 
+def faq():
+    qa = [('When could it start?', 'The plan assumes a start on 16 November 2026, which puts Set 01 on the feed on Saturday 12 December.'),
+          ('Will every hotel post the same thing?', 'Each hotel films its own version of each series, and the best of every city runs on @theparkhotels. '
+           'A new hotel opens with nine posts ready.'),
+          ('What about music rights and drinks rules?', 'Bands play their own songs and sign a release, so the full set can run on YouTube. '
+           'No drinks brands appear in frame.'),
+          ('How will we know it works?', 'We count saves, WhatsApp chats and tables booked from social, every week. The first readout is in '
+           'the week of 22 February 2027, and a series that trails is replaced.'),
+          ('What do you need from us?', 'Thirty minutes with the brand team, a contact at each venue, and a hotel for Room 1967.'),
+          ('What will it cost?', 'We bring a costed plan to the pitch, handle by handle.')]
+    acc = ''.join(f'<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"></span><p class="a">{a}</p></div>'
+                  for i, (q, a) in enumerate(qa))
+    body = f'''<div class="g4 grow">
+  <div class="c12 stack-l pr">{lab('Quick answers', pg('faq'))}{hh('Quick', 'answers.', cls='h1 h1-l')}
+    <p class="lede-s" style="max-width:24em">Six questions the brand team will ask, <b>answered before the pitch.</b></p></div>
+  <div class="c34 acc mid">{acc}</div>
+</div>'''
+    return slide('faq', 'How it runs · quick answers', body, src='Dates and measures as set out on the earlier pages.')
+
+
 def next_steps():
-    steps = ['Shortlist Mask360.', 'Thirty minutes with the brand team.', 'The pitch: the full plan, handle by handle.', 'Set 01 at Someplace Else in December.']
-    checks = ''.join(f'<li>{s}</li>' for s in steps)
+    steps = ['Shortlist Mask360', 'Thirty minutes with the brand team', 'The pitch: the full plan, handle by handle', 'Set 01 at Someplace Else in December']
+    path = ''.join(f'<div><span class="mn">0{i + 1}</span><p class="q">{s}</p></div>' for i, s in enumerate(steps))
+    gets = ['The plan for your hotels, walked through', 'A fit check, both ways', 'Clear next steps to the pitch']
+    checks = ''.join(f'<li>{g}</li>' for g in gets)
     body = f'''<div class="g4 grow">
   <div class="c12 stack-l pr">{lab('Next steps', pg('next'))}
     <h2 class="h-display next-h"><span class="g">Put us</span> in the room.</h2>
     <p class="lede-s" style="max-width:26em">Shortlist Mask360 <b>and we bring the full plan to the pitch.</b></p>
+    <div class="acc tight flush path">{path}</div>
     <div class="mt-auto stack">
       <p class="mono"><span class="k">Founder</span>Kaavish Ramchandani</p>
       <a class="mail" href="mailto:kaavish@mask360.agency">kaavish@mask360.agency</a>
@@ -557,10 +584,11 @@ def next_steps():
     </div>
   </div>
   <div class="c4 cta end">
-    <p class="mono">What happens next</p>
-    <h3 class="h2"><span class="g">Four steps</span> to Set 01.</h3>
+    <p class="mono">Thirty minutes with Kaavish</p>
+    <h3 class="h2"><span class="g">Ready</span> to start?</h3>
+    <p class="mono">What you get</p>
     <ul class="checks">{checks}</ul>
-    {btn('Email Kaavish', 'Mask360', 'mailto:kaavish@mask360.agency')}
+    {btn('Book a call', 'Kaavish', 'mailto:kaavish@mask360.agency?subject=Park%20Street%2C%20everywhere')}
   </div>
 </div>'''
     return slide('next', 'How it runs · next steps', body)
@@ -569,7 +597,7 @@ def next_steps():
 def close():
     nav = [('The Park today', 'ch-today'), ('The content map', 'mindmap'), ('The references', 'ref-named'), ('The grid', 'feed'),
            ('A month', 'calendar'), ('The handles', 'handles'), ('Next steps', 'next'), ('Sources', 'sources')]
-    n = ''.join(f'<li><a href="#{i}">{t}</a></li>' for t, i in nav)
+    n = ''.join(f'<li><a href="#{i}">{roll(t)}</a></li>' for t, i in nav)
     body = f'''<div class="g4">{WORDMARK}<p class="lab c3"><span>Thank you</span></p></div>
 <div class="g4 grow" style="grid-template-rows:1fr auto;row-gap:calc(var(--u)*2.4)">
   <ul class="nav c3 end">{n}</ul>
@@ -598,6 +626,6 @@ def slides():
     out = [cover(), promise(), brief(), ch_today(), today(), channels(), rule(), insight(), ch_idea(), mindmap()]
     out += [ref(r) for r in REF_IDS]
     out += [mix(), feed(), voice(), sessions(), reel(), room(), flurys(), ch_run(), calendar(), handles(), community(), measure(),
-            mask360(), next_steps(), close(), sources()]
+            mask360(), faq(), next_steps(), close(), sources()]
     assert [s.split('id="', 1)[1].split('"', 1)[0] for s in out] == ORDER, 'ORDER is out of step with the slides'
     return out
