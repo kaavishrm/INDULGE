@@ -99,7 +99,7 @@ BASELINE = {
     'plan_line': ('Westside’s biggest published content figure of the last year is 6&nbsp;mn YNG views, from January to March 2026. '
                   'We commit to beat Westside’s best comparable campaign of the last year by at least 20%.'),
     'compare_line': '',  # filled below from the model
-    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the impressions model in this appendix.',
+    'src': 'Baseline: Trent Q4 FY26 investor presentation (YNG: 4,000 members, 6 mn views, 50,000+ engagements, 12,000+ shares). Plan: the impressions model in chapter 04.',
 }
 
 # Inputs. Clip and city pages 25,000-50,000 views a post (Qoruz 2025: Rs 1 lakh buys 10-20 meme-page posts and 500,000+ views);

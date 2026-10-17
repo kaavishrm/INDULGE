@@ -1,10 +1,10 @@
 """Slide copy for the proposal, as a pitch in six chapters: Westside today, the opportunity, the three ideas, the numbers,
 the test, Mask360. Each content slide is a headline that makes a point, a line on why it matters to Westside, then the
-facts or the plan. Each slide carries a one-line source; the full model, the teams, the year and the market in full and
-all sources are in the appendix. Facts come from research_notes/Westside proposal v4/ and the Trent documents in its
+facts or the plan. Supporting material sits with the idea it supports (the reference clips in Idea 1, the line-by-line
+model in chapter 04); each slide carries a one-line source, and all sources are on the last page. Facts come from research_notes/Westside proposal v4/ and the Trent documents in its
 sources/ folder. The look is the v3 deck's, without its app chrome."""
 import art
-from data import F, LAST12, LAST12_SHORT, POSITIONING, COMPETITORS, MODEL, BASELINE, REF_GROUPS, LINES, PAID
+from data import F, LAST12_SHORT, POSITIONING, MODEL, BASELINE, REF_GROUPS, LINES, PAID
 from kit import slide, chapter, stat, ul, table, months, tile, photo, video_card, W_MARK, M_MARK
 
 TITLE = 'Westside × Mask360'
@@ -21,7 +21,6 @@ CHAPTERS = [('01', 'Westside today', 'Westside grows by opening stores. We found
             ('04', 'The numbers', 'The 15&nbsp;mn is built line by line. The result is read in footfall and bills.', ('denim', 54)),
             ('05', 'The test', 'One city for twelve weeks. You pay our fee only if the numbers move.', ('shaadi', 55)),
             ('06', 'Mask360', 'One team makes, runs and measures the work. Next, choose the first city.', None)]
-APPENDIX_LINE = 'The full model, the teams, the year and the market in full, references and sources.'
 
 # one cloth per month on the twelve-month strip: (kind, seed, light cloth so the month is set in ink?)
 MONTH_CLOTH = [('shaadi', 11, False), ('rani', 12, False), ('bone', 13, True), ('slate', 14, False), ('denim', 15, False), ('linen', 16, True),
@@ -35,7 +34,7 @@ CARTS = [('cart-ape.webp', 'Three-wheeler', 'Sage and cream, open on one side', 
          ('cart-awning.webp', 'Cream cart', 'Scalloped awning, brass wheel', '100% 50%'),
          ('cart-kiosk.webp', 'Green kiosk', 'Towable, fits a mall forecourt', '50% 50%')]
 
-# full sources, on the last appendix page; each slide carries a short version
+# full sources, on the last page; each slide carries a short version
 SOURCES = [
     ('Westside today', 'Trent store update, Q2 FY26 (261 stores); Trent Q1 FY27 investor presentation, 6 Aug 2026 (301 stores, 97 cities, online over 6%, '
      'like-for-like); Q2 FY27 business update, 5 Oct 2026, as reported by Upstox (+10 stores, Trent revenue +23%); Trent Q2 FY26 investor presentation '
@@ -107,7 +106,7 @@ def promise():
 
 def contents():
     rows = ''.join(f'<div class="r"><span class="n">{n}</span><span class="t">{t}</span><span class="l ink2">{line}</span></div>' for n, t, line, _ in CHAPTERS)
-    rows += f'<div class="r app"><span class="n">A</span><span class="t">Appendix</span><span class="l">{APPENDIX_LINE}</span></div>'
+    rows += '<div class="r app"><span class="n"></span><span class="t">Sources</span><span class="l">Every source behind the numbers, on the last page.</span></div>'
     body = f'''<div class="stack-l grow">
 <h2 class="h1">The proposal in six parts.</h2>
 <div class="toc grow v-center">{rows}</div>
@@ -133,7 +132,7 @@ def today():
   {stat(s['growth'], 'Trent revenue, Jul–Sep 2026', 'Trent standalone, not Westside alone')}
   {stat('400–500', 'new designs a week', 'as reported, July 2026')}
 </div></div>'''
-    return slide('today', '01 · Westside today · The business', body, src='Sources: Trent filings and press reports, 2025–26. Full list in the appendix.')
+    return slide('today', '01 · Westside today · The business', body, src='Sources: Trent filings and press reports, 2025–26. Full list on the last page.')
 
 
 def year():
@@ -164,7 +163,7 @@ def voice():
     return slide('voice', '01 · Westside today · How Westside talks', body, src='Sources: Trent investor presentations, Indian Retailer, westside.com.')
 
 
-RIVALS = [  # condensed from data.COMPETITORS; the full rows are on the appendix page
+RIVALS = [  # condensed from data.COMPETITORS (the full rows and their sources are in research note 04)
     ('Shoppers Stop', '115 dept. stores', 'Wedding, travel and HYBE campaigns', 'Own labels, so every look is stocked in a named store'),
     ('Max Fashion', 'Landmark Group', 'Star films selling weekly newness', 'Real looks, styled and stocked in a named store'),
     ('Pantaloons', 'ABFRL', 'A first star ambassador', 'Local stylists and creators, each tied to a store'),
@@ -181,7 +180,7 @@ def market():
 {_head('Rivals ran star campaigns and contests. Westside can win in its own stores.', 'Their shoppers differ, but often spend from the same budget. Westside’s edge is its own labels in 311 stores.')}
 <div class="grow v-center">{table(['Brand', 'What they did', 'How Westside wins'], rows, cls='tbl rivals stackable')}</div>
 </div>'''
-    return slide('market', '01 · Westside today · The market', body, src='Sources: company releases and trade press, Aug 2025 to Oct 2026. Full rows in the appendix.')
+    return slide('market', '01 · Westside today · The market', body, src='Sources: company releases and trade press, Aug 2025 to Oct 2026. Full list on the last page.')
 
 
 # ---------------------------------------------------------------- 02 The opportunity
@@ -223,7 +222,7 @@ def ideas():
 {_head('Each idea builds on something Westside already runs.', f"Together they target {MODEL['total_label']} impressions in one city over twelve weeks. We commit to beat Westside’s best comparable campaign of the last year by at least 20%.")}
 <div class="row c3 grow vc">{cols}</div>
 </div>'''
-    return slide('ideas', '03 · The three ideas · Overview', body, src='Baseline: Trent Q4 FY26 deck (YNG). Plan: the model in the appendix.')
+    return slide('ideas', '03 · The three ideas · Overview', body, src='Baseline: Trent Q4 FY26 deck (YNG). Plan: the model in chapter 04.')
 
 
 def styling():
@@ -257,9 +256,9 @@ def styling_plan():
 {_head('Three stylists make 120 coded looks in twelve weeks.', 'That is ten complete looks a week, each filmed on the shop floor and tagged to its rail. These are the numbers we commit to.')}
 <div class="row c-7-5 grow vc">
   {table(['Item', 'How many', 'How often'], rows, cls='tbl roomy stackable', right=(1,))}
-  {_plan_stats(m, 'Styled by Westside', 'people from Mask360')}
+  {_plan_stats(m, 'Styled by Westside', 'people from Mask360', m['people_note'])}
 </div></div>'''
-    return slide('styling-plan', '03 · Idea 1 of 3 · The plan', body, src='Mask360’s plan for the twelve-week test. Impressions from the model in the appendix.')
+    return slide('styling-plan', '03 · Idea 1 of 3 · The plan', body, src='Mask360’s plan for the twelve-week test. Impressions from the model in chapter 04.')
 
 
 def cart():
@@ -298,7 +297,7 @@ def cart_plan():
 {_head('Three carts serve 21,600 cups in six weeks.', 'A coffee partner runs the bar under its own food licence, and we run everything else, from the sites to the posts.')}
 <div class="row c-7-5 grow vc">
   {table(['Item', 'How many', 'Detail'], rows, cls='tbl roomy stackable', right=(1,))}
-  {_plan_stats(m, 'Coffee Cart', 'people on the cart team', 'including six partner baristas')}
+  {_plan_stats(m, 'Coffee Cart', 'people on the cart team', m['people_note'])}
 </div></div>'''
     return slide('cart-plan', '03 · Idea 2 of 3 · The plan', body, src='About 300 cups a cart day is a planning figure to confirm with the coffee partner.')
 
@@ -334,10 +333,10 @@ def windows_scale():
   <div class="row c3">
     <div class="rule">{stat(m['label'], 'impressions, test city', _range('Window Stories'))}</div>
     <div class="rule">{stat('60', 'Reels from the windows', 'by store teams and local creators')}</div>
-    <div class="rule">{stat(m['people'], 'people', 'with Westside’s VM team')}</div>
+    <div class="rule">{stat(m['people'], 'people', m['people_note'])}</div>
   </div>
 </div></div>'''
-    return slide('windows-scale', '03 · Idea 3 of 3 · At scale', body, src='Rollout to confirm with Westside’s VM team. Impressions from the model in the appendix.')
+    return slide('windows-scale', '03 · Idea 3 of 3 · At scale', body, src='Rollout to confirm with Westside’s VM team. Impressions from the model in chapter 04.')
 
 
 # ---------------------------------------------------------------- 04 The numbers
@@ -374,7 +373,7 @@ def numbers():
     <p class="ink2">In week one we agree the comparable campaign we must beat by at least 20%. If post views are behind plan by week six, we move budget into the boosts.</p>
   </div>
 </div></div>'''
-    return slide('numbers', '04 · The numbers · Impressions', body, src='Inputs and sources in the appendix.')
+    return slide('numbers', '04 · The numbers · Impressions', body, src='The model, line by line, is on the next page.')
 
 
 def measure():
@@ -466,66 +465,35 @@ def close():
     return slide('close', 'Westside × Mask360', body, bare=True, dark=True, cloth=('ink', 11))
 
 
-# ---------------------------------------------------------------- appendix
-def appendix():
-    return chapter('appendix', 'A', 'Appendix', APPENDIX_LINE, ('bone', 61), light=True)
-
-
-def a_model():
+# ---------------------------------------------------------------- the line-by-line model (chapter 04), the reference clips (Idea 1), the sources page
+def model():
     rows = MODEL['table']
     base = sum(v[1] for v in MODEL['by_idea'].values())
     body = f'''<div class="stack-l grow">
 {_head('The model, line by line.', f'Posts count views ({_mn(base - PAID)}&nbsp;mn); boosts count impressions at ₹120 per 1,000 ({_mn(PAID)}&nbsp;mn). Low is 60% of post views and high is 150%; boosts are fixed. Figures in millions.')}
 {table(['Idea', 'Channel', 'Units', 'Average per unit', 'Low', 'Plan', 'High'], rows['rows'], cls='tbl small tight model', right=(2, 3, 4, 5, 6), total=rows['total'], col_cls={3: 'm-hide', 4: 'm-hide', 5: 'plan-col', 6: 'm-hide'})}
 </div>'''
-    return slide('a-model', 'Appendix · The impressions model', body, src=MODEL['src'])
+    return slide('model', '04 · The numbers · The model', body, src=MODEL['src'])
 
 
-def a_teams():
-    cols = [(MODEL['styling']['people'], 'Styled by Westside', MODEL['styling']['people_note']),
-            (MODEL['cart']['people'], 'The Westside Coffee Cart', MODEL['cart']['people_note']),
-            (MODEL['windows']['people'], 'Window Stories', MODEL['windows']['people_note'])]
-    c = ''.join(f'<div class="rule">{stat(n, t, note)}</div>' for n, t, note in cols)
-    c += ('<div class="rule-plan"><p class="h4">From Westside</p><p class="ink2 mt-s">A test city and matched stores, counter and bill data under a data agreement, '
-          'a look-code field at billing, stock depth on featured looks, VM time, help with mall consent, and sign-off on each week’s posts within 48 hours.</p></div>')
-    body = f'''<div class="stack-l grow">
-<h2 class="h1">The teams behind each idea.</h2>
-<div class="row c4 grow vc">{c}</div>
-</div>'''
-    return slide('a-teams', 'Appendix · The teams', body, src='Mask360’s plan for the twelve-week test.')
-
-
-def a_year():
-    rows = [[m, e, r] for m, e, r, _ in LAST12]
-    body = f'''<div class="stack-l grow">
-{_head('The last twelve months in full.', 'Every entry and result is from Trent filings, trade press, westside.com or event listings. “We found no” means none in those sources; we have not yet reviewed the Instagram feed.')}
-{table(['Month', 'What Westside did', 'Result'], rows, cls='tbl small tight stackable')}
-</div>'''
-    return slide('a-year', 'Appendix · The last twelve months', body, src=POSITIONING['year_src'])
-
-
-def a_market():
-    rows = [[f'<b>{c["name"]}</b><br><span class="mute f-s">{c["stores"]}</span>', c['did'], c['win']] for c in COMPETITORS]
-    body = f'''<div class="stack-l grow">
-{_head('The market, row by row.', 'Recent marketing we found for each brand, August 2025 to October 2026, and how Westside wins against it with its own labels and stores.')}
-{table(['Brand', 'What they did', 'How Westside wins'], rows, cls='tbl small tight rivals stackable')}
-</div>'''
-    return slide('a-market', 'Appendix · The market in full', body, src='Sources: ' + dict(SOURCES)['The market'])
+REF_TITLES = ['The formats we would film', 'In-store moments we would film']
 
 
 def references():
+    """The team's reference clips, inside Idea 1: they show the look and pace of the styling content."""
     out = []
     n = len(REF_GROUPS)
-    for i, (title, vids) in enumerate(REF_GROUPS):
+    for i, (_, vids) in enumerate(REF_GROUPS):
         cards = ''.join(video_card(v['item'], v['caption'], span=v.get('span', '')) for v in vids)
         body = f'''<div class="row c-3-9 grow">
 <div class="stack-l">
-  <h2 class="h1">{title}.</h2>
-  <p class="ink2 lede-s">Clips the team collected for look and pace. They are references, not our work. Press play.</p>
+  <span class="label">Styled by Westside</span>
+  <h2 class="h1">{REF_TITLES[i]}.</h2>
+  <p class="ink2 lede-s">Clips the team collected for the look and pace of the series. They are references, not our work. Press play.</p>
 </div>
 <div class="vgrid two-rows vc">{cards}</div>
 </div>'''
-        out.append(slide(f'references-{i + 1}', f'Appendix · References {i + 1} of {n}', body))
+        out.append(slide(f'references-{i + 1}', f'03 · Idea 1 of 3 · References {i + 1} of {n}', body))
     return out
 
 
@@ -535,15 +503,15 @@ def sources():
 <h2 class="h1">Sources.</h2>
 <div class="srcs">{items}</div>
 </div>'''
-    return slide('sources', 'Appendix · Sources', body, src='Full sources for every slide.')
+    return slide('sources', 'Sources', body, src='Full sources for every slide.')
 
 
 def slides():
     return [cover(), promise(), contents(),
             opener(0), today(), year(), voice(), market(),
             opener(1), insight(), look_code(),
-            opener(2), ideas(), styling(), styling_plan(), cart(), cart_designs(), cart_plan(), windows(), windows_scale(),
-            opener(3), numbers(), measure(),
+            opener(2), ideas(), styling(), *references(), styling_plan(), cart(), cart_designs(), cart_plan(), windows(), windows_scale(),
+            opener(3), numbers(), model(), measure(),
             opener(4), test(), timeline(),
             mask360(), next_steps(), close(),
-            appendix(), a_model(), a_teams(), a_year(), a_market(), *references(), sources()]
+            sources()]

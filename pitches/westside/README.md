@@ -6,16 +6,16 @@ A 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. It keeps t
 - **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
 - **Print or PDF:** printing from a browser gives one slide per page.
 
-## The pitch (29 main slides, six chapters, then the appendix)
+## The pitch (33 slides, six chapters, then sources)
 
 - **Front:** cover, our promise, contents (the six chapters with their conclusions).
 - **01 Westside today:** the business in six numbers; the last twelve months on one strip; how Westside talks; the market (what rivals did, how Westside wins).
 - **02 The opportunity:** what we found (sales happen in stores, marketing is counted in views); the look code that takes a shopper from a post to the billing counter.
-- **03 The three ideas:** overview (15 mn); Styled by Westside (idea and plan); the Westside Coffee Cart (idea, four cart designs, plan); Window Stories (idea and the 311-store library).
-- **04 The numbers:** how the 15 mn adds up against YNG's 6 mn; how we measure footfall per store.
+- **03 The three ideas:** overview (15 mn); Styled by Westside (the idea, two pages of the team's reference clips, the plan with its team); the Westside Coffee Cart (idea, four cart designs, plan with its team); Window Stories (idea and the 311-store library, with its team).
+- **04 The numbers:** how the 15 mn adds up against YNG's 6 mn; the model, line by line; how we measure footfall per store.
 - **05 The test:** the offer and terms, with the founder's line "If the numbers don't move, you lose nothing."; the timeline.
 - **06 Mask360:** who we are; next steps; close.
-- **Appendix:** the full impressions model, the teams, the twelve months and the market in full, two pages of reference clips, all sources.
+- **Sources:** every source behind the numbers, on the last page. Supporting material sits with the section it supports, so there is no separate appendix.
 
 Each content slide is a headline that makes a point, a line on why it matters to Westside, then the facts or the plan (about 3,200 words on the main slides).
 
