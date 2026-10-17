@@ -3,7 +3,7 @@ Westside v4 deck's way of writing: a headline, a line or two, the numbers, and a
 sources are on the last page. Facts come from pitches/the-park-hotels/README.md; Mask360's work comes from its own records.
 A cold pitch is conversation one, so there is no pricing and no team grid, and it ends on an open door."""
 import art
-from kit import slide, stat, ul, table, tile, chapter, M_MARK
+from kit import slide, stat, ul, table, tile, chapter, M_MARK, P_VIEW
 
 TITLE = 'The Park Hotels × Mask360'
 DESCRIPTION = ('Mask360’s proposal to The Park Hotels, October 2026: Park Street, everywhere. A social platform that sells '
@@ -44,7 +44,7 @@ SOURCES = [
 
 def cover():
     body = f'''<div class="stack-l grow" style="justify-content:space-between">
-<div class="big-wm" aria-label="The Park Hotels"><span class="t" aria-hidden="true">The Park Hotels</span></div>
+<div class="big-wm pk"><svg viewBox="{P_VIEW}" role="img" aria-label="The Park Hotels"><use href="#logo-p"/></svg></div>
 <div class="cover-foot">
   <div class="stack-l">
     <span class="label">A proposal from Mask360 · October 2026</span>
@@ -339,7 +339,7 @@ def next_steps():
 def close():
     body = f'''<div class="grow" style="display:grid;place-items:center">
 <div class="close-mark">
-  <span class="wt" aria-label="The Park Hotels">The Park Hotels</span>
+  <svg class="w" viewBox="{P_VIEW}" role="img" aria-label="The Park Hotels"><use href="#logo-p"/></svg>
   <span class="label line">Mask360 · Park Street, everywhere · October 2026</span>
   {M_MARK}
 </div></div>'''

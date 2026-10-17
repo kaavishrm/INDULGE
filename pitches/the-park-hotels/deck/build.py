@@ -22,10 +22,16 @@ def path_d(svg):
     return re.search(r' d="([^"]+)"', (V / svg).read_text()).group(1)
 
 
+def paths_d(svg):
+    """Every path in an SVG joined into one d (each subpath starts with its own M)."""
+    return ' '.join(re.sub(r'\s+', ' ', d) for d in re.findall(r' d="([^"]+)"', (V / svg).read_text()))
+
+
 css = re.sub(r'\{\{FONT:([\w-]+)\}\}', lambda m: font(m.group(1)), (V / 'deck.css').read_text())
 js = (V / 'fabric.js').read_text() + '\n' + (V / 'deck.js').read_text()
 symbols = ('<svg width="0" height="0" style="position:absolute" aria-hidden="true">'
-           f'<symbol id="logo-m" viewBox="0 0 1632 473"><path fill-rule="evenodd" d="{path_d("m360.svg")}"/></symbol></svg>')
+           f'<symbol id="logo-m" viewBox="0 0 1632 473"><path fill-rule="evenodd" d="{path_d("m360.svg")}"/></symbol>'
+           f'<symbol id="logo-p" viewBox="257.5 357.5 97 77"><path d="{paths_d("park.svg")}"/></symbol></svg>')
 
 slides = content.slides()
 n = len(slides)

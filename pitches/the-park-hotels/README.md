@@ -6,7 +6,7 @@ Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels
 
 **The idea in one line:** The Park is named after a street. *Park Street, everywhere*: each THE Park hotel becomes the Park Street of its city, told through a magazine of its nights.
 
-**The look:** Mask360's house proposal style, from the Westside v4 deck (`claude/wizardly-bardeen-2oc2qq`, `pitches/westside/v4/`). It uses white paper and black ink, thin uppercase Inter Tight, Bodoni only for numbers, hairline rules, procedural cloth, line drawings and the m360 mark. The kit (`deck.css`, `deck.js`, `fabric.js`, `kit.py`, the fonts) is copied from that deck. The Park's name is typeset as a wordmark, with no logo artwork.
+**The look:** Mask360's house proposal style, from the Westside v4 deck (`claude/wizardly-bardeen-2oc2qq`, `pitches/westside/v4/`). It uses white paper and black ink, thin uppercase Inter Tight, Bodoni only for numbers, hairline rules, procedural cloth, line drawings and the m360 mark. The kit (`deck.css`, `deck.js`, `fabric.js`, `kit.py`, the fonts) is copied from that deck. The Park's corporate mark (`deck/park.svg`, taken from https://www.theparkhotels.com/images/site-specific/park-corporate-logo.svg) sits in the running heads, on the cover and on the close, drawn in each slide's ink. `fetch_logo.py` and the `park-logo` workflow fetch it again if it changes, since the coding sandbox cannot reach theparkhotels.com.
 
 - **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
 - **Print or PDF:** printing `dist/index.html` from a browser gives one slide per page.

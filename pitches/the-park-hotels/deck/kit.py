@@ -4,8 +4,10 @@ from html import escape as esc
 
 M_MARK = '<svg class="m" viewBox="0 0 1632 473" aria-hidden="true"><use href="#logo-m"/></svg>'
 
-# The Park's name set in the deck's thin letterspaced sans: a typeset wordmark, no logo artwork
-WORDMARK = '<span class="wm" aria-label="The Park Hotels"><span class="t" aria-hidden="true">The Park Hotels</span></span>'
+# The Park's corporate mark (THE / PARK / Hotels, park.svg from theparkhotels.com), drawn in the slide's ink
+P_VIEW = '0 0 97 77'  # the symbol carries the logo's own coordinates (257.5 357.5 97 77)
+P_MARK = f'<svg viewBox="{P_VIEW}" aria-hidden="true"><use href="#logo-p"/></svg>'
+WORDMARK = f'<span class="wm pk" role="img" aria-label="The Park Hotels">{P_MARK}</span>'
 
 
 def head(section):

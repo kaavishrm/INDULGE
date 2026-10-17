@@ -65,6 +65,7 @@ em,.it{font-style:normal}
 .wm{display:flex;align-items:center;gap:calc(var(--u)*.6)}
 .wm svg{height:calc(var(--u)*1.7);width:auto;fill:currentColor}
 .wm .t{font-weight:300;font-size:calc(var(--u)*.95);letter-spacing:.34em;text-transform:uppercase;margin-top:.1em}
+.wm.pk svg{height:calc(var(--u)*2.4)}
 .head .sec{display:flex;align-items:center;gap:calc(var(--u)*1)}
 .head .sec .m{height:calc(var(--u)*.8);width:auto;fill:currentColor;opacity:.85}
 .head .sec .x{opacity:.5}
@@ -109,13 +110,13 @@ em,.it{font-style:normal}
 .cover .frame{padding-top:calc(var(--u)*2.6)}
 .big-wm{display:flex;align-items:center;gap:calc(var(--u)*1.6)}
 .big-wm svg{height:calc(var(--u)*6.2);width:auto;fill:currentColor}
+.big-wm.pk svg{height:calc(var(--u)*7.4)}
 .big-wm .t{font-weight:300;font-size:calc(var(--u)*3.2);letter-spacing:.34em;text-transform:uppercase}
 .cover-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:calc(var(--u)*3)}
 .cover-foot .m{height:calc(var(--u)*1.9);width:auto;fill:currentColor}
 .close-mark{display:grid;justify-items:center;gap:calc(var(--u)*1.4);text-align:center}
 .close-mark .w{height:calc(var(--u)*9);width:auto;fill:currentColor}
 .close-mark .m{height:calc(var(--u)*1.8);width:auto;fill:currentColor}
-.close-mark .wt{font-weight:300;font-size:calc(var(--u)*3.2);letter-spacing:.34em;text-transform:uppercase;margin-right:-.34em}
 .close-mark .line{border-bottom:1px solid currentColor;padding-bottom:calc(var(--u)*.3)}
 
 /* ---------- chapter openers: cloth, a big Didone number, the chapter title ---------- */
@@ -362,6 +363,7 @@ html.lb-open{overflow:hidden}
   .head .sec{max-width:60%;text-align:right;line-height:1.35}
   .wm svg{height:22px} .wm .t{font-size:11px}
   .big-wm svg{height:56px} .big-wm .t{font-size:24px;letter-spacing:.28em}
+  .wm.pk svg{height:30px} .big-wm.pk svg{height:72px}
   .cover-foot{flex-wrap:wrap}
   .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
   .gantt{grid-template-columns:90px repeat(var(--wk,17),minmax(0,1fr));column-gap:1px}
