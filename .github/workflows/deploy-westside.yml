@@ -40,14 +40,17 @@ jobs:
           ok=""
           if [ -n "$EDGEONE_API_TOKEN" ]; then
             for i in 1 2 3 4; do
+              rm -f ./*.zip   # a failed attempt leaves its package here, and the next one would upload it too
               npx --yes edgeone@1.6.41 makers deploy -n "$PROJECT" -t "$EDGEONE_API_TOKEN" --json 2>&1 | tee "$RUNNER_TEMP/deploy.log" || true
               if grep -q '"status":"success"' "$RUNNER_TEMP/deploy.log"; then ok=1; break; fi
               sleep 8
             done
           else
             # anonymous deploys take the folder name (mask360westside); the explicit name is the fallback
+            # EdgeOne's anonymous-credentials call sometimes times out (30 s); retry with growing waits
             for NAME in "" "$PROJECT"; do
-              for i in 1 2; do
+              for i in 1 2 3; do
+                rm -f ./*.zip   # a failed attempt leaves its package here, and the next one would upload it too
                 if [ -n "$NAME" ]; then
                   npx --yes edgeone@1.6.41 makers deploy -n "$NAME" --anonymous --site global --json 2>&1 | tee "$RUNNER_TEMP/deploy.log" || true
                 else
@@ -55,7 +58,7 @@ jobs:
                 fi
                 if grep -q '"status":"success"' "$RUNNER_TEMP/deploy.log"; then ok=1; break 2; fi
                 grep -q 'Project name' "$RUNNER_TEMP/deploy.log" && break
-                sleep 8
+                sleep $((i * 20))
               done
             done
           fi
