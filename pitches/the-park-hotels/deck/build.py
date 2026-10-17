@@ -50,7 +50,7 @@ standalone = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">
 # Mask360's copy rules: no em or en dashes, no contrast constructions, no filler words, nothing left to fill in
 BAN = [r'—', r'–', r',\s*not\s', r'\brather than\b', r'\binstead of\b', r'not just .{0,40}, but', r'\{\{', r'\[\[', r'\bTODO\b',
        r'\bTK\b', r'lorem', r'\[(agency|name|client|email|phone)', r'unlock', r'elevate', r'seamless', r'game[- ]chang', r'leverag',
-       r'synerg', r'holistic', r'delve', r'tapestry', r'in today.s', r'ever-evolving', r'cutting-edge', r'world-class', r'!']
+       r'synerg', r'holistic', r'\.\s+Ours\b', r'delve', r'tapestry', r'in today.s', r'ever-evolving', r'cutting-edge', r'world-class', r'!']
 text = re.sub(r'<script>.*?</script>', ' ', fragment.split('</style>', 1)[1], flags=re.S)
 text = re.sub(r'<[^>]+>', ' ', text)
 hits = [(b, m.group(0)) for b in BAN for m in re.finditer(b, text, re.I)]

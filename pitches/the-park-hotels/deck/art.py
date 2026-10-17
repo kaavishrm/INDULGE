@@ -59,8 +59,8 @@ def stage():
         o.append(f'<path class="ln2" d="M{cx - 22} {cy + 44} C{cx - 20} {cy + 20} {cx + 20} {cy + 20} {cx + 22} {cy + 44}"/>')
     # phone on a tripod, filming
     o.append('<rect class="fw" x="700" y="296" width="40" height="72" rx="6"/><rect class="ln" x="700" y="296" width="40" height="72" rx="6"/>')
-    o.append('<circle class="fi" cx="711" cy="308" r="3"/>')
-    o.append(_t(717, 312, 'REC', 10, weight=500, ls=.1))
+    o.append('<circle class="fa" cx="710" cy="308" r="3"/>')
+    o.append(_t(716, 311, 'REC', 8, weight=500))
     o.append('<path class="ln" d="M720 368 L720 430 M720 430 L700 488 M720 430 L740 488"/>')
     o.append(_t(400, 530, 'one take, filmed live', 15, 'tx-d', anchor='middle'))
     o.append('</svg>')
@@ -279,9 +279,9 @@ def reel_frame(k):
         o.append(_t(110, 250, 'PARK STREET', 22, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
     elif k == 1:
         o.append('<path class="ln" d="M44 196 L176 196 M110 196 L110 120 M110 120 L126 108"/><ellipse class="fi" cx="130" cy="104" rx="5" ry="8" transform="rotate(-35 130 104)"/>')
-        for j, cx in enumerate((40, 80, 120, 160, 200)):
+        for j, cx in enumerate((50, 80, 110, 140, 170)):
             cy = 300 - (j % 2) * 12
-            o.append(f'<circle class="fw" cx="{cx - 10}" cy="{cy}" r="22"/><circle class="ln2" cx="{cx - 10}" cy="{cy}" r="22"/>')
+            o.append(f'<circle class="fw" cx="{cx}" cy="{cy}" r="16"/><circle class="ln2" cx="{cx}" cy="{cy}" r="16"/>')
         o.append('<path class="ln2" d="M110 340 L110 236 M100 248 L110 236 L120 248"/>')
     elif k == 2:
         for j, cx in enumerate((50, 110, 170)):
@@ -295,7 +295,7 @@ def reel_frame(k):
             t = j / 8
             x = 24 + 172 * t
             y = (1 - t) ** 2 * 80 + 2 * (1 - t) * t * 130 + t ** 2 * 80
-            o.append(f'<circle cx="{x:.1f}" cy="{y + 8:.1f}" r="4" style="fill:var(--bone)"/>')
+            o.append(f'<circle cx="{x:.1f}" cy="{y + 8:.1f}" r="4" style="fill:var(--paper)"/>')
         o.append('<path d="M50 230 L170 230 L170 244 L50 244 Z" style="fill:none;stroke:var(--paper);stroke-width:1.2"/>')
         for cx in (40, 70, 100, 130, 160, 190):
             o.append(f'<circle cx="{cx - 5}" cy="290" r="11" style="fill:none;stroke:var(--night-2);stroke-width:1"/>')
@@ -321,7 +321,7 @@ def people(k):
     elif k == 1:
         o.append('<rect class="fw" x="96" y="14" width="128" height="128"/><rect class="ln" x="96" y="14" width="128" height="128"/>')
         o.append('<rect class="fp" x="106" y="24" width="108" height="86"/><circle class="ln" cx="140" cy="76" r="14"/><circle class="ln" cx="178" cy="76" r="14"/><path class="ln2" d="M106 96 L214 96"/>')
-        o.append(_t(160, 132, 'REPOSTED WITH CREDIT', 9, anchor='middle', weight=500, ls=.12, fill='var(--ink-3)'))
+        o.append(_t(160, 132, 'WITH CREDIT', 9, anchor='middle', weight=500, ls=.12, fill='rgba(18,18,18,.6)'))
         o.append('<path class="ln2" d="M236 60 C256 60 256 92 236 92 M244 52 L236 60 L244 68"/>')
     elif k == 2:
         o.append('<path class="ln2" d="M40 30 Q160 70 280 30"/>')
@@ -390,14 +390,14 @@ def content_map():
                      f'{"" if hero else ' style="opacity:.32"'}/>')
             tx, anchor = (dx - 18, 'end') if left else (dx + 18, 'start')
             o.append(_t(tx, f'{ly + 8:.0f}', sname.upper(), 23, 'tx-d', anchor=anchor))
-            o.append(_t(tx, f'{ly + 29:.0f}', see, 15, anchor=anchor, fill='rgba(18,18,18,.6)'))
-            o.append(_t(tx, f'{ly - 14:.0f}', fmt.upper(), 11.5, 'tx-m', anchor=anchor, fill='rgba(18,18,18,.6)'))
+            o.append(_t(tx, f'{ly + 31:.0f}', see, 18, anchor=anchor, fill='rgba(18,18,18,.6)'))
+            o.append(_t(tx, f'{ly - 15:.0f}', fmt.upper(), 14, 'tx-m', anchor=anchor, fill='rgba(18,18,18,.6)'))
     for (name, what, side, series), (px, py) in zip(MAP, spots):
         o.append(f'<rect class="fi" x="{px - 120}" y="{py - 38}" width="240" height="76"/>')
         o.append(_t(px, py + 4, name.upper(), 23, 'tx-d', anchor='middle', fill='var(--paper)'))
-        o.append(_t(px, py + 25, what.upper(), 11.5, 'tx-m', anchor='middle', fill='rgba(255,255,255,.62)'))
+        o.append(_t(px, py + 26, what.upper(), 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
     o.append(f'<rect class="fa" x="{cx - 140}" y="{cy - 92}" width="280" height="184"/>')
-    o.append(_t(cx - 116, cy - 60, 'THE IDEA', 12, 'tx-m'))
+    o.append(_t(cx - 116, cy - 60, 'THE IDEA', 14, 'tx-m'))
     o.append(_t(cx - 116, cy + 26, 'PARK STREET,', 31, 'tx-d', ls=-.02))
     o.append(_t(cx - 116, cy + 62, 'EVERYWHERE.', 31, 'tx-d', ls=-.02))
     o.append('</svg>')
@@ -427,19 +427,19 @@ def handles_map():
         y1 = y + 70 if top else y - 70
         my = (y0 + y1) / 2
         o.append(f'<path class="ln2" d="M{cx} {y0} V{my:.0f} H{x} V{y1}"/>')
-    o.append(_t(cx + 14, 276, 'THE BEST OF EACH HOTEL RUNS HERE', 11.5, 'tx-m', fill='rgba(18,18,18,.6)'))
-    o.append(_t(cx + 14, 438, 'EACH NEW HOTEL GETS A LAUNCH KIT', 11.5, 'tx-m', fill='rgba(18,18,18,.6)'))
+    o.append(_t(cx + 14, 278, 'THE BEST OF EACH HOTEL RUNS HERE', 14, 'tx-m', fill='rgba(18,18,18,.6)'))
+    o.append(_t(cx + 14, 440, 'EACH NEW HOTEL GETS A LAUNCH KIT', 14, 'tx-m', fill='rgba(18,18,18,.6)'))
     for (name, voice, what, how), (x, y) in zip(HANDLES, spots):
         o.append(f'<rect class="fw" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
                  f'<rect class="ln2" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
                  f'<rect class="fa" x="{x - 200}" y="{y - 70}" width="400" height="3"/>')
         o.append(_t(x - 176, y - 30, name.upper(), 21, 'tx-d'))
-        o.append(_t(x + 176, y - 30, voice.upper(), 11.5, 'tx-m', anchor='end', fill='rgba(18,18,18,.6)'))
+        o.append(_t(x + 176, y - 30, voice.upper(), 14, 'tx-m', anchor='end', fill='rgba(18,18,18,.6)'))
         o.append(f'<line class="ln2" x1="{x - 176}" y1="{y - 12}" x2="{x + 176}" y2="{y - 12}"/>')
-        o.append(_t(x - 176, y + 18, what, 16))
-        o.append(_t(x - 176, y + 42, how, 14, fill='rgba(18,18,18,.6)'))
+        o.append(_t(x - 176, y + 20, what, 18))
+        o.append(_t(x - 176, y + 46, how, 16, fill='rgba(18,18,18,.6)'))
     o.append(f'<rect class="fi" x="{cx - 180}" y="{cy - 50}" width="360" height="100"/>')
     o.append(_t(cx, cy + 4, '@THEPARKHOTELS', 25, 'tx-d', anchor='middle', fill='var(--paper)'))
-    o.append(_t(cx, cy + 28, 'THE GROUP FEED', 11.5, 'tx-m', anchor='middle', fill='rgba(255,255,255,.62)'))
+    o.append(_t(cx, cy + 30, 'THE GROUP FEED', 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
     o.append('</svg>')
     return ''.join(o)

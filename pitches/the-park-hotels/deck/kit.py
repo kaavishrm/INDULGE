@@ -35,14 +35,18 @@ def hh(grey, ink, cls='h1', tag='h2'):
     return f'<{tag} class="{cls}"><span class="g">{grey}</span> {ink}</{tag}>'
 
 
-CHAPTERS = {'The Park today': '01', 'The idea': '02', 'How it runs': '03'}
+CHAPTERS = {'The Park today': ('01', 'The Park today'), 'The idea': ('02', 'Park Street, everywhere'), 'How it runs': ('03', 'How it runs')}
 
 
 def head(section):
     """The running head: The Park's mark left, the section label on the third guide, the Mask360 button right."""
     ch = section.split(' · ')[0]
-    return (f'<div class="head">{WORDMARK}<p class="lab">{f"<span class=mn>{CHAPTERS[ch]}</span>" if ch in CHAPTERS else ""}<span>{ch}</span></p>'
-            f'<a class="btn" href="#next"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
+    if ch in CHAPTERS:
+        mid = f'<p class="lab"><span class="mn">{CHAPTERS[ch][0]}</span><span>{CHAPTERS[ch][1]}</span></p>'
+    else:  # the slides outside the chapters carry their own label, so the head shows the date
+        mid = '<p class="mono" style="grid-column:3"><span class="k">October</span>2026</p>'
+    return (f'<div class="head">{WORDMARK}{mid}'
+            f'<a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
 
 
 def fab(kind, seed=1, cls='fab'):
@@ -55,7 +59,7 @@ def slide(sid, section, body, src='', dark=False, cls='', bare=False, cloth=None
     hd = '' if bare else head(section)
     bg = fab(*cloth) if cloth else ''
     folio = f'<div class="folio"><span class="src">{src}</span><span class="pg" data-pg></span></div>'
-    return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" aria-label="{esc(section)}">{bg}'
+    return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" tabindex="-1" aria-label="{esc(section)}">{bg}'
             f'<div class="frame">{hd}<div class="body">{body}</div>{folio}</div></section>')
 
 

@@ -46,8 +46,8 @@ img,svg,video,canvas{max-width:100%;display:block}
 /* ---------- type: uppercase Zalando in two tones, mono labels ---------- */
 p,li,td,th,dd,dt{font-size:calc(var(--u)*1.08);line-height:1.55;margin:0;text-wrap:pretty}
 h1,h2,h3,h4{margin:0;font-weight:500;text-wrap:balance}
-.h-display{font-size:calc(var(--u)*7.6);line-height:.86;letter-spacing:-.045em;text-transform:uppercase;font-weight:500}
-.h1{font-size:calc(var(--u)*4.1);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;font-weight:500}
+.h-display{font-size:calc(var(--u)*7.6);line-height:.9;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
+.h1{font-size:calc(var(--u)*4.1);line-height:.92;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .h1 .g,.h-display .g,.ct .g{display:block;color:var(--ink-2)}
 .dark .h1 .g,.dark .h-display .g,.dark .ct .g,.scrim .h-display .g{color:var(--night-2)}
 .h2{font-size:calc(var(--u)*2.05);line-height:1.12;letter-spacing:-.02em;font-weight:500}
@@ -112,7 +112,7 @@ em,.it{font-style:normal}
 .folio{margin-top:auto;padding-top:calc(var(--u)*1.1);display:grid;grid-template-columns:3fr 1fr;align-items:end;gap:calc(var(--u)*2)}
 .folio .src{font-size:calc(var(--u)*.8);line-height:1.45;color:var(--ink-2);max-width:90%}
 .dark .folio .src,.scrim .folio .src{color:var(--night-2)}
-.folio .pg{justify-self:end;font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;white-space:nowrap}
+.folio .pg{justify-self:end;font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;white-space:nowrap;text-transform:uppercase}
 .folio .pg .k{color:var(--ink-2);margin-right:.6em} .dark .folio .pg .k,.scrim .folio .pg .k{color:var(--night-2)}
 .body{flex:1;min-height:0;display:flex;flex-direction:column}
 
@@ -193,7 +193,7 @@ em,.it{font-style:normal}
 .chap .inset .btn{position:absolute;left:calc(var(--u)*2.6);right:0;bottom:0}
 .chap .inset .btn span{flex:1}
 .chap .ttl{grid-column:3/5;grid-row:2;align-self:end}
-.chap .ct{font-size:calc(var(--u)*6.4);line-height:.86;letter-spacing:-.045em;text-transform:uppercase;font-weight:500}
+.chap .ct{font-size:calc(var(--u)*6.4);line-height:1;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .chap .cl{grid-column:3;grid-row:3;padding-right:calc(var(--u)*2)}
 .chap .pages{grid-column:4;grid-row:3;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(var(--u)*.5)}
 .chap .pages li{display:flex;gap:calc(var(--u)*.9);font-size:calc(var(--u)*1);font-weight:500;text-transform:uppercase;line-height:1.15}
@@ -225,7 +225,8 @@ em,.it{font-style:normal}
 .tile>canvas{position:absolute;inset:0;width:100%;height:100%}
 .tile::after{content:"";position:absolute;inset:0;background:var(--grain);background-size:180px;pointer-events:none}
 .tile .ov{position:absolute;inset:0;z-index:1;padding:calc(var(--u)*1);display:flex;flex-direction:column;justify-content:space-between}
-.tile .ov .no{font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500}
+.tile .ov .no{font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;text-transform:uppercase}
+.tile .ov>.btn{align-self:stretch;margin:0 calc(var(--u)*-1) calc(var(--u)*-1) calc(var(--u)*1.6)} .tile .ov>.btn span{flex:1}
 .tile .ov .t{font-size:calc(var(--u)*1.5);line-height:.95;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .tile.d{color:var(--ink)}
 
@@ -241,13 +242,13 @@ em,.it{font-style:normal}
 /* ---------- idea pages: the drawing as the case-study image, the meta, the big name ---------- */
 .pic{position:relative;background:var(--panel);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0;border:1px solid var(--hair)}
 .pic .ov{position:absolute;inset:0;padding:calc(var(--u)*1);display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
-.pic .no{font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500}
+.pic .no{font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;text-transform:uppercase}
 .pic svg{width:100%;height:100%;max-height:100%}
 .kv{display:flex;flex-direction:column;gap:calc(var(--u)*.42);font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;text-transform:uppercase;line-height:1.3}
 .kv>div{display:flex}
 .kv .k{flex:none;width:calc(var(--u)*6.4)}
 .kv .v{font-family:var(--sans);font-size:calc(var(--u)*.86)}
-.idea-name{font-size:calc(var(--u)*5.6);line-height:.86;letter-spacing:-.045em;text-transform:uppercase;font-weight:500}
+.idea-name{font-size:calc(var(--u)*5.6);line-height:.9;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .quote-mark{width:calc(var(--u)*2.2);height:auto;fill:var(--accent)}
 .say{font-size:calc(var(--u)*1.38);line-height:1.3;font-weight:500;letter-spacing:-.015em}
 .spec{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair)}
@@ -264,8 +265,8 @@ em,.it{font-style:normal}
 /* ---------- the next page: the orange card ---------- */
 .cta{background:var(--accent);color:var(--ink);padding:calc(var(--u)*2) calc(var(--u)*2.2);display:flex;flex-direction:column;gap:calc(var(--u)*1.1)}
 .cta .h2{text-transform:uppercase;letter-spacing:-.03em;line-height:.95;font-size:calc(var(--u)*2.4)}
-.cta .h2 .g{display:block;color:rgba(18,18,18,.55)}
-.cta .mono{color:rgba(18,18,18,.65)}
+.cta .h2 .g{display:block;color:rgba(18,18,18,.66)}
+.cta .mono{color:rgba(18,18,18,.8)}
 .checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(var(--u)*.6)}
 .checks li{display:flex;gap:calc(var(--u)*.7);align-items:flex-start;font-size:calc(var(--u)*1.06);line-height:1.35}
 .checks li::before{content:"";flex:none;width:calc(var(--u)*1.2);height:calc(var(--u)*1.2);margin-top:.05em;
@@ -276,6 +277,7 @@ em,.it{font-style:normal}
 .close .nav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(var(--u)*.55)}
 .close .nav li{font-size:calc(var(--u)*1.05);font-weight:500;text-transform:uppercase}
 .close .nav a:hover{color:var(--accent)}
+.close .giant{padding-right:calc(var(--u)*3)}
 .close .giant svg{width:100%;height:auto;fill:#fff}
 .close .giant.pk svg{width:auto;height:calc(var(--u)*14)}
 
@@ -299,7 +301,7 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
 /* ---------- reference videos: a card, a still, a play button; play opens the clip over the deck ---------- */
 .refs{display:grid;gap:0;align-content:start}
 .vcard{margin:0;display:flex;flex-direction:column;min-width:0;background:var(--paper)}
-.vcard .pc-h{display:flex;justify-content:space-between;align-items:center;padding:calc(var(--u)*.7) calc(var(--u)*.9);border-bottom:1px solid var(--hair)}
+.vcard .pc-h{display:flex;justify-content:space-between;align-items:center;gap:calc(var(--u)*.8);padding:calc(var(--u)*.7) calc(var(--u)*.9);border-bottom:1px solid var(--hair)}
 .vbox{position:relative;background:var(--night);aspect-ratio:var(--ar,9/16);overflow:hidden}
 .vbox video{width:100%;height:100%;object-fit:cover;background:var(--night)}
 .vbox .vplay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;border:0;padding:0;cursor:pointer;
@@ -311,10 +313,14 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
 .vbox .vplay i{width:calc(var(--u)*2.3);display:grid;place-items:center;background:var(--accent)}
 .vbox .vplay svg{width:36%;height:36%;fill:#fff}
 .vbox .vplay:hover i{background:#ff4a2a}
+.vbox .vplay:focus-visible{outline-offset:-4px} .vbox .vplay:focus-visible span{box-shadow:0 0 0 2px #fff}
+.chap .inset .btn:focus-visible{outline-offset:-3px}
+.slide:focus{outline:none}
 .vbox .dur{position:absolute;z-index:1;top:calc(var(--u)*.7);right:calc(var(--u)*.7);font-family:var(--mono);font-size:calc(var(--u)*.7);font-weight:500;
   background:rgba(18,18,18,.72);color:#fff;padding:.3em .5em;pointer-events:none}
 .vcard .vb{padding:calc(var(--u)*.85) calc(var(--u)*.9) calc(var(--u)*1);display:flex;flex-direction:column;gap:calc(var(--u)*.4)}
-.vcard .vb .lab{font-family:var(--mono);font-size:calc(var(--u)*.72);color:var(--ink-2)}
+.vcard .vb .lab{font-family:var(--mono);font-size:calc(var(--u)*.72);color:var(--ink-2);align-items:flex-start;line-height:1.2;min-height:2.4em}
+.vcard .vb .lab::before{margin-top:.25em}
 .vcard .cap{font-size:calc(var(--u)*1.05);font-weight:500;line-height:1.2;letter-spacing:-.01em}
 .vcard .take{font-size:calc(var(--u)*.9);line-height:1.4;color:var(--ink-2)}
 .vempty{position:absolute;inset:0;display:grid;place-items:center;color:var(--night-2);font-family:var(--mono);font-size:calc(var(--u)*.8);text-transform:uppercase;text-align:center;padding:calc(var(--u)*2)}
@@ -380,7 +386,7 @@ html.lb-open{overflow:hidden}
 .cal .day{border-bottom:1px solid var(--hair);border-right:1px solid var(--hair);padding:calc(var(--u)*.5) calc(var(--u)*.6);display:flex;flex-direction:column;gap:calc(var(--u)*.28);min-height:0;overflow:hidden}
 .cal .wd:nth-child(7n){border-right:0}
 .cal .day .n{font-size:calc(var(--u)*1.35);line-height:1;letter-spacing:-.03em}
-.cal .day.out .n{color:var(--ink-3)}
+.cal .day.out .n,.cal .day.nm .n{color:var(--ink-3)}
 .cal .day.out .tag{color:var(--ink-2)}
 .cal .day.tent{background:var(--panel);box-shadow:inset 0 2px 0 var(--accent)}
 .cal .tag{display:flex;align-items:flex-start;gap:calc(var(--u)*.35);font-size:calc(var(--u)*.74);line-height:1.2}
@@ -410,7 +416,7 @@ html.lb-open{overflow:hidden}
 .idea-body{min-height:0}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.cover-h{font-size:calc(var(--u)*6.6)}
+.cover-h{font-size:calc(var(--u)*6.6);line-height:1}
 .next-h{font-size:calc(var(--u)*6)}
 .big-nums .big{font-size:calc(var(--u)*7.4)}
 .cta .btn{align-self:flex-start}
@@ -418,7 +424,7 @@ html.lb-open{overflow:hidden}
 .tbl.g4t td,.tbl.half td{padding-block:calc(var(--u)*.85);font-size:calc(var(--u)*1.1)}
 
 /* ---------- phones and narrow windows: slides become one scrolling document ---------- */
-@media (max-width:760px),(max-aspect-ratio:4/5){
+@media screen and (max-width:760px),screen and (max-aspect-ratio:4/5){
   html{scroll-snap-type:none}
   .slide{min-height:0;display:block;padding:0}
   .frame{--u:14px;--px:16px;width:100%;aspect-ratio:auto;padding:28px var(--px) 30px}
@@ -427,7 +433,7 @@ html.lb-open{overflow:hidden}
   .chap .ct{font-size:52px} .idea-name{font-size:52px}
   p,li,td,dd,dt{font-size:15.5px}
   .g4,.g3,.head,.cover .top,.chap,.folio{grid-template-columns:minmax(0,1fr)}
-  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g4.g2{grid-template-columns:minmax(0,1fr)}
   .cover-h{font-size:50px} .next-h{font-size:52px}
   .m-hide{display:none}
   .mt-auto{margin-top:26px}
@@ -460,6 +466,7 @@ html.lb-open{overflow:hidden}
   .tbl.stackable td+td::before{content:attr(data-h) ": ";font-family:var(--mono);color:var(--ink-2);font-size:11.5px;text-transform:uppercase}
   .tbl td{font-size:15px}
   .tile .ov .t{font-size:20px} .tile .ov .no,.pic .no{font-size:12px}
+  .ptile .ov .t{font-size:13px;line-height:1.05} .ptile .ov{padding:6px}
   .pic{min-height:280px;padding:40px 8px 12px}
   .kv .k{width:96px} .kv .v{font-size:13px}
   .say{font-size:19px}
@@ -506,6 +513,8 @@ html.lb-open{overflow:hidden}
 }
 @media print{
   @page{size:1600px 900px;margin:0}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .vlight{display:none!important}
   html{scroll-snap-type:none}
   .slide{min-height:0;height:900px;padding:0;break-after:page}
   .frame{width:1600px;height:900px;aspect-ratio:auto}

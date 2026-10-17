@@ -7,11 +7,14 @@
     es.forEach(e => { if (e.isIntersecting) cur = slides.indexOf(e.target); });
   }, { threshold: 0.55 });
   slides.forEach(s => io.observe(s));
-  const go = i => slides[Math.max(0, Math.min(total - 1, i))].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  // the next slide is taken from cur, which go() sets at once, so two quick presses move two slides; focus follows, so Tab starts there
+  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); cur = j; slides[j].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); slides[j].focus({ preventScroll: true }); };
+  // phones and portrait windows read the slides as one scrolling document (deck.css), where the browser's own keys scroll
+  const doc = matchMedia('(max-width:760px),(max-aspect-ratio:4/5)');
 
   addEventListener('keydown', e => {
     if (open) { if (e.key === 'Escape') { e.preventDefault(); close(); } else if (e.key === 'PageDown' || e.key === 'PageUp') e.preventDefault(); return; }
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (doc.matches || e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
     if (t.closest && (t.closest('video, input, textarea, select, [contenteditable]') || (e.key === ' ' && t.closest('button')))) return;
     const k = e.key;
@@ -34,6 +37,7 @@
     box.insertBefore(v, box.firstChild);
     lb.hidden = true;
     document.documentElement.classList.remove('lb-open');
+    document.querySelector('main').inert = false;
     const b = box.querySelector('.vplay');
     if (b) b.focus({ preventScroll: true });
   }
@@ -63,6 +67,7 @@
       v.controls = true;
       lb.hidden = false;
       document.documentElement.classList.add('lb-open');
+      document.querySelector('main').inert = true;  // keeps Tab inside the clip while it is open
       const p = v.play();
       if (p && p.catch) p.catch(() => {});
       v.focus({ preventScroll: true });

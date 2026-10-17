@@ -52,19 +52,19 @@ SOURCES = [
     ('The content', 'Flurys turns 100 in 2027 and opened a 24-hour café in Gurugram on 7 Aug 2026 (company announcement via Sahi). The '
      'Kolkata Christmas Festival on Park Street is co-organised by the Apeejay Surrendra Group (News Arena). Instagram’s profile '
      'grid shows posts at 3:4. Pillars, series, formats, cadence, sample posts, captions and the Reel are Mask360’s proposal.'),
-    ('The references', 'Twenty clips from other hotels’ feeds, gathered by Mask360 for direction: The Savoy, Four Seasons, The Roseate, '
-     'Bulgari, Rosewood, Amankila, Mama Shelter, Raffles Jaipur, Lacoste and a White Lotus tie-in, and five hotels whose names are '
-     'not on screen. Brands are named only where the clip shows them. Mask360 did not make these clips.'),
+    ('The references', 'Twenty clips from hotel and brand feeds, gathered by Mask360 for direction: The Savoy, Four Seasons (with The White '
+     'Lotus), The Roseate, Bulgari, Rosewood, Amankila, Mama Shelter, Raffles Jaipur, The Hoxton with Lacoste, and five hotels whose '
+     'names are not on screen. Brands are named only where the clip shows them. Mask360 did not make these clips.'),
     ('Mask360', 'Accounts, managed feeds and the Nexa Platinum Lounge result come from Mask360’s own records.'),
 ]
 
 
 def cover():
-    chapters = [('01', 'The Park today', 'ch-today'), ('02', 'The content map', 'ch-idea'), ('03', 'The references', 'ref-named'),
-                ('04', 'How it runs', 'ch-run')]
+    chapters = [(pg('ch-today'), 'The Park today', 'ch-today'), (pg('ch-idea'), 'Park Street, everywhere', 'ch-idea'),
+                (pg('ref-named'), 'The references', 'ref-named'), (pg('ch-run'), 'How it runs', 'ch-run')]
     svc = ''.join(f'<li><span class="mn">/{n}</span><a href="#{i}">{t}</a></li>' for n, t, i in chapters)
     body = f'''<div class="top">{WORDMARK}<p class="lab"><span>A social media proposal</span></p>{M_MARK}</div>
-<div class="g4 grow" style="grid-template-rows:1fr auto auto;row-gap:calc(var(--u)*2.4)">
+<div class="g4 grow" style="grid-template-rows:1fr auto auto;row-gap:calc(var(--u)*1.5)">
   <p class="lede-s c3 end pr" style="grid-row:2">A social media proposal from Mask360, <b>for the brand team at The Park Hotels.</b></p>
   <ul class="svc c4 end" style="grid-row:2">{svc}</ul>
   <p class="who c12 end" style="grid-row:3">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
@@ -82,7 +82,7 @@ def promise():
   <div class="c1 tile m-hide" style="grid-row:1/4;align-self:stretch;margin-right:calc(var(--u)*2)">{fab('kohl', 41)}
     <div class="ov"><span class="no">The promise</span>{btn('See the map', pg('mindmap'), '#mindmap')}</div></div>
   {lab('Our promise', pg('promise'), 'c3')}
-  <p class="q c34" style="grid-row:2;align-self:center">{words('We will make THE Park’s feed the city’s night out.', ('night', 'out'))}</p>
+  <h2 class="q c34" style="grid-row:2;align-self:center">{words('We will make THE Park’s feed the city’s night out.', ('night', 'out'))}</h2>
   <div class="c24 g4 g3 stagger" style="grid-row:3">{cards}</div>
 </div>'''
     return slide('promise', 'Proposal · our promise', body)
@@ -90,10 +90,10 @@ def promise():
 
 def brief():
     rows = [('A social media agency', 'A content map, twenty references, a month on the feed and every handle.',
-             f'{pg("mindmap")} · {pg("ref-named")} · {pg("calendar")}'),
-            ('Hospitality and luxury', 'THE Park in its own numbers, and the feeds we run.', f'{pg("today")} · {pg("mask360")}'),
+             f'{pg("mindmap")} · {pg("ref-named")} · {pg("calendar")} · {pg("handles")}'),
+            ('Hospitality and luxury', 'THE Park in its own numbers, and the hotels we work with.', f'{pg("today")} · {pg("mask360")}'),
             ('Think beyond the obvious', 'We post what only THE Park can.', pg('rule')),
-            ('Have the work to back it up', 'A Reel, second by second, and a lounge we built.', f'{pg("reel")} · {pg("mask360")}'),
+            ('Have the work to back it up', 'Feeds we run for St. Regis and Moxy, and a lounge that sold 530 tickets at ₹75,000.', pg('mask360')),
             ('An upcoming pitch', 'This is our point of view. We bring the full plan to the pitch.', pg('next'))]
     acc = ''.join(f'''<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"><span class="mute">P.</span> {p}</span>
 <p class="a">{a}</p></div>''' for i, (q, a, p) in enumerate(rows))
@@ -116,7 +116,7 @@ def today():
     nums = [('92%', 'Occupancy', 'Rooms are full: Q1 FY27.'),
             ('43%', 'Of revenue', 'From food, drink and nightlife: Q1 FY27.'),
             ('42', 'Hotels', 'In 32 cities, October 2026.'),
-            ('45', 'New hotels', 'By FY2030, each one a new handle to launch.')]
+            ('45', 'New hotels', 'By FY2030, each one opening with nine posts ready.')]
     cells = ''.join(f'<div><div class="big">{n}</div><p class="lab"><span class="t">{k}</span></p><p class="ink2">{d}</p></div>' for n, k, d in nums)
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.')}</div>
@@ -205,7 +205,7 @@ def mindmap():
 
 # the reference clips, four lessons of five: (slug, source as shown on screen, what you see, what we take, the series it feeds)
 REFS = {
-    'ref-named': (('Name', 'the series.'), 'The best hotel feeds give every format a name <b>and put the name on screen.</b>',
+    'ref-named': (('Name', 'the series.'), 'The Savoy, Raffles and The Roseate name each format <b>and put the name on screen.</b>',
                   'The Sessions, Room 1967 and Flurys 100 run the same way.', [
         ('savoy-breakfast', 'The Savoy', 'Breakfast at the Savoy: the trolley, the butler, the London Eye.',
          'A title card and a ritual. Flurys 100 opens like this.', 'The Table · Flurys 100'),
@@ -215,19 +215,19 @@ REFS = {
          'A palace told as postcards. Ran Baas, the same way.', 'THE Park Collection'),
         ('presidential-suite', 'Hotel not named', 'The Presidential Suite, reimagined: fabric, tassels, chandelier, terrace.',
          'One suite remade, shown detail by detail. Room 1967.', 'By Design · Room 1967'),
-        ('roseate-food', 'The Roseate', 'Food by Roseate: a drink built by hand, the series name on every frame.',
+        ('roseate-food', 'The Roseate', 'Food by Roseate: a drink built by hand, under the series name.',
          'One title held on screen. Chef’s Counter keeps its name.', 'The Table · Chef’s Counter')]),
     'ref-craft': (('Film the craft', 'up close.'), 'Hands, steel, steam and one line of type. <b>The chef never has to talk.</b>',
                   'Chef’s Counter, The Object and The 3 a.m. Menu are filmed this way.', [
-        ('bulgari-niko-romito', 'Bulgari', 'Il Ristorante Niko Romito: one line per shot. “Every cut symbolises a choice.”',
+        ('bulgari-niko-romito', 'Bulgari Dubai', 'Two kitchens, Il Ristorante Niko Romito and Hoseki: one line per shot. “Every cut symbolises a choice.”',
          'The kitchen speaks in captions. Chef’s Counter in thirty seconds.', 'The Table · Chef’s Counter'),
         ('rosewood-dinner', 'Rosewood', 'Dinner: the lamps, the chef, the pantry, the pour.',
          'Low light and warm wood. The 3 a.m. Menu looks like this.', 'After Hours · The 3 a.m. Menu'),
-        ('bulgari-la-terrazza', 'Bulgari', 'La Terrazza: old photographs, the chef, the orange trees, the cones.',
+        ('bulgari-la-terrazza', 'Bulgari Dubai', 'La Terrazza: old photographs, the chef, the orange trees, the cones.',
          'The archive and the kitchen in one cut. Flurys 100.', 'The Table · Flurys 100'),
-        ('bulgari-dubai-details', 'Bulgari Resort Dubai', 'Details in eighteen seconds: a plate, a cushion, the cones, a pizza.',
+        ('bulgari-dubai-details', 'Bulgari Dubai', 'Details in eighteen seconds: a plate, a cushion, the cones, a pizza.',
          'One object a beat, the name at the end. The Object.', 'By Design · The Object'),
-        ('bulgari-roma', 'Bulgari Hotel Roma', 'Rome from the roof, the sign, the stair, a mosaic from 1884.',
+        ('bulgari-roma', 'Bulgari Roma', 'Rome from the roof, the sign, the stair, and “Casa fondata nel 1884”.',
          'A building with a past, told by its details. The Architects.', 'By Design · The Architects')]),
     'ref-people': (('Put the people', 'first.'), 'The team is the cast: <b>the housekeeper, the doorman, the cook at the pass.</b>',
                    'Night Shift, Ask the Concierge and Who’s Playing start here.', [
@@ -237,18 +237,18 @@ REFS = {
          'The people who make the room, on camera. Night Shift.', 'The City · Night Shift'),
         ('savoy-check-in', 'The Savoy', 'The Check-in: the revolving door, the bell, the desk, a card.',
          'Nine seconds of service, named as a series. Ask the Concierge.', 'The City · Ask the Concierge'),
-        ('lacoste-collab', 'Lacoste', 'Lacoste in a hotel room: pillows, robes, a menu drawn by hand, friends.',
+        ('lacoste-collab', 'Hoxton × Lacoste', 'Lacoste at The Hoxton: pillows, robes, a menu drawn by hand, friends.',
          'A partner you can see in every object. Room 1967’s designer.', 'By Design · Room 1967'),
-        ('white-lotus-loop', 'The White Lotus', 'A drink set down on a White Lotus coaster: one shot, seven seconds.',
+        ('white-lotus-loop', 'Four Seasons', 'A drink set down on a White Lotus × Four Seasons coaster: one shot, seven seconds.',
          'One shot that loops. The cover of every Who Played post.', 'After Hours · Who Played')]),
     'ref-rooms': (('Make the room', 'the story.'), 'A door, a window, a view, <b>in one move and in under a minute.</b>',
                   'Room 1967, The Architects and every launch kit open this way.', [
         ('roseate-delhi', 'The Roseate', 'New Delhi at dusk: water, walls and lamps, the name held still.',
          'Architecture at the blue hour. THE Park New Delhi has the light.', 'By Design · The Architects'),
         ('four-seasons-suites', 'Four Seasons', 'Just got suite-er: suites by the sea and in the city, then the booking line.',
-         'Every Reel ends on where to book. Ours end on WhatsApp.', 'By Design · Room 1967'),
+         'The last frame says where to book. For Room 1967, a WhatsApp line.', 'By Design · Room 1967'),
         ('room-walk', 'Hotel not named', 'Door to window in one walk: the hall, the lamp, the cornice, the marble.',
-         'One move through a room. Each launch kit starts here.', 'Launch kit · Opening Night'),
+         'One move through a room. Each launch kit starts here.', 'By Design · Opening Night'),
         ('small-room', 'Hotel not named', 'A small room in big type: the case, the hangers, the screen, sleep.',
          'Wit for a small room. Zone by The Park speaks like this.', 'Zone by The Park'),
         ('florence-villa', 'Hotel not named', 'Florence from the window: the tea, the pool, a fresco, the Duomo.',
@@ -270,7 +270,7 @@ def ref(sid):
   <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))">{cards}</div>
 </div>'''
     return slide(sid, f'The idea · references {k + 1} of 4', body,
-                 src='Clips from other hotels’ feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.')
+                 src='Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.')
 
 
 MIX = [  # pillar, posts a week, cloth (kind, seed, dark text), formats, days (from WEEKLY)
@@ -341,7 +341,7 @@ def feed():
 
 def voice():
     posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', ('indigo', 71)),
-             ('Reel', 'The 3 a.m. Menu', 'The kitchen just ate. Tomorrow, it’s on the menu.', ('midnight', 72)),
+             ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', ('midnight', 72)),
              ('Reel', 'Chef’s Counter', 'Thirty seconds at the pass. Tuesday, 9 p.m., Fire.', ('shaadi', 73))]
     c = ''.join(f'''<div class="card vpost"><div class="card-h"><div class="tile vimg">{fab(k, sd)}</div><span class="mono mute">{f}</span></div>
 <div class="mt-s"><p class="h4">theparkhotels</p><p class="mono mute">{s}</p></div><p class="say mt-s">{b}</p></div>''' for f, s, b, (k, sd) in posts)
@@ -461,15 +461,18 @@ def calendar():
             cls += ' tent'
         elif day.month != 12:
             cls += ' out'
+        if day.month != 12:
+            cls += ' nm'  # outside December, greyed even when it is a one-off day
         elif day.day > 7:
             cls += ' rep'  # a weekly repeat, folded away on phones
         t = ''.join(f'<span class="tag {k}">{x}</span>' for k, x in tags)
-        cells.append(f'<div class="{cls}"><span class="n" data-wd="{day:%a}">{day.day}</span>{t}</div>')
+        wd = f'{day:%a}' if day.month == 12 else f'{day:%a} · {day:%b}'
+        cells.append(f'<div class="{cls}"><span class="n" data-wd="{wd}">{day.day}</span>{t}</div>')
     key = ''.join(f'<span class="tag label {k}">{n}</span>' for k, n in (('a', 'After Hours'), ('b', 'By Design'), ('c', 'The Table'), ('d', 'The City')))
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('A month', pg('calendar'))}{hh('December', 'on the feed.')}</div>
   <div class="c34 end stack" style="align-items:flex-end"><div class="cal-key">{key}</div>
-    <p class="mono mute"><span class="sq"></span>&ensp;Orange rule: a one-off post</p></div>
+    <p class="mono mute"><span style="display:inline-block;width:calc(var(--u)*1.2);height:2px;background:var(--accent);vertical-align:middle"></span>&ensp;Orange rule: a one-off post</p></div>
 </div>
 <div class="cal mt-m">{head}{''.join(cells)}</div>
 <p class="cal-note ink2">The weekly series repeat all month.</p>'''
@@ -515,7 +518,7 @@ def measure():
                   for i, (a, b) in enumerate(rows))
     body = f'''<div class="g4 grow">
   <div class="c12 stack-l pr">{lab('The numbers', pg('measure'))}{hh('Measured in', 'your numbers.')}
-    <div class="mt-auto" style="max-width:62%">{stat('2×', 'Saves', 'Saves per post against your last 30: a draft threshold, set from your data in week 2.', '01', 2)}</div></div>
+    <div class="mt-auto" style="width:calc(50% + var(--u))">{stat('2×', 'Saves', 'Saves per post against your last 30: a draft threshold, set from your data in week 2.', '01', 2)}</div></div>
   <div class="c34 acc mid">{acc}</div>
 </div>'''
     return slide('measure', 'How it runs · measurement', body, src='First readout: week of 22 February 2027. A series that trails at the readout is replaced.')
@@ -530,8 +533,8 @@ def mask360():
     lounge = f'''<div class="card"><div class="card-h"><span class="mono"><span class="k">04</span>A lounge we built</span>{dots(4, 4)}</div>
 <div class="big mt-s">530</div><p class="ink2">Tickets at ₹75,000 each: the Nexa Platinum Lounge, Lollapalooza India.</p></div>'''
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('Mask360', pg('mask360'))}<div class="m-logo" style="width:78%;margin-top:calc(var(--u)*1.4)"><svg viewBox="0 0 1632 473" role="img" aria-label="m360"><use href="#logo-m"/></svg></div></div>
-  <p class="lede c34 end" style="font-size:calc(var(--u)*2.3);line-height:1.12;letter-spacing:-.025em">We run social and content for luxury and hospitality brands in India and the UAE.</p>
+  <div class="c12 stack-l">{lab('Mask360', pg('mask360'))}<div class="m-logo" style="width:78%;margin-top:calc(var(--u)*1.4)"><svg viewBox="0 0 1632 473" role="img" aria-label="Mask360"><use href="#logo-m"/></svg></div></div>
+  <h2 class="lede c34 end" style="font-size:calc(var(--u)*2.3);line-height:1.12;letter-spacing:-.025em">We run social and content for luxury and hospitality brands in India and the UAE.</h2>
 </div>
 <div class="g4 mt-auto cred">{c}{lounge}</div>'''
     return slide('mask360', 'How it runs · Mask360', body, dark=True, src='From Mask360’s own records.')
@@ -568,11 +571,11 @@ def close():
 <div class="g4 grow" style="grid-template-rows:1fr auto;row-gap:calc(var(--u)*2.4)">
   <ul class="nav c3 end">{n}</ul>
   <div class="c4 end stack">
-    <p class="lede-s">Park Street, <b>everywhere.</b></p>
+    <h2 class="lede-s">Park Street, <b>everywhere.</b></h2>
     <a class="mail" href="mailto:kaavish@mask360.agency" style="font-size:calc(var(--u)*1.6)">kaavish@mask360.agency</a>
     <p class="mono"><span class="k">Phone</span>+91 959 107 5100</p>
   </div>
-  <div class="giant c12 end" style="grid-row:2"><svg viewBox="0 0 1632 473" role="img" aria-label="m360"><use href="#logo-m"/></svg></div>
+  <div class="giant c12 end" style="grid-row:2"><svg viewBox="0 0 1632 473" role="img" aria-label="Mask360"><use href="#logo-m"/></svg></div>
   <p class="mono c3 end" style="grid-row:2"><span class="k">©</span>2026 Mask360<br><span class="k">For</span>The Park Hotels</p>
   <p class="mono c4 end" style="grid-row:2"><span class="k">October</span>2026<br><span class="k">Status</span>Confidential</p>
 </div>'''
