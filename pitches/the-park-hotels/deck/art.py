@@ -54,9 +54,9 @@ def stage():
     o.append('<path class="ln" d="M615 300 L615 214 L621 214 L621 300 M612 214 L612 196 L624 196 L624 214"/>')
     # crowd
     for k, cx in enumerate(range(96, 720, 52)):
-        cy = 452 + (8 if k % 2 else 0)
+        cy = 444 + (6 if k % 2 else 0)
         o.append(f'<circle class="fw" cx="{cx}" cy="{cy}" r="15"/><circle class="ln2" cx="{cx}" cy="{cy}" r="15"/>')
-        o.append(f'<path class="ln2" d="M{cx - 26} {cy + 48} C{cx - 24} {cy + 22} {cx + 24} {cy + 22} {cx + 26} {cy + 48}"/>')
+        o.append(f'<path class="ln2" d="M{cx - 22} {cy + 44} C{cx - 20} {cy + 20} {cx + 20} {cy + 20} {cx + 22} {cy + 44}"/>')
     # phone on a tripod, filming
     o.append('<rect class="fw" x="700" y="296" width="40" height="72" rx="6"/><rect class="ln" x="700" y="296" width="40" height="72" rx="6"/>')
     o.append('<circle class="fi" cx="711" cy="308" r="3"/>')
@@ -74,7 +74,7 @@ def suite():
     _panel(o)
     # the room: back wall and the four edges to the corners
     o.append('<rect class="ln" x="230" y="128" width="340" height="236"/>')
-    o.append('<path class="ln2" d="M40 40 L230 128 M760 40 L570 128 M40 500 L230 364 M760 500 L570 364"/>')
+    o.append('<path class="ln2" d="M40 40 L230 128 M760 40 L570 128 M40 500 L230 364 M760 500 L716 468.5 M600 385.5 L570 364"/>')
     # art on the back wall
     o.append('<rect class="fw" x="262" y="160" width="70" height="92"/><rect class="ln" x="262" y="160" width="70" height="92"/>')
     o.append('<circle class="fp" cx="297" cy="206" r="22"/><circle class="ln2" cx="297" cy="206" r="22"/>')
@@ -93,6 +93,7 @@ def suite():
     # lounge chair, front right
     o.append('<path class="fp" d="M610 402 C600 352 622 318 664 312 C700 308 716 330 712 360 L700 402 Z"/>')
     o.append('<path class="ln" d="M610 402 C600 352 622 318 664 312 C700 308 716 330 712 360 L700 402 Z"/>')
+    o.append('<path class="fw" d="M604 402 L708 402 L700 420 L612 420 Z"/>')
     o.append('<path class="ln" d="M604 402 L708 402 L700 420 L612 420 Z M620 420 L612 470 M692 420 L700 470"/>')
     # door on the left wall, and its number
     o.append('<path class="fw" d="M112 172 L176 186 L176 380 L112 412 Z"/><path class="ln" d="M112 172 L176 186 L176 380 L112 412 Z"/>')
@@ -118,7 +119,8 @@ def cup():
     o.append('<path class="ln" d="M382 316 C430 308 432 372 370 366"/>')
     for k, x in enumerate((258, 290, 322)):
         o.append(f'<path class="ln2" d="M{x} 262 C{x - 14} 238 {x + 14} 222 {x} 196 C{x - 12} 178 {x + 10} 160 {x} 140"/>')
-    # pastry box
+    # pastry box, resting on the table line
+    o.append('<g transform="translate(0 10)">')
     o.append('<path class="fw" d="M486 300 L700 300 L700 430 L486 430 Z"/><path class="ln" d="M486 300 L700 300 L700 430 L486 430 Z"/>')
     o.append('<path class="fw" d="M486 300 L520 262 L734 262 L700 300 Z"/><path class="ln" d="M486 300 L520 262 L734 262 L700 300 Z"/>')
     o.append('<path class="fw" d="M700 300 L734 262 L734 392 L700 430 Z"/><path class="ln" d="M700 300 L734 262 L734 392 L700 430 Z"/>')
@@ -127,18 +129,19 @@ def cup():
     o.append(_t(540, 352, 'FLURYS', 18, 'tx-d', anchor='middle', ls=.16))
     o.append(_t(646, 368, '100', 40, 'tx-n', anchor='middle'))
     o.append(_t(540, 378, 'PARK STREET', 9, anchor='middle', weight=500, ls=.2, fill='var(--ink-3)'))
+    o.append('</g>')
     o.append(_t(400, 530, 'a hundred years in 2027', 15, 'tx-d', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
 
 
-def hotels_grid(today=42, target=85, cols=17):
+def hotels_grid(today=42, target=87, cols=12):
     """One square per hotel: today's filled in ink, the ones still to open drawn as hairlines."""
     cell, gap = 22, 6
     rows = -(-target // cols)
     w = cols * (cell + gap) - gap
     h = rows * (cell + gap) - gap
-    o = [f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{target} squares, one per hotel: {today} open today in ink, '
+    o = [f'<svg viewBox="-1 -1 {w + 2} {h + 2}" role="img" aria-label="{target} squares, one per hotel: {today} open today in black, '
          f'{target - today} to open by 2030 in outline">']
     for i in range(target):
         r, c = divmod(i, cols)
@@ -147,5 +150,43 @@ def hotels_grid(today=42, target=85, cols=17):
             o.append(f'<rect class="fi" x="{x}" y="{y}" width="{cell}" height="{cell}"/>')
         else:
             o.append(f'<rect x="{x + .5}" y="{y + .5}" width="{cell - 1}" height="{cell - 1}" style="fill:none;stroke:var(--ink-3)"/>')
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def phones():
+    """Three sample posts for The Sessions, drawn as phones: a Reel cover, a story and a carousel card."""
+    o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for The Sessions. '
+         'A Reel cover reading Park Street still plays, a story reading 11:40 p.m. Someplace Else, and a carousel card '
+         'reading the full set on YouTube">']
+    for i, x in enumerate((10, 260, 510)):
+        o.append(f'<rect class="fw" x="{x}" y="10" width="200" height="356" rx="22"/><rect class="ln" x="{x}" y="10" width="200" height="356" rx="22"/>')
+        screen = ('fi', 'fp', 'fw')[i]
+        o.append(f'<rect class="{screen}" x="{x + 9}" y="19" width="182" height="338" rx="15"/>')
+        o.append(f'<rect class="{"fw" if i == 0 else "fi"}" x="{x + 78}" y="27" width="44" height="7" rx="3.5"/>')
+    # 1: Reel cover, night
+    o.append(_t(110, 92, 'SET 01 · ONE TAKE', 11, anchor='middle', weight=500, ls=.18, fill='var(--paper)'))
+    o.append('<circle cx="110" cy="188" r="30" style="fill:none;stroke:var(--paper);stroke-width:1.3"/>')
+    o.append('<path d="M101 172 L125 188 L101 204 Z" style="fill:var(--paper)"/>')
+    o.append(_t(110, 290, 'PARK STREET', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    o.append(_t(110, 320, 'STILL PLAYS', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
+    # 2: story, tonight
+    for k in range(3):
+        o.append(f'<line class="{"ln" if k == 0 else "ln2"}" x1="{280 + k * 56}" y1="48" x2="{328 + k * 56}" y2="48"/>')
+    o.append(_t(360, 178, '11:40', 62, 'tx-n', anchor='middle'))
+    o.append(_t(360, 206, 'P.M. TONIGHT', 12, anchor='middle', weight=500, ls=.2))
+    o.append('<line class="ln2" x1="300" y1="236" x2="420" y2="236"/>')
+    o.append(_t(360, 266, 'SOMEPLACE ELSE', 16, 'tx-d', anchor='middle', ls=.12))
+    o.append(_t(360, 288, 'PARK STREET, KOLKATA', 10, anchor='middle', weight=500, ls=.2, fill='var(--ink-3)'))
+    # 3: carousel card, the full set
+    o.append('<rect class="fp" x="530" y="60" width="160" height="90"/><rect class="ln" x="530" y="60" width="160" height="90"/>')
+    o.append('<circle class="fw" cx="610" cy="105" r="17"/><circle class="ln" cx="610" cy="105" r="17"/><path class="fi" d="M604 95 L620 105 L604 115 Z"/>')
+    o.append(_t(610, 210, 'THE FULL SET', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 238, 'ON YOUTUBE', 21, 'tx-d', anchor='middle', ls=.04))
+    o.append(_t(610, 270, 'START TO FINISH, NO CUTS', 10, anchor='middle', weight=500, ls=.18, fill='var(--ink-3)'))
+    for k in range(3):
+        o.append(f'<circle class="{"fi" if k == 0 else "ln2"}" cx="{598 + k * 12}" cy="334" r="3"/>')
+    for x, lab in ((110, 'Reel'), (360, 'Story'), (610, 'Carousel')):
+        o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)

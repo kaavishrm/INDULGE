@@ -160,6 +160,7 @@ em,.it{font-style:normal}
 
 .stories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*1) 2px}
 .stories .tile{height:calc(var(--u)*12)}
+.stories>div>p{padding-right:calc(var(--u)*1.2)}
 .stories .tile .ov .no{font-size:calc(var(--u)*1.8)}
 .stories .tile .ov .t{font-size:calc(var(--u)*1.25)}
 
@@ -192,6 +193,11 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .tbl.rivals td{padding-block:calc(var(--u)*.75)}
 .tbl.rivals th:first-child{width:13%}
 .tbl.rivals td:first-child b{font-weight:400;letter-spacing:.04em;text-transform:uppercase}
+/* the brands: name and what it is, its role on social, its voice */
+.tbl.brands td{padding-block:calc(var(--u)*.75)}
+.tbl.brands th:first-child{width:30%}
+.tbl.brands th:nth-child(2){width:40%}
+.tbl.brands td:first-child b{font-weight:400;letter-spacing:.04em;text-transform:uppercase}
 /* the brief: what the post asked, our answer, the page it is on */
 .tbl.brief td{font-size:calc(var(--u)*1.35);padding-block:calc(var(--u)*1.1)}
 .tbl.brief td:first-child{letter-spacing:.04em;text-transform:uppercase;font-weight:300;width:36%}
@@ -261,7 +267,7 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 .opt.rec{border-color:var(--ink)}
 
 /* ---------- timeline ---------- */
-.gantt{display:grid;grid-template-columns:calc(var(--u)*11) repeat(17,minmax(0,1fr));column-gap:2px;row-gap:calc(var(--u)*.3);align-items:center}
+.gantt{display:grid;grid-template-columns:calc(var(--u)*11) repeat(var(--wk,17),minmax(0,1fr));column-gap:2px;row-gap:calc(var(--u)*.3);align-items:center}
 .gantt .wk{text-align:center;color:var(--ink-3);border-bottom:1px solid var(--ink);padding-bottom:calc(var(--u)*.4)}
 .gantt .ph{grid-column:1;margin:0;padding-top:calc(var(--u)*.5)}
 .gantt i{display:block;height:calc(var(--u)*1);grid-row:span 1}
@@ -280,6 +286,8 @@ ol.list li::before{content:counter(n,decimal-leading-zero);counter-increment:n;w
 /* ---------- line drawings (monochrome) ---------- */
 .art{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center}
 .art svg{width:100%;height:100%;max-height:100%}
+.art.phones{justify-content:flex-start}
+.phones svg{width:auto;max-width:100%;height:calc(var(--u)*19)}
 svg .ln{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 svg .ln2{fill:none;stroke:var(--ink-3);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
 svg .lnp{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
@@ -336,6 +344,10 @@ html.lb-open{overflow:hidden}
   .idea .imp{font-size:42px}
   .idea .tile{height:180px}
   .pic{min-height:300px;padding:56px 10px 48px}
+  .tbl.brief td:first-child,.tbl.brief td:last-child{width:auto} .tbl.brief td{font-size:16px} .tbl.brief td:last-child{font-size:20px}
+  .tbl.brief td:last-child::before{font-family:var(--sans)}
+  .stories>div>p{padding-right:10px}
+  .phones svg{width:100%;height:auto}
   .stories{grid-template-columns:repeat(2,minmax(0,1fr))} .stories .tile{height:110px} .stories .tile .ov .no{font-size:26px} .stories .tile .ov .t{font-size:15px}
   .art{height:auto}.art svg{height:auto;max-height:70vh}
   .spec{grid-template-columns:minmax(0,1fr)}
@@ -352,7 +364,7 @@ html.lb-open{overflow:hidden}
   .big-wm svg{height:56px} .big-wm .t{font-size:24px;letter-spacing:.28em}
   .cover-foot{flex-wrap:wrap}
   .vgrid,.vgrid.two-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .gantt{grid-template-columns:90px repeat(17,minmax(0,1fr));column-gap:1px}
+  .gantt{grid-template-columns:90px repeat(var(--wk,17),minmax(0,1fr));column-gap:1px}
   .gantt .wk{font-size:10.5px;letter-spacing:0} .gantt .wk:nth-child(odd){color:transparent}
   .flow .h3{font-size:24px;min-height:0} .flow p.ink2{font-size:15.5px}
   .tbl.stackable thead{display:none}
