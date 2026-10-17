@@ -102,7 +102,8 @@ em,.it{font-style:normal}
 .head{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;margin-bottom:calc(var(--u)*2)}
 .head .wm{grid-column:1}
 .head .lab{grid-column:3}
-.head .btn{grid-column:4;justify-self:end;height:calc(var(--u)*2.5)}
+.head .btn{grid-column:4;justify-self:end;height:calc(var(--u)*2.5);background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--hair)}
+.head .btn em{color:var(--ink-2)}
 .head .btn i{width:calc(var(--u)*2.5)}
 .head .btn .m{height:calc(var(--u)*.72);width:auto;fill:currentColor}
 .wm{display:flex;align-items:center;gap:calc(var(--u)*.8)}
@@ -188,9 +189,8 @@ em,.it{font-style:normal}
 /* ---------- chapter openers: full-bleed cloth, the meta row, an inset card, the title bottom right ---------- */
 .chap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto 1fr auto;row-gap:calc(var(--u)*1.4)}
 .chap .meta{grid-row:1;display:contents}
-.chap .inset{grid-column:1;grid-row:2/4;align-self:end;position:relative;aspect-ratio:3/4;width:100%;max-height:100%;overflow:hidden}
-.chap .inset canvas{position:absolute;inset:0;width:100%;height:100%}
-.chap .inset .btn{position:absolute;left:calc(var(--u)*2.6);right:0;bottom:0}
+.chap .inset{grid-column:1;grid-row:3;align-self:end;padding-right:calc(var(--u)*2)}
+.chap .inset .btn{display:flex}
 .chap .inset .btn span{flex:1}
 .chap .ttl{grid-column:3/5;grid-row:2;align-self:end}
 .chap .ct{font-size:calc(var(--u)*6.4);line-height:1;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
@@ -463,7 +463,7 @@ html.lb-open{overflow:hidden}
   .cover .top{grid-template-columns:auto 1fr} .cover .top .lab{display:none} .cover .top .m{grid-column:2;height:16px}
   .cover .top .wm svg{height:52px}
   .cover .svc li{font-size:16px} .cover .svc .mn{font-size:12px;width:34px} .cover .who{font-size:12px}
-  .chap{row-gap:18px} .chap .inset{max-width:240px} .chap .pages li{font-size:15px} .chap .pages .mn{font-size:12px;width:30px}
+  .chap{row-gap:18px} .chap .inset{max-width:260px;padding-right:0} .chap .pages li{font-size:15px} .chap .pages .mn{font-size:12px;width:30px}
   .tbl.stackable thead{display:none}
   .tbl.stackable tr{display:block;padding:12px 0;border-bottom:1px solid var(--hair)}
   .tbl.stackable td{display:block;border:0;padding:2px 0;text-align:left;white-space:normal}

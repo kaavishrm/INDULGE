@@ -67,9 +67,9 @@ def sep(n):
     return re.sub(r'([,~+])', r'<span class="sep">\1</span>', n)
 
 
-def chapter(sid, no, title, line, cloth, inset, pages):
-    """A chapter opener in the manner of Hanza's case-study rows: cloth full bleed, the meta row on the guides, an inset
-    cloth card with a button to the first page, the title bottom right, the chapter's pages listed beside the line.
+def chapter(sid, no, title, line, cloth, pages):
+    """A chapter opener in the manner of Hanza's case-study rows: cloth full bleed, the meta row on the guides, a button
+    to the first page bottom left, the title bottom right, the chapter's pages listed beside the line.
     title is (grey line, white line); pages is [(page number, name, slide id)]."""
     first = pages[0]
     lst = ''.join(f'<li><span class="mn">/{p}</span><a href="#{i}">{n}</a></li>' for p, n, i in pages)
@@ -77,7 +77,7 @@ def chapter(sid, no, title, line, cloth, inset, pages):
   <p class="lab c1" style="grid-row:1"><span class="mn">{no}</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>{title[0]} {title[1]}</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>{pages[0][0]} to {pages[-1][0]}</p>
-  <div class="inset tile">{fab(*inset)}{btn("Begin", first[0], "#" + first[2])}</div>
+  <div class="inset">{btn("Begin", first[0], "#" + first[2])}</div>
   <div class="ttl"><h2 class="ct"><span class="g">{title[0]}</span> {title[1]}</h2></div>
   <p class="cl lede-s">{line}</p>
   <ul class="pages">{lst}</ul>

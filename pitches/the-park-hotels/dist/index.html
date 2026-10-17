@@ -110,7 +110,8 @@ em,.it{font-style:normal}
 .head{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;margin-bottom:calc(var(--u)*2)}
 .head .wm{grid-column:1}
 .head .lab{grid-column:3}
-.head .btn{grid-column:4;justify-self:end;height:calc(var(--u)*2.5)}
+.head .btn{grid-column:4;justify-self:end;height:calc(var(--u)*2.5);background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--hair)}
+.head .btn em{color:var(--ink-2)}
 .head .btn i{width:calc(var(--u)*2.5)}
 .head .btn .m{height:calc(var(--u)*.72);width:auto;fill:currentColor}
 .wm{display:flex;align-items:center;gap:calc(var(--u)*.8)}
@@ -196,9 +197,8 @@ em,.it{font-style:normal}
 /* ---------- chapter openers: full-bleed cloth, the meta row, an inset card, the title bottom right ---------- */
 .chap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto 1fr auto;row-gap:calc(var(--u)*1.4)}
 .chap .meta{grid-row:1;display:contents}
-.chap .inset{grid-column:1;grid-row:2/4;align-self:end;position:relative;aspect-ratio:3/4;width:100%;max-height:100%;overflow:hidden}
-.chap .inset canvas{position:absolute;inset:0;width:100%;height:100%}
-.chap .inset .btn{position:absolute;left:calc(var(--u)*2.6);right:0;bottom:0}
+.chap .inset{grid-column:1;grid-row:3;align-self:end;padding-right:calc(var(--u)*2)}
+.chap .inset .btn{display:flex}
 .chap .inset .btn span{flex:1}
 .chap .ttl{grid-column:3/5;grid-row:2;align-self:end}
 .chap .ct{font-size:calc(var(--u)*6.4);line-height:1;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
@@ -471,7 +471,7 @@ html.lb-open{overflow:hidden}
   .cover .top{grid-template-columns:auto 1fr} .cover .top .lab{display:none} .cover .top .m{grid-column:2;height:16px}
   .cover .top .wm svg{height:52px}
   .cover .svc li{font-size:16px} .cover .svc .mn{font-size:12px;width:34px} .cover .who{font-size:12px}
-  .chap{row-gap:18px} .chap .inset{max-width:240px} .chap .pages li{font-size:15px} .chap .pages .mn{font-size:12px;width:30px}
+  .chap{row-gap:18px} .chap .inset{max-width:260px;padding-right:0} .chap .pages li{font-size:15px} .chap .pages .mn{font-size:12px;width:30px}
   .tbl.stackable thead{display:none}
   .tbl.stackable tr{display:block;padding:12px 0;border-bottom:1px solid var(--hair)}
   .tbl.stackable td{display:block;border:0;padding:2px 0;text-align:left;white-space:normal}
@@ -569,7 +569,7 @@ html.lb-open{overflow:hidden}
   <p class="lab c1" style="grid-row:1"><span class="mn">01</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>The Park today.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>05 to 08</p>
-  <div class="inset tile"><canvas class="fab" data-fab="sand" data-seed="22" aria-hidden="true"></canvas><a class="btn" href="#today"><span>Begin <em>/05</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#today"><span>Begin <em>/05</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">The Park</span> today.</h2></div>
   <p class="cl lede-s">Full rooms, famous bars, six channels <b>and 45 hotels to come.</b></p>
   <ul class="pages"><li><span class="mn">/05</span><a href="#today">The numbers</a></li><li><span class="mn">/06</span><a href="#channels">The channels</a></li><li><span class="mn">/07</span><a href="#rule">The house rule</a></li><li><span class="mn">/08</span><a href="#insight">The insight</a></li></ul>
@@ -611,7 +611,7 @@ html.lb-open{overflow:hidden}
   <p class="lab c1" style="grid-row:1"><span class="mn">02</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>Park Street, everywhere.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>10 to 21</p>
-  <div class="inset tile"><canvas class="fab" data-fab="rani" data-seed="13" aria-hidden="true"></canvas><a class="btn" href="#mindmap"><span>Begin <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#mindmap"><span>Begin <em>/10</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">Park Street,</span> everywhere.</h2></div>
   <p class="cl lede-s">Each THE Park hotel becomes the Park Street of its city, <b>told through a magazine of its nights.</b></p>
   <ul class="pages"><li><span class="mn">/10</span><a href="#mindmap">The content map</a></li><li><span class="mn">/11</span><a href="#ref-named">The references</a></li><li><span class="mn">/15</span><a href="#mix">The mix</a></li><li><span class="mn">/16</span><a href="#feed">The grid</a></li><li><span class="mn">/17</span><a href="#voice">The voice</a></li><li><span class="mn">/18</span><a href="#sessions">The Sessions</a></li><li><span class="mn">/19</span><a href="#reel">The Reel</a></li><li><span class="mn">/20</span><a href="#room">Room 1967</a></li><li><span class="mn">/21</span><a href="#flurys">Flurys 100</a></li></ul>
@@ -742,7 +742,7 @@ html.lb-open{overflow:hidden}
   <p class="lab c1" style="grid-row:1"><span class="mn">03</span><span>Chapter</span></p>
   <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>How it runs.</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>23 to 28</p>
-  <div class="inset tile"><canvas class="fab" data-fab="linen" data-seed="24" aria-hidden="true"></canvas><a class="btn" href="#calendar"><span>Begin <em>/23</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
+  <div class="inset"><a class="btn" href="#calendar"><span>Begin <em>/23</em></span><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 L8 6 L4.5 9.5"/></svg></i></a></div>
   <div class="ttl"><h2 class="ct"><span class="g">How it</span> runs.</h2></div>
   <p class="cl lede-s">A month on the feed, the handles, <b>the people and the numbers.</b></p>
   <ul class="pages"><li><span class="mn">/23</span><a href="#calendar">A month</a></li><li><span class="mn">/24</span><a href="#handles">The handles</a></li><li><span class="mn">/25</span><a href="#community">The people</a></li><li><span class="mn">/26</span><a href="#measure">The numbers</a></li><li><span class="mn">/27</span><a href="#mask360">Mask360</a></li><li><span class="mn">/28</span><a href="#next">Next steps</a></li></ul>

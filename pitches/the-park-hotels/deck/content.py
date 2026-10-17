@@ -107,7 +107,7 @@ def brief():
 
 def ch_today():
     return chapter('ch-today', '01', ('The Park', 'today.'), 'Full rooms, famous bars, six channels <b>and 45 hotels to come.</b>',
-                   ('midnight', 21), ('sand', 22),
+                   ('midnight', 21),
                    [(pg('today'), 'The numbers', 'today'), (pg('channels'), 'The channels', 'channels'),
                     (pg('rule'), 'The house rule', 'rule'), (pg('insight'), 'The insight', 'insight')])
 
@@ -182,7 +182,7 @@ def insight():
 def ch_idea():
     return chapter('ch-idea', '02', ('Park Street,', 'everywhere.'),
                    'Each THE Park hotel becomes the Park Street of its city, <b>told through a magazine of its nights.</b>',
-                   ('shaadi', 12), ('rani', 13),
+                   ('shaadi', 12),
                    [(pg('mindmap'), 'The content map', 'mindmap'), (pg('ref-named'), 'The references', 'ref-named'),
                     (pg('mix'), 'The mix', 'mix'), (pg('feed'), 'The grid', 'feed'), (pg('voice'), 'The voice', 'voice'),
                     (pg('sessions'), 'The Sessions', 'sessions'), (pg('reel'), 'The Reel', 'reel'), (pg('room'), 'Room 1967', 'room'),
@@ -431,7 +431,7 @@ def flurys():
 
 def ch_run():
     return chapter('ch-run', '03', ('How it', 'runs.'), 'A month on the feed, the handles, <b>the people and the numbers.</b>',
-                   ('kohl', 23), ('linen', 24),
+                   ('kohl', 23),
                    [(pg('calendar'), 'A month', 'calendar'), (pg('handles'), 'The handles', 'handles'), (pg('community'), 'The people', 'community'),
                     (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('next'), 'Next steps', 'next')])
 
