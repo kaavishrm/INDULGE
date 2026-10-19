@@ -55,26 +55,25 @@ def head(section):
             f'<a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
 
 
-def fab(kind, seed=1, cls='fab'):
-    """A canvas the deck paints with procedurally drawn cloth (fabric.js) when it scrolls near."""
-    return f'<canvas class="{cls}" data-fab="{kind}" data-seed="{seed}" aria-hidden="true"></canvas>'
+# the four pillars, coded the same way on every page (the mix, the grid, the voice, the month): flat greys and an outline,
+# so the orange stays for the hero series and the one-off posts
+PILLAR = {'After Hours': 'ink', 'By Design': 'grey', 'The Table': 'line', 'The City': 'mist'}
 
 
-def slide(sid, section, body, src='', dark=False, cls='', bare=False, cloth=None):
-    """bare=True drops the running head (cover, close); cloth=(kind, seed) paints the whole slide with cloth."""
+def slide(sid, section, body, src='', dark=False, cls='', bare=False):
+    """bare=True drops the running head (cover, close)."""
     hd = '' if bare else head(section)
-    bg = fab(*cloth) if cloth else ''
     folio = f'<div class="folio"><span class="src">{src}</span><span class="pg" data-pg></span></div>'
-    return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" tabindex="-1" aria-label="{esc(section)}">{bg}'
-            f'<div class="frame">{hd}<div class="body">{body}</div>{folio}</div></section>')
+    return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" tabindex="-1" aria-label="{esc(section)}">'
+            f'<div class="frame"><div class="guides" aria-hidden="true"><i></i><i></i><i></i><i></i></div>{hd}<div class="body">{body}</div>{folio}</div></section>')
 
 
 def sep(n):
     return re.sub(r'([,~+])', r'<span class="sep">\1</span>', n)
 
 
-def chapter(sid, no, title, line, cloth, pages):
-    """A chapter opener in the manner of Hanza's case-study rows: cloth full bleed, the meta row on the guides, a button
+def chapter(sid, no, title, line, pages):
+    """A chapter opener in the manner of Hanza's case-study rows: a flat dark page, the meta row on the guides, a button
     to the first page bottom left, the title bottom right, the chapter's pages listed beside the line.
     title is (grey line, white line); pages is [(page number, name, slide id)]."""
     first = pages[0]
@@ -88,7 +87,7 @@ def chapter(sid, no, title, line, cloth, pages):
   <p class="cl lede-s">{line}</p>
   <ul class="pages">{lst}</ul>
 </div>'''
-    return slide(sid, f'{no} · {title[0]} {title[1]}', body, dark=True, cls='chapter scrim', cloth=cloth, bare=True)
+    return slide(sid, f'{no} · {title[0]} {title[1]}', body, dark=True, cls='chapter', bare=True)
 
 
 def stat(num, label, source='', idx='', on=1, of=3):
@@ -119,9 +118,9 @@ def table(cols, rows, cls='tbl', right=(), total=None, col_cls=None):
     return f'<div class="scroll-x"><table class="{cls}"><thead>{h}</thead><tbody>{b}</tbody></table></div>'
 
 
-def tile(kind, seed, no, title, dark_text=False, cls=''):
-    """A cloth tile under grain, a mono number top left and an uppercase title bottom left."""
-    return (f'<div class="tile{" d" if dark_text else ""}{" " + cls if cls else ""}">{fab(kind, seed)}'
+def tile(tone, no, title, cls=''):
+    """A flat tile in one of the pillar tones (PILLAR), a mono number top left and an uppercase title bottom left."""
+    return (f'<div class="tile t-{tone}{" " + cls if cls else ""}">'
             f'<div class="ov"><span class="no">{no}</span><span class="t">{title}</span></div></div>')
 
 

@@ -11,11 +11,11 @@ Prepared 17 October 2026 for Anmol Tyagi (Senior Manager, Brand, The Park Hotels
 - uppercase Zalando Sans headings in two tones (a grey line, then an ink line), with Geist Mono for small labels;
 - one orange accent (#FF6044) for squares, rules and button ends;
 - Hanza's cards, buttons, accordion rows and case-study rows;
-- dark grain sections between the white ones.
+- flat dark sections between the white ones. Every colour is flat: no gradients and no grain.
 
 **The copy** borrows Hanza's logic within Mask360's rules: a promise in the reader's terms on the cover, two-beat headings, ledes that read as a journey, a "Sells" line on each idea page, a Quick answers page for the six questions the brand team will ask, and a low-risk "Ready to start? What you get" ask on next steps.
 
-Procedural cloth (`fabric.js`) and line drawings stand in for photography. The Park's corporate mark (`deck/park.svg`, from theparkhotels.com) sits in every running head and on the cover. Both fonts are open-licence (SIL OFL, notes in `deck/fonts/`).
+Flat tiles and line drawings stand in for photography. The tiles carry the pillar code used on every page: After Hours in ink, By Design in grey, The Table outlined, The City in light grey. Orange stays for the idea, the hero series and the one-off posts. The Park's corporate mark (`deck/park.svg`, from theparkhotels.com) sits in every running head and on the cover. Both fonts are open-licence (SIL OFL, notes in `deck/fonts/`).
 
 The sandbox cannot reach framer.website or Google Drive, so the `park-refs` workflow fetches them:
 - `fetch_refs.py site` captured the template into `ref/hanza/`: full-page screenshots at desktop and phone width, page text, the computed type and colours, and the fonts.

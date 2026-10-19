@@ -8,7 +8,7 @@ import datetime as dt
 import json
 import pathlib
 import art
-from kit import (slide, ul, table, tile, fab, chapter, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
+from kit import (slide, ul, table, tile, chapter, PILLAR, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
 
 TITLE = 'The Park Hotels × Mask360'
 DESCRIPTION = ('Mask360’s social media proposal to The Park Hotels, October 2026: Park Street, everywhere. The content map, '
@@ -70,7 +70,7 @@ def cover():
   <p class="who c12 end" style="grid-row:3">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
   <h1 class="h-display cover-h c34" style="grid-row:3"><span class="g">Park Street,</span> everywhere.</h1>
 </div>'''
-    return slide('cover', 'Proposal', body, src='', bare=True, dark=True, cls='cover scrim', cloth=('slate', 7))
+    return slide('cover', 'Proposal', body, src='', bare=True, dark=True, cls='cover')
 
 
 def promise():
@@ -79,10 +79,9 @@ def promise():
     cards = ''.join(f'''<div class="card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span></span>{dots(i + 1)}</div>
 <p class="h3 mt-m">{t}</p><p class="ink2">{d}</p></div>''' for i, (t, d) in enumerate(terms))
     body = f'''<div class="g4 grow" style="grid-template-rows:auto 1fr auto">
-  <div class="c1 tile m-hide" style="grid-row:1/4;align-self:stretch;margin-right:calc(var(--u)*2)">{fab('kohl', 41)}
-    <div class="ov"><span class="no">The promise</span>{btn('See the map', pg('mindmap'), '#mindmap')}</div></div>
-  {lab('Our promise', pg('promise'), 'c3')}
-  <h2 class="q c34" style="grid-row:2;align-self:center">{words('We will make THE Park’s feed the city’s night out.', ('night', 'out'))}</h2>
+  {lab('Our promise', pg('promise'), 'c1')}
+  <h2 class="q c13" style="grid-row:2;align-self:center">{words('We will make THE Park’s feed the city’s night out.', ('night', 'out'))}</h2>
+  <div class="c1 end pr" style="grid-row:3">{btn('See the map', pg('mindmap'), '#mindmap')}</div>
   <div class="c24 g4 g3 stagger" style="grid-row:3">{cards}</div>
 </div>'''
     return slide('promise', 'Proposal · our promise', body)
@@ -107,7 +106,6 @@ def brief():
 
 def ch_today():
     return chapter('ch-today', '01', ('The Park', 'today.'), '92% full, 43% of revenue from food, drink and nightlife, six channels <b>and 45 hotels to come.</b>',
-                   ('midnight', 21),
                    [(pg('today'), 'The numbers', 'today'), (pg('channels'), 'The channels', 'channels'),
                     (pg('rule'), 'The house rule', 'rule'), (pg('insight'), 'The insight', 'insight')])
 
@@ -182,7 +180,6 @@ def insight():
 def ch_idea():
     return chapter('ch-idea', '02', ('Park Street,', 'everywhere.'),
                    'Each THE Park hotel becomes the Park Street of its city, <b>told through a magazine of its nights.</b>',
-                   ('shaadi', 12),
                    [(pg('mindmap'), 'The content map', 'mindmap'), (pg('ref-named'), 'The references', 'ref-named'),
                     (pg('mix'), 'The mix', 'mix'), (pg('feed'), 'The grid', 'feed'), (pg('voice'), 'The voice', 'voice'),
                     (pg('sessions'), 'The Sessions', 'sessions'), (pg('reel'), 'The Reel', 'reel'), (pg('room'), 'Room 1967', 'room'),
@@ -276,18 +273,18 @@ def ref(sid):
                  src='Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.')
 
 
-MIX = [  # pillar, posts a week, cloth (kind, seed, dark text), formats, days (from WEEKLY)
-    ('After Hours', 3, ('kohl', 31, False), 'Reels · carousels · YouTube', 'Mon · Thu · Fri'),
-    ('The Table', 2, ('shaadi', 33, False), 'Reels · carousels', 'Tue · Sun'),
-    ('The City', 2, ('midnight', 34, False), 'Carousels · collab Reels', 'Mon · Sat'),
-    ('By Design', 1, ('ivory', 32, True), 'Reels · Pinterest', 'Wed'),
+MIX = [  # pillar, posts a week, formats, days (from WEEKLY)
+    ('After Hours', 3, 'Reels · carousels · YouTube', 'Mon · Thu · Fri'),
+    ('The Table', 2, 'Reels · carousels', 'Tue · Sun'),
+    ('The City', 2, 'Carousels · collab Reels', 'Mon · Sat'),
+    ('By Design', 1, 'Reels · Pinterest', 'Wed'),
 ]
 
 
 def mix():
     cols = ''.join(f'''<div class="post-card"><div class="pc-h"><span class="mono"><span class="k">{"Post" if k == 1 else "Posts"}</span>{k} a week</span>{dots(k)}</div>
-<div class="pic-t">{tile(c[0], c[1], d, str(k), dark_text=c[2], cls='fill')}</div>
-<div class="pc-b"><p class="lab">{n}</p><p class="h3">{f}</p></div></div>''' for n, k, c, f, d in MIX)
+<div class="pic-t">{tile(PILLAR[n], d, str(k), cls='fill')}</div>
+<div class="pc-b"><p class="lab">{n}</p><p class="h3">{f}</p></div></div>''' for n, k, f, d in MIX)
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('The mix', pg('mix'))}{hh('Eight posts', 'a week.', cls='h1 h1-l')}</div>
   <p class="lede-s c4 end">Food, drink and nightlife are 43% of revenue, <b>so the night and the table get five of the eight.</b></p>
@@ -296,16 +293,16 @@ def mix():
     return slide('mix', 'The idea · the mix', body, src='Feed posts a week on @theparkhotels: 4 Reels and 4 carousels. Stories run daily on top. Mask360’s proposal.')
 
 
-FEED = [  # the nine latest posts on Saturday 12 December: date, series, format, cover line, cloth (kind, seed, dark text)
-    ('Sat 12 Dec', 'The Sessions · Set 01', 'reel', 'Park Street still plays', ('kohl', 51, False)),
-    ('Fri 11 Dec', 'Who’s Playing', 'reel', 'Tonight at Someplace Else', ('slate', 52, False)),
-    ('Thu 10 Dec', 'The 3 a.m. Menu', 'reel', 'The kitchen just ate', ('midnight', 53, False)),
-    ('Wed 9 Dec', 'Room 1967', 'carousel', 'The search opens', ('bone', 54, True)),
-    ('Tue 8 Dec', 'Christmas at Flurys', 'carousel', 'The menu is out', ('shaadi', 55, False)),
-    ('Mon 7 Dec', 'Who Played', 'carousel', 'Last night’s set list', ('indigo', 56, False)),
-    ('Mon 7 Dec', 'Night Shift', 'carousel', 'The night manager', ('khaki', 57, False)),
-    ('Sun 6 Dec', 'The Recipe', 'carousel', 'Save this one', ('rani', 58, False)),
-    ('Sat 5 Dec', 'The Night Map', 'carousel', 'Kolkata after dark', ('sand', 59, True)),
+FEED = [  # the nine latest posts on Saturday 12 December: date, series, format, cover line, pillar
+    ('Sat 12 Dec', 'The Sessions · Set 01', 'reel', 'Park Street still plays', 'After Hours'),
+    ('Fri 11 Dec', 'Who’s Playing', 'reel', 'Tonight at Someplace Else', 'After Hours'),
+    ('Thu 10 Dec', 'The 3 a.m. Menu', 'reel', 'The kitchen just ate', 'After Hours'),
+    ('Wed 9 Dec', 'Room 1967', 'carousel', 'The search opens', 'By Design'),
+    ('Tue 8 Dec', 'Christmas at Flurys', 'carousel', 'The menu is out', 'The Table'),
+    ('Mon 7 Dec', 'Who Played', 'carousel', 'Last night’s set list', 'After Hours'),
+    ('Mon 7 Dec', 'Night Shift', 'carousel', 'The night manager', 'The City'),
+    ('Sun 6 Dec', 'The Recipe', 'carousel', 'Save this one', 'The Table'),
+    ('Sat 5 Dec', 'The Night Map', 'carousel', 'Kolkata after dark', 'The City'),
 ]
 GLYPH = {'reel': '<svg class="gl" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 2 L10 6 L3 10 Z"/></svg>',
          'carousel': '<svg class="gl" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 1.5 H10.5 V8.5 M1.5 3.5 H8.5 V10.5 H1.5 Z"/></svg>'}
@@ -314,9 +311,9 @@ ICONS = ('<svg class="acts" viewBox="0 0 120 20" aria-hidden="true"><path d="M10
 
 
 def feed():
-    tiles = ''.join(f'''<div class="tile ptile{" d" if c[2] else ""}">{fab(c[0], c[1])}<div class="ov">{GLYPH[f]}<span class="t">{cover}</span></div></div>'''
-                    for _, s_, f, cover, c in FEED)
-    hl = ''.join(f'<span><i>{fab(k, sd)}</i>{x}</span>' for x, k, sd in (('Sessions', 'kohl', 61), ('Rooms', 'bone', 62), ('Flurys', 'rani', 63), ('Night Map', 'midnight', 64)))
+    tiles = ''.join(f'''<div class="tile ptile t-{PILLAR[p]}"><div class="ov">{GLYPH[f]}<span class="t">{cover}</span></div></div>'''
+                    for _, s_, f, cover, p in FEED)
+    hl = ''.join(f'<span><i class="t-{PILLAR[p]}"></i>{x}</span>' for x, p in (('Sessions', 'After Hours'), ('Rooms', 'By Design'), ('Flurys', 'The Table'), ('Night Map', 'The City')))
     body = f'''<div class="g4 grow feed" style="grid-template-rows:auto 1fr">
   <div class="c12 stack-l">{lab('The grid', pg('feed'))}{hh('The grid on', 'Saturday 12 December.')}</div>
   <div class="c1 stack-l end pr" style="grid-row:2">
@@ -325,7 +322,7 @@ def feed():
   </div>
   <div class="post c2 end" style="grid-row:2;margin-right:calc(var(--u)*1.4)">
     <div class="post-head"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>Someplace Else, Kolkata</span></span></div>
-    <div class="tile post-img">{fab('kohl', 51)}<div class="ov">{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
+    <div class="tile post-img t-ink"><div class="ov">{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
     {ICONS}
     <p class="cap"><b>theparkhotels</b> Set 01 is up. One take at Someplace Else, Park Street. Message us for a table on Saturday.</p>
     <p class="mono mute">Sat 12 Dec · The Sessions · Reel</p>
@@ -339,15 +336,15 @@ def feed():
     </div>
   </div>
 </div>'''
-    return slide('feed', 'The idea · the grid', body, src='A mock-up of the grid. Cloth stands in for photography; series, dates and copy are Mask360’s proposal.')
+    return slide('feed', 'The idea · the grid', body, src='A mock-up of the grid. Flat tiles stand in for photography, toned by pillar as in the mix; series, dates and copy are Mask360’s proposal.')
 
 
 def voice():
-    posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', ('indigo', 71)),
-             ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', ('midnight', 72)),
-             ('Reel', 'Chef’s Counter', 'Thirty seconds at the pass. Tuesday, 9 p.m., Fire.', ('shaadi', 73))]
-    c = ''.join(f'''<div class="card vpost"><div class="card-h"><div class="tile vimg">{fab(k, sd)}</div><span class="mono mute">{f}</span></div>
-<div class="mt-s"><p class="h4">theparkhotels</p><p class="mono mute">{s}</p></div><p class="say mt-s">{b}</p></div>''' for f, s, b, (k, sd) in posts)
+    posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', 'After Hours'),
+             ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', 'After Hours'),
+             ('Reel', 'Chef’s Counter', 'Thirty seconds at the pass. Tuesday, 9 p.m., Fire.', 'The Table')]
+    c = ''.join(f'''<div class="card vpost"><div class="card-h"><div class="tile vimg t-{PILLAR[p]}"></div><span class="mono mute">{f}</span></div>
+<div class="mt-s"><p class="h4">theparkhotels</p><p class="mono mute">{s}</p></div><p class="say mt-s">{b}</p></div>''' for f, s, b, p in posts)
     rules = [('Name the place and the time', 'Park Street at 11:40 p.m. carries the night.'), ('Twenty words at most', 'The picture does the rest.'),
              ('Talk like the night manager', 'Warm, sure, and in on the secret.')]
     r = ''.join(f'<div><span class="mn">0{i + 1}</span><p class="q">{a}</p><span class="x"></span><p class="a">{b}</p></div>' for i, (a, b) in enumerate(rules))
@@ -434,7 +431,6 @@ def flurys():
 
 def ch_run():
     return chapter('ch-run', '03', ('How it', 'runs.'), 'From December on the feed to the first readout in February, <b>and the people behind it.</b>',
-                   ('kohl', 23),
                    [(pg('calendar'), 'A month', 'calendar'), (pg('handles'), 'The handles', 'handles'), (pg('community'), 'The people', 'community'),
                     (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('faq'), 'Quick answers', 'faq'),
                     (pg('next'), 'Next steps', 'next')])
@@ -610,7 +606,7 @@ def close():
   <p class="mono c3 end" style="grid-row:2"><span class="k">©</span>2026 Mask360<br><span class="k">For</span>The Park Hotels</p>
   <p class="mono c4 end" style="grid-row:2"><span class="k">October</span>2026<br><span class="k">Status</span>Confidential</p>
 </div>'''
-    return slide('close', 'The Park Hotels × Mask360', body, bare=True, dark=True, cls='close scrim', cloth=('ink', 11))
+    return slide('close', 'The Park Hotels × Mask360', body, bare=True, dark=True, cls='close')
 
 
 def sources():

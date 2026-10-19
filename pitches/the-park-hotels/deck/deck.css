@@ -1,16 +1,17 @@
 /* Layout: the Hanza look (hanza-template.framer.website; captures in ref/hanza). A four-column Swiss grid whose guides stay
    visible, uppercase Zalando Sans set in two tones (a grey line, then an ink line), Geist Mono for small labels, one
-   orange-red accent for squares, rules and button ends, and dark grain sections between the white ones. Cloth and line
-   drawings stand in for photography. Every slide is one 16:9 page that scales as a whole; on phones the slides become one
-   scrolling document. */
+   orange-red accent for squares, rules and button ends, and flat dark sections between the white ones. Every colour is
+   flat: no gradients, no grain. Flat tiles, toned by pillar, and line drawings stand in for photography. Every slide is
+   one 16:9 page that scales as a whole; on phones the slides become one scrolling document. */
 :root{
   --paper:#ffffff; --panel:#fafafa; --ink:#121212; --ink-2:rgba(18,18,18,.6); --ink-3:rgba(18,18,18,.38); --hair:rgba(18,18,18,.1);
   --guide:rgba(18,18,18,.07); --chip:#f2f2f2;
-  --night:#121212; --night-card:#1b1b1b; --night-ink:#ffffff; --night-2:rgba(255,255,255,.6); --night-hair:rgba(255,255,255,.1);
+  --night:#121212; --night-card:#191919; --night-ink:#ffffff; --night-2:rgba(255,255,255,.6); --night-hair:rgba(255,255,255,.1);
   --accent:#ff6044;
   --sans:'Zalando Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
   --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* the pillar tones: After Hours ink, By Design grey, The Table an outline, The City mist */
+  --t-grey:#717171; --t-mist:#b8b8b8;
   color-scheme:light;
 }
 @font-face{font-family:'Zalando Sans';src:url({{FONT:zalandosans}}) format('woff2');font-weight:200 900;font-display:swap}
@@ -25,24 +26,22 @@ a{color:inherit;text-decoration:none}
 img,svg,video,canvas{max-width:100%;display:block}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.slide:not(.dark):not(.scrim) :focus-visible{outline-color:var(--ink)}  /* orange is under 3:1 on white */
+.slide:not(.dark) :focus-visible{outline-color:var(--ink)}  /* orange is under 3:1 on white */
 .tile .ov>.btn:focus-visible{outline-color:#fff;outline-offset:-3px}
 
-/* ---------- slide, frame and the four column guides ---------- */
+/* ---------- slide, frame and the four column guides (four boxes with 1px borders, so every guide snaps to the same pixel weight) ---------- */
 .slide{position:relative;min-height:100vh;min-height:100dvh;display:grid;place-items:center;scroll-snap-align:start;overflow:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:var(--paper);color:var(--ink)}
 .frame{--u:1cqw;--px:calc(var(--u)*3.3);container-type:inline-size;position:relative;z-index:1;
   width:min(100%,calc((100vh - 24px) * 16 / 9));width:min(100%,calc((100dvh - 24px) * 16 / 9));aspect-ratio:16/9;max-width:100%;
   display:flex;flex-direction:column;padding:calc(var(--u)*2.4) var(--px) calc(var(--u)*1.9)}
-.frame::before{content:"";position:absolute;inset:0 var(--px);z-index:0;pointer-events:none;border-right:1px solid var(--guide);
-  background:linear-gradient(90deg,var(--guide) 1px,transparent 1px) 0 0/25% 100% repeat-x}
+.frame>.guides{position:absolute;inset:0 var(--px);z-index:0;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.guides i{border-left:1px solid var(--guide)}
+.guides i:last-child{border-right:1px solid var(--guide)}
 .frame>*{position:relative;z-index:1;min-width:0}
 .dark{background-color:var(--night);color:var(--night-ink)}
-.dark,.grain{background-image:var(--grain);background-size:180px}
-.dark .frame::before{border-color:var(--night-hair);background-image:linear-gradient(90deg,var(--night-hair) 1px,transparent 1px)}
-.slide>canvas.fab{position:absolute;inset:0;width:100%;height:100%;z-index:0}
-.slide.scrim::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--grain),linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.05) 32%,rgba(0,0,0,.1) 55%,rgba(0,0,0,.62) 100%);background-size:180px,auto}
+.dark .guides i{border-color:var(--night-hair)}
 .panel{background:var(--panel)}
 
 /* ---------- type: uppercase Zalando in two tones, mono labels ---------- */
@@ -51,7 +50,7 @@ h1,h2,h3,h4{margin:0;font-weight:500;text-wrap:balance}
 .h-display{font-size:calc(var(--u)*7.6);line-height:.9;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .h1{font-size:calc(var(--u)*4.1);line-height:.92;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
 .h1 .g,.h-display .g,.ct .g{display:block;color:var(--ink-2)}
-.dark .h1 .g,.dark .h-display .g,.dark .ct .g,.scrim .h-display .g{color:var(--night-2)}
+.dark .h1 .g,.dark .h-display .g,.dark .ct .g{color:var(--night-2)}
 .h2{font-size:calc(var(--u)*2.05);line-height:1.12;letter-spacing:-.02em;font-weight:500}
 .h3{font-size:calc(var(--u)*1.2);line-height:1.2;letter-spacing:-.01em;text-transform:uppercase;font-weight:500}
 .h4{font-size:calc(var(--u)*1);line-height:1.3;letter-spacing:0;text-transform:uppercase;font-weight:500}
@@ -60,11 +59,11 @@ h1,h2,h3,h4{margin:0;font-weight:500;text-wrap:balance}
 /* the two-tone uppercase lede: grey words, then ink words in <b> */
 .lede-s{font-size:calc(var(--u)*1.12);line-height:1.32;letter-spacing:-.005em;text-transform:uppercase;font-weight:500;color:var(--ink-2)}
 .lede-s b{color:var(--ink);font-weight:500}
-.dark .lede-s,.scrim .lede-s{color:var(--night-2)} .dark .lede-s b,.scrim .lede-s b{color:var(--night-ink)}
+.dark .lede-s{color:var(--night-2)} .dark .lede-s b{color:var(--night-ink)}
 .label{font-family:var(--sans);font-weight:500;font-size:calc(var(--u)*.82);letter-spacing:0;text-transform:uppercase;line-height:1.25}
 .mono{font-family:var(--mono);font-weight:500;font-size:calc(var(--u)*.78);letter-spacing:0;text-transform:uppercase;line-height:1.3}
 .mono .k,.kv .k{color:var(--ink-2);margin-right:.6em}
-.dark .mono .k,.dark .kv .k,.scrim .mono .k{color:var(--night-2)}
+.dark .mono .k,.dark .kv .k{color:var(--night-2)}
 .f-s{font-size:calc(var(--u)*.95)}
 .f-l{font-size:calc(var(--u)*1.28);line-height:1.5}
 .mute,.ink2{color:var(--ink-2)}
@@ -78,7 +77,7 @@ em,.it{font-style:normal}
 .lab{display:flex;align-items:center;gap:calc(var(--u)*.55);font-size:calc(var(--u)*.82);font-weight:500;text-transform:uppercase;line-height:1}
 .lab::before{content:"";width:calc(var(--u)*.42);height:calc(var(--u)*.42);background:var(--accent);flex:none}
 .lab .mn{font-family:var(--mono);color:var(--ink-2)}
-.dark .lab .mn,.scrim .lab .mn{color:var(--night-2)}
+.dark .lab .mn{color:var(--night-2)}
 .sq{display:inline-block;width:calc(var(--u)*.42);height:calc(var(--u)*.42);background:var(--accent);vertical-align:middle}
 /* three, four or five squares, the first ones lit: a progress mark */
 .dots{display:inline-flex;gap:calc(var(--u)*.22)}
@@ -95,6 +94,8 @@ em,.it{font-style:normal}
 .btn i svg{width:38%;height:38%;fill:none;stroke:#fff;stroke-width:1.6}
 .btn:hover i{background:#ff4a2a}
 .btn.light{background:var(--paper);color:var(--ink)} .btn.light em{color:var(--ink-2)} .btn.light i{background:var(--ink)}
+/* on a dark page the block turns white, as the Mask360 button in the head does, so it never sinks into the page */
+.dark .btn{background:var(--paper);color:var(--ink)} .dark .btn em{color:var(--ink-2)}
 .chev{display:inline-grid;place-items:center;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);background:var(--accent);vertical-align:middle}
 .chev svg{width:44%;height:44%;fill:none;stroke:#fff;stroke-width:1.6}
 .badge{display:inline-block;background:var(--ink);color:#fff;font-size:calc(var(--u)*.68);font-weight:500;text-transform:uppercase;padding:.35em .55em;line-height:1;vertical-align:middle}
@@ -114,9 +115,9 @@ em,.it{font-style:normal}
 .wm .by{font-size:calc(var(--u)*.82);font-weight:500;text-transform:uppercase}
 .folio{margin-top:auto;padding-top:calc(var(--u)*1.1);display:grid;grid-template-columns:3fr 1fr;align-items:end;gap:calc(var(--u)*2)}
 .folio .src{font-size:calc(var(--u)*.8);line-height:1.45;color:var(--ink-2);max-width:90%}
-.dark .folio .src,.scrim .folio .src{color:var(--night-2)}
+.dark .folio .src{color:var(--night-2)}
 .folio .pg{justify-self:end;font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;white-space:nowrap;text-transform:uppercase}
-.folio .pg .k{color:var(--ink-2);margin-right:.6em} .dark .folio .pg .k,.scrim .folio .pg .k{color:var(--night-2)}
+.folio .pg .k{color:var(--ink-2);margin-right:.6em} .dark .folio .pg .k{color:var(--night-2)}
 .body{flex:1;min-height:0;display:flex;flex-direction:column}
 
 /* ---------- the grid: four columns on the guides ---------- */
@@ -175,7 +176,7 @@ em,.it{font-style:normal}
 .dark .acc{border-color:var(--night-hair)} .dark .acc>div{background:var(--night-card);border-color:var(--night-hair)}
 .acc.tight>div{padding-block:calc(var(--u)*.7)}
 
-/* ---------- cover: cloth under grain, the big line bottom right ---------- */
+/* ---------- cover: a flat dark page, the big line bottom right ---------- */
 .cover .frame,.close .frame{color:#fff}
 .cover .top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center}
 .cover .top .wm svg{height:calc(var(--u)*4.4)}
@@ -189,7 +190,7 @@ em,.it{font-style:normal}
 .cover .who{font-family:var(--mono);font-size:calc(var(--u)*.78);text-transform:uppercase;line-height:1.5;color:var(--night-2)}
 .cover .who b{color:#fff;font-weight:500}
 
-/* ---------- chapter openers: full-bleed cloth, the meta row, an inset card, the title bottom right ---------- */
+/* ---------- chapter openers: a flat dark page, the meta row, a button bottom left, the title bottom right ---------- */
 .chap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto 1fr auto;row-gap:calc(var(--u)*1.4)}
 .chap .meta{grid-row:1;display:contents}
 .chap .inset{grid-column:1;grid-row:3;align-self:end;padding-right:calc(var(--u)*2)}
@@ -223,15 +224,16 @@ em,.it{font-style:normal}
 .dark .tbl th{color:var(--night-2);border-color:var(--night-ink)} .dark .tbl td{border-color:var(--night-hair)}
 .scroll-x{overflow-x:auto;max-width:100%}
 
-/* ---------- cloth tiles ---------- */
-.tile{position:relative;overflow:hidden;background:var(--chip);color:#fff}
-.tile>canvas{position:absolute;inset:0;width:100%;height:100%}
-.tile::after{content:"";position:absolute;inset:0;background:var(--grain);background-size:180px;pointer-events:none}
+/* ---------- flat tiles, toned by pillar ---------- */
+.tile{position:relative;overflow:hidden;background:var(--ink);color:#fff}
+.t-ink{background:var(--ink);color:#fff}
+.t-grey{background:var(--t-grey);color:#fff}
+.t-mist{background:var(--t-mist);color:var(--ink)}
+.t-line{background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .tile .ov{position:absolute;inset:0;z-index:1;padding:calc(var(--u)*1);display:flex;flex-direction:column;justify-content:space-between}
 .tile .ov .no{font-family:var(--mono);font-size:calc(var(--u)*.78);font-weight:500;text-transform:uppercase}
 .tile .ov>.btn{align-self:stretch;margin:0 calc(var(--u)*-1) calc(var(--u)*-1) calc(var(--u)*1.6)} .tile .ov>.btn>span{flex:1}
 .tile .ov .t{font-size:calc(var(--u)*1.5);line-height:.95;letter-spacing:-.03em;text-transform:uppercase;font-weight:500}
-.tile.d{color:var(--ink)}
 
 /* blog-style cards (Hanza's design notes): a mono row, a picture, a label, a title, a line */
 .post-card{display:flex;flex-direction:column;background:var(--paper);min-width:0}
@@ -310,7 +312,6 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
 .vbox .vplay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;border:0;padding:0;cursor:pointer;overflow:hidden;
   background:var(--night);color:#fff}
 .vbox .pv{position:absolute;inset:0;background:center/cover no-repeat var(--poster)}
-.vbox .vplay::after{content:"";position:absolute;inset:0;background:var(--grain),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%);background-size:180px,auto;pointer-events:none}
 .vbox .vplay>span:not(.pv){position:relative;z-index:1;display:inline-flex;align-items:stretch;height:calc(var(--u)*2.3);margin:0 0 calc(var(--u)*.8) calc(var(--u)*.8);
   background:var(--ink);font-family:var(--mono);font-size:calc(var(--u)*.72);font-weight:500;text-transform:uppercase;letter-spacing:.02em}
 .vbox .vplay b{display:flex;align-items:center;padding:0 calc(var(--u)*.85);font-weight:500}
@@ -321,7 +322,7 @@ svg .tx-n{font-family:var(--sans);font-weight:500}
 .chap .inset .btn:focus-visible{outline-offset:-3px}
 .slide:focus{outline:none}
 .vbox .dur{position:absolute;z-index:1;top:calc(var(--u)*.7);right:calc(var(--u)*.7);font-family:var(--mono);font-size:calc(var(--u)*.7);font-weight:500;
-  background:rgba(18,18,18,.72);color:#fff;padding:.3em .5em;pointer-events:none}
+  background:var(--ink);color:#fff;padding:.3em .5em;pointer-events:none}
 .vcard .vb{padding:calc(var(--u)*.85) calc(var(--u)*.9) calc(var(--u)*1);display:flex;flex-direction:column;gap:calc(var(--u)*.4)}
 .vcard .vb .lab{font-family:var(--mono);font-size:calc(var(--u)*.72);color:var(--ink-2);align-items:flex-start;line-height:1.2;min-height:2.4em}
 .vcard .vb .lab::before{margin-top:.25em}
@@ -358,8 +359,8 @@ html.lb-open{overflow:hidden}
 .phone .btns span:first-child{background:var(--ink);color:#fff}
 .phone .hl{display:flex;gap:calc(var(--u)*.85);padding:0 calc(var(--u)*.4) calc(var(--u)*.7)}
 .phone .hl>span{display:grid;justify-items:center;gap:calc(var(--u)*.25);width:calc(var(--u)*3);font-size:calc(var(--u)*.56);font-weight:500;text-transform:uppercase;text-align:center;line-height:1.1}
-.phone .hl i{position:relative;overflow:hidden;width:calc(var(--u)*2.3);height:calc(var(--u)*2.3);border-radius:50%;box-shadow:0 0 0 1px var(--paper),0 0 0 2px var(--ink);display:block}
-.phone .hl i canvas{position:absolute;inset:0;width:100%;height:100%}
+.phone .hl i{width:calc(var(--u)*2.3);height:calc(var(--u)*2.3);border-radius:50%;box-shadow:0 0 0 1px var(--paper),0 0 0 2px var(--ink);display:block}
+.phone .hl i.t-line{box-shadow:inset 0 0 0 1px var(--ink),0 0 0 1px var(--paper),0 0 0 2px var(--ink)}
 .phone .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
 .ptile{aspect-ratio:3/4}
 .ptile .ov{justify-content:flex-end;padding:calc(var(--u)*.45)}
@@ -396,7 +397,7 @@ html.lb-open{overflow:hidden}
 .cal .day.tent{background:var(--panel);box-shadow:inset 0 2px 0 var(--accent)}
 .cal .tag{display:flex;align-items:flex-start;gap:calc(var(--u)*.35);font-size:calc(var(--u)*.74);line-height:1.2}
 .cal .tag::before{content:"";width:calc(var(--u)*.5);height:calc(var(--u)*.5);flex:none;margin-top:calc(var(--u)*.18)}
-.tag.a::before{background:var(--accent)}.tag.b::before{background:var(--ink)}.tag.c::before{background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--ink)}.tag.d::before{background:rgba(18,18,18,.3)}
+.tag.a::before{background:var(--ink)}.tag.b::before{background:var(--t-grey)}.tag.c::before{background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--ink)}.tag.d::before{background:var(--t-mist)}
 .cal-key{display:flex;gap:calc(var(--u)*1.6);flex-wrap:wrap;justify-content:flex-end}
 .cal-key .tag{display:flex;align-items:center;gap:calc(var(--u)*.4)}
 .cal-key .tag::before{content:"";width:calc(var(--u)*.6);height:calc(var(--u)*.6)}
@@ -437,7 +438,7 @@ html.lb-open{overflow:hidden}
   html{scroll-snap-type:none}
   .slide{min-height:0;display:block;padding:0}
   .frame{--u:14px;--px:16px;width:100%;aspect-ratio:auto;padding:28px var(--px) 30px}
-  .frame::before{background-size:50% 100%}
+  .frame>.guides{grid-template-columns:repeat(2,minmax(0,1fr))} .guides i:nth-child(n+3){display:none} .guides i:nth-child(2){border-right:1px solid var(--guide)} .dark .guides i:nth-child(2){border-right-color:var(--night-hair)}
   .h-display{font-size:56px}.h1,.h1-l{font-size:36px}.h2{font-size:24px}.q{font-size:30px}.lede{font-size:19px}
   .chap .ct{font-size:52px} .idea-name{font-size:52px}
   p,li,td,dd,dt{font-size:15.5px}
