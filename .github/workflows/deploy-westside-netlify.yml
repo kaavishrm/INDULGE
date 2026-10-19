@@ -56,8 +56,7 @@ jobs:
           echo "$SITE_URL" > url.txt
       - name: Check the page
         run: |
-          [ -f "$RUNNER_TEMP/url.txt" ] || exit 0
-          URL=$(cat "$RUNNER_TEMP/url.txt")
+          URL=$(cat "$RUNNER_TEMP/url.txt" 2>/dev/null || echo "https://$SITE_NAME.netlify.app")   # the live site, even without a deploy
           sleep 5
           for i in 1 2 3 4 5; do
             if curl -sSL -m 60 "$URL" -o page.html && grep -q 'Mask360</title>' page.html; then
