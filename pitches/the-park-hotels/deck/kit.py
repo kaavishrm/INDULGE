@@ -31,9 +31,11 @@ def lab(text, no='', cls=''):
     return f'<p class="lab{" " + cls if cls else ""}">{f"<span class=mn>{no}</span>" if no else ""}<span>{text}</span></p>'
 
 
-def dots(on, of=3):
-    return ('<span class="dots" aria-hidden="true">'
-            + ''.join(f'<i{" class=on" if i < on else ""} style="--n:{i}"></i>' for i in range(of)) + '</span>')
+def dots(on=None, of=3):
+    """Hanza's squares. dots() is its fixed mark (two grey, the last orange), for cards that are not steps; dots(n, of)
+    lights the first n, only where the cards are a sequence (the promise's found, saved, booked; the street's timeline)."""
+    lit = (lambda i: i == of - 1) if on is None else (lambda i: i < on)
+    return '<span class="dots" aria-hidden="true">' + ''.join(f'<i{" class=on" if lit(i) else ""}></i>' for i in range(of)) + '</span>'
 
 
 def hh(grey, ink, cls='h1', tag='h2'):
@@ -48,16 +50,22 @@ def head(section):
     """The running head: The Park's mark left, the section label on the third guide, the Mask360 button right."""
     ch = section.split(' · ')[0]
     if ch in CHAPTERS:
-        mid = f'<p class="lab"><span class="mn">{CHAPTERS[ch][0]}</span><span>{CHAPTERS[ch][1]}</span></p>'
+        mid = f'<p class="lab"><span>{CHAPTERS[ch][1]}</span></p>'  # the chapter by name; the numbers on the page are page numbers
     else:  # the slides outside the chapters carry their own label, so the head shows the date
         mid = '<p class="mono" style="grid-column:3"><span class="k">October</span>2026</p>'
     return (f'<div class="head">{WORDMARK}{mid}'
             f'<a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
 
 
-# the four pillars, coded the same way on every page (the mix, the grid, the voice, the month): flat greys and an outline,
-# so the orange stays for the hero series and the one-off posts
+# the four pillars, coded the same way on every page (the map, the mix, the grid, the month): flat greys and an outline,
+# so the orange stays for the idea, the hero series and the one-off posts
 PILLAR = {'After Hours': 'ink', 'By Design': 'grey', 'The Table': 'line', 'The City': 'mist'}
+TAG = {'After Hours': 'a', 'By Design': 'b', 'The Table': 'c', 'The City': 'd'}  # the same code as small squares (deck.css .tag)
+
+
+def pillar_key(cls=''):
+    """The key to the pillar code: a square in each tone and the pillar's name."""
+    return f'<div class="cal-key{" " + cls if cls else ""}">' + ''.join(f'<span class="tag label {k}">{n}</span>' for n, k in TAG.items()) + '</div>'
 
 
 def slide(sid, section, body, src='', dark=False, cls='', bare=False):
@@ -73,14 +81,13 @@ def sep(n):
 
 
 def chapter(sid, no, title, line, pages):
-    """A chapter opener in the manner of Hanza's case-study rows: a flat dark page, the meta row on the guides, a button
-    to the first page bottom left, the title bottom right, the chapter's pages listed beside the line.
+    """A chapter opener on a flat dark page: the meta row on the guides, the title across the page, the line under it,
+    the chapter's pages as dark rows bottom right and a button to the first page bottom left.
     title is (grey line, white line); pages is [(page number, name, slide id)]."""
     first = pages[0]
     lst = ''.join(f'<li><span class="mn">/{p}</span><a href="#{i}">{roll(n)}</a></li>' for p, n, i in pages)
     body = f'''<div class="chap grow">
   <p class="lab c1" style="grid-row:1"><span class="mn">{no}</span><span>Chapter</span></p>
-  <p class="mono c3" style="grid-row:1"><span class="k">Chapter</span>{title[0]} {title[1]}</p>
   <p class="mono c4" style="grid-row:1;justify-self:end"><span class="k">Pages</span>{pages[0][0]} to {pages[-1][0]}</p>
   <div class="inset">{btn("Begin", first[0], "#" + first[2])}</div>
   <div class="ttl"><h2 class="ct"><span class="g">{title[0]}</span> {title[1]}</h2></div>
@@ -90,10 +97,10 @@ def chapter(sid, no, title, line, pages):
     return slide(sid, f'{no} · {title[0]} {title[1]}', body, dark=True, cls='chapter', bare=True)
 
 
-def stat(num, label, source='', idx='', on=1, of=3):
-    """Hanza's stat card: an orange rule, a mono number and label with progress squares, the big number, the line."""
-    return (f'<div class="card"><div class="card-h"><p class="lab" style="gap:.5em"><span class="mn">{idx}</span><span>{label}</span></p>'
-            f'{dots(on, of)}</div><div class="big mt-m">{sep(num)}</div><p class="ink2">{source}</p></div>')
+def stat(num, label, source='', idx=''):
+    """Hanza's stat card: an orange rule, a mono number and the label with the squares, the big number, the line."""
+    return (f'<div class="card"><div class="card-h"><span class="mono"><span class="k">{idx}</span>{label}</span>'
+            f'{dots()}</div><div class="big mt-m">{sep(num)}</div><p class="ink2">{source}</p></div>')
 
 
 def ul(items, cls='list'):
@@ -137,4 +144,4 @@ def video_card(v, no, source, caption, take, series):
             f'<source src="media/{v["file"]}" type="video/mp4"></video>'
             f'<button class="vplay" type="button" aria-label="Play: {name}"><span class="pv" aria-hidden="true"></span><span><b>{roll("Play")}</b><i>{PLAY}</i></span></button>'
             f'<span class="dur">{secs // 60}:{secs % 60:02d}</span></div>'
-            f'<figcaption class="vb"><p class="lab">{series}</p><p class="cap">{caption}</p><p class="take">{take}</p></figcaption></figure>')
+            f'<figcaption class="vb"><p class="lab"><span>{"<br>".join(series.split(" · ", 1))}</span></p><p class="cap">{caption}</p><p class="take">{take}</p></figcaption></figure>')

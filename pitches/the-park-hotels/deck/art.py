@@ -1,8 +1,10 @@
 """Line-art illustrations for The Park deck, drawn in SVG. Colours come from the deck's CSS classes: ln (ink line), ln2 (fine
 grey line), fp (light grey fill), fi (ink fill), fw (paper fill), fa (the orange accent), fpanel (panel fill); tx-d is the
-uppercase sans, tx-m the mono for small labels, tx-n the sans for numbers."""
+uppercase sans, tx-m the mono for small labels, tx-n the sans for numbers, dcap a drawing's caption (hidden on phones, where the
+overlay names the drawing). Nothing is drawn smaller than it can be read: the smallest type is 16 units in the phones."""
 import math
 from html import escape as esc
+from kit import PILLAR
 
 
 def _t(x, y, s, size=12, cls='', anchor='start', weight=400, ls=0, fill=None):
@@ -60,9 +62,8 @@ def stage():
     # phone on a tripod, filming
     o.append('<rect class="fw" x="700" y="296" width="40" height="72" rx="6"/><rect class="ln" x="700" y="296" width="40" height="72" rx="6"/>')
     o.append('<circle class="fa" cx="710" cy="308" r="3"/>')
-    o.append(_t(716, 311, 'REC', 8, weight=500))
     o.append('<path class="ln" d="M720 368 L720 430 M720 430 L700 488 M720 430 L740 488"/>')
-    o.append(_t(400, 530, 'one take, filmed live', 15, 'tx-d', anchor='middle'))
+    o.append(_t(400, 530, 'one take, filmed live', 15, 'tx-d dcap', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
 
@@ -99,7 +100,7 @@ def suite():
     o.append('<path class="fw" d="M112 172 L176 186 L176 380 L112 412 Z"/><path class="ln" d="M112 172 L176 186 L176 380 L112 412 Z"/>')
     o.append('<circle class="fi" cx="166" cy="292" r="2.6"/>')
     o.append(_t(136, 160, '1967', 24, 'tx-n', anchor='middle'))
-    o.append(_t(400, 530, 'one suite, a new designer every year', 15, 'tx-d', anchor='middle'))
+    o.append(_t(400, 530, 'one suite, a new designer every year', 15, 'tx-d dcap', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
 
@@ -128,9 +129,8 @@ def cup():
     o.append('<path class="ln" d="M593 281 C570 250 548 258 560 276 C566 284 582 284 593 281 C604 278 620 270 626 258 C632 244 612 246 593 281"/>')
     o.append(_t(540, 352, 'FLURYS', 18, 'tx-d', anchor='middle', ls=.16))
     o.append(_t(646, 368, '100', 40, 'tx-n', anchor='middle'))
-    o.append(_t(540, 378, 'PARK STREET', 9, anchor='middle', weight=500, ls=.2, fill='var(--ink-3)'))
     o.append('</g>')
-    o.append(_t(400, 530, 'a hundred years in 2027', 15, 'tx-d', anchor='middle'))
+    o.append(_t(400, 530, 'a hundred years in 2027', 15, 'tx-d dcap', anchor='middle'))
     o.append('</svg>')
     return ''.join(o)
 
@@ -179,7 +179,7 @@ def _dots(o, cx, y=334):
 
 def _labels(o, labs):
     for x, lab in zip((110, 360, 610), labs):
-        o.append(_t(x, 404, lab, 15, 'tx-d', anchor='middle'))
+        o.append(_t(x, 408, lab.upper(), 24, 'tx-m', anchor='middle', fill='rgba(18,18,18,.6)'))
 
 
 def phones():
@@ -189,21 +189,18 @@ def phones():
          'reading the full set on YouTube">']
     for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
         _phone(o, x, 10, sc)
-    o.append(_t(110, 92, 'SET 01', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
     _play(o, 110, 188)
     o.append(_t(110, 290, 'PARK STREET', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
     o.append(_t(110, 320, 'STILL PLAYS', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
     _bars(o, 260)
     o.append(_t(360, 178, '11:40', 62, 'tx-n', anchor='middle'))
-    o.append(_t(360, 206, 'P.M. TONIGHT', 13, anchor='middle', weight=500, ls=.16))
+    o.append(_t(360, 208, 'P.M. TONIGHT', 16, 'tx-m', anchor='middle'))
     o.append('<line class="ln2" x1="300" y1="236" x2="420" y2="236"/>')
     o.append(_t(360, 266, 'SOMEPLACE ELSE', 16, 'tx-d', anchor='middle', ls=.12))
-    o.append(_t(360, 290, 'KOLKATA', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     o.append('<rect class="fp" x="530" y="60" width="160" height="90"/><rect class="ln" x="530" y="60" width="160" height="90"/>')
     o.append('<circle class="fw" cx="610" cy="105" r="17"/><circle class="ln" cx="610" cy="105" r="17"/><path class="fi" d="M604 95 L620 105 L604 115 Z"/>')
     o.append(_t(610, 210, 'THE FULL SET', 21, 'tx-d', anchor='middle', ls=.04))
     o.append(_t(610, 238, 'ON YOUTUBE', 21, 'tx-d', anchor='middle', ls=.04))
-    o.append(_t(610, 270, 'NO CUTS', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     _dots(o, 610)
     _labels(o, ('Reel', 'Story', 'Carousel'))
     o.append('</svg>')
@@ -213,25 +210,21 @@ def phones():
 def room_posts():
     """Three sample posts for Room 1967: the Reel from day one, the waiting-list story, the designer carousel."""
     o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for Room 1967. '
-         'A Reel cover reading day 1, the empty suite; a story reading 1967, the waiting list opens tonight; and a carousel '
+         'A Reel cover reading Room 1967, the empty suite; a story reading 1967, the waiting list opens tonight; and a carousel '
          'card reading meet the designer">']
     for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
         _phone(o, x, 10, sc)
-    o.append(_t(110, 92, 'DAY 1', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
     _play(o, 110, 178)
     o.append(_t(110, 286, 'ROOM 1967', 25, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
-    o.append(_t(110, 314, 'THE EMPTY SUITE', 13, anchor='middle', weight=500, ls=.14, fill='var(--paper)'))
+    o.append(_t(110, 316, 'THE EMPTY SUITE', 16, 'tx-m', anchor='middle', fill='var(--paper)'))
     _bars(o, 260)
     o.append(_t(360, 186, '1967', 64, 'tx-n', anchor='middle'))
-    o.append(_t(360, 222, 'THE WAITING LIST', 13, anchor='middle', weight=500, ls=.14))
-    o.append(_t(360, 242, 'OPENS TONIGHT', 13, anchor='middle', weight=500, ls=.14))
-    o.append('<rect class="ln" x="305" y="276" width="110" height="34" rx="17"/>')
-    o.append(_t(360, 298, 'TAP TO JOIN', 12, anchor='middle', weight=500, ls=.14))
+    o.append(_t(360, 226, 'THE WAITING LIST', 16, 'tx-m', anchor='middle'))
+    o.append(_t(360, 250, 'OPENS TONIGHT', 16, 'tx-m', anchor='middle'))
     o.append('<rect class="fp" x="530" y="60" width="160" height="110"/><rect class="ln" x="530" y="60" width="160" height="110"/>')
     o.append('<path class="ln" d="M574 150 C566 112 584 90 612 88 C636 86 648 102 644 124 L636 150 Z M572 150 L646 150 M584 150 L578 164 M634 150 L640 164"/>')
     o.append(_t(610, 218, 'MEET THE', 21, 'tx-d', anchor='middle', ls=.04))
     o.append(_t(610, 246, 'DESIGNER', 21, 'tx-d', anchor='middle', ls=.04))
-    o.append(_t(610, 276, 'SWIPE FOR SKETCHES', 12, anchor='middle', weight=500, ls=.12, fill='var(--ink-3)'))
     _dots(o, 610)
     _labels(o, ('Reel', 'Story', 'Carousel'))
     o.append('</svg>')
@@ -241,26 +234,23 @@ def room_posts():
 def flurys_posts():
     """Three sample posts for Flurys 100: a regular, a baker at 4 a.m., a recipe."""
     o = ['<svg viewBox="0 0 720 420" role="img" aria-label="Line drawing: three phones showing sample posts for Flurys 100. '
-         'A Reel cover reading regular number 001, a story reading 4:00 a.m. on Park Street, and a carousel card reading '
-         'recipe number 01, save this">']
+         'A Reel cover reading 001, same table every Sunday, a story reading 4:00 a.m. at the oven, Flurys, and a carousel card reading '
+         'recipe number 01">']
     for x, sc in zip((10, 260, 510), ('fi', 'fp', 'fw')):
         _phone(o, x, 10, sc)
     _play(o, 110, 96, r=18)
     o.append(_t(110, 220, '001', 70, 'tx-n', anchor='middle', fill='var(--paper)'))
-    o.append(_t(110, 258, 'REGULAR', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
     o.append(_t(110, 296, 'SAME TABLE', 21, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
     o.append(_t(110, 322, 'EVERY SUNDAY', 21, 'tx-d', anchor='middle', ls=.02, fill='var(--paper)'))
     _bars(o, 260)
     o.append(_t(360, 180, '4:00', 64, 'tx-n', anchor='middle'))
-    o.append(_t(360, 210, 'A.M. AT THE OVEN', 13, anchor='middle', weight=500, ls=.14))
+    o.append(_t(360, 212, 'A.M. AT THE OVEN', 16, 'tx-m', anchor='middle'))
     o.append('<line class="ln2" x1="300" y1="238" x2="420" y2="238"/>')
     o.append(_t(360, 268, 'FLURYS', 18, 'tx-d', anchor='middle', ls=.14))
-    o.append(_t(360, 292, 'PARK STREET', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     o.append('<ellipse class="fw" cx="610" cy="140" rx="54" ry="10"/><ellipse class="ln" cx="610" cy="140" rx="54" ry="10"/>')
     o.append('<path class="fw" d="M576 96 C578 124 594 136 610 136 C626 136 642 124 644 96 Z"/><path class="ln" d="M576 96 C578 124 594 136 610 136 C626 136 642 124 644 96"/>')
     o.append('<ellipse class="fp" cx="610" cy="96" rx="34" ry="7"/><ellipse class="ln" cx="610" cy="96" rx="34" ry="7"/><path class="ln" d="M643 104 C662 102 662 124 640 122"/>')
     o.append(_t(610, 218, 'RECIPE NO. 01', 21, 'tx-d', anchor='middle', ls=.04))
-    o.append(_t(610, 250, 'SAVE THIS', 13, anchor='middle', weight=500, ls=.16, fill='var(--ink-3)'))
     _dots(o, 610)
     _labels(o, ('Reel', 'Story', 'Carousel'))
     o.append('</svg>')
@@ -275,7 +265,7 @@ def reel_frame(k):
     _phone(o, 10, 10, ('fi', 'fp', 'fw', 'fi', 'fw')[k], w=200, h=356)
     if k == 0:
         o.append(_t(110, 150, '11:40', 56, 'tx-n', anchor='middle', fill='var(--paper)'))
-        o.append(_t(110, 178, 'P.M.', 13, anchor='middle', weight=500, ls=.16, fill='var(--paper)'))
+        o.append(_t(110, 180, 'P.M.', 16, 'tx-m', anchor='middle', fill='var(--paper)'))
         o.append(_t(110, 250, 'PARK STREET', 22, 'tx-d', anchor='middle', ls=.04, fill='var(--paper)'))
     elif k == 1:
         o.append('<path class="ln" d="M44 196 L176 196 M110 196 L110 120 M110 120 L126 108"/><ellipse class="fi" cx="130" cy="104" rx="5" ry="8" transform="rotate(-35 130 104)"/>')
@@ -321,7 +311,7 @@ def people(k):
     elif k == 1:
         o.append('<rect class="fw" x="96" y="14" width="128" height="128"/><rect class="ln" x="96" y="14" width="128" height="128"/>')
         o.append('<rect class="fp" x="106" y="24" width="108" height="86"/><circle class="ln" cx="140" cy="76" r="14"/><circle class="ln" cx="178" cy="76" r="14"/><path class="ln2" d="M106 96 L214 96"/>')
-        o.append(_t(160, 132, 'WITH CREDIT', 9, anchor='middle', weight=500, ls=.12, fill='rgba(18,18,18,.6)'))
+        o.append(_t(160, 133, 'WITH CREDIT', 11, 'tx-m', anchor='middle', fill='rgba(18,18,18,.6)'))
         o.append('<path class="ln2" d="M236 60 C256 60 256 92 236 92 M244 52 L236 60 L244 68"/>')
     elif k == 2:
         o.append('<path class="ln2" d="M40 30 Q160 70 280 30"/>')
@@ -364,13 +354,16 @@ MAP = [  # pillar, what it covers, side, series (name, what you see, format, her
 
 def content_map():
     """The content plan as a mind map, drawn in the Hanza manner: the idea in an orange block in the middle, four pillars in
-    black blocks, fifteen series on square-cornered branches, each with what you see and its format; the three hero series
-    carry an orange square."""
-    W, H, cx, cy = 1720, 740, 860, 355
+    blocks toned by the pillar code, fifteen series on square-cornered branches, each with what you see and its format; the
+    three hero series carry an orange square."""
+    # the viewBox has the map box's own ratio (about 2.69:1 at every 16:9 size), so the svg fills the box edge to edge and
+    # its quarters are the column guides: the left pillars start on the second guide, the right ones end on the fourth
+    W, H = 1950, 724.7
+    cx, cy = W / 2, 345
     o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Mind map of the content plan. In the centre, the idea: Park Street, everywhere. '
          'Four pillars branch from it, and each pillar branches into its series: '
          + esc('; '.join(f'{p}: ' + ', '.join(f'{n} ({w})' for n, w, _, _ in s) for p, _, _, s in MAP)) + '">']
-    spots = [(500, 150), (1220, 150), (500, 560), (1220, 560)]
+    spots = [(W * .25 + 120, 150), (W * .75 - 120, 150), (W * .25 + 120, 565), (W * .75 - 120, 565)]
     for (name, what, side, series), (px, py) in zip(MAP, spots):
         left = px < cx
         sx = cx + (-140 if left else 140)
@@ -391,13 +384,17 @@ def content_map():
             tx, anchor = (dx - 18, 'end') if left else (dx + 18, 'start')
             o.append(_t(tx, f'{ly + 8:.0f}', sname.upper(), 23, 'tx-d', anchor=anchor))
             o.append(_t(tx, f'{ly + 31:.0f}', see, 18, anchor=anchor, fill='rgba(18,18,18,.6)'))
-            o.append(_t(tx, f'{ly - 15:.0f}', fmt.upper(), 14, 'tx-m', anchor=anchor, fill='rgba(18,18,18,.6)'))
+            o.append(_t(tx, f'{ly - 15:.0f}', fmt.upper(), 16, 'tx-m', anchor=anchor, fill='rgba(18,18,18,.6)'))
+    tone = {'ink': ('class="fi"', 'var(--paper)', 'rgba(255,255,255,.66)'), 'grey': ('style="fill:var(--t-grey)"', 'var(--paper)', 'rgba(255,255,255,.8)'),
+            'line': ('class="fw" style="stroke:var(--ink);stroke-width:1.4"', 'var(--ink)', 'rgba(18,18,18,.6)'),
+            'mist': ('style="fill:var(--t-mist)"', 'var(--ink)', 'var(--ink)')}
     for (name, what, side, series), (px, py) in zip(MAP, spots):
-        o.append(f'<rect class="fi" x="{px - 120}" y="{py - 38}" width="240" height="76"/>')
-        o.append(_t(px, py + 4, name.upper(), 23, 'tx-d', anchor='middle', fill='var(--paper)'))
-        o.append(_t(px, py + 26, what.upper(), 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
+        box, ink, sub = tone[PILLAR[name]]
+        o.append(f'<rect {box} x="{px - 120}" y="{py - 38}" width="240" height="76"/>')
+        o.append(_t(px, py + 2, name.upper(), 23, 'tx-d', anchor='middle', fill=ink))
+        o.append(_t(px, py + 26, what.upper(), 16, 'tx-m', anchor='middle', fill=sub))
     o.append(f'<rect class="fa" x="{cx - 140}" y="{cy - 92}" width="280" height="184"/>')
-    o.append(_t(cx - 116, cy - 60, 'THE IDEA', 14, 'tx-m'))
+    o.append(_t(cx - 116, cy - 60, 'THE IDEA', 16, 'tx-m'))
     o.append(_t(cx - 116, cy + 26, 'PARK STREET,', 31, 'tx-d', ls=-.02))
     o.append(_t(cx - 116, cy + 62, 'EVERYWHERE.', 31, 'tx-d', ls=-.02))
     o.append('</svg>')
@@ -427,19 +424,19 @@ def handles_map():
         y1 = y + 70 if top else y - 70
         my = (y0 + y1) / 2
         o.append(f'<path class="ln2" d="M{cx} {y0} V{my:.0f} H{x} V{y1}"/>')
-    o.append(_t(cx + 14, 278, 'THE BEST OF EACH HOTEL RUNS HERE', 14, 'tx-m', fill='rgba(18,18,18,.6)'))
-    o.append(_t(cx + 14, 440, 'EACH NEW HOTEL GETS A LAUNCH KIT', 14, 'tx-m', fill='rgba(18,18,18,.6)'))
+    o.append(_t(cx + 14, 278, 'THE BEST OF EACH HOTEL RUNS HERE', 16, 'tx-m', fill='rgba(18,18,18,.6)'))
+    o.append(_t(cx + 14, 440, 'EACH NEW HOTEL GETS A LAUNCH KIT', 16, 'tx-m', fill='rgba(18,18,18,.6)'))
     for (name, voice, what, how), (x, y) in zip(HANDLES, spots):
         o.append(f'<rect class="fw" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
                  f'<rect class="ln2" x="{x - 200}" y="{y - 70}" width="400" height="140"/>'
-                 f'<rect class="fa" x="{x - 200}" y="{y - 70}" width="400" height="3"/>')
+                 f'<rect class="fa" x="{x - 200}" y="{y - 70}" width="400" height="2.1"/>')
         o.append(_t(x - 176, y - 30, name.upper(), 21, 'tx-d'))
-        o.append(_t(x + 176, y - 30, voice.upper(), 14, 'tx-m', anchor='end', fill='rgba(18,18,18,.6)'))
+        o.append(_t(x + 176, y - 30, voice.upper(), 16, 'tx-m', anchor='end', fill='rgba(18,18,18,.6)'))
         o.append(f'<line class="ln2" x1="{x - 176}" y1="{y - 12}" x2="{x + 176}" y2="{y - 12}"/>')
         o.append(_t(x - 176, y + 20, what, 18))
         o.append(_t(x - 176, y + 46, how, 16, fill='rgba(18,18,18,.6)'))
     o.append(f'<rect class="fi" x="{cx - 180}" y="{cy - 50}" width="360" height="100"/>')
     o.append(_t(cx, cy + 4, '@THEPARKHOTELS', 25, 'tx-d', anchor='middle', fill='var(--paper)'))
-    o.append(_t(cx, cy + 30, 'THE GROUP FEED', 13, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
+    o.append(_t(cx, cy + 30, 'THE GROUP FEED', 16, 'tx-m', anchor='middle', fill='rgba(255,255,255,.66)'))
     o.append('</svg>')
     return ''.join(o)

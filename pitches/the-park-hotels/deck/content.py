@@ -8,7 +8,7 @@ import datetime as dt
 import json
 import pathlib
 import art
-from kit import (slide, ul, table, tile, chapter, PILLAR, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
+from kit import (slide, ul, table, tile, chapter, PILLAR, TAG, pillar_key, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
 
 TITLE = 'The Park Hotels × Mask360'
 DESCRIPTION = ('Mask360’s social media proposal to The Park Hotels, October 2026: Park Street, everywhere. The content map, '
@@ -24,15 +24,6 @@ MEDIA = {v['slug']: v for v in json.loads((pathlib.Path(__file__).parent / 'medi
 
 def pg(sid):
     return f'{ORDER.index(sid) + 1:02d}'
-
-
-def words(text, accent=()):
-    """The statement, one span a word, so the words can turn from grey to ink as the page arrives (deck.js)."""
-    out = []
-    for w in text.split(' '):
-        bare = w.strip('.,’')
-        out.append(f'<span class="w{" or" if bare in accent else ""}">{w}</span>')
-    return ' '.join(out)
 
 
 # full sources, shown on the last page; each slide carries a short version
@@ -67,8 +58,8 @@ def cover():
 <div class="g4 grow" style="grid-template-rows:1fr auto auto;row-gap:calc(var(--u)*1.5)">
   <p class="lede-s c3 end pr" style="grid-row:2">A social media proposal from Mask360: <b>turn THE Park’s nights into a feed the city saves.</b></p>
   <ul class="svc c4 end" style="grid-row:2">{svc}</ul>
-  <p class="who c12 end" style="grid-row:3">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
-  <h1 class="h-display cover-h c34" style="grid-row:3"><span class="g">Park Street,</span> everywhere.</h1>
+  <p class="who c12 end" style="grid-row:2">For <b>Anmol Tyagi</b> and the brand team<br>October 2026 · Confidential</p>
+  <h1 class="h-display cover-h c14" style="grid-row:3"><span class="g">Park Street,</span> everywhere.</h1>
 </div>'''
     return slide('cover', 'Proposal', body, src='', bare=True, dark=True, cls='cover')
 
@@ -80,7 +71,7 @@ def promise():
 <p class="h3 mt-m">{t}</p><p class="ink2">{d}</p></div>''' for i, (t, d) in enumerate(terms))
     body = f'''<div class="g4 grow" style="grid-template-rows:auto 1fr auto">
   {lab('Our promise', pg('promise'), 'c1')}
-  <h2 class="q c13" style="grid-row:2;align-self:center">{words('We will make THE Park’s feed the city’s night out.', ('night', 'out'))}</h2>
+  <h2 class="q q-l c14" style="grid-row:2;align-self:start;margin-top:calc(var(--u)*2.2)">We will make THE Park’s feed the city’s night out.</h2>
   <div class="c1 end pr" style="grid-row:3">{btn('See the map', pg('mindmap'), '#mindmap')}</div>
   <div class="c24 g4 g3 stagger" style="grid-row:3">{cards}</div>
 </div>'''
@@ -97,9 +88,9 @@ def brief():
     acc = ''.join(f'''<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"><span class="mute">P.</span> {p}</span>
 <p class="a">{a}</p></div>''' for i, (q, a, p) in enumerate(rows))
     body = f'''<div class="g4 grow">
-  <div class="c12 stack-l pr">{lab('Your brief', pg('brief'))}{hh('What you', 'asked for.', cls='h1 h1-l')}
+  <div class="c12 stack-l pr">{lab('Your brief', pg('brief'))}{hh('What you', 'asked for.', cls='h1')}
     <p class="lede-s" style="max-width:24em">Your call for agencies on LinkedIn, <b>answered page by page.</b></p></div>
-  <div class="c34 acc mid">{acc}</div>
+  <div class="c34 acc end">{acc}</div>
 </div>'''
     return slide('brief', 'Proposal · your brief', body, src='From your call for agencies on LinkedIn.')
 
@@ -111,16 +102,16 @@ def ch_today():
 
 
 def today():
-    nums = [('92%', 'Occupancy', 'Rooms sold, Q1 FY27.', 92, '92 of 100 rooms sold'),
+    nums = [('92%', 'Occupancy', 'Q1 FY27 results.', 92, '92 of 100 rooms sold'),
             ('43%', 'Of revenue', 'From food, drink and nightlife: Q1 FY27.', 43, '43 of every 100 rupees'),
             ('42', 'Hotels today', 'In 32 cities, October 2026.', 42 / 87 * 100, '42 of 87 hotels by FY2030'),
             ('45', 'New hotels', 'Under development, for 87 hotels by FY2030.', 45 / 87 * 100, '45 of 87 still to open')]
-    cells = ''.join(f'''<div class="card stat-card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{k}</span>{dots(i + 1, 4)}</div>
+    cells = ''.join(f'''<div class="card stat-card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{k}</span></div>
 <div class="big">{n}</div>
-<div class="track" role="img" aria-label="{a}"><i style="width:{w:.0f}%"></i></div><p class="mono mute">{a}</p>
+<div class="track" role="img" aria-label="{a}"><i style="width:{w:.0f}%"></i></div>
 <p class="ink2">{d}</p></div>''' for i, (n, k, d, w, a) in enumerate(nums))
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The numbers', pg('today'))}{hh('At 92% full,', 'the feed sells the nights.', cls='h1')}</div>
   <p class="lede-s c4 end">Nine rooms in ten are sold. <b>The feed’s job is the bars, the tables, direct bookings and the new hotels.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{cells}</div>'''
@@ -129,23 +120,23 @@ def today():
 
 CHANNELS = [  # channel, handle or status, its job, a week
     ('Instagram', '@theparkhotels', 'The magazine: Reels, carousels, stories', '4 Reels, 4 carousels, stories daily'),
-    ('YouTube', '/theparkhotels', 'The Sessions in full, and Shorts', '1 set a month, 3 Shorts'),
+    ('YouTube', '/theparkhotels', 'The Sessions in full, and Shorts', '1 set a month, 3 Shorts a week'),
     ('Spotify', 'new', 'The Sessions playlist', 'A new set each month'),
     ('WhatsApp', 'new', 'The concierge behind every post', 'Always on'),
-    ('Facebook', 'The Park Hotels', 'Events and city listings', '3 posts'),
-    ('LinkedIn', 'The Park Hotels', 'Openings, people and design', '2 posts'),
-    ('Pinterest', '@theparkhotels', 'Rooms and design boards', '1 board'),
+    ('Facebook', 'The Park Hotels', 'Events and city listings', '3 posts a week'),
+    ('LinkedIn', 'The Park Hotels', 'Openings, people and design', '2 posts a week'),
+    ('Pinterest', '@theparkhotels', 'Rooms and design boards', '1 board a week'),
     ('X', '@parkhotelsindia', 'Tonight’s line-up', 'On event nights'),
 ]
 
 
 def channels():
     def name(c, h):
-        tag = '<span class="badge or">New</span>' if h == 'new' else f'<span class="mono mute">{h}</span>'
+        tag = '<span class="badge">New</span>' if h == 'new' else f'<span class="mono mute">{h}</span>'
         return f'<b>{c}</b> {tag}'
     rows = [[name(c, h), j, w] for c, h, j, w in CHANNELS]
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Each gets a job.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Each gets a job.', cls='h1')}</div>
   <p class="lede-s c4 end">We add two: <b>a Sessions playlist on Spotify and a WhatsApp line that books tables.</b></p>
 </div>
 <div class="mt-auto">{table(['Channel', 'Its job', 'Cadence'], rows, cls='tbl g4t tight stackable')}</div>'''
@@ -156,9 +147,9 @@ def rule():
     rows = [('Who played last night', 'Who Played', 'Every Monday'), ('What the kitchen cooks at 3 a.m.', 'The 3 a.m. Menu', 'Every Thursday'),
             ('The people on the night shift', 'Night Shift', 'Every Monday'), ('A room a designer made', 'Room 1967', 'One suite a year'),
             ('The city after dark', 'The Night Map', 'Every Saturday')]
-    trs = [[f'<span class="f-l" style="font-weight:500">{a}</span>', f'<span class="sq"></span>&ensp;<b>{b}</b>', f'<span class="mono">{c}</span>'] for a, b, c in rows]
+    trs = [[a, f'<span class="sq"></span>&ensp;<b>{b}</b>', f'<span class="mono">{c}</span>'] for a, b, c in rows]
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The house rule', pg('rule'))}{hh('We post what', 'only THE Park can.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The house rule', pg('rule'))}{hh('We post what', 'only THE Park can.', cls='h1')}</div>
   <p class="lede-s c4 end">“Anything but ordinary” has been the line since 2013. <b>On a feed, it means this.</b></p>
 </div>
 <div class="mt-auto">{table(['What only THE Park can post', 'The series it becomes', 'How often'], rows=trs, cls='tbl half stackable')}</div>'''
@@ -169,17 +160,17 @@ def insight():
     cards = [('1967', 'The first hotel', 'The Park opens on Park Street, Calcutta.'),
              ('Jazz', 'The street', 'Cabaret and late dinners: Park Street was where Calcutta went out.'),
              ('Now', 'The bars', 'Someplace Else, Tantra, Agni and Aqua carry it on.')]
-    c = ''.join(f'''<div class="card"><div class="card-h"><span class="big" style="font-size:calc(var(--u)*2.6)">{n}</span>{dots(i + 1)}</div>
-{lab(k)}<p class="ink2">{d}</p></div>''' for i, (n, k, d) in enumerate(cards))
+    c = ''.join(f'''<div class="card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{k}</span>{dots(i + 1)}</div>
+<div class="big mt-m">{n}</div><p class="ink2 foot">{d}</p></div>''' for i, (n, k, d) in enumerate(cards))
     body = f'''<div class="g4">{lab('The insight', pg('insight'))}</div>
 <h2 class="h-display mt-m"><span class="g">The Park is named</span> after a street.</h2>
-<div class="g4 mt-auto"><div class="c24 g4 g3 stagger">{c}</div></div>'''
+<div class="g4 grow" style="margin-top:calc(var(--u)*3)"><div class="c24 g4 g3 stagger">{c}</div></div>'''
     return slide('insight', 'The Park today · the insight', body, dark=True, src='Sources: The Park Hotels history; THE Park Kolkata and New Delhi dining. Full list on the last page.')
 
 
 def ch_idea():
     return chapter('ch-idea', '02', ('Park Street,', 'everywhere.'),
-                   'Each THE Park hotel becomes the Park Street of its city, <b>told through a magazine of its nights.</b>',
+                   'Each of THE Park’s hotels becomes the Park Street of its city, <b>told through a magazine of its nights.</b>',
                    [(pg('mindmap'), 'The content map', 'mindmap'), (pg('ref-named'), 'The references', 'ref-named'),
                     (pg('mix'), 'The mix', 'mix'), (pg('feed'), 'The grid', 'feed'), (pg('voice'), 'The voice', 'voice'),
                     (pg('sessions'), 'The Sessions', 'sessions'), (pg('reel'), 'The Reel', 'reel'), (pg('room'), 'Room 1967', 'room'),
@@ -188,7 +179,7 @@ def ch_idea():
 
 def _map_tree():
     """The content map as a branching list, shown on phones in place of the drawing."""
-    br = ''.join(f'<div class="br"><span class="pill">{p}<small>{w}</small></span><ul>'
+    br = ''.join(f'<div class="br"><span class="pill t-{PILLAR[p]}">{p}<small>{w}</small></span><ul>'
                  + ''.join(f'<li{" class=hero" if h else ""}><b>{n}</b><span>{see}</span><em>{fmt}</em></li>' for n, see, fmt, h in series)
                  + '</ul></div>' for p, w, _, series in art.MAP)
     return f'<div class="map-tree"><p class="idea">Park Street, everywhere</p>{br}</div>'
@@ -266,27 +257,30 @@ def ref(sid):
   <div class="c1 stack-l pr">{lab(f'References · {k + 1} of 4', pg(sid))}{hh(grey, ink, cls='h1 h1-s')}
     <p class="lede-s">{line}</p>
     <p class="ink2 f-s rule">{take}</p>
-    <div class="mt-auto stack">{dots(k + 1, 4)}<p class="mono mute">Press play for sound</p></div></div>
+    <p class="mono mute mt-auto">Press play for sound</p></div>
   <div class="c24 refs" style="grid-template-columns:repeat(5,minmax(0,1fr))">{cards}</div>
 </div>'''
     return slide(sid, f'The idea · references {k + 1} of 4', body,
                  src='Clips from hotel and brand feeds, shared for direction. Mask360 did not make them. Brands are named only where the clip shows them.')
 
 
-MIX = [  # pillar, posts a week, formats, days (from WEEKLY)
-    ('After Hours', 3, 'Reels · carousels · YouTube', 'Mon · Thu · Fri'),
-    ('The Table', 2, 'Reels · carousels', 'Tue · Sun'),
-    ('The City', 2, 'Carousels · collab Reels', 'Mon · Sat'),
-    ('By Design', 1, 'Reels · Pinterest', 'Wed'),
+MIX = [  # pillar, formats; its days and series come from WEEKLY
+    ('After Hours', 'Reels · carousels · YouTube'),
+    ('The Table', 'Reels · carousels'),
+    ('The City', 'Carousels · collab Reels'),
+    ('By Design', 'Reels · Pinterest'),
 ]
+DAYS = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 
 
 def mix():
-    cols = ''.join(f'''<div class="post-card"><div class="pc-h"><span class="mono"><span class="k">{"Post" if k == 1 else "Posts"}</span>{k} a week</span>{dots(k)}</div>
-<div class="pic-t">{tile(PILLAR[n], d, str(k), cls='fill')}</div>
-<div class="pc-b"><p class="lab">{n}</p><p class="h3">{f}</p></div></div>''' for n, k, f, d in MIX)
+    week = {n: [(DAYS[d], x) for d in sorted(WEEKLY) for k, x in WEEKLY[d] if k == TAG[n]] for n, _ in MIX}
+    cols = ''.join(f'''<div class="post-card"><div class="pc-h"><p class="lab">{n}</p>{dots()}</div>
+<div class="pic-t"><div class="tile t-{PILLAR[n]} fill"><div class="ov"><ul class="mixl">{"".join(f'<li><span class="mono">{d}</span>{x}</li>' for d, x in week[n])}</ul>
+<p class="mixn"><span class="t">{len(week[n])}</span><span class="mono">{"Post" if len(week[n]) == 1 else "Posts"} a week</span></p></div></div></div>
+<div class="pc-b"><p class="h3">{f}</p></div></div>''' for n, f in MIX)
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The mix', pg('mix'))}{hh('Eight posts', 'a week.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The mix', pg('mix'))}{hh('Eight posts', 'a week.', cls='h1')}</div>
   <p class="lede-s c4 end">Food, drink and nightlife are 43% of revenue, <b>so the night and the table get five of the eight.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{cols}</div>'''
@@ -315,14 +309,15 @@ def feed():
                     for _, s_, f, cover, p in FEED)
     hl = ''.join(f'<span><i class="t-{PILLAR[p]}"></i>{x}</span>' for x, p in (('Sessions', 'After Hours'), ('Rooms', 'By Design'), ('Flurys', 'The Table'), ('Night Map', 'The City')))
     body = f'''<div class="g4 grow feed" style="grid-template-rows:auto 1fr">
-  <div class="c12 stack-l">{lab('The grid', pg('feed'))}{hh('The grid on', 'Saturday 12 December.')}</div>
+  <div class="c12 stack-l">{lab('The grid', pg('feed'))}{hh('The grid on', '12 December.')}</div>
   <div class="c1 stack-l end pr" style="grid-row:2">
     <p class="lede-s">Nine posts, <b>four pillars, one street.</b></p>
     <p class="ink2 f-s">Reels for the night, carousels to save, and the highlights for the series that run all year.</p>
+    {pillar_key('key-l')}
   </div>
-  <div class="post c2 end" style="grid-row:2;margin-right:calc(var(--u)*1.4)">
+  <div class="post c2 end mr-1" style="grid-row:2">
     <div class="post-head"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>Someplace Else, Kolkata</span></span></div>
-    <div class="tile post-img t-ink"><div class="ov">{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
+    <div class="tile post-img t-ink"><div class="ov"><p class="hook"><span class="hk">11:40</span><span class="mono">p.m., Park Street</span></p>{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
     {ICONS}
     <p class="cap"><b>theparkhotels</b> Set 01 is up. One take at Someplace Else, Park Street. Message us for a table on Saturday.</p>
     <p class="mono mute">Sat 12 Dec · The Sessions · Reel</p>
@@ -336,22 +331,23 @@ def feed():
     </div>
   </div>
 </div>'''
-    return slide('feed', 'The idea · the grid', body, src='A mock-up of the grid. Flat tiles stand in for photography, toned by pillar as in the mix; series, dates and copy are Mask360’s proposal.')
+    return slide('feed', 'The idea · the grid', body, src='A mock-up of the grid. Flat tiles stand in for photography; series, dates and copy are Mask360’s proposal.')
 
 
 def voice():
     posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', 'After Hours'),
              ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', 'After Hours'),
              ('Reel', 'Chef’s Counter', 'Thirty seconds at the pass. Tuesday, 9 p.m., Fire.', 'The Table')]
-    c = ''.join(f'''<div class="card vpost"><div class="card-h"><div class="tile vimg t-{PILLAR[p]}"></div><span class="mono mute">{f}</span></div>
-<div class="mt-s"><p class="h4">theparkhotels</p><p class="mono mute">{s}</p></div><p class="say mt-s">{b}</p></div>''' for f, s, b, p in posts)
+    c = ''.join(f'''<div class="card vpost"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{f}</span>{dots()}</div>
+<div class="post-head mt-s"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>{s}</span></span></div><p class="say">{b}</p></div>'''
+                for i, (f, s, b, p) in enumerate(posts))
     rules = [('Name the place and the time', 'Park Street at 11:40 p.m. carries the night.'), ('Twenty words at most', 'The picture does the rest.'),
              ('Talk like the night manager', 'Warm, sure, and in on the secret.')]
     r = ''.join(f'<div><span class="mn">0{i + 1}</span><p class="q">{a}</p><span class="x"></span><p class="a">{b}</p></div>' for i, (a, b) in enumerate(rules))
     body = f'''<div class="g4 grow">
   <div class="c1 stack-l pr">{lab('The voice', pg('voice'))}{hh('How the', 'feed sounds.', cls='h1 h1-s')}
     <div class="acc tight mt-auto flush">{r}</div></div>
-  <div class="c24 g4 g3 stagger end">{c}</div>
+  <div class="c24 g4 g3 stagger">{c}</div>
 </div>'''
     return slide('voice', 'The idea · voice', body, src='Sample captions, written by Mask360. Venues to confirm with the brand team.')
 
@@ -359,8 +355,9 @@ def voice():
 def _idea_page(sid, no, pillar, name, meta, drawing, headline, text, extra, src):
     kv = ''.join(f'<div><span class="k">{k}</span><span class="v">{v}</span></div>' for k, v in [('Pillar', pillar)] + meta)
     body = f'''<div class="g4 grow">
-  <div class="pic c12" style="margin-right:calc(var(--u)*2)">{drawing}<div class="ov"><span class="no">{no} · Concept drawing</span>{dots(int(no[-1]))}</div></div>
+  <div class="pic c12 mr-2">{drawing}<div class="ov"><span class="no">{no} · Concept drawing</span></div></div>
   <div class="c34 stack-l idea-body">
+    {lab(name, pg(sid))}
     <div class="kv">{kv}</div>
     <h2 class="idea-name">{name}</h2>
     <p class="lede-s">{headline}</p>
@@ -389,27 +386,28 @@ def sessions():
 
 
 def reel():
-    beats = [('0 to 3', 'The hook', 'The first chord over 11:40 p.m., Park Street, on screen.'),
-             ('3 to 10', 'The walk', 'One take through the crowd to the stage.'),
-             ('10 to 25', 'The chorus', 'The faces in the room, close.'),
-             ('25 to 30', 'The last note', 'Wide: the lights, the stage, the street.')]
-    cells = ''.join(f'''<div class="post-card beat"><div class="pc-h"><span class="mono"><span class="k">Sec</span>{t}</span>{dots(i + 1, 4)}</div>
-<div class="art">{art.reel_frame(i)}</div><div class="pc-b"><p class="lab">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (t, a, b) in enumerate(beats))
-    spec = [('Sound', 'The band’s own track, as original audio'), ('Cover', 'The 11:40 frame, made for the grid'),
+    beats = [(0, 3, 'The hook', 'The first chord over 11:40 p.m., Park Street, on screen.'),
+             (3, 10, 'The walk', 'One take through the crowd to the stage.'),
+             (10, 25, 'The chorus', 'The faces in the room, close.'),
+             (25, 30, 'The last note', 'Wide: the lights, the stage, the street.')]
+    cells = ''.join(f'''<div class="post-card beat"><div class="pc-h"><span class="mono"><span class="k">Sec</span>{s} to {e}</span>
+<div class="track" role="img" aria-label="Seconds {s} to {e} of 30"><i style="margin-left:{s / 30 * 100:.1f}%;width:{(e - s) / 30 * 100:.1f}%"></i></div></div>
+<div class="art">{art.reel_frame(i)}</div><div class="pc-b"><p class="lab">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (s, e, a, b) in enumerate(beats))
+    spec = [('Sound', 'The band’s own track, as original audio'), ('Cover', 'The 11:40 frame, with Park Street still plays'),
             ('End card', 'The full set on YouTube'), ('Then', 'Message us for a table')]
     sp = ''.join(f'<div><p class="mono mute">{k}</p><p class="h4 mt-s" style="margin-top:calc(var(--u)*.35)">{v}</p></div>' for k, v in spec)
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The Reel', pg('reel'))}{hh('Set 01,', 'second by second.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The Reel', pg('reel'))}{hh('Set 01,', 'second by second.', cls='h1')}</div>
   <p class="lede-s c4 end">A thirty-second Reel cut from the one take, <b>made for the first three seconds and the save.</b></p>
 </div>
-<div class="g4 mt-auto cardrow">{cells}</div>
+<div class="g4 mt-auto cardrow two-up">{cells}</div>
 <div class="spec mt-s">{sp}</div>'''
     return slide('reel', 'The idea · the Reel', body, src='A sample cut, written by Mask360. Timings in seconds.')
 
 
 def room():
     return _idea_page('room', 'No. 02', 'By Design', 'Room 1967',
-                      [('Format', 'Reel · story · carousel'), ('Cadence', 'One suite a year'), ('Where', 'A THE Park hotel'),
+                      [('Format', 'Reel · story · carousel'), ('Cadence', 'One suite a year'), ('Where', 'One of THE Park’s hotels'),
                        ('Sells', 'Room nights, from a waiting list')],
                       art.suite(), 'One suite a year, <b>revealed on the feed.</b>',
                       'A young Indian designer remakes one suite at THE Park every year. We film it from the empty room to the '
@@ -432,7 +430,7 @@ def flurys():
 def ch_run():
     return chapter('ch-run', '03', ('How it', 'runs.'), 'From December on the feed to the first readout in February, <b>and the people behind it.</b>',
                    [(pg('calendar'), 'A month', 'calendar'), (pg('handles'), 'The handles', 'handles'), (pg('community'), 'The people', 'community'),
-                    (pg('measure'), 'The numbers', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('faq'), 'Quick answers', 'faq'),
+                    (pg('measure'), 'The measures', 'measure'), (pg('mask360'), 'Mask360', 'mask360'), (pg('faq'), 'Quick answers', 'faq'),
                     (pg('next'), 'Next steps', 'next')])
 
 
@@ -466,31 +464,33 @@ def calendar():
             cls += ' out'
         if day.month != 12:
             cls += ' nm'  # outside December, greyed even when it is a one-off day
-        elif day.day > 7:
+        elif day.day > 7 and day not in SPECIAL:
             cls += ' rep'  # a weekly repeat, folded away on phones
         t = ''.join(f'<span class="tag {k}">{x}</span>' for k, x in tags)
         wd = f'{day:%a}' if day.month == 12 else f'{day:%a} · {day:%b}'
         cells.append(f'<div class="{cls}"><span class="n" data-wd="{wd}">{day.day}</span>{t}</div>')
-    key = ''.join(f'<span class="tag label {k}">{n}</span>' for k, n in (('a', 'After Hours'), ('b', 'By Design'), ('c', 'The Table'), ('d', 'The City')))
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('A month', pg('calendar'))}{hh('December', 'on the feed.')}</div>
-  <div class="c34 end stack" style="align-items:flex-end"><div class="cal-key">{key}</div>
+  <div class="c34 end stack cal-side">{pillar_key()}
     <p class="mono mute"><span style="display:inline-block;width:calc(var(--u)*1.2);height:2px;background:var(--accent);vertical-align:middle"></span>&ensp;Orange rule: a one-off post</p></div>
 </div>
 <div class="cal mt-m">{head}{''.join(cells)}</div>
-<p class="cal-note ink2">The weekly series repeat all month.</p>'''
+<p class="cal-note ink2">From 8 December the list shows the one-off days. Each takes that day’s weekly slot.</p>'''
     return slide('calendar', 'How it runs · a month', body, src='Assumes a start on 16 November 2026. New Year’s Eve tables open on 1 December, a month ahead.')
 
 
 def _handles_tree():
-    items = ''.join(f'<li><b>{n}</b><span>{v}</span><em>{w}. {h}.</em></li>' for n, v, w, h in art.HANDLES)
-    return f'<div class="map-tree"><p class="idea">@theparkhotels · the group feed</p><div class="br"><ul>{items}</ul></div></div>'
+    def items(rows):
+        return ''.join(f'<li><b>{n}</b><em>{v}</em><span>{w}. {h}.</span></li>' for n, v, w, h in rows)
+    return (f'<div class="map-tree"><p class="idea hub">@theparkhotels · the group feed</p>'
+            f'<div class="br"><p class="mono mute">The best of each hotel runs here</p><ul>{items(art.HANDLES[:3])}</ul></div>'
+            f'<div class="br"><p class="mono mute">Each new hotel gets a launch kit</p><ul>{items(art.HANDLES[3:])}</ul></div></div>')
 
 
 def handles():
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('The handles', pg('handles'))}{hh('Every brand speaks', 'in its own voice.')}</div>
-  <p class="lede-s c4 end">Each THE Park hotel films its own version of the series. <b>A new hotel opens with nine posts ready.</b></p>
+  <p class="lede-s c4 end">Each of THE Park’s hotels films its own version of the series. <b>A new hotel opens with nine posts ready.</b></p>
 </div>
 <div class="map mt-s">{art.handles_map()}{_handles_tree()}</div>'''
     return slide('handles', 'How it runs · the handles', body, src='Venue accounts to confirm with the brand team. Voices and roles are Mask360’s proposal.')
@@ -501,10 +501,10 @@ def community():
             ('Regulars', 'Their photos, reposted with credit. Their nominations for Night Shift.'),
             ('Creators', 'One city creator a month spends The Night Off with us, as a collab Reel.'),
             ('Direct messages', 'Every message gets a person, and a table if they want one.')]
-    c = ''.join(f'''<div class="post-card ppl"><div class="pc-h"><span class="mono"><span class="k">0{i + 1}</span>{a}</span>{dots(i + 1, 4)}</div>
+    c = ''.join(f'''<div class="post-card ppl"><div class="pc-h"><span class="mono"><span class="k">Group</span>0{i + 1}</span>{dots()}</div>
 <div class="art">{art.people(i)}</div><div class="pc-b"><p class="h3">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (a, b) in enumerate(cols))
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The people', pg('community'))}{hh('The people who', 'make the feed.', cls='h1 h1-l')}</div>
+  <div class="c12 stack-l">{lab('The people', pg('community'))}{hh('The people who', 'make the feed.', cls='h1')}</div>
   <p class="lede-s c4 end">Four groups, <b>each with a job on the feed.</b></p>
 </div>
 <div class="g4 mt-auto cardrow">{c}</div>'''
@@ -520,24 +520,24 @@ def measure():
     acc = ''.join(f'<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{a}</p><span class="x"></span><p class="a">{b}</p></div>'
                   for i, (a, b) in enumerate(rows))
     body = f'''<div class="g4 grow">
-  <div class="c12 stack-l pr">{lab('The numbers', pg('measure'))}{hh('Measured in', 'your numbers.', cls='h1 h1-l')}
-    <div class="mt-auto" style="width:calc(50% + var(--u))">{stat('2×', 'Saves', 'Saves per post against your last 30: a draft threshold, set from your data in week 2.', '01', 2)}</div></div>
-  <div class="c34 acc mid">{acc}</div>
+  <div class="c12 stack-l pr">{lab('The measures', pg('measure'))}{hh('Measured in', 'your numbers.', cls='h1')}
+    <div class="g4 g2 mt-auto stat-pair">{stat('2×', 'Saves', 'Saves per post against your last 30: a draft threshold, set from your data in week 2.', '01')}{stat('22 Feb', 'First readout', 'Week of 22 February 2027. A series that trails is replaced.', '02')}</div></div>
+  <div class="c34 acc end">{acc}</div>
 </div>'''
-    return slide('measure', 'How it runs · measurement', body, src='First readout: week of 22 February 2027. A series that trails at the readout is replaced.')
+    return slide('measure', 'How it runs · measurement', body, src='Measures and targets are Mask360’s proposal.')
 
 
 def mask360():
     cards = [('Hospitality we have worked with', 'Anantara Jewel Bagh, Jaipur · Alta Stella, Onrique and DEA, Mumbai · Atlantis The Royal and SANA, Dubai'),
              ('Feeds we run', 'The Penthouse at St. Regis Mumbai · Moxy Mumbai'),
              ('Luxury we have worked with', 'Dior · Ferrari India · L’Oréal · Dyson')]
-    c = ''.join(f'<div class="card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{a}</span>{dots(i + 1, 4)}</div><p class="f-l mt-s">{b}</p></div>'
+    c = ''.join(f'<div class="card"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{a}</span>{dots()}</div><p class="f-l mt-s">{b}</p></div>'
                 for i, (a, b) in enumerate(cards))
-    lounge = f'''<div class="card"><div class="card-h"><span class="mono"><span class="k">04</span>A lounge we built</span>{dots(4, 4)}</div>
+    lounge = f'''<div class="card"><div class="card-h"><span class="mono"><span class="k">04</span>A lounge we built</span>{dots()}</div>
 <div class="big mt-s">530</div><p class="ink2">Tickets at ₹75,000 each: the Nexa Platinum Lounge, Lollapalooza India.</p></div>'''
     body = f'''<div class="g4">
   <div class="c12 stack-l">{lab('Mask360', pg('mask360'))}<div class="m-logo" style="width:78%;margin-top:calc(var(--u)*1.4)"><svg viewBox="0 0 1632 473" role="img" aria-label="Mask360"><use href="#logo-m"/></svg></div></div>
-  <h2 class="lede c34 end" style="font-size:calc(var(--u)*2.3);line-height:1.12;letter-spacing:-.025em">We run social and content for luxury and hospitality brands in India and the UAE.</h2>
+  <h2 class="h2 c34 end">We run social and content for luxury and hospitality brands in India and the UAE.</h2>
 </div>
 <div class="g4 mt-auto cred">{c}{lounge}</div>'''
     return slide('mask360', 'How it runs · Mask360', body, dark=True, src='From Mask360’s own records.')
@@ -556,9 +556,9 @@ def faq():
     acc = ''.join(f'<div{" class=open" if i == 0 else ""}><span class="mn">0{i + 1}</span><p class="q">{q}</p><span class="x"></span><p class="a">{a}</p></div>'
                   for i, (q, a) in enumerate(qa))
     body = f'''<div class="g4 grow">
-  <div class="c12 stack-l pr">{lab('Quick answers', pg('faq'))}{hh('Quick', 'answers.', cls='h1 h1-l')}
+  <div class="c12 stack-l pr">{lab('Quick answers', pg('faq'))}{hh('Quick', 'answers.', cls='h1')}
     <p class="lede-s" style="max-width:24em">Six questions the brand team will ask, <b>answered before the pitch.</b></p></div>
-  <div class="c34 acc mid">{acc}</div>
+  <div class="c34 acc end">{acc}</div>
 </div>'''
     return slide('faq', 'How it runs · quick answers', body, src='Dates and measures as set out on the earlier pages.')
 
@@ -576,7 +576,8 @@ def next_steps():
     <div class="mt-auto stack">
       <p class="mono"><span class="k">Founder</span>Kaavish Ramchandani</p>
       <a class="mail" href="mailto:kaavish@mask360.agency">kaavish@mask360.agency</a>
-      <p class="mono"><span class="k">Phone</span>+91 959 107 5100 <span class="k" style="margin-left:1.4em">Web</span>mask360.agency · mask360.work</p>
+      <p class="mono"><span class="k">Phone</span><a href="tel:+919591075100">+91 959 107 5100</a></p>
+      <p class="mono"><span class="k">Web</span>mask360.agency · mask360.work</p>
     </div>
   </div>
   <div class="c4 cta end">
@@ -596,11 +597,13 @@ def close():
     n = ''.join(f'<li><a href="#{i}">{roll(t)}</a></li>' for t, i in nav)
     body = f'''<div class="g4">{WORDMARK}<p class="lab c3"><span>Thank you</span></p></div>
 <div class="g4 grow" style="grid-template-rows:1fr auto;row-gap:calc(var(--u)*2.4)">
-  <ul class="nav c3 end">{n}</ul>
-  <div class="c4 end stack">
-    <h2 class="lede-s">Park Street, <b>everywhere.</b></h2>
-    <a class="mail" href="mailto:kaavish@mask360.agency" style="font-size:calc(var(--u)*1.6)">kaavish@mask360.agency</a>
-    <p class="mono"><span class="k">Phone</span>+91 959 107 5100</p>
+  <div class="c34 end g4 g2 as foot" style="grid-row:1">
+    <ul class="nav">{n}</ul>
+    <div class="stack">
+      <h2 class="lede-s">Park Street, <b>everywhere.</b></h2>
+      <a class="mail" href="mailto:kaavish@mask360.agency" style="font-size:calc(var(--u)*1.6)">kaavish@mask360.agency</a>
+      <p class="mono"><span class="k">Phone</span><a href="tel:+919591075100">+91 959 107 5100</a></p>
+    </div>
   </div>
   <div class="giant c12 end" style="grid-row:2"><svg viewBox="0 0 1632 473" role="img" aria-label="Mask360"><use href="#logo-m"/></svg></div>
   <p class="mono c3 end" style="grid-row:2"><span class="k">©</span>2026 Mask360<br><span class="k">For</span>The Park Hotels</p>

@@ -2,14 +2,13 @@
   const slides = [...document.querySelectorAll('.slide')];
   const total = slides.length;
   let cur = 0;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const io = new IntersectionObserver(es => {
     es.forEach(e => { if (e.isIntersecting) cur = slides.indexOf(e.target); });
   }, { threshold: 0.55 });
   slides.forEach(s => io.observe(s));
-  // the next slide is taken from cur, which go() sets at once, so two quick presses move two slides; focus follows, so Tab starts there
-  // a jump of more than one slide lands at once, so the deck does not fly through every page in between
-  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); const far = Math.abs(j - cur) > 1; cur = j; slides[j].scrollIntoView({ behavior: reduce || far ? 'instant' : 'smooth', block: 'start' }); slides[j].focus({ preventScroll: true }); };
+  // the next slide is taken from cur, which go() sets at once, so two quick presses move two slides; focus follows, so Tab starts there.
+  // Every move lands at once, page to page, with nothing animated.
+  const go = i => { const j = Math.max(0, Math.min(total - 1, i)); cur = j; slides[j].scrollIntoView({ behavior: 'instant', block: 'start' }); slides[j].focus({ preventScroll: true }); };
   // phones and portrait windows read the slides as one scrolling document (deck.css), where the browser's own keys scroll
   const doc = matchMedia('(max-width:760px),(max-aspect-ratio:4/5)');
   // switching between the slide and phone layouts keeps the reader on the page they were reading
@@ -86,12 +85,6 @@
   vids.forEach(v => v.addEventListener('webkitendfullscreen', close));
   // the browser's seek bar keeps Esc to itself; hand focus back to the clip after a seek or a volume change
   vids.forEach(v => ['seeked', 'volumechange'].forEach(t => v.addEventListener(t, () => { if (open) v.focus({ preventScroll: true }); })));
-
-  // the statement: its words turn from grey to ink, one after another, when the page arrives (Hanza's scroll reveal)
-  document.querySelectorAll('.q').forEach(q => q.querySelectorAll('.w').forEach((w, i) => { w.style.transitionDelay = reduce ? '0ms' : i * 70 + 'ms'; }));
-  const qio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); qio.unobserve(e.target); } }), { threshold: 0.6 });
-  document.querySelectorAll('.q').forEach(q => qio.observe(q));
-  addEventListener('beforeprint', () => document.querySelectorAll('.q').forEach(q => q.classList.add('on')));
 
   // the cover's clock: Kolkata time, the way Hanza shows its local time
   const clock = document.querySelector('[data-clock]');
