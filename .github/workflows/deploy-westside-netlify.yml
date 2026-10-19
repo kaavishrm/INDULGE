@@ -1,0 +1,105 @@
+name: deploy-westside-netlify
+# Builds the Westside pitch (pitches/westside) and deploys it to Netlify as the site "mask360westside".
+#  - With the repository secret NETLIFY_AUTH_TOKEN set, every push updates that site and keeps its address
+#    (https://mask360westside.netlify.app, or mask360-westside if the name is taken).
+#  - Without it, a run started by hand or a commit whose message contains [deploy] makes an anonymous
+#    deployment that must be claimed within 60 minutes from the link in the run summary. Other pushes skip it.
+on:
+  push:
+    branches: [claude/wizardly-bardeen-2oc2qq]
+    paths: ['pitches/westside/**', '.github/workflows/deploy-westside-netlify.yml']
+  workflow_dispatch:
+concurrency:
+  group: deploy-westside-netlify
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      SITE_NAME: mask360westside
+      CLI: netlify-cli@27.10.2
+      ANON_OK: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Find or create the site
+        if: env.NETLIFY_AUTH_TOKEN != ''
+        run: |
+          api() { curl -sS -m 60 -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" -H 'Content-Type: application/json' "$@"; }
+          pick() { python3 -c 'import json,sys; d=json.load(sys.stdin); d=d if isinstance(d,list) else [d]; n=sys.argv[1]; m=[s for s in d if s.get("name")==n or not n]; print(m[0]["id"]+" "+(m[0].get("ssl_url") or m[0]["url"]) if m and m[0].get("id") else "")' "$1"; }
+          SITE=""
+          for NAME in "$SITE_NAME" mask360-westside; do
+            SITE=$(api "https://api.netlify.com/api/v1/sites?name=$NAME&filter=all" | pick "$NAME" || true)
+            [ -n "$SITE" ] && break
+          done
+          if [ -z "$SITE" ]; then
+            for NAME in "$SITE_NAME" mask360-westside; do
+              SITE=$(api -X POST https://api.netlify.com/api/v1/sites -d "{\"name\":\"$NAME\"}" | pick "" || true)
+              [ -n "$SITE" ] && break
+            done
+          fi
+          [ -n "$SITE" ] || { echo "Could not find or create the Netlify site" | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
+          echo "SITE_ID=${SITE%% *}" >> "$GITHUB_ENV"
+          echo "SITE_URL=${SITE#* }" >> "$GITHUB_ENV"
+          echo "Site: ${SITE#* }"
+      - name: Build
+        run: |
+          STRICT=1 python3 pitches/westside/v4/build.py
+          python3 pitches/westside/web.py "$RUNNER_TEMP/site" "${SITE_URL:-}"
+      - name: Deploy
+        run: |
+          set -o pipefail
+          cd "$RUNNER_TEMP"   # away from the repository, so the CLI finds no project config to build
+          if [ -n "$NETLIFY_AUTH_TOKEN" ]; then
+            for i in 1 2 3; do
+              npx --yes "$CLI" deploy --dir site --prod --no-build --site "$SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" \
+                --message "${GITHUB_SHA::7}" --json 2>&1 | tee deploy.log && break
+              sleep $((i * 15))
+            done
+            grep -q '"deploy_id"' deploy.log || { echo "Deploy failed" | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
+            URL="$SITE_URL"
+            { echo "## The Westside proposal is live"; echo ""; echo "Open: $URL"; } | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$ANON_OK" = "true" ]; then
+            # "--created-via cli" asks for a site without the Drop password; without it if Netlify refuses the flag
+            RESULT=""
+            for VIA in "--created-via cli" "" ""; do
+              npx --yes "$CLI" deploy --dir site --no-build --allow-anonymous $VIA --json 2>&1 | tee deploy.log || true
+              RESULT=$(python3 -c 'import json,re,sys; t=open(sys.argv[1]).read(); m=re.search(r"\{.*\}", t, re.S); d=json.loads(m.group(0)) if m else {}; print(d.get("site_url",""), d.get("claim_url",""), d.get("password",""))' deploy.log 2>/dev/null || true)
+              [ -n "${RESULT// /}" ] && break
+              sleep 15
+            done
+            read -r URL CLAIM PASSWORD <<< "$RESULT"
+            [ -n "$URL" ] || { echo "Deploy failed" | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
+            {
+              echo "## The Westside proposal is live"
+              echo ""
+              echo "Open: $URL"
+              [ -n "$PASSWORD" ] && echo "" && echo "Password until claimed: $PASSWORD"
+              echo ""
+              echo "Anonymous deployment. Claim it within 60 minutes or Netlify removes it: $CLAIM"
+              echo ""
+              echo "Add the NETLIFY_AUTH_TOKEN secret to keep one address that updates on every push."
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No NETLIFY_AUTH_TOKEN secret and no [deploy] in the commit message: skipping deploy." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "$URL" > url.txt
+      - name: Check the page
+        run: |
+          [ -f "$RUNNER_TEMP/url.txt" ] || exit 0
+          URL=$(cat "$RUNNER_TEMP/url.txt")
+          sleep 5
+          for i in 1 2 3 4 5; do
+            if curl -sS -m 60 "$URL" -o page.html && grep -q 'Mask360</title>' page.html; then
+              echo "Serving the proposal: $(wc -c < page.html) bytes"
+              CLIP=$(grep -o 'media/[A-Za-z0-9._-]*\.mp4' page.html | head -1)
+              [ -z "$CLIP" ] || curl -sS -m 60 -o /dev/null -w "$CLIP: %{http_code} %{content_type} %{size_download} bytes\n" "${URL%/}/$CLIP"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "The page did not serve the proposal (an unclaimed anonymous site may be behind a password)"

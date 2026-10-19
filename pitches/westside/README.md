@@ -2,7 +2,7 @@
 
 A 16:9 slide deck from Mask360 to Westside (Trent Ltd), October 2026. It keeps the v3 look (white paper and black ink, thin uppercase Inter Tight, Bodoni numbers in ruled boxes, procedurally drawn cloth, a dark silk cover) without v3's app layer: no menu, search, tabs, "Details +" sheets, buttons, carousels or orange. The content is version 4's (verified facts, three ideas, the 15 mn plan). The v3 sources are in git history.
 
-- **Send:** the website link (see `web.py` and `.github/workflows/deploy-westside.yml`). The page is `dist/index.html` plus the reference videos in `media/out/`.
+- **Send:** the website link. `.github/workflows/deploy-westside-netlify.yml` publishes it on Netlify (with the `NETLIFY_AUTH_TOKEN` secret, one address that updates on every push); `deploy-westside.yml` does the same on EdgeOne Pages. The page is `dist/index.html` plus the reference videos in `media/out/` (built by `web.py`).
 - **Present:** open the link full screen and use the arrow keys or the space bar. On a phone, the slides become one scrolling page.
 - **Print or PDF:** printing from a browser gives one slide per page.
 
