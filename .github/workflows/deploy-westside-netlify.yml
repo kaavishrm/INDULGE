@@ -3,12 +3,19 @@ name: deploy-westside-netlify
 #  - With the repository secret NETLIFY_AUTH_TOKEN set, every push updates that site and keeps its address
 #    (https://mask360westside.netlify.app, or mask360-westside if the name is taken).
 #  - Without it, a run started by hand or a commit whose message contains [deploy] makes an anonymous
-#    deployment that must be claimed within 60 minutes from the link in the run summary. Other pushes skip it.
+#    deployment that must be claimed within 60 minutes. The repository is public and the CLI masks the claim
+#    token, so the link is printed only when the run is given claim_key (a base64 PEM public key): it is then
+#    encrypted to that key (RSA-OAEP wraps an AES key) for whoever holds the private half. Other pushes skip it.
 on:
   push:
     branches: [claude/wizardly-bardeen-2oc2qq]
     paths: ['pitches/westside/**', '.github/workflows/deploy-westside-netlify.yml']
   workflow_dispatch:
+    inputs:
+      claim_key:
+        description: 'Anonymous deploys only: base64 PEM public key to encrypt the claim link to'
+        required: false
+        type: string
 concurrency:
   group: deploy-westside-netlify
   cancel-in-progress: false
@@ -20,6 +27,7 @@ jobs:
       SITE_NAME: mask360westside
       CLI: netlify-cli@27.10.2
       ANON_OK: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') }}
+      CLAIM_KEY: ${{ inputs.claim_key }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -79,7 +87,15 @@ jobs:
               echo "Open: $URL"
               [ -n "$PASSWORD" ] && echo "" && echo "Password until claimed: $PASSWORD"
               echo ""
-              echo "Anonymous deployment. Claim it within 60 minutes or Netlify removes it: $CLAIM"
+              if [ -n "$CLAIM_KEY" ] && [ -n "$CLAIM" ]; then
+                echo "$CLAIM_KEY" | base64 -d > claim.pub
+                K=$(openssl rand -hex 32)
+                CT=$(printf %s "$CLAIM" | openssl enc -aes-256-cbc -pbkdf2 -salt -pass "pass:$K" | base64 -w0)
+                EK=$(printf %s "$K" | openssl pkeyutl -encrypt -pubin -inkey claim.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+                echo "Anonymous deployment: claim it within 60 minutes or Netlify removes it. Encrypted claim link: $EK.$CT"
+              else
+                echo "Anonymous deployment: claim it within 60 minutes or Netlify removes it. The claim link is masked in this public log; run again with claim_key to receive it encrypted."
+              fi
               echo ""
               echo "Add the NETLIFY_AUTH_TOKEN secret to keep one address that updates on every push."
             } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -91,13 +107,13 @@ jobs:
       - name: Check the page
         run: |
           [ -f "$RUNNER_TEMP/url.txt" ] || exit 0
-          URL=$(cat "$RUNNER_TEMP/url.txt")
+          URL=$(sed 's#^http://#https://#' "$RUNNER_TEMP/url.txt")
           sleep 5
           for i in 1 2 3 4 5; do
-            if curl -sS -m 60 "$URL" -o page.html && grep -q 'Mask360</title>' page.html; then
+            if curl -sSL -m 60 "$URL" -o page.html && grep -q 'Mask360</title>' page.html; then
               echo "Serving the proposal: $(wc -c < page.html) bytes"
               CLIP=$(grep -o 'media/[A-Za-z0-9._-]*\.mp4' page.html | head -1)
-              [ -z "$CLIP" ] || curl -sS -m 60 -o /dev/null -w "$CLIP: %{http_code} %{content_type} %{size_download} bytes\n" "${URL%/}/$CLIP"
+              [ -z "$CLIP" ] || curl -sSL -m 60 -o /dev/null -w "$CLIP: %{http_code} %{content_type} %{size_download} bytes\n" "${URL%/}/$CLIP"
               exit 0
             fi
             sleep 6
