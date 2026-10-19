@@ -1,5 +1,6 @@
 name: deploy-westside
-# Builds the Westside pitch (pitches/westside) and deploys it to EdgeOne Pages as the project "mask360westside".
+# Builds the Westside pitch (pitches/westside) and deploys it to EdgeOne Pages as the project "m360westsidepitch"
+# (pitch sites are always named m360<client>pitch; Netlify, deploy-westside-netlify.yml, is the main host).
 #  - With the repository secret EDGEONE_API_TOKEN set, every push updates that project and keeps its link.
 #  - Without it, a run started by hand or a commit whose message contains [deploy] makes an anonymous
 #    deployment, which must be claimed within an hour from the link in the run summary (claim it into the
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
-      PROJECT: mask360westside
+      PROJECT: m360westsidepitch
       ANON_OK: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') }}
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
             echo "No EDGEONE_API_TOKEN secret and no [deploy] in the commit message: skipping deploy." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          # the CLI names an anonymous project after the folder it runs in, so it runs inside mask360westside/
+          # the CLI names an anonymous project after the folder it runs in, so it runs inside m360westsidepitch/
           cd "$RUNNER_TEMP/$PROJECT"
           ok=""
           if [ -n "$EDGEONE_API_TOKEN" ]; then
@@ -46,7 +47,7 @@ jobs:
               sleep 8
             done
           else
-            # anonymous deploys take the folder name (mask360westside); the explicit name is the fallback
+            # anonymous deploys take the folder name (m360westsidepitch); the explicit name is the fallback
             # EdgeOne's anonymous-credentials call sometimes times out (30 s); retry with growing waits
             for NAME in "" "$PROJECT"; do
               for i in 1 2 3; do
