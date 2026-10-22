@@ -11,7 +11,7 @@ import pathlib
 import art
 from kit import (slide, ul, table, tile, chapter, PILLAR, TAG, pillar_key, btn, lab, dots, hh, stat, video_card, roll, M_MARK, P_MARK, P_VIEW, WORDMARK)
 
-TITLE = 'The Park Hotels × Mask360'
+TITLE = "M360 Park Hotel's pitch"
 DESCRIPTION = ('Mask360’s social media proposal to The Park Hotels, October 2026: Park Street, everywhere. The content map, '
                'twenty reference clips, the feed, the handles and the numbers.')
 
