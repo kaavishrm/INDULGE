@@ -1,17 +1,19 @@
-/* Layout: the Hanza look (hanza-template.framer.website; captures in ref/hanza). A four-column Swiss grid whose guides stay
-   visible, uppercase Zalando Sans set in two tones (a grey line, then an ink line), Geist Mono for small labels, one
-   orange-red accent for squares, rules and button ends, and flat dark sections between the white ones. Every colour is
-   flat: no gradients, no grain. Flat tiles, toned by pillar, and line drawings stand in for photography. Every slide is
+/* Layout: the Hanza look (hanza-template.framer.website; captures in ref/hanza). Uppercase Zalando Sans set in two tones,
+   Geist Mono for small labels, one orange-red accent for squares, rules and button ends, and flat dark sections between
+   the white ones. Every slide is
    one 16:9 page that scales as a whole; on phones the slides become one scrolling document. */
 :root{
   --paper:#ffffff; --panel:#fafafa; --ink:#121212; --ink-2:rgba(18,18,18,.6); --ink-3:rgba(18,18,18,.38); --hair:rgba(18,18,18,.1);
-  --guide:rgba(18,18,18,.07); --chip:#f2f2f2;
+  --chip:#f2f2f2;
   --night:#121212; --night-card:#191919; --night-ink:#ffffff; --night-2:rgba(255,255,255,.6); --night-hair:rgba(255,255,255,.1);
   --accent:#ff6044;
   --sans:'Zalando Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
   --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  /* the pillar tones: After Hours ink, By Design grey, The Table an outline, The City mist */
-  --t-grey:#717171; --t-mist:#b8b8b8;
+  /* Four distinct hues tie every content pillar to its posts and calendar markers. */
+  --p-after:#56354e; --p-after-soft:#f1eaf0;
+  --p-design:#4b5b3e; --p-design-soft:#edf0e9;
+  --p-table:#93482e; --p-table-soft:#f5e9e2;
+  --p-city:#285961; --p-city-soft:#e8f0f1;
   color-scheme:light;
 }
 @font-face{font-family:'Zalando Sans';src:url({{FONT:zalandosans}}) format('woff2');font-weight:200 900;font-display:swap}
@@ -28,19 +30,15 @@ img,svg,video,canvas{max-width:100%;display:block}
 .slide:not(.dark) :focus-visible{outline-color:var(--ink)}  /* orange is under 3:1 on white */
 .tile .ov>.btn:focus-visible{outline-color:#fff;outline-offset:-3px}
 
-/* ---------- slide, frame and the four column guides (four boxes with 1px borders, so every guide snaps to the same pixel weight) ---------- */
+/* ---------- slide and frame ---------- */
 .slide{position:relative;min-height:100vh;min-height:100dvh;display:grid;place-items:center;scroll-snap-align:start;overflow:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:var(--paper);color:var(--ink)}
 .frame{--u:1cqw;--px:calc(var(--u)*3.3);--fs-mono:max(10px,calc(var(--u)*.8));container-type:inline-size;position:relative;z-index:1;
   width:min(100%,calc((100vh - 24px) * 16 / 9));width:min(100%,calc((100dvh - 24px) * 16 / 9));aspect-ratio:16/9;max-width:100%;
   display:flex;flex-direction:column;padding:calc(var(--u)*2.4) var(--px) calc(var(--u)*1.9)}
-.frame>.guides{position:absolute;inset:0;padding-left:inherit;padding-right:inherit;z-index:0;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
-.guides i{border-left:1px solid var(--guide)}
-.guides i:last-child{border-right:1px solid var(--guide)}
 .frame>*{position:relative;z-index:1;min-width:0}
 .dark{background-color:var(--night);color:var(--night-ink)}
-.dark .guides i{border-color:var(--night-hair)}
 .panel{background:var(--panel)}
 
 /* ---------- type: uppercase Zalando in two tones, mono labels ---------- */
@@ -98,6 +96,7 @@ em,.it{font-style:normal}
 .chev{display:inline-grid;place-items:center;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);background:var(--accent);vertical-align:middle}
 .chev svg{width:44%;height:44%;fill:none;stroke:#fff;stroke-width:1.6}
 .badge{display:inline-block;background:var(--ink);color:#fff;font-size:max(9.5px,calc(var(--u)*.72));font-weight:500;text-transform:uppercase;padding:.35em .55em;line-height:1;vertical-align:middle}
+.badge.audit{background:var(--p-city)}
 
 /* ---------- running head and folio ---------- */
 .head{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;margin-bottom:calc(var(--u)*2)}
@@ -118,7 +117,7 @@ em,.it{font-style:normal}
 .folio .pg .k{color:var(--ink-2);margin-right:.6em} .dark .folio .pg .k{color:var(--night-2)}
 .body{flex:1;min-height:0;display:flex;flex-direction:column}
 
-/* ---------- the grid: four columns on the guides ---------- */
+/* ---------- the grid: four layout columns ---------- */
 .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:0}
 .g4>*{min-width:0}
 .c1{grid-column:1}.c2{grid-column:2}.c3{grid-column:3}.c4{grid-column:4}
@@ -142,7 +141,7 @@ em,.it{font-style:normal}
 .list li{position:relative;padding-left:calc(var(--u)*1.2)}
 .list li::before{content:"";position:absolute;left:0;top:.62em;width:calc(var(--u)*.38);height:calc(var(--u)*.38);background:var(--accent)}
 
-/* ---------- cards: white on the guides, an orange rule on top, a mono head with progress squares ---------- */
+/* ---------- cards: white panels with an orange rule and a mono head ---------- */
 .card{position:relative;background:var(--paper);border:1px solid var(--hair);border-top:2px solid var(--accent);padding:calc(var(--u)*1.5) calc(var(--u)*1.7) calc(var(--u)*1.6);display:flex;flex-direction:column;gap:calc(var(--u)*.7);min-width:0}
 .card.plain{border-top:1px solid var(--hair)}
 .dark .card{background:var(--night-card);border-color:var(--night-hair);border-top-color:var(--accent)}
@@ -210,7 +209,7 @@ em,.it{font-style:normal}
 .q{font-size:calc(var(--u)*3.7);line-height:1.06;letter-spacing:-.03em;font-weight:500;text-wrap:balance}
 .q.q-l{font-size:calc(var(--u)*5.6);line-height:1.02}
 
-/* ---------- tables, laid on the guides: 25% · 50% · 25% ---------- */
+/* ---------- tables: 25% · 50% · 25% ---------- */
 .tbl{width:100%;border-collapse:collapse}
 .tbl th{font-family:var(--mono);font-weight:500;font-size:var(--fs-mono);text-transform:uppercase;text-align:left;color:var(--ink-2);
   padding:0 calc(var(--u)*1.6) calc(var(--u)*.7) 0;border-bottom:1px solid var(--ink);vertical-align:bottom}
@@ -223,12 +222,12 @@ em,.it{font-style:normal}
 .dark .tbl th{color:var(--night-2);border-color:var(--night-ink)} .dark .tbl td{border-color:var(--night-hair)}
 .scroll-x{overflow-x:auto;max-width:100%}
 
-/* ---------- flat tiles, toned by pillar ---------- */
+/* ---------- coloured tiles, one hue per content pillar ---------- */
 .tile{position:relative;overflow:hidden;background:var(--ink);color:#fff}
-.t-ink{background:var(--ink);color:#fff}
-.t-grey{background:var(--t-grey);color:#fff}
-.t-mist{background:var(--t-mist);color:var(--ink)}
-.t-line{background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.t-after{background:var(--p-after);color:#fff}
+.t-design{background:var(--p-design);color:#fff}
+.t-table{background:var(--p-table);color:#fff}
+.t-city{background:var(--p-city);color:#fff}
 .tile .ov{position:absolute;inset:0;z-index:1;padding:calc(var(--u)*1);display:flex;flex-direction:column;justify-content:space-between}
 .tile .ov .no{font-family:var(--mono);font-size:var(--fs-mono);font-weight:500;text-transform:uppercase}
 .tile .ov>.btn{align-self:stretch;margin:0 calc(var(--u)*-1) calc(var(--u)*-1) calc(var(--u)*1.6)} .tile .ov>.btn>span{flex:1}
@@ -241,14 +240,30 @@ em,.it{font-style:normal}
 .post-card .pc-b .lab{font-family:var(--mono);font-size:var(--fs-mono);color:var(--ink-2)}
 .post-card .h3{font-size:calc(var(--u)*1.3);text-transform:none;letter-spacing:-.015em;line-height:1.15}
 .post-card .pic-t{position:relative;aspect-ratio:4/3;overflow:hidden}
-.post-card .pc-h:has(+ .pic-t .t-line){border-bottom:0}
-.post-card .art{background:var(--panel);border-bottom:1px solid var(--hair)}
+.post-card .art{background-color:var(--panel);border-bottom:1px solid var(--hair)}
+.post-card.pillar-after{background:var(--p-after-soft);border-top:2px solid var(--p-after)}
+.post-card.pillar-design{background:var(--p-design-soft);border-top:2px solid var(--p-design)}
+.post-card.pillar-table{background:var(--p-table-soft);border-top:2px solid var(--p-table)}
+.post-card.pillar-city{background:var(--p-city-soft);border-top:2px solid var(--p-city)}
+.post-card.pillar-after .pc-h .lab{color:var(--p-after)}
+.post-card.pillar-design .pc-h .lab{color:var(--p-design)}
+.post-card.pillar-table .pc-h .lab{color:var(--p-table)}
+.post-card.pillar-city .pc-h .lab{color:var(--p-city)}
 
 /* ---------- idea pages: the drawing as the case-study image, the meta, the big name ---------- */
 .pic{position:relative;background:var(--panel);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0;border:1px solid var(--hair)}
 .pic .ov{position:absolute;inset:0;padding:calc(var(--u)*1);display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
 .pic .no{font-family:var(--mono);font-size:var(--fs-mono);font-weight:500;text-transform:uppercase}
 .pic svg{width:100%;height:100%;max-height:100%}
+.photo{position:relative;overflow:hidden;background-color:var(--panel)}
+.photo>.crop-image{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:var(--photo-position,center)}
+.pic.photo{display:block;padding:0;border:0}
+.pic.photo .ov{z-index:2;color:#fff}
+.pic.photo .no{background:rgba(18,18,18,.52);padding:.45em .6em}
+.sample-photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*.35);min-width:0}
+.sample-shot{aspect-ratio:3/4}
+.sample-shot::after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.62));z-index:0}
+.sample-label{position:absolute;z-index:1;left:calc(var(--u)*.35);bottom:calc(var(--u)*.35);font-family:var(--mono);font-size:calc(var(--u)*.52);line-height:1.2;text-transform:uppercase;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.55)}
 .kv{display:flex;flex-direction:column;gap:calc(var(--u)*.42);font-family:var(--mono);font-size:var(--fs-mono);font-weight:500;text-transform:uppercase;line-height:1.3}
 .kv>div{display:flex}
 .kv .k{flex:none;width:calc(var(--u)*6.4)}
@@ -361,9 +376,11 @@ html.lb-open{overflow:hidden}
 .phone .hl{display:flex;gap:calc(var(--u)*.85);padding:0 calc(var(--u)*.4) calc(var(--u)*.7)}
 .phone .hl>span{display:grid;justify-items:center;gap:calc(var(--u)*.25);min-width:calc(var(--u)*3);white-space:nowrap;font-size:calc(var(--u)*.78);font-weight:500;text-transform:uppercase;text-align:center;line-height:1.1}
 .phone .hl i{width:calc(var(--u)*2.3);height:calc(var(--u)*2.3);border-radius:50%;box-shadow:0 0 0 1px var(--paper),0 0 0 2px var(--ink);display:block}
-.phone .hl i.t-line{box-shadow:inset 0 0 0 1px var(--ink),0 0 0 1px var(--paper),0 0 0 2px var(--ink)}
 .phone .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
-.ptile{aspect-ratio:3/4}
+.ptile{aspect-ratio:3/4;color:#fff}
+.ptile::after,.post-img::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 24%,rgba(0,0,0,.6))}
+.ptile .ov{z-index:1;text-shadow:0 1px 8px rgba(0,0,0,.45)}
+.ptile .gl{filter:drop-shadow(0 1px 4px rgba(0,0,0,.7))}
 .ptile .ov{justify-content:flex-end;padding:calc(var(--u)*.45)}
 .ptile .ov .t{font-size:calc(var(--u)*.82);line-height:1;letter-spacing:-.02em}
 .ptile .gl{position:absolute;top:calc(var(--u)*.4);right:calc(var(--u)*.4);width:calc(var(--u)*.75);height:calc(var(--u)*.75);fill:currentColor}
@@ -382,14 +399,16 @@ html.lb-open{overflow:hidden}
 .acts{align-self:flex-start;height:calc(var(--u)*1.1);width:auto;fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round}
 .post .cap{font-size:calc(var(--u)*.98);line-height:1.45}
 /* the voice: captions as testimonials, the account's mark on top, the caption at the card foot */
-.vpost .say{margin-top:auto;font-size:calc(var(--u)*1.9);line-height:1.2}
+.vimage{height:calc(var(--u)*13);margin-top:calc(var(--u)*.7)}
+.vpost{align-self:start}
+.vpost .say{margin-top:calc(var(--u)*.5);font-size:calc(var(--u)*1.9);line-height:1.2}
 /* the Reel, beat by beat */
 .beat .pc-h .track{width:40%;margin-top:0}
-.beat .art{height:calc(var(--u)*17);background:var(--panel);border-bottom:1px solid var(--hair)}
+.beat .art{height:calc(var(--u)*17);background-color:var(--panel);border-bottom:1px solid var(--hair)}
 .beat .art svg{height:92%}
 /* the people */
-.ppl .art{height:calc(var(--u)*15);background:var(--panel);border-bottom:1px solid var(--hair)}
-/* the month: the guides end where the calendar starts */
+.ppl .art{height:calc(var(--u)*15);background-color:var(--panel);border-bottom:1px solid var(--hair)}
+/* the month */
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:auto repeat(5,minmax(0,1fr));gap:0;flex:1;min-height:0;background:var(--paper);border-left:1px solid var(--hair)}
 .cal .wd{font-family:var(--mono);font-size:var(--fs-mono);font-weight:500;text-transform:uppercase;color:var(--ink-2);padding:0 calc(var(--u)*.6) calc(var(--u)*.5);border-bottom:1px solid var(--ink)}
 .cal .day{border-bottom:1px solid var(--hair);border-right:1px solid var(--hair);padding:calc(var(--u)*.5) calc(var(--u)*.6);display:flex;flex-direction:column;gap:calc(var(--u)*.28);min-height:0;overflow:hidden}
@@ -400,7 +419,7 @@ html.lb-open{overflow:hidden}
 .cal .day.tent{background:var(--panel);box-shadow:inset 0 2px 0 var(--accent)}
 .cal .tag{display:flex;align-items:flex-start;gap:calc(var(--u)*.35);font-size:calc(var(--u)*.95);line-height:1.2}
 .cal .tag::before{content:"";width:calc(var(--u)*.5);height:calc(var(--u)*.5);flex:none;margin-top:calc(var(--u)*.18)}
-.tag.a::before{background:var(--ink)}.tag.b::before{background:var(--t-grey)}.tag.c::before{background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--ink)}.tag.d::before{background:var(--t-mist)}
+.tag.a::before{background:var(--p-after)}.tag.b::before{background:var(--p-design)}.tag.c::before{background:var(--p-table)}.tag.d::before{background:var(--p-city)}
 .cal-key{display:flex;gap:calc(var(--u)*1.6);flex-wrap:wrap;justify-content:flex-end}
 .cal-side{align-items:flex-end}
 .cal-key.key-l{justify-content:flex-start;gap:calc(var(--u)*.6) calc(var(--u)*1.2)}
@@ -452,7 +471,6 @@ html.lb-open{overflow:hidden}
   .slide{min-height:0;display:block;padding:0}
   /* a phone column; on a portrait tablet the same column, centred, so lines and pictures keep a phone's measure */
   .frame{--u:14px;--px:16px;width:100%;max-width:640px;margin-inline:auto;aspect-ratio:auto;padding:28px var(--px) 30px}
-  .frame>.guides{grid-template-columns:minmax(0,1fr)} .guides i:nth-child(n+2){display:none} .guides i:first-child{border-right:1px solid var(--guide)} .dark .guides i:first-child{border-right-color:var(--night-hair)}
   .h-display{font-size:56px}.h1{font-size:36px}.h2{font-size:24px}.q,.q.q-l{font-size:30px}.lede{font-size:19px}
   .chap .ct{font-size:52px} .idea-name{font-size:52px}
   p,li,td,dd,dt{font-size:15.5px}
@@ -506,6 +524,7 @@ html.lb-open{overflow:hidden}
   .phone{width:100%;max-width:340px}
   .post-img{max-height:none}
   .beat .art,.ppl .art{height:200px}
+  .vimage{height:170px}
   .refs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:2px}
   .refs>*{grid-column:auto!important;margin-top:0!important}
   .refs>.vcard:last-child:nth-child(odd){grid-column:1/-1!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:2px}
@@ -518,9 +537,8 @@ html.lb-open{overflow:hidden}
   .map-tree{display:block}
   .map-tree .idea.hub{background:var(--ink);color:#fff}
   .map-tree .br>p.mono{margin-bottom:4px}
-  .map-tree .pill.t-grey{background:var(--t-grey)} .map-tree .pill.t-mist{background:var(--t-mist);color:var(--ink)}
-  .map-tree .pill.t-line{background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-  .map-tree .pill.t-mist small,.map-tree .pill.t-line small{color:var(--ink-2)}
+  .map-tree .pill.t-after{background:var(--p-after)} .map-tree .pill.t-design{background:var(--p-design)}
+  .map-tree .pill.t-table{background:var(--p-table)} .map-tree .pill.t-city{background:var(--p-city)}
   .map-tree .idea{display:inline-block;background:var(--accent);color:var(--ink);font-weight:500;text-transform:uppercase;font-size:17px;padding:10px 12px;margin:0 0 6px}
   .map-tree .br{border-left:1px solid var(--ink);margin-left:12px;padding:12px 0 2px 16px;position:relative}
   .map-tree .pill{display:inline-block;background:var(--ink);color:#fff;font-weight:500;text-transform:uppercase;font-size:15px;padding:8px 10px}

@@ -1,5 +1,5 @@
 """Small HTML helpers for the slides, in the Hanza look (deck.css). Every slide is a <section class="slide"> holding one 16:9
-<div class="frame"> laid on four column guides."""
+<div class="frame"> using a four-column layout."""
 import re
 from html import escape as esc
 
@@ -47,7 +47,7 @@ CHAPTERS = {'The Park today': ('01', 'The Park today'), 'The idea': ('02', 'Park
 
 
 def head(section):
-    """The running head: The Park's mark left, the section label on the third guide, the Mask360 button right."""
+    """The running head: The Park's mark left, the section label in the third column, the Mask360 button right."""
     ch = section.split(' · ')[0]
     if ch in CHAPTERS:
         mid = f'<p class="lab"><span>{CHAPTERS[ch][1]}</span></p>'  # the chapter by name; the numbers on the page are page numbers
@@ -57,9 +57,8 @@ def head(section):
             f'<a class="btn" href="#next" aria-label="Mask360 proposal: next steps"><span>{M_MARK} <em>/Proposal</em></span><i>{CHEV}</i></a></div>')
 
 
-# the four pillars, coded the same way on every page (the map, the mix, the grid, the month): flat greys and an outline,
-# so the orange stays for the idea, the hero series and the one-off posts
-PILLAR = {'After Hours': 'ink', 'By Design': 'grey', 'The Table': 'line', 'The City': 'mist'}
+# the four pillars, coded with a distinct, related colour across the map, mix, grid and month
+PILLAR = {'After Hours': 'after', 'By Design': 'design', 'The Table': 'table', 'The City': 'city'}
 TAG = {'After Hours': 'a', 'By Design': 'b', 'The Table': 'c', 'The City': 'd'}  # the same code as small squares (deck.css .tag)
 
 
@@ -73,7 +72,7 @@ def slide(sid, section, body, src='', dark=False, cls='', bare=False):
     hd = '' if bare else head(section)
     folio = f'<div class="folio"><span class="src">{src}</span><span class="pg" data-pg></span></div>'
     return (f'<section class="slide{" dark" if dark else ""}{" " + cls if cls else ""}" id="{sid}" tabindex="-1" aria-label="{esc(section)}">'
-            f'<div class="frame"><div class="guides" aria-hidden="true"><i></i><i></i><i></i><i></i></div>{hd}<div class="body">{body}</div>{folio}</div></section>')
+            f'<div class="frame">{hd}<div class="body">{body}</div>{folio}</div></section>')
 
 
 def sep(n):
@@ -81,7 +80,7 @@ def sep(n):
 
 
 def chapter(sid, no, title, line, pages):
-    """A chapter opener on a flat dark page: the meta row on the guides, the title across the page, the line under it,
+    """A chapter opener on a flat dark page: the meta row, the title across the page, the line under it,
     the chapter's pages as dark rows bottom right and a button to the first page bottom left.
     title is (grey line, white line); pages is [(page number, name, slide id)]."""
     first = pages[0]

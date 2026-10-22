@@ -385,9 +385,12 @@ def content_map():
             o.append(_t(tx, f'{ly + 8:.0f}', sname.upper(), 23, 'tx-d', anchor=anchor))
             o.append(_t(tx, f'{ly + 31:.0f}', see, 18, anchor=anchor, fill='rgba(18,18,18,.6)'))
             o.append(_t(tx, f'{ly - 15:.0f}', fmt.upper(), 16, 'tx-m', anchor=anchor, fill='rgba(18,18,18,.6)'))
-    tone = {'ink': ('class="fi"', 'var(--paper)', 'rgba(255,255,255,.66)'), 'grey': ('style="fill:var(--t-grey)"', 'var(--paper)', 'rgba(255,255,255,.8)'),
-            'line': ('class="fw" style="stroke:var(--ink);stroke-width:1.4"', 'var(--ink)', 'rgba(18,18,18,.6)'),
-            'mist': ('style="fill:var(--t-mist)"', 'var(--ink)', 'var(--ink)')}
+    tone = {
+        'after': ('style="fill:var(--p-after)"', 'var(--paper)', 'rgba(255,255,255,.72)'),
+        'design': ('style="fill:var(--p-design)"', 'var(--paper)', 'rgba(255,255,255,.76)'),
+        'table': ('style="fill:var(--p-table)"', 'var(--paper)', 'rgba(255,255,255,.76)'),
+        'city': ('style="fill:var(--p-city)"', 'var(--paper)', 'rgba(255,255,255,.76)'),
+    }
     for (name, what, side, series), (px, py) in zip(MAP, spots):
         box, ink, sub = tone[PILLAR[name]]
         o.append(f'<rect {box} x="{px - 120}" y="{py - 38}" width="240" height="76"/>')

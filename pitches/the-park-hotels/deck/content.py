@@ -1,10 +1,11 @@
 """Slide copy for Mask360's social media proposal to The Park Hotels, addressed to Anmol Tyagi, who posted the call for
-agencies. Laid out in the Hanza look (deck.css): every slide sits on four column guides, headings run in two tones, small
+agencies. Laid out in the Hanza look (deck.css): every slide uses a four-column layout, headings run in two tones, small
 labels are mono. The content plan is drawn as mind maps (art.content_map, art.handles_map), and twenty reference clips
 from other hotels' feeds play in place (media/, fetched by fetch_refs.py). Facts come from pitches/the-park-hotels/README.md;
 Mask360's work comes from its own records. A cold pitch is conversation one, so there is no pricing and no team grid, and
 it ends on an open door."""
 import datetime as dt
+from html import escape as esc
 import json
 import pathlib
 import art
@@ -33,7 +34,8 @@ SOURCES = [
      '19 Aug 2026. Flurys 111 stores: Q1 FY27 investor presentation. 42 hotels in 32 cities: Business Traveller, October 2026. '
      '87 hotels by FY30, 45 under development: company investor material, Q1 FY27 and 2 Sep 2026 (Multibagg; filing to NSE).'),
     ('Channels', 'As linked from theparkhotels.com, October 2026: Instagram @theparkhotels, YouTube /theparkhotels, Facebook The Park '
-     'Hotels, X @parkhotelsindia, LinkedIn The Park Hotels, Pinterest @theparkhotels. Spotify and WhatsApp are Mask360’s proposal.'),
+     'Hotels, X @parkhotelsindia, LinkedIn The Park Hotels, Pinterest @theparkhotels. Spotify, WhatsApp and a monthly ChatGPT discovery '
+     'audit are Mask360’s proposal. The ChatGPT audit reviews guest-facing answers and Park-owned information; model output remains outside our control.'),
     ('The brands', 'The Park Hotels corporate overview: five hotel brands, plus Flurys. Zone by The Park at launch: design-conscious and '
      'price-conscious (eHotelier). Ran Baas The Palace, Patiala: 35 suites, opened January 2025, Prix Versailles world’s most '
      'beautiful hotels 2025 (Robb Report India, Time Out).'),
@@ -118,7 +120,7 @@ def today():
     return slide('today', 'The Park today · the numbers', body, src='Sources: Q1 FY27 results and investor material, 2026. Full list on the last page.')
 
 
-CHANNELS = [  # channel, handle or status, its job, a week
+CHANNELS = [  # channel, handle or status, its job, its cadence
     ('Instagram', '@theparkhotels', 'The magazine: Reels, carousels, stories', '4 Reels, 4 carousels, stories daily'),
     ('YouTube', '/theparkhotels', 'The Sessions in full, and Shorts', '1 set a month, 3 Shorts a week'),
     ('Spotify', 'new', 'The Sessions playlist', 'A new set each month'),
@@ -127,17 +129,19 @@ CHANNELS = [  # channel, handle or status, its job, a week
     ('LinkedIn', 'The Park Hotels', 'Openings, people and design', '2 posts a week'),
     ('Pinterest', '@theparkhotels', 'Rooms and design boards', '1 board a week'),
     ('X', '@parkhotelsindia', 'Tonight’s line-up', 'On event nights'),
+    ('ChatGPT', 'audit', 'Audit answers to where to stay, eat and hear live music', 'Monthly audit; refresh Park-owned information'),
 ]
 
 
 def channels():
     def name(c, h):
-        tag = '<span class="badge">New</span>' if h == 'new' else f'<span class="mono mute">{h}</span>'
+        tag = ('<span class="badge">New</span>' if h == 'new' else
+               '<span class="badge audit">Monthly audit</span>' if h == 'audit' else f'<span class="mono mute">{h}</span>')
         return f'<b>{c}</b> {tag}'
     rows = [[name(c, h), j, w] for c, h, j, w in CHANNELS]
     body = f'''<div class="g4">
-  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Each gets a job.', cls='h1')}</div>
-  <p class="lede-s c4 end">We add two: <b>a Sessions playlist on Spotify and a WhatsApp line that books tables.</b></p>
+  <div class="c12 stack-l">{lab('The channels', pg('channels'))}{hh('Six channels today.', 'Three ways to grow discovery.', cls='h1')}</div>
+  <p class="lede-s c4 end">Add Spotify and WhatsApp, plus a monthly ChatGPT audit: <b>what guests hear when they ask where to stay, eat and hear live music.</b> Refresh the Park’s owned information each month.</p>
 </div>
 <div class="mt-auto">{table(['Channel', 'Its job', 'Cadence'], rows, cls='tbl g4t tight stackable')}</div>'''
     return slide('channels', 'The Park today · channels', body, src='Channels as linked from theparkhotels.com, October 2026. Cadence is Mask360’s proposal.')
@@ -275,7 +279,7 @@ DAYS = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 
 def mix():
     week = {n: [(DAYS[d], x) for d in sorted(WEEKLY) for k, x in WEEKLY[d] if k == TAG[n]] for n, _ in MIX}
-    cols = ''.join(f'''<div class="post-card"><div class="pc-h"><p class="lab">{n}</p>{dots()}</div>
+    cols = ''.join(f'''<div class="post-card pillar-{PILLAR[n]}"><div class="pc-h"><p class="lab">{n}</p>{dots()}</div>
 <div class="pic-t"><div class="tile t-{PILLAR[n]} fill"><div class="ov"><ul class="mixl">{"".join(f'<li><span class="mono">{d}</span>{x}</li>' for d, x in week[n])}</ul>
 <p class="mixn"><span class="t">{len(week[n])}</span><span class="mono">{"Post" if len(week[n]) == 1 else "Posts"} a week</span></p></div></div></div>
 <div class="pc-b"><p class="h3">{f}</p></div></div>''' for n, f in MIX)
@@ -287,16 +291,35 @@ def mix():
     return slide('mix', 'The idea · the mix', body, src='Feed posts a week on @theparkhotels: 4 Reels and 4 carousels. Stories run daily on top. Mask360’s proposal.')
 
 
-FEED = [  # the nine latest posts on Saturday 12 December: date, series, format, cover line, pillar
-    ('Sat 12 Dec', 'The Sessions · Set 01', 'reel', 'Park Street still plays', 'After Hours'),
-    ('Fri 11 Dec', 'Who’s Playing', 'reel', 'Tonight at Someplace Else', 'After Hours'),
-    ('Thu 10 Dec', 'The 3 a.m. Menu', 'reel', 'The kitchen just ate', 'After Hours'),
-    ('Wed 9 Dec', 'Room 1967', 'carousel', 'The search opens', 'By Design'),
-    ('Tue 8 Dec', 'Christmas at Flurys', 'carousel', 'The menu is out', 'The Table'),
-    ('Mon 7 Dec', 'Who Played', 'carousel', 'Last night’s set list', 'After Hours'),
-    ('Mon 7 Dec', 'Night Shift', 'carousel', 'The night manager', 'The City'),
-    ('Sun 6 Dec', 'The Recipe', 'carousel', 'Save this one', 'The Table'),
-    ('Sat 5 Dec', 'The Night Map', 'carousel', 'Kolkata after dark', 'The City'),
+PHOTO_REFERENCE = {
+    1: ('ref-after-hour.jpeg', 'Client-supplied reference: an illuminated After Hours sign above a dark venue entrance.', '50% 32%'),
+    2: ('ref-the-city.jpeg', 'Client-supplied reference: a sea and palms seen through a hotel-room window.', '50% 62%'),
+    3: ('ref-the-dining.jpeg', 'Client-supplied reference: a dining room overlooking a city at dusk.', '50% 69%'),
+    4: ('ref-morning-read.jpeg', 'Client-supplied reference: a guest reading beside a bright hotel-room window.', '50% 58%'),
+    5: ('ref-objective.jpeg', 'Client-supplied reference: a sunlit bed with an open book.', '50% 48%'),
+    6: ('ref-the-city.jpeg', 'Client-supplied reference: a sea and palms seen through a hotel-room window.', '50% 76%'),
+    7: ('ref-after-hour.jpeg', 'Client-supplied reference: an illuminated After Hours sign above a dark venue entrance.', '50% 47%'),
+    8: ('ref-the-dining.jpeg', 'Client-supplied reference: a dining room overlooking a city at dusk.', '50% 82%'),
+    9: ('ref-morning-read.jpeg', 'Client-supplied reference: a guest reading beside a bright hotel-room window.', '50% 70%'),
+}
+
+
+def photo_img(cell, alt=None):
+    filename, reference_alt, position = PHOTO_REFERENCE[cell]
+    return (f'<img class="crop-image" src="media/{filename}" alt="{esc(alt or reference_alt)}" '
+            f'style="--photo-position:{position}">')
+
+
+FEED = [  # the nine sample posts on Saturday 12 December: date, series, format, cover line, pillar, visual cell
+    ('Sat 12 Dec', 'The Sessions · Set 01', 'reel', 'Park Street still plays', 'After Hours', 1),
+    ('Fri 11 Dec', 'Who’s Playing', 'reel', 'Tonight at Someplace Else', 'After Hours', 2),
+    ('Thu 10 Dec', 'The 3 a.m. Menu', 'reel', 'The kitchen just ate', 'After Hours', 3),
+    ('Wed 9 Dec', 'Room 1967', 'carousel', 'The search opens', 'By Design', 5),
+    ('Tue 8 Dec', 'Christmas at Flurys', 'carousel', 'The menu is out', 'The Table', 4),
+    ('Mon 7 Dec', 'Who Played', 'carousel', 'Last night’s set list', 'After Hours', 2),
+    ('Mon 7 Dec', 'Night Shift', 'carousel', 'The night manager', 'The City', 6),
+    ('Sun 6 Dec', 'The Recipe', 'carousel', 'Save this one', 'The Table', 3),
+    ('Sat 5 Dec', 'The Night Map', 'carousel', 'Kolkata after dark', 'The City', 7),
 ]
 GLYPH = {'reel': '<svg class="gl" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 2 L10 6 L3 10 Z"/></svg>',
          'carousel': '<svg class="gl" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 1.5 H10.5 V8.5 M1.5 3.5 H8.5 V10.5 H1.5 Z"/></svg>'}
@@ -305,8 +328,8 @@ ICONS = ('<svg class="acts" viewBox="0 0 120 20" aria-hidden="true"><path d="M10
 
 
 def feed():
-    tiles = ''.join(f'''<div class="tile ptile t-{PILLAR[p]}"><div class="ov">{GLYPH[f]}<span class="t">{cover}</span></div></div>'''
-                    for _, s_, f, cover, p in FEED)
+    tiles = ''.join(f'''<div class="tile ptile t-{PILLAR[p]} photo portrait">{photo_img(cell)}<div class="ov">{GLYPH[f]}<span class="t">{cover}</span></div></div>'''
+                    for _, s_, f, cover, p, cell in FEED)
     hl = ''.join(f'<span><i class="t-{PILLAR[p]}"></i>{x}</span>' for x, p in (('Sessions', 'After Hours'), ('Rooms', 'By Design'), ('Flurys', 'The Table'), ('Night Map', 'The City')))
     body = f'''<div class="g4 grow feed" style="grid-template-rows:auto 1fr">
   <div class="c12 stack-l">{lab('The grid', pg('feed'))}{hh('The grid on', '12 December.')}</div>
@@ -317,7 +340,7 @@ def feed():
   </div>
   <div class="post c2 end mr-1" style="grid-row:2">
     <div class="post-head"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>Someplace Else, Kolkata</span></span></div>
-    <div class="tile post-img t-ink"><div class="ov"><p class="hook"><span class="hk">11:40</span><span class="mono">p.m., Park Street</span></p>{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
+    <div class="tile post-img t-after photo portrait">{photo_img(1)}<div class="ov"><p class="hook"><span class="hk">11:40</span><span class="mono">p.m., Park Street</span></p>{GLYPH['reel']}<span class="t">Park Street still plays</span></div></div>
     {ICONS}
     <p class="cap"><b>theparkhotels</b> Set 01 is up. One take at Someplace Else, Park Street. Message us for a table on Saturday.</p>
     <p class="mono mute">Sat 12 Dec · The Sessions · Reel</p>
@@ -331,16 +354,17 @@ def feed():
     </div>
   </div>
 </div>'''
-    return slide('feed', 'The idea · the grid', body, src='A mock-up of the grid. Flat tiles stand in for photography; series, dates and copy are Mask360’s proposal.')
+    return slide('feed', 'The idea · the grid', body, src='Visual references supplied by the client. The nine posts mix Reels and carousels; dates, series and copy are Mask360’s proposal.')
 
 
 def voice():
-    posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', 'After Hours'),
-             ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', 'After Hours'),
-             ('Reel', 'Chef’s Counter', 'Thirty seconds at the pass. Tuesday, 9 p.m., Fire.', 'The Table')]
+    posts = [('Carousel', 'Who Played', 'Last night at Someplace Else. Swipe for the set list.', 'After Hours', 1),
+             ('Reel', 'The 3 a.m. Menu', '3 a.m. at Fire, the kitchen just ate. Tomorrow, it’s on the menu.', 'After Hours', 3),
+             ('Carousel', 'Room 1967', 'One suite, one designer. The first look is here.', 'By Design', 5)]
     c = ''.join(f'''<div class="card vpost"><div class="card-h"><span class="mono"><span class="k">0{i + 1}</span>{f}</span>{dots()}</div>
-<div class="post-head mt-s"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>{s}</span></span></div><p class="say">{b}</p></div>'''
-                for i, (f, s, b, p) in enumerate(posts))
+<div class="vimage photo landscape">{photo_img(cell)}</div>
+<div class="post-head"><span class="av">{P_MARK}</span><span><b>theparkhotels</b><span>{s}</span></span></div><p class="say">{b}</p></div>'''
+                for i, (f, s, b, p, cell) in enumerate(posts))
     rules = [('Name the place and the time', 'Park Street at 11:40 p.m. carries the night.'), ('Twenty words at most', 'The picture does the rest.'),
              ('Talk like the night manager', 'Warm, sure, and in on the secret.')]
     r = ''.join(f'<div><span class="mn">0{i + 1}</span><p class="q">{a}</p><span class="x"></span><p class="a">{b}</p></div>' for i, (a, b) in enumerate(rules))
@@ -349,13 +373,13 @@ def voice():
     <div class="acc tight mt-auto flush">{r}</div></div>
   <div class="c24 g4 g3 stagger">{c}</div>
 </div>'''
-    return slide('voice', 'The idea · voice', body, src='Sample captions, written by Mask360. Venues to confirm with the brand team.')
+    return slide('voice', 'The idea · voice', body, src='Visual references supplied by the client. Sample captions by Mask360; venues to confirm with the brand team.')
 
 
-def _idea_page(sid, no, pillar, name, meta, drawing, headline, text, extra, src):
+def _idea_page(sid, no, pillar, name, meta, cell, image_alt, headline, text, extra, src):
     kv = ''.join(f'<div><span class="k">{k}</span><span class="v">{v}</span></div>' for k, v in [('Pillar', pillar)] + meta)
     body = f'''<div class="g4 grow">
-  <div class="pic c12 mr-2">{drawing}<div class="ov"><span class="no">{no} · Concept drawing</span></div></div>
+  <div class="pic c12 mr-2 photo landscape">{photo_img(cell, image_alt)}<div class="ov"><span class="no">{no} · Visual direction</span></div></div>
   <div class="c34 stack-l idea-body">
     {lab(name, pg(sid))}
     <div class="kv">{kv}</div>
@@ -368,9 +392,11 @@ def _idea_page(sid, no, pillar, name, meta, drawing, headline, text, extra, src)
     return slide(sid, f'The idea · {name}', body, src=src)
 
 
-def _posts(drawing, caption):
+def _posts(cells, caption):
+    shots = ''.join(f'<div class="sample-shot photo portrait">{photo_img(cell)}<span class="sample-label">0{i + 1} / {label}</span></div>'
+                    for i, (cell, label) in enumerate(cells))
     return f'''<div class="g4 g2 mt-auto" style="align-items:end">
-  <div class="art phones">{drawing}</div>
+  <div class="sample-photos">{shots}</div>
   <div class="rule-plan"><p class="mono mute">Sample caption</p><p class="say mt-s" style="font-size:calc(var(--u)*1.15)">{caption}</p></div></div>'''
 
 
@@ -378,21 +404,22 @@ def sessions():
     return _idea_page('sessions', 'No. 01', 'After Hours', 'The Sessions',
                       [('Format', 'Reel · YouTube · Spotify'), ('Cadence', 'One set a month'), ('Where', 'Someplace Else, Kolkata'),
                        ('Sells', 'Saturday tables, booked on WhatsApp')],
-                      art.stage(), 'Someplace Else, <b>one take a month.</b>',
+                      1, 'Client-supplied visual reference: the After Hours entrance, lit for a night out.', 'Someplace Else, <b>one take a month.</b>',
                       'A live set filmed at Someplace Else in a single take, with bands playing their own songs. Reels from the set '
                       'run all month and the full set goes on YouTube. Then Agni in Delhi, and each city’s own venue.',
-                      _posts(art.phones(), 'Saturday, 11:40 p.m. Someplace Else, Park Street. One take, start to finish.'),
-                      'Concept drawings. Bands play original songs and sign a release. No drinks brands in frame.')
+                      _posts([(1, 'Reel'), (2, 'Carousel'), (7, 'Story')], 'Saturday, 11:40 p.m. Someplace Else, Park Street. One take, start to finish.'),
+                      'Visual references supplied by the client. Band, venue and final photography to agree with the brand team. Original music and releases to be confirmed.')
 
 
 def reel():
     beats = [(0, 3, 'The hook', 'The first chord over 11:40 p.m., Park Street, on screen.'),
-             (3, 10, 'The walk', 'One take through the crowd to the stage.'),
-             (10, 25, 'The chorus', 'The faces in the room, close.'),
-             (25, 30, 'The last note', 'Wide: the lights, the stage, the street.')]
+             (3, 10, 'The walk', 'One take through the room, towards the stage.'),
+             (10, 25, 'The chorus', 'Hold on the room as the chorus takes over.'),
+             (25, 30, 'The last note', 'Return to the entrance. End on the full set.')]
+    visual_cells = (1, 3, 8, 7)
     cells = ''.join(f'''<div class="post-card beat"><div class="pc-h"><span class="mono"><span class="k">Sec</span>{s} to {e}</span>
 <div class="track" role="img" aria-label="Seconds {s} to {e} of 30"><i style="margin-left:{s / 30 * 100:.1f}%;width:{(e - s) / 30 * 100:.1f}%"></i></div></div>
-<div class="art">{art.reel_frame(i)}</div><div class="pc-b"><p class="lab">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (s, e, a, b) in enumerate(beats))
+<div class="art photo landscape">{photo_img(visual_cells[i])}</div><div class="pc-b"><p class="lab">{a}</p><p class="ink2">{b}</p></div></div>''' for i, (s, e, a, b) in enumerate(beats))
     spec = [('Sound', 'The band’s own track, as original audio'), ('Cover', 'The 11:40 frame, with Park Street still plays'),
             ('End card', 'The full set on YouTube'), ('Then', 'Message us for a table')]
     sp = ''.join(f'<div><p class="mono mute">{k}</p><p class="h4 mt-s" style="margin-top:calc(var(--u)*.35)">{v}</p></div>' for k, v in spec)
@@ -402,29 +429,29 @@ def reel():
 </div>
 <div class="g4 mt-auto cardrow two-up">{cells}</div>
 <div class="spec mt-s">{sp}</div>'''
-    return slide('reel', 'The idea · the Reel', body, src='A sample cut, written by Mask360. Timings in seconds.')
+    return slide('reel', 'The idea · the Reel', body, src='Visual references supplied by the client. A sample cut by Mask360; timings in seconds.')
 
 
 def room():
     return _idea_page('room', 'No. 02', 'By Design', 'Room 1967',
                       [('Format', 'Reel · story · carousel'), ('Cadence', 'One suite a year'), ('Where', 'One of THE Park’s hotels'),
                        ('Sells', 'Room nights, from a waiting list')],
-                      art.suite(), 'One suite a year, <b>revealed on the feed.</b>',
+                      5, 'Client-supplied visual reference: a quiet, sunlit bedroom with a book left open.', 'One suite a year, <b>revealed on the feed.</b>',
                       'A young Indian designer remakes one suite at THE Park every year. We film it from the empty room to the '
                       'first guest, one Reel a week, and open a waiting list in stories.',
-                      _posts(art.room_posts(), 'One designer. One year. One suite. The waiting list is in our bio.'),
-                      'Concept drawings. The designer and the hotel to choose with the brand team.')
+                      _posts([(5, 'Reel'), (8, 'Carousel'), (6, 'Story')], 'One designer. One year. One suite. The waiting list is in our bio.'),
+                      'Visual references supplied by the client; not confirmed images of a Park property. The designer, hotel and final photography to agree with the brand team.')
 
 
 def flurys():
     return _idea_page('flurys', 'No. 03', 'The Table', 'Flurys 100',
                       [('Format', 'Reel · story · carousel'), ('Cadence', 'All of 2027'), ('Where', 'Park Street to Gurugram'),
                        ('Sells', 'Visits to 111 stores, and every new café')],
-                      art.cup(), 'A hundred stories <b>for a hundred years.</b>',
+                      3, 'Client-supplied visual reference: an atmospheric dining room above the city at dusk.', 'A hundred stories <b>for a hundred years.</b>',
                       'Flurys turns 100 in 2027. All year we tell one story at a time: a regular, a recipe, a baker at 4 a.m. '
                       'From the tea room on Park Street to the 24-hour café in Gurugram.',
-                      _posts(art.flurys_posts(), 'Regular No. 001. Same table, every Sunday. Swipe for the order.'),
-                      'Concept drawings. Flurys opened its 24-hour Gurugram café on 7 August 2026.')
+                      _posts([(3, 'Carousel'), (4, 'Reel'), (5, 'Story')], 'Regular No. 001. Same table, every Sunday. Swipe for the order.'),
+                      'Visual references supplied by the client; not confirmed Flurys assets. Product, café and final photography to agree with the brand team. Flurys opened its 24-hour Gurugram café on 7 August 2026.')
 
 
 def ch_run():
