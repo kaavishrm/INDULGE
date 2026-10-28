@@ -136,3 +136,8 @@
 .o3-page .o3-stack{gap:14px}
 .office.o3.on-phone .office-view{border-radius:16px}
 .office.o3 .office-under{margin-top:10px; display:grid; gap:8px}
+/* v37: a person's bubble over their head (a visit, a wave, an emote someone sent) */
+.o3-layer > .o3-emote{padding:6px 12px; border-radius:999px; background:var(--paper); color:var(--ink); font-size:14px; line-height:1.2; white-space:nowrap;
+  box-shadow:0 6px 18px var(--shadow), 0 0 0 1px var(--line); pointer-events:none; z-index:6}
+@media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
+@keyframes o3-emote-in{from{scale:.7} to{scale:1}}

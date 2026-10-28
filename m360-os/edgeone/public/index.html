@@ -1593,6 +1593,14 @@ a.pill.cl-social .k{color:var(--micro); letter-spacing:.1em}
   .doc-table th,.doc-table td{padding-left:6px; padding-right:6px}
 }
 
+/* ==== 82-statement.css ==== */
+/* the Bank tab (48-statement.js): party tables stay readable on a phone */
+.stm-tbl td, .stm-tbl th{vertical-align:top}
+.stm-tbl td:first-child{min-width:150px}
+.stm-tbl td:last-child{min-width:180px}
+.stm-tbl tr.stm-line td{border-top:0; padding-top:2px; padding-bottom:2px}
+label.btn.disabled{opacity:.62; pointer-events:none}
+
 /* ==== 83-prospects.css ==== */
 /* ---------- v34: prospects. The Prospects page (capture line, groups, rows), the person page, the Home fold
    "Follow-ups today", the pitch drawer's Sent and notes folds, the Base contact drawer's conversations.
@@ -1709,6 +1717,45 @@ a.pill.cl-social .k{color:var(--micro); letter-spacing:.1em}
   .pros-chip{margin-top:6px}
   .sent-row > .grow{flex-basis:100%}
 }
+
+/* ==== 83-talks.css ==== */
+/* v37 accounts: the people we are talking to, the five column pipeline, the client search */
+.talk-add-grid{display:grid; grid-template-columns:1fr 1fr 1.6fr 152px 152px auto; gap:10px; align-items:start}
+.talk-add-grid .talk-save{padding-top:22px}
+.talk-who-wrap{position:relative; min-width:0}
+.talk-sug{position:absolute; left:0; right:-120px; top:100%; margin-top:4px; z-index:30; background:var(--paper); border:1px solid var(--line2); border-radius:var(--r-sm); box-shadow:0 10px 28px var(--shadow); padding:4px; display:flex; flex-direction:column}
+.talk-sug-row{display:flex; align-items:center; gap:10px; text-align:left; background:transparent; border:0; border-radius:8px; padding:8px 10px; font:inherit; color:inherit; cursor:pointer; min-width:0}
+.talk-sug-row:hover,.talk-sug-row.on{background:var(--warm)}
+.talk-search{display:flex; align-items:center; gap:8px; position:relative; min-width:200px}
+.talk-search svg{position:absolute; left:12px; width:18px; height:18px; color:var(--micro); pointer-events:none}
+.talk-search .input{padding-left:38px}
+.talk-list{display:flex; flex-direction:column; gap:8px}
+.talk-row{display:flex; align-items:center; gap:10px; background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:12px 14px; min-width:0}
+.talk-row.due{border-color:var(--flame)}
+.talk-row.done{opacity:.72}
+.talk-main{flex:1; min-width:0}
+.talk-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.talk-line{margin-top:4px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.talk-acts{gap:4px; flex:none}
+.talk-log-row{padding:8px 0; border-bottom:1px solid var(--line)}
+.talk-log-row:last-child{border-bottom:0}
+.prop-add{display:grid; grid-template-columns:1fr 1fr 1.6fr auto; gap:10px; align-items:start}
+.prop-add .prop-add-btn{padding-top:22px}
+.prop-board .colm{width:236px}
+.prop-card{cursor:default; gap:6px}
+.prop-open{display:flex; flex-direction:column; gap:6px; background:transparent; border:0; padding:0; text-align:left; font:inherit; color:inherit; cursor:pointer; width:100%; min-width:0}
+.prop-moves{gap:4px; margin:0 -6px -4px}
+@media (max-width:900px){
+  .talk-add-grid{grid-template-columns:1fr 1fr}
+  .talk-add-grid .talk-note{grid-column:1 / -1}
+  .talk-add-grid .talk-save{padding-top:0; grid-column:1 / -1}
+  .talk-sug{right:0}
+  .prop-add{grid-template-columns:1fr 1fr}
+  .prop-add .prop-add-btn{padding-top:0}
+  .talk-row{flex-wrap:wrap}
+  .talk-acts{width:100%; justify-content:flex-end}
+}
+.board-wrap.prop-wrap{margin:0; padding:0}
 
 /* ==== 84-brain.css ==== */
 /* ---------- the buddy's brain: acts waiting on a tap, attached images, memory rows ---------- */
@@ -3715,6 +3762,18 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 @keyframes of-drawer{from{transform:translateX(30px)} to{transform:translateX(0)}}
 @keyframes of-stroke{to{stroke-dashoffset:0}}
 @keyframes of-rise{from{opacity:0; margin-bottom:-6px} to{opacity:1; margin-bottom:0}}
+/* v37: the emote bar (Me, Character and the office) and the line of recent emotes */
+.emote-bar{display:flex; flex-wrap:wrap; gap:8px}
+.emote-btn{display:inline-flex; align-items:center; gap:6px; min-height:40px; padding:6px 12px; border-radius:999px; border:1px solid var(--line2);
+  background:var(--paper); color:var(--ink); font:inherit; cursor:pointer; transition:transform var(--fast, .14s) var(--ease, ease), border-color var(--fast, .14s)}
+.emote-btn:hover{border-color:var(--ink)}
+.emote-btn.on{border-color:var(--flame); box-shadow:0 0 0 2px var(--flame) inset}
+.emote-btn .emote-ch{font-size:18px; line-height:1}
+.emote-bar.compact .emote-btn{min-height:36px; min-width:40px; padding:4px 9px; justify-content:center}
+@media (prefers-reduced-motion:no-preference){ .emote-btn:active{transform:scale(.92)} }
+.emote-feed{display:flex; flex-wrap:wrap; gap:8px}
+.emote-chip{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--warm); border:1px solid var(--line)}
+.cast-sheet[data-inline="1"]{margin-bottom:12px}
 
 /* ==== 99-office3d.css ==== */
 /* ---------- v35: the 3D office (91-office3d.js, 91-office3d-world.js) ----------
@@ -3855,8 +3914,13 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 .o3-page .o3-stack{gap:14px}
 .office.o3.on-phone .office-view{border-radius:16px}
 .office.o3 .office-under{margin-top:10px; display:grid; gap:8px}
+/* v37: a person's bubble over their head (a visit, a wave, an emote someone sent) */
+.o3-layer > .o3-emote{padding:6px 12px; border-radius:999px; background:var(--paper); color:var(--ink); font-size:14px; line-height:1.2; white-space:nowrap;
+  box-shadow:0 6px 18px var(--shadow), 0 0 0 1px var(--line); pointer-events:none; z-index:6}
+@media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
+@keyframes o3-emote-in{from{scale:.7} to{scale:1}}
 </style>
-<script>window.M360_BUILD = "e950ce1.261015-2247"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "0e174df+.261028-1429"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -6939,10 +7003,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   M.RULE_IDS = ['R01','R02','R03','R04','R05','R06','R07','R08','R09','R10','R11','R12','R13','R14','R15','R16','R17'];
 
   const COLLS = ['checkin','eod','plan','review','rocks','feed','reacts','acks','kudos','leave','leavedec',
-    'tasks','projects','pitches','clients','handbook','candidates','evals','pulse','ideas','votes','access','onboard','me','fixes','contacts','orgs','chat','chatrooms','dm','play','approvals'];
+    'tasks','projects','pitches','clients','handbook','candidates','evals','pulse','ideas','votes','access','onboard','me','fixes','contacts','orgs','chat','chatrooms','dm','play','approvals','talks'];
 
   /* the books (invoices, expenses, payroll, HR letters, billing setup): the owner's alone, subscribed by nobody else */
-  const BOOK_COLLS = ['books', 'invoices', 'expenses', 'payroll', 'hr'];
+  const BOOK_COLLS = ['books', 'invoices', 'expenses', 'payroll', 'hr', 'statements'];
   const OFF_COLL = Object.freeze({ready: false, map: Object.freeze({}), off: true});
   /* AppState wraps the whole signed-in app: subscribes once per collection, computes ctx. */
   M.AppState = function AppState({boot, children}) {
@@ -7201,11 +7265,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       {k: 'tasks', label: 'My tasks', route: 'tasks'}, {k: 'projects', label: 'Projects', route: 'projects'},
       {k: 'calendar', label: 'Calendar', route: 'calendar'}, {k: 'reviews', label: 'Reviews', route: 'reviews'},
       {k: 'week', label: 'The week', route: 'week'}]},
+    /* v37: three tabs. People we are talking to, proposals in the pipeline, clients we work for. The older
+       views (prospects, crm, handshake) still open by their own hash and sit behind "More tools" */
     accounts: {label: 'Accounts', icon: 'clients', page: 'Accounts', tabs: [
-      {k: 'clients', label: 'Clients', route: 'clients'}, {k: 'pipeline', label: 'Pipeline', route: 'pitches'},
-      /* each member's own people, talks and follow-ups (v34); the pitch itself stays on the pipeline */
-      {k: 'prospects', label: 'Prospects', route: 'prospects'},
-      {k: 'crm', label: 'CRM', route: 'crm'}, {k: 'handshake', label: 'Handshake', route: 'handshake'}]},
+      {k: 'talks', label: 'People', route: 'talks'}, {k: 'pipeline', label: 'Pipeline', route: 'pitches'},
+      {k: 'clients', label: 'Clients', route: 'clients'}]},
     vibe: {label: 'Vibe', icon: 'feed', page: 'Vibe', tabs: [
       {k: 'feed', label: 'Feed', route: 'feed'}, {k: 'crew', label: 'Crew', route: 'people'},
       {k: 'pulse', label: 'Pulse and ideas', route: 'voice'}, {k: 'scores', label: 'Leaderboard', route: 'scores'}, {k: 'music', label: 'Music', route: 'music'},
@@ -7222,7 +7286,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     radar: {label: 'Radar', icon: 'radar', page: 'Radar', tabs: [
       {k: 'news', label: 'News', route: 'radar'}, {k: 'awards', label: 'Awards', route: 'awards'}, {k: 'watch', label: 'Watch', route: 'watch'}]},
     me: {label: 'Me', icon: 'people', page: 'Me', tabs: [
-      {k: 'profile', label: 'Profile', route: 'me'}, {k: 'notes', label: 'Notes', route: 'notes'}, {k: 'trophies', label: 'Trophies', route: 'trophies'}, {k: 'leave', label: 'Leave', route: 'leave'},
+      {k: 'profile', label: 'Profile', route: 'me'}, {k: 'character', label: 'Character', route: 'character'}, {k: 'notes', label: 'Notes', route: 'notes'}, {k: 'trophies', label: 'Trophies', route: 'trophies'}, {k: 'leave', label: 'Leave', route: 'leave'},
       {k: 'handbook', label: 'Handbook', route: 'handbook'}, {k: 'hiring', label: 'Hiring', route: 'hiring'},
       /* what the m360 COO does, read only (the founder runs it from HQ) */
       {k: 'coo', label: 'COO', route: 'coo', member: true}]},
@@ -7233,7 +7297,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     admin: {label: 'Admin', icon: 'desk', page: 'Admin', founder: true},
     books: {label: 'Books', icon: 'log', page: 'Books', founder: true, owner: true, tabs: [
       {k: 'overview', label: 'Overview', route: 'books'}, {k: 'invoices', label: 'Invoices', route: 'invoices'},
-      {k: 'expenses', label: 'Expenses', route: 'expenses'}, {k: 'payroll', label: 'Payroll', route: 'payroll'},
+      {k: 'statement', label: 'Bank', route: 'statement'}, {k: 'expenses', label: 'Expenses', route: 'expenses'}, {k: 'payroll', label: 'Payroll', route: 'payroll'},
       {k: 'letters', label: 'Letters', route: 'letters'}, {k: 'billing', label: 'Setup', route: 'billing'}]},
     map: {label: 'What\'s here', icon: 'map', page: 'Map'}
   };
@@ -7248,6 +7312,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       case 'payroll': case 'payslips': return isOwner ? {s: 'books', t: 'payroll', id} : {s: 'home'};
       case 'letters': case 'letter': return isOwner ? {s: 'books', t: 'letters', id} : {s: 'home'};
       case 'billing': return isOwner ? {s: 'books', t: 'billing', id} : {s: 'home'};
+      case 'statement': case 'statements': case 'bank': return isOwner ? {s: 'books', t: 'statement', id} : {s: 'home'};
       case 'home': case 'today': return {s: 'home'};
       case 'map': case 'explore': case 'whats-here': case 'help': return {s: 'map', id};
       case 'break': case 'wellness': case 'games': case 'play': case 'daily': case 'five': return {s: 'break', t: 'play'};
@@ -7260,7 +7325,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       case 'calendar': return {s: 'work', t: 'calendar'};
       case 'reviews': case 'review': return {s: 'work', t: 'reviews'};
       case 'trophies': return {s: 'me', t: 'trophies'};
-      case 'accounts': case 'clients': return {s: 'accounts', t: 'clients'};
+      case 'character': case 'avatar': case 'look': return {s: 'me', t: 'character'};
+      case 'clients': return {s: 'accounts', t: 'clients', id};
+      case 'accounts': case 'talks': case 'talk': case 'conversations': return {s: 'accounts', t: 'talks', id};
       case 'pitches': case 'pipeline': return {s: 'accounts', t: 'pipeline'};
       case 'prospects': case 'followups': case 'follow-ups': return {s: 'accounts', t: 'prospects', id};
       case 'crm': return {s: 'accounts', t: 'crm'};
@@ -14218,6 +14285,30 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     bindi: '#7A2230'
   };
   /* natural palette: end */
+  /* v37, the game palette: the office and its people in full colour, asked for by Kaavish. It is the one block in
+     the app that may hold any hue, and it is read by the 3D office and the characters only; every page outside the
+     office keeps ink and flame. Clothes and hair below are added to the editor's swatches; the office roles
+     replace the room's paper tokens, a set for day and a set for night */
+  /* game palette: start */
+  const GAME = {
+    cloth: {navy: '#1F3A5F', denim: '#4A6FA5', sky: '#8EC5E8', teal: '#2A9D8F', forest: '#2D6A4F', sage: '#95B8A0',
+      mustard: '#E9B44C', sun: '#F6D365', coral: '#F28482', red: '#D64545', burgundy: '#7B2D3A', berry: '#B5446E',
+      lilac: '#B8A1D9', plum: '#5E3B73', rust: '#B5532F', cream: '#F5EBDD'},
+    hair: {blonde: '#D9B46A', platinum: '#EDE3C8', copper: '#B5562B', rose: '#E58FB0', cobalt: '#4A7BD0', violet: '#7E5BB5', mint: '#3E9C6B'},
+    office: {
+      light: {'back-c': '#FCE9D8', 'back-e': '#BFD3F2', floor: '#E6EBE3', plinth: '#B98A5E', rug: '#E07A5F', 'rug-edge': '#F2CC8F',
+        shade: '#2B1E16', wall: '#FFF4E6', cap: '#9C6644', leg: '#3D405B', seat: '#2A9D8F', board: '#FFFFFF', cell: '#F6E7D2',
+        mark: '#81B29A', ink: '#264653', glass: '#BDE0FE', pot: '#C8553D', 'screen-off': '#2F3E46', 'screen-on': '#9AD1F5',
+        lamp: '#FFD8A8', pool: '#FFE8C2', pampas: '#4F9D4A', 'hemi-sky': '#DCEBFF', 'hemi-ground': '#F3D9B1', key: '#FFF1DC',
+        clay: '#D8C7B5', suit: '#1D1D1F'},
+      dark: {'back-c': '#2E3150', 'back-e': '#10111B', floor: '#5A4433', plinth: '#3B2A20', rug: '#9B3D2E', 'rug-edge': '#B88A3E',
+        shade: '#050508', wall: '#3A3550', cap: '#5C3B28', leg: '#1F2233', seat: '#1F7A70', board: '#E8E4DA', cell: '#4A4560',
+        mark: '#5E8C74', ink: '#E8E4DA', glass: '#5B7FA6', pot: '#9E412E', 'screen-off': '#1B2430', 'screen-on': '#7EC8F2',
+        lamp: '#FFC98A', pool: '#FFB870', pampas: '#3E7E3A', 'hemi-sky': '#6F7BB5', 'hemi-ground': '#3A2E28', key: '#FFE2B8',
+        clay: '#8F8274', suit: '#0E0E0E'}
+    }
+  };
+  /* game palette: end */
   const rgbOf = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const HOUSE = {};
   for (const k of Object.keys(HOUSE_HEX)) HOUSE[k] = rgbOf(HOUSE_HEX[k]);
@@ -14246,9 +14337,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   };
   const list = (o, f) => Object.keys(o).map(id => ({id, c: f ? f(o[id]) : o[id]}));
   const SKIN = list(NATURAL.skin, rgbOf);
-  const HAIR = list(NATURAL.hair, rgbOf);
+  const HAIR = list(NATURAL.hair, rgbOf).concat(list(GAME.hair, rgbOf));
   const FRAMES = list(NATURAL.frame, rgbOf);
-  const CLOTH = list(CLOTH_RGB);
+  const CLOTH = list(CLOTH_RGB).concat(list(GAME.cloth, rgbOf));
+  /* the office roles as sRGB bytes, by theme (91-office3d.js reads these over the paper tokens) */
+  const ROOM = {};
+  for (const th of Object.keys(GAME.office)) { ROOM[th] = {}; for (const k of Object.keys(GAME.office[th])) ROOM[th][k] = rgbOf(GAME.office[th][k]); }
   const WOOD = {oak: rgbOf(NATURAL.oak), walnut: rgbOf(NATURAL.walnut)};
   const BINDI = rgbOf(NATURAL.bindi);
   const METAL = mix(H.col, H.ink, 0.25);
@@ -14326,7 +14420,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
      Only what the roster says is used: the pod picks the tee (pod mates match), the name gives the initials on
      the chest sticker, and Kaavish gets an ink blazer with his flame pocket square. Skin, hair and face are
      never guessed. */
-  const POD_TONES = ['oat', 'stone', 'ash', 'camel', 'chalk', 'cocoa', 'graphite'];
+  const POD_TONES = ['teal', 'coral', 'navy', 'mustard', 'forest', 'lilac', 'denim'];
   function starter(o) {
     const opts = o || {};
     const pod = String(opts.pod || '').trim().toLowerCase() || 'studio';
@@ -14595,7 +14689,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return clean(out);
   }
 
-  M.cast = {NATURAL, HOUSE, SKIN, HAIR, CLOTH, FRAMES, WOOD, SHAPES, COLOURS, FLAGS, ORDER, DEFAULT,
+  M.cast = {NATURAL, GAME, ROOM, HOUSE, SKIN, HAIR, CLOTH, FRAMES, WOOD, SHAPES, COLOURS, FLAGS, ORDER, DEFAULT,
     clean, hash, same, starter, initials, sticker, resolve, resolveFor, lookOf, paint, mix, css, head2d, headUrl, shuffle};
 })();
 
@@ -16634,10 +16728,22 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const d = (ctx.priv && ctx.priv.finance && ctx.priv.finance.data) || {};
     return d.clients || {};
   }
+  /* v37: a client is a monthly retainer or a one-off project. The kind sits on the client (everyone sees the pill),
+     the money in the founder's finance doc: finance.clients[cid] = {kind, monthly, fee, from, to, paid} */
+  const KINDS = [{v: 'retainer', label: 'Retainer'}, {v: 'project', label: 'Project'}];
+  function kindOf(ctx, id) {
+    const fe = financeOf(ctx)[id] || {};
+    const c = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map[id]) || {};
+    return (fe.kind || c.billing) === 'project' ? 'project' : 'retainer';
+  }
+  /* monthly revenue counts retainers only: a project fee is one payment, so it never inflates the monthly line */
   function shares(ctx) {
     const map = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map) || {};
     const fin = financeOf(ctx);
-    const rows = Object.keys(map).map(id => ({id, name: map[id].name || '', monthly: Number((fin[id] || {}).monthly) || 0}));
+    const rows = Object.keys(map).map(id => {
+      const kind = kindOf(ctx, id), fe = fin[id] || {};
+      return {id, name: map[id].name || '', kind, monthly: kind === 'project' ? 0 : (Number(fe.monthly) || 0), fee: kind === 'project' ? (Number(fe.fee) || 0) : 0};
+    });
     const total = rows.reduce((n, r) => n + r.monthly, 0);
     return rows.map(r => ({...r, share: total > 0 ? Math.round(100 * r.monthly / total) : 0}));
   }
@@ -17028,7 +17134,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- the drawer ---------- */
-  function ClientDrawer({id, onClose}) {
+  function ClientDrawer({id, onClose, seed}) {
     const ctx = M.useCtx();
     const existing = id ? ctx.coll.clients.map[id] : null;
     const fin = financeOf(ctx);
@@ -17039,7 +17145,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       website: ex('website'), industry: ex('industry'), hq: ex('hq'), since: ex('since'), tone: ex('tone'),
       instagram: (ex('socials') || {}).instagram || '', linkedin: (ex('socials') || {}).linkedin || '', youtube: (ex('socials') || {}).youtube || '',
       logo: ex('logo'), useAutoLogo: !!(existing && existing.useAutoLogo),
-      monthly: id && fin[id] ? String(fin[id].monthly || '') : ''
+      monthly: id && fin[id] ? String(fin[id].monthly || '') : '',
+      kind: id ? kindOf(ctx, id) : (seed && seed.kind) || 'retainer',
+      fee: id && fin[id] && fin[id].fee ? String(fin[id].fee) : '', from: (id && fin[id] && fin[id].from) || '', to: (id && fin[id] && fin[id].to) || '',
+      paid: id && fin[id] && fin[id].paid ? String(fin[id].paid) : '',
+      ...(id ? {} : seedFields(seed))
     }));
     const [busy, setBusy] = useState(false);
     const fileRef = useRef(null);
@@ -17083,7 +17193,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const org = linked.org;
       const cid = id || U.uid();
       const doc = {name: f.name.trim(), status: f.status, pod: f.pod, owner: f.owner,
-        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})),
+        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})), billing: f.kind,
         website, domain: domainFrom(website) || (org ? (org.domain || domainFrom(org.website)) : ''),
         industry: f.industry.trim(), hq: f.hq.trim(), since: f.since.trim(), tone: f.tone.trim(), socials,
         logo: f.logo || '', useAutoLogo: !!f.useAutoLogo,
@@ -17098,8 +17208,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
           if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
         }
-        if (ctx.isFounder && String(f.monthly).trim() !== '') {
-          await ctx.W.merge('data/users/' + ctx.uid + '/finance', {clients: {[cid]: {monthly: Number(f.monthly) || 0}}});
+        /* a company typed by hand becomes a company in the database too, linked both ways */
+        if (!id && !f.org && seed && seed.newOrg && M.base && M.base.upsertOrg && M.base.linkOrgToClient) {
+          const oid = await M.base.upsertOrg(ctx, {name: doc.name, website, industry: doc.industry, city: doc.hq, source: 'manual'}).catch(() => null);
+          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid).catch(() => {}); }
+        }
+        if (ctx.isFounder) {
+          const money = f.kind === 'project'
+            ? {kind: 'project', fee: Number(f.fee) || 0, from: f.from || '', to: f.to || '', paid: Number(f.paid) || 0}
+            : {kind: 'retainer', ...(String(f.monthly).trim() !== '' ? {monthly: Number(f.monthly) || 0} : {})};
+          await ctx.W.merge('data/users/' + ctx.uid + '/finance', {clients: {[cid]: money}});
         }
         M.toast('Saved');
         onClose();
@@ -17133,6 +17251,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${id ? html`<${HealthLine} id=${id}/>` : null}
       <${UI.Input} id="client-name" label="name" value=${f.name} onChange=${v => set('name', v)}/>
       <${UI.Field} label="status"><${UI.Seg} options=${STATUS} value=${f.status} onChange=${v => set('status', v)} ariaLabel="Status"/><//>
+      <${UI.Field} label="how they pay"><${UI.Seg} options=${KINDS} value=${f.kind} onChange=${v => set('kind', v)} ariaLabel="How they pay"/><//>
       <div class="grid2">
         <${UI.Input} label="pod" value=${f.pod} onChange=${v => set('pod', v)}/>
         <${UI.Select} label="owner" value=${f.owner} onChange=${v => set('owner', v)} options=${[{v: '', label: 'No owner'}].concat(owners)}/>
@@ -17165,36 +17284,109 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${id && M.parts.PeopleAtClient && orgOf(ctx, id) ? html`<${UI.Fold} title="People at this client" id="fold-client-people"><${M.parts.PeopleAtClient} id=${id}/><//>` : null}
       ${id && M.parts.Connections ? html`<${M.parts.Connections} kind="client" id=${id}/>` : null}
       ${id && M.parts.ClientUpdate && M.ai.on(ctx) ? html`<${M.fx.Beam}><${UI.Fold} title="Client update" summary="a client-ready note" id="fold-client-update"><${M.parts.ClientUpdate} id=${id} name=${f.name}/><//><//>` : null}
-      ${ctx.isFounder ? html`<${UI.Input} label="monthly revenue" type="number" value=${f.monthly}
-        onChange=${v => set('monthly', v)} hint="Private to you."/>` : null}
+      ${ctx.isFounder && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
+        onChange=${v => set('monthly', v)} hint="Private to you. Counts in monthly revenue."/>` : null}
+      ${ctx.isFounder && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
+        <div class="grid2">
+          <${UI.Input} id="client-fee" label="project fee, ₹" type="number" value=${f.fee} onChange=${v => set('fee', v)} hint="Private to you. One payment, kept out of monthly revenue."/>
+          <${UI.Input} id="client-paid" label="paid so far, ₹" type="number" value=${f.paid} onChange=${v => set('paid', v)}/>
+        </div>
+        <div class="grid2">
+          <${UI.Input} id="client-from" label="starts" type="date" value=${f.from} onChange=${v => set('from', v)}/>
+          <${UI.Input} id="client-to" label="ends, or expected" type="date" value=${f.to} onChange=${v => set('to', v)}/>
+        </div>
+      </div>` : null}
+    <//>`;
+  }
+
+  const seedFields = sd => !sd ? {} : {name: sd.name || '', org: sd.org || '', website: sd.website || '', industry: sd.industry || '', hq: sd.hq || ''};
+  const projEnd = (ctx, id) => { const fe = financeOf(ctx)[id] || {}; return fe.to ? ', ends ' + U.fmtDate(fe.to) : ''; };
+
+  /* ---------- a new client starts with a search: the company database first, then the clients already here ---------- */
+  function NewClient({onClose, onAdd, onOpen}) {
+    const ctx = M.useCtx();
+    const [q, setQ] = useState('');
+    const [dq, setDq] = useState('');
+    const [kind, setKind] = useState('retainer');
+    const [busy, setBusy] = useState(false);
+    useEffect(() => { const t = setTimeout(() => setDq(q), 200); return () => clearTimeout(t); }, [q]);
+    const on = nameKey(dq).length >= 2;
+    const orgs = M.base && M.base.useQuery ? M.base.useQuery('orgs', {q: dq, limit: 8}, on) : {rows: []};
+    const k = nameKey(dq);
+    const cm = ctx.coll.clients.map;
+    const clientHits = on ? Object.keys(cm).filter(x => nameKey(cm[x].name).indexOf(k) >= 0).slice(0, 4) : [];
+    const pick = o => {
+      if (o.client && cm[o.client]) { onOpen(o.client); return; }
+      onAdd({name: o.name || q.trim(), org: o.id, website: o.website || o.domain || '', industry: o.industry || '', hq: o.city || '', kind});
+    };
+    const addNew = () => { if (!q.trim()) return; onAdd({name: q.trim(), kind, newOrg: true}); };
+    useEffect(() => { const el = document.getElementById('client-find'); if (el) el.focus(); }, []);
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title="New client">
+      <div class="stack">
+        <div class="field"><label for="client-find">find the company</label>
+          <input id="client-find" class="input" type="search" autocomplete="off" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Type the company name"
+            onKeyDown=${e => { if (e.key === 'Enter') { e.preventDefault(); const first = (orgs.rows || [])[0]; if (first) pick(first); else addNew(); } }}/>
+          <div class="hint">Searches the company database. Pick one and the client is linked to it.</div>
+        </div>
+        <${UI.Field} label="how they pay"><${UI.Seg} options=${KINDS} value=${kind} onChange=${setKind} ariaLabel="How they pay"/><//>
+        ${clientHits.length ? html`<div class="stack tight"><${UI.Micro} plain>already a client<//>
+          ${clientHits.map(x => html`<button key=${x} type="button" class="listrow rowbtn" onClick=${() => onOpen(x)}>
+            <span class="grow"><b>${cm[x].name}</b></span><span class="tiny sub">open</span></button>`)}
+        </div>` : null}
+        ${on ? html`<div class="stack tight" id="client-find-results"><${UI.Micro} plain>in the database<//>
+          ${orgs.loading && !(orgs.rows || []).length ? html`<${UI.Empty} text="Searching."/>` : null}
+          ${(orgs.rows || []).map(o => html`<button key=${o.id} type="button" class="listrow rowbtn" data-org=${o.id} disabled=${busy} onClick=${() => { setBusy(true); pick(o); }}>
+            <span class="grow"><b>${o.name}</b><span class="sub small">${[o.industry, o.city, o.domain].filter(Boolean).length ? ', ' + [o.industry, o.city, o.domain].filter(Boolean).join(', ') : ''}</span></span>
+            <span class="tiny sub">${o.client ? 'open client' : (o.people ? o.people + ' people' : 'pick')}</span>
+          </button>`)}
+          ${!orgs.loading && !(orgs.rows || []).length ? html`<${UI.Empty} text="No company by that name in the database."/>` : null}
+        </div>` : null}
+        ${q.trim() ? html`<div><${UI.Btn} kind="sec" id="client-add-new" onClick=${addNew}><${M.icons.plus}/>Add ${q.trim()} as a new company<//></div>` : null}
+      </div>
     <//>`;
   }
 
   /* ---------- the page ---------- */
   function Clients() {
     const ctx = M.useCtx();
-    const [open, setOpen] = useState(null); /* id, or 'new' */
+    const [open, setOpen] = useState(null); /* id, 'new' (the search), or 'add' (the form, seeded) */
+    const [seed, setSeed] = useState(null);
+    const [q, setQ] = useState('');
+    const [kf, setKf] = useState('all');
     M.useIntent('client', () => setOpen('new'));
     /* #clients/<id> opens that client (search results and Connections land here) */
     const route = M.useRoute();
     const routeId = route.page === 'clients' ? route.id : null;
     useEffect(() => { if (routeId) setOpen(routeId); }, [routeId]);
-    const close = () => { setOpen(null); if (routeId) M.nav('#clients'); };
+    const close = () => { setOpen(null); setSeed(null); if (routeId) M.nav('#clients'); };
     const map = ctx.coll.clients.map;
     const sh = useMemo(() => {
       const out = {};
       if (ctx.isFounder) shares(ctx).forEach(r => { out[r.id] = r; });
       return out;
     }, [ctx]);
-    const ids = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));
+    const allIds = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));
+    const ws = nameKey(q).split(' ').filter(Boolean);
+    const nKind = {retainer: 0, project: 0};
+    allIds.forEach(x => { nKind[kindOf(ctx, x)]++; });
+    const ids = allIds.filter(x => (kf === 'all' || kindOf(ctx, x) === kf)
+      && (!ws.length || ws.every(w => nameKey([map[x].name, map[x].industry, map[x].pod, map[x].hq, map[x].website].join(' ')).indexOf(w) >= 0)));
     /* the one client most in need of a look rides the beam: the first off track, else the first to watch */
     const hotId = ids.find(x => health(ctx, x).level === 'risk') || ids.find(x => health(ctx, x).level === 'watch') || null;
 
     return html`<div class="stack" style=${{gap: '18px'}}>
       <${UI.PageHead} micro="client brains" title="Clients">
         <${M.fx.Bot} feature="clients" size=${40} label="m360, client brains" className="ai-bot"/>
-        <${UI.Btn} onClick=${() => setOpen('new')}>New client<//>
+        <${UI.Btn} id="client-new" onClick=${() => setOpen('new')}>New client<//>
       <//>
+      <div class="row between" style=${{gap: '10px'}}>
+        <label class="talk-search grow">
+          <${M.icons.search}/>
+          <input id="client-q" class="input" type="search" aria-label="Search clients" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Search clients"/>
+        </label>
+        <${UI.Seg} sm options=${[{v: 'all', label: 'All ' + allIds.length}, {v: 'retainer', label: 'Retainers ' + nKind.retainer}, {v: 'project', label: 'Projects ' + nKind.project}]}
+          value=${kf} onChange=${setKf} ariaLabel="Show"/>
+      </div>
       ${ids.length ? html`<div class="grid2">
         ${ids.map(id => {
           const c = map[id];
@@ -17207,6 +17399,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
             <div class="row between nowrap">
               <span class="cl-title grow"><${Logo} id=${id} client=${c} sm=${true}/><span class="nm">${c.name}</span></span>
               ${fresh ? html`<${M.fx.MetalBadge}>new<//>` : null}
+              <span class="pill" data-kind=${kindOf(ctx, id)}>${kindOf(ctx, id) === 'project' ? 'project' : 'retainer'}</span>
               <${UI.Pill} kind=${STATUS_PILL[c.status]}>${c.status || 'live'}<//>
             </div>
             <div class="row small ink62" style=${{marginTop: '8px'}}>
@@ -17220,15 +17413,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
               <span class=${'small num' + (comp.filled < comp.total ? ' flame-t' : '')}>${comp.filled} of ${comp.total} fields</span>
               <span class="tiny ink62">updated ${c.updated ? U.timeAgo(c.updated) : 'never'}</span>
             </div>
-            ${s ? html`<div class="row small" style=${{marginTop: '8px'}}>
+            ${s && s.kind === 'project' ? html`<div class="row small" style=${{marginTop: '8px'}}>
+              <span class="num" style=${{fontWeight: 500}}>${U.inr(s.fee)}</span><span class="ink62">project fee${projEnd(ctx, id)}</span>
+            </div>` : s ? html`<div class="row small" style=${{marginTop: '8px'}}>
               <span class="num" style=${{fontWeight: 500}}>${U.inr(s.monthly)}</span>
               <span class="ink62 num">${s.share}% of monthly revenue</span>
             </div>` : null}
           </button>`;
           return id === hotId ? html`<${M.fx.Beam} key=${id}>${card}<//>` : card;
         })}
-      </div>` : html`<${UI.Card}><${UI.Empty} text="No clients yet."/><//>`}
-      ${open ? html`<${ClientDrawer} id=${open === 'new' ? null : open} onClose=${close}/>` : null}
+      </div>` : html`<${UI.Card}><${UI.Empty} text=${q.trim() || kf !== 'all' ? 'No client matches.' : 'No clients yet.'}/><//>`}
+      ${open === 'new' ? html`<${NewClient} onClose=${close} onAdd=${sd => { setSeed(sd); setOpen('add'); }} onOpen=${x => { setOpen(x); }}/>`
+        : open ? html`<${ClientDrawer} key=${open} id=${open === 'add' ? null : open} seed=${open === 'add' ? seed : null} onClose=${close}/>` : null}
     </div>`;
   }
 
@@ -17288,7 +17484,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return null;
   };
 
-  M.clients = {completeness, shares, openTaskCount, STATUS, FIELDS, BRAIN, HEALTH, health, domainOf, domainFrom, cleanSite, newsFor, eodMentions, brandWord, MODEL_LINE, referrers, sameName, nameKey};
+  M.clients = {completeness, shares, kindOf, KINDS, openTaskCount, STATUS, FIELDS, BRAIN, HEALTH, health, domainOf, domainFrom, cleanSite, newsFor, eodMentions, brandWord, MODEL_LINE, referrers, sameName, nameKey};
 })();
 
 /* ==== 25-prospects.js ==== */
@@ -19259,6 +19455,495 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   M.crm = {accounts, stageOf};
   M.parts.CRM = CRM;
+})();
+
+/* ==== 27-z-proposals.js ==== */
+/* module: proposals. The pipeline in five plain columns over the shared pitches: Building (lead, qualified,
+   diagnostic), Sent (proposal), Waiting on them (negotiation), Won and Lost. One row adds a proposal in
+   Building; a card moves with one tap; tapping the card opens the full pitch drawer. Nothing new is stored:
+   a move writes the pitch's stage and stageAt the way the pitch drawer does. */
+'use strict';
+(function () {
+  const {html, React, U, UI, icons} = M;
+  const {useState, useEffect, useRef} = React;
+
+  const COLS = [
+    {v: 'building', label: 'Building', stages: ['lead', 'qualified', 'diagnostic'], to: 'lead'},
+    {v: 'sent', label: 'Sent', stages: ['proposal'], to: 'proposal'},
+    {v: 'waiting', label: 'Waiting on them', stages: ['negotiation'], to: 'negotiation'},
+    {v: 'won', label: 'Won', stages: ['won'], to: 'won'},
+    {v: 'lost', label: 'Lost', stages: ['lost'], to: 'lost'}
+  ];
+  const colOf = p => COLS.find(c => c.stages.indexOf((p && p.stage) || 'lead') >= 0) || COLS[0];
+  const NEXT = {building: 'sent', sent: 'waiting', waiting: 'won'};
+  const MOVE_LABEL = {sent: 'Mark sent', waiting: 'Waiting on them', won: 'Won'};
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const DAY = 86400000;
+  const finOf = ctx => { const d = ctx.priv && ctx.priv.finance && ctx.priv.finance.data; return (d && d.pitch) || {}; };
+  const valueOf = fe => { const n = Number(fe && fe.value); return isFinite(n) && n > 0 ? n : 0; };
+
+  function move(ctx, p, col) {
+    const c = COLS.find(x => x.v === col);
+    if (!c) return Promise.resolve();
+    if (c.stages.indexOf(p.stage || 'lead') >= 0) return Promise.resolve();
+    const now = Date.now();
+    return ctx.W.update('pitches/' + p.id, {stage: c.to, stageAt: now, updated: now}).then(() => M.toast((p.brand || 'Pitch') + ': ' + c.label.toLowerCase()));
+  }
+
+  function QuickAdd({ctx}) {
+    const [f, setF] = useState({brand: '', contact: '', next: ''});
+    const [busy, setBusy] = useState(false);
+    const set = k => v => setF(x => ({...x, [k]: v}));
+    const save = () => {
+      if (busy || !f.brand.trim()) return;
+      setBusy(true);
+      const id = U.uid(), now = Date.now();
+      ctx.W.set('pitches/' + id, {brand: f.brand.trim().slice(0, 80), category: '', contact: f.contact.trim().slice(0, 80), source: '', owner: ctx.uid,
+        stage: 'lead', stageAt: now, next: f.next.trim().slice(0, 120), nextDate: '', project: '', lost: '', created: now, updated: now})
+        .then(() => { M.toast(f.brand.trim() + ' added to Building'); setF({brand: '', contact: '', next: ''}); setBusy(false); }, () => setBusy(false));
+    };
+    return html`<div class="prop-add" onKeyDown=${e => { if (e.key === 'Enter') { e.preventDefault(); save(); } }}>
+      <${UI.Input} id="prop-brand" label="brand" value=${f.brand} onChange=${set('brand')} placeholder="Tank Tailor"/>
+      <${UI.Input} id="prop-contact" label="contact" value=${f.contact} onChange=${set('contact')} placeholder="Who asked for it"/>
+      <${UI.Input} id="prop-next" label="what the proposal is" value=${f.next} onChange=${set('next')} placeholder="Social retainer, 3 months"/>
+      <div class="prop-add-btn"><${UI.Btn} id="prop-save" disabled=${busy || !f.brand.trim()} onClick=${save}><${icons.plus}/>Add proposal<//></div>
+    </div>`;
+  }
+
+  function Card({ctx, p, fe, today, onOpen}) {
+    const c = colOf(p);
+    const days = Math.max(0, Math.floor((Date.now() - (p.stageAt || p.created || Date.now())) / DAY));
+    const od = !!p.nextDate && p.nextDate < today && c.v !== 'won' && c.v !== 'lost';
+    const value = ctx.isFounder ? valueOf(fe) : 0;
+    const nx = NEXT[c.v];
+    return html`<div class="tcard prop-card" data-pitch=${p.id} data-col=${c.v}>
+      <button type="button" class="prop-open" onClick=${() => onOpen(p.id)} aria-label=${'Open ' + (p.brand || 'pitch')}>
+        <span class="row between nowrap"><span class="t">${p.brand || 'Untitled'}</span>${value ? html`<span class="small num">${U.inr(value)}</span>` : null}</span>
+        ${p.next ? html`<span class="small ink62">${p.next}</span>` : null}
+        <span class="row between nowrap">
+          <span class="row nowrap"><${UI.Avatar} id=${p.owner} size=${20}/><span class="tiny num sub">${days === 0 ? 'today' : days + 'd here'}</span></span>
+          ${p.nextDate ? html`<span class=${'tiny num' + (od ? ' flame-t' : ' sub')}>${U.fmtDay(p.nextDate)}</span>` : null}
+        </span>
+      </button>
+      ${nx || c.v !== 'lost' ? html`<div class="row nowrap prop-moves">
+        ${nx ? html`<button type="button" class="btn ghost sm" data-move=${nx} onClick=${() => move(ctx, p, nx)}>${MOVE_LABEL[nx]}</button>` : null}
+        ${c.v !== 'lost' && c.v !== 'won' ? html`<button type="button" class="btn ghost sm" data-move="lost" onClick=${() => move(ctx, p, 'lost')}>Lost</button>` : null}
+      </div>` : null}
+    </div>`;
+  }
+
+  function Proposals() {
+    const ctx = M.useCtx();
+    const [q, setQ] = useState('');
+    const [open, setOpen] = useState(null);
+    /* the five columns, or every stage on the full board (the board with the win rate and the sends) */
+    const [view, setViewS] = useState(() => M.prefs.get('pipeline.view', 'simple') === 'stages' && M.pages.Pitches ? 'stages' : 'simple');
+    const setView = v => { M.prefs.set('pipeline.view', v); setViewS(v); setOpen(null); };
+    const simple = useRef(view === 'simple');
+    simple.current = view === 'simple';
+    M.useIntent('pitch', () => { if (simple.current) setOpen('new'); });
+    const route = M.useRoute();
+    const routeId = (route.page === 'pitches' || route.page === 'pipeline') ? route.id : null;
+    useEffect(() => { if (routeId && simple.current) setOpen(routeId); }, [routeId]);
+    useEffect(() => {
+      const on = () => { const r = M.parseHash(); if ((r.page === 'pitches' || r.page === 'pipeline') && r.id && simple.current) setOpen(r.id); };
+      window.addEventListener('hashchange', on);
+      return () => window.removeEventListener('hashchange', on);
+    }, []);
+    const close = () => { setOpen(null); if (routeId) M.nav('#pitches'); };
+    const map = ctx.coll.pitches.map;
+    const fin = finOf(ctx);
+    const today = U.todayStr();
+    const ws = norm(q).split(' ').filter(Boolean);
+    const all = Object.keys(map).map(id => ({id, ...map[id]}));
+    const shown = all.filter(p => !ws.length || ws.every(w => norm([p.brand, p.category, p.contact, p.next].join(' ')).indexOf(w) >= 0));
+    const inPlay = all.filter(p => ['won', 'lost'].indexOf(colOf(p).v) < 0).length;
+    const m = ctx.isFounder && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
+    const Drawer = M.parts.PitchDrawer;
+    const Toggle = html`<div class="row" style=${{justifyContent: 'flex-end'}}>
+      <${UI.Seg} sm options=${[{v: 'simple', label: 'Five columns'}, {v: 'stages', label: 'All stages'}]} value=${view} onChange=${setView} ariaLabel="Pipeline view"/>
+    </div>`;
+    if (view === 'stages' && M.pages.Pitches) return html`<div class="stack" style=${{gap: '12px'}} id="pipeline-stages">${Toggle}<${M.pages.Pitches}/></div>`;
+    return html`<div class="stack" style=${{gap: '18px'}}>
+      ${Toggle}
+      <${UI.PageHead} micro=${inPlay + ' in play' + (m && m.weighted ? ', ' + U.inr(m.weighted) + ' weighted' : '')} title="Pipeline">
+        <${UI.Btn} kind="sec" onClick=${() => setOpen('new')}>Full form<//>
+      <//>
+      <${UI.Card} title="New proposal"><${QuickAdd} ctx=${ctx}/><//>
+      <label class="talk-search">
+        <${icons.search}/>
+        <input id="prop-q" class="input" type="search" aria-label="Search proposals" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Search brand, contact or proposal"/>
+      </label>
+      ${!ctx.coll.pitches.ready ? html`<${UI.Empty} text="Loading."/>` : html`<div class="board-wrap prop-wrap"><div class="board prop-board">
+        ${COLS.map(c => {
+          const list = shown.filter(p => colOf(p).v === c.v).sort((a, b) => (b.stageAt || 0) - (a.stageAt || 0));
+          const total = ctx.isFounder ? list.reduce((n, p) => n + valueOf(fin[p.id]), 0) : 0;
+          return html`<div class=${'colm' + (list.length ? '' : ' empty')} key=${c.v} data-col=${c.v}>
+            <div class="col-head"><span>${c.label}</span><span class="num">${list.length}${total ? ' · ' + U.inr(total) : ''}</span></div>
+            ${list.map(p => html`<${Card} key=${p.id} ctx=${ctx} p=${p} fe=${fin[p.id]} today=${today} onOpen=${setOpen}/>`)}
+            ${!list.length ? html`<div class="tiny sub" style=${{padding: '6px 2px'}}>${ws.length ? 'No match' : 'Nothing here'}</div>` : null}
+          </div>`;
+        })}
+      </div></div>`}
+      ${open && Drawer ? html`<${Drawer} pitchId=${open === 'new' ? null : open} onClose=${close}/>` : null}
+    </div>`;
+  }
+
+  M.pages.Proposals = Proposals;
+  M.proposals = {COLS, colOf, move};
+})();
+
+/* ==== 27-z-talks.js ==== */
+/* module: talks. The people we are talking to, in one shared list: who, which company, what was said, when we
+   spoke, and when to follow up. One row at the top takes a new name in seconds and saves on Enter; the name
+   field searches the database (Base contacts), the clients and the list itself as you type, so a person is
+   linked once and found again. A note like "connect after 16 Oct" fills the follow-up date by itself.
+   Records: talks/<id> {who, org, note, met, next, nextWhat, owner, done, cid, client, pitch, log, at, updated}. */
+'use strict';
+(function () {
+  const {html, React, U, UI, icons} = M;
+  const {useState, useEffect, useMemo, useRef} = React;
+
+  const NOTE_MAX = 600, NAME_MAX = 80, LOG_MAX = 40;
+  const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const YMD = /^\d{4}-\d{2}-\d{2}$/;
+
+  /* ---------- reads ---------- */
+  const all = ctx => {
+    const map = (ctx.coll.talks && ctx.coll.talks.map) || {};
+    return Object.keys(map).map(id => ({id, ...map[id]})).filter(t => t && !t.gone);
+  };
+  const logOf = t => Object.keys(t.log || {}).map(k => ({id: k, ...t.log[k]})).sort((a, b) => (b.d || '').localeCompare(a.d || '') || (b.at || 0) - (a.at || 0));
+  const lastSpoke = t => { const l = logOf(t)[0]; return (l && l.d) || t.met || ''; };
+  /* due: a follow-up today or earlier; soon: one later; open: no date; done */
+  const stateOf = (t, today) => t.done ? 'done' : !t.next ? 'open' : t.next <= today ? 'due' : 'soon';
+  const textOf = t => [t.who, t.org, t.note, t.nextWhat].concat(logOf(t).map(l => l.x)).join(' ');
+  const matches = (t, q) => { const ws = norm(q).split(' ').filter(Boolean); if (!ws.length) return true; const s = norm(textOf(t)); return ws.every(w => s.indexOf(w) >= 0); };
+  const dueFor = (ctx, uid) => { const td = U.todayStr(); return all(ctx).filter(t => stateOf(t, td) === 'due' && (!uid || t.owner === uid)); };
+  /* a follow-up date read from the note: "connect after 16 Oct" is the 17th */
+  /* read against the day we spoke ("after 16 Oct" said on 7 Oct is this October); a date that lands most of a year
+     ahead was a date this year that has already passed, so it is read again from earlier in the year */
+  const readDate = (ctx, text, spoke) => {
+    if (!text || !M.when || !M.when.parse) return null;
+    const base = YMD.test(spoke || '') ? U.parseYmd(spoke).getTime() + 12 * 3600000 : Date.now();
+    const one = at => { try { const r = M.when.parse(text, at, ctx.isWorkingDay); return r && r.ymd && YMD.test(r.ymd) ? r : null; } catch (e) { return null; } };
+    let r = one(base);
+    if (r && U.parseYmd(r.ymd).getTime() - base > 200 * 86400000) { const back = one(base - 250 * 86400000); if (back && back.ymd <= r.ymd) r = back; }
+    return r;
+  };
+
+  /* ---------- writes ---------- */
+  function add(ctx, f) {
+    const id = U.uid(), now = Date.now();
+    const doc = {who: cut(f.who, NAME_MAX), org: cut(f.org, NAME_MAX), note: cut(f.note, NOTE_MAX), met: YMD.test(f.met || '') ? f.met : U.todayStr(),
+      next: YMD.test(f.next || '') ? f.next : '', nextWhat: cut(f.nextWhat, 160), owner: f.owner || ctx.uid, done: false,
+      cid: f.cid || '', client: f.client || '', pitch: '', log: {}, at: now, updated: now, by: ctx.uid};
+    return ctx.W.set('talks/' + id, doc).then(() => id);
+  }
+  const patch = (ctx, id, p) => ctx.W.update('talks/' + id, {...p, updated: Date.now()});
+  function logTalk(ctx, t, x, d, next) {
+    const lid = U.uid();
+    const log = {...(t.log || {}), [lid]: {d: YMD.test(d || '') ? d : U.todayStr(), x: cut(x, NOTE_MAX), by: ctx.uid, at: Date.now()}};
+    const keep = Object.keys(log).sort((a, b) => (log[b].at || 0) - (log[a].at || 0)).slice(0, LOG_MAX);
+    const trimmed = {};
+    keep.forEach(k => { trimmed[k] = log[k]; });
+    return ctx.W.update('talks/' + t.id, {log: trimmed, next: next === undefined ? (t.next || '') : next, done: false, updated: Date.now()});
+  }
+  /* a pitch on the shared pipeline, in Building, linked both ways */
+  function toPipeline(ctx, t, what) {
+    if (t.pitch && ctx.coll.pitches.map[t.pitch]) { M.nav('#pitches/' + t.pitch); return Promise.resolve(t.pitch); }
+    const pid = U.uid(), now = Date.now();
+    const brand = t.org || t.who || 'New pitch';
+    return ctx.W.set('pitches/' + pid, {brand, category: '', contact: t.cid || t.who || '', source: 'talk', owner: t.owner || ctx.uid,
+      stage: 'lead', stageAt: now, next: cut(what || t.nextWhat || 'Build the proposal', 120), nextDate: t.next || '', project: '', lost: '', created: now, updated: now, talk: t.id})
+      .then(() => patch(ctx, t.id, {pitch: pid}))
+      .then(() => { M.toast(brand + ' is in the pipeline'); return pid; });
+  }
+  /* the viewer's private prospects, copied once into the shared list; the same name at the same company is skipped */
+  function bringProspects(ctx) {
+    const P = M.prospects;
+    if (!P || !P.data) return Promise.resolve(0);
+    const d = P.data(ctx);
+    const have = new Set(all(ctx).map(t => norm(t.who) + '|' + norm(t.org)));
+    const jobs = [];
+    for (const pid of Object.keys(d.people || {})) {
+      const p = d.people[pid];
+      if (!p || p.gone || !p.who) continue;
+      const k = norm(p.who) + '|' + norm(p.org);
+      if (have.has(k)) continue;
+      have.add(k);
+      const fid = Object.keys(d.fu || {}).filter(id => d.fu[id] && !d.fu[id].done && d.fu[id].p === pid).sort((a, b) => String(d.fu[a].d).localeCompare(String(d.fu[b].d)))[0];
+      const f = fid ? d.fu[fid] : null;
+      const met = p.last && p.last.at ? U.ymd(new Date(p.last.at)) : (p.at ? U.ymd(new Date(p.at)) : U.todayStr());
+      jobs.push(add(ctx, {who: p.who, org: p.org || '', note: [p.role, f && f.said].filter(Boolean).join('. '), met,
+        next: f && YMD.test(f.d || '') ? f.d : '', nextWhat: f ? cut(f.x, 160) : '', cid: p.cid || '', done: p.st === 'done'}));
+    }
+    return Promise.all(jobs).then(r => r.length);
+  }
+
+  /* ---------- the name field: database, clients and this list, as you type ---------- */
+  function useDebounced(v, ms) {
+    const [d, setD] = useState(v);
+    useEffect(() => { const t = setTimeout(() => setD(v), ms); return () => clearTimeout(t); }, [v, ms]);
+    return d;
+  }
+  function useSuggest(ctx, q) {
+    const dq = useDebounced(q, 220);
+    const on = norm(dq).length >= 2;
+    const base = M.base && M.base.useQuery ? M.base.useQuery('contacts', {q: dq, limit: 5}, on) : {rows: []};
+    return useMemo(() => {
+      if (!on) return [];
+      const out = [];
+      const n = norm(dq);
+      all(ctx).filter(t => norm(t.who + ' ' + t.org).indexOf(n) >= 0).slice(0, 3)
+        .forEach(t => out.push({k: 't' + t.id, kind: 'In this list', who: t.who, org: t.org, talk: t.id}));
+      (base.rows || []).forEach(c => out.push({k: 'c' + c.id, kind: 'Database', who: c.name || [c.first, c.last].filter(Boolean).join(' '), org: c.orgName || '', cid: c.id, title: c.title || ''}));
+      const cm = ctx.coll.clients.map;
+      Object.keys(cm).filter(id => norm(cm[id].name).indexOf(n) >= 0).slice(0, 3)
+        .forEach(id => out.push({k: 'k' + id, kind: 'Client', who: '', org: cm[id].name, client: id}));
+      return out.slice(0, 9);
+    }, [on, dq, base.rows, ctx.coll.talks, ctx.coll.clients.map]);
+  }
+
+  /* ---------- quick add ---------- */
+  function QuickAdd({ctx, onOpen}) {
+    const blank = () => ({who: '', org: '', note: '', met: U.todayStr(), next: '', cid: '', client: ''});
+    const [f, setF] = useState(blank);
+    const [busy, setBusy] = useState(false);
+    const [focus, setFocus] = useState(false);
+    const [hi, setHi] = useState(0);
+    const whoRef = useRef(null);
+    const sug = useSuggest(ctx, f.who);
+    const read = !f.next ? readDate(ctx, f.note, f.met) : null;
+    const set = k => v => setF(x => ({...x, [k]: v}));
+    const pick = s => {
+      if (s.talk) { onOpen(s.talk); setF(blank()); return; }
+      setF(x => ({...x, who: s.who || x.who, org: s.org || x.org, cid: s.cid || '', client: s.client || (s.org ? clientFor(ctx, s.org) : '') || x.client}));
+      setFocus(false);
+    };
+    const save = () => {
+      if (busy || !f.who.trim()) { if (!f.who.trim()) M.toast('Add a name first', true); return; }
+      setBusy(true);
+      const next = f.next || (read ? read.ymd : '');
+      const client = f.client || clientFor(ctx, f.org);
+      add(ctx, {...f, next, client}).then(() => {
+        M.toast(f.who.trim() + ' saved' + (next ? ', follow up ' + U.fmtDay(next) : ''));
+        setF(blank()); setBusy(false);
+        if (whoRef.current) whoRef.current.focus();
+      }, () => setBusy(false));
+    };
+    const onKey = e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (focus && sug.length && e.target.id === 'talk-who') pick(sug[hi] || sug[0]); else save(); }
+      if (e.target.id === 'talk-who' && sug.length) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); setHi(h => Math.min(sug.length - 1, h + 1)); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); setHi(h => Math.max(0, h - 1)); }
+        if (e.key === 'Escape') setFocus(false);
+      }
+    };
+    useEffect(() => setHi(0), [f.who]);
+    return html`<${UI.Card} title="Who did you speak to" className="talk-add">
+      <div class="talk-add-grid" onKeyDown=${onKey}>
+        <div class="talk-who-wrap">
+          <div class="field"><label for="talk-who">name</label>
+            <input id="talk-who" ref=${whoRef} class="input" autocomplete="off" value=${f.who} placeholder="Umashan"
+              onInput=${e => { set('who')(e.target.value); set('cid')(''); setFocus(true); }} onFocus=${() => setFocus(true)} onBlur=${() => setTimeout(() => setFocus(false), 160)}/>
+          </div>
+          ${focus && sug.length ? html`<div class="talk-sug" role="listbox" id="talk-sug">
+            ${sug.map((s, i) => html`<button key=${s.k} type="button" role="option" aria-selected=${i === hi} class=${'talk-sug-row' + (i === hi ? ' on' : '')}
+              onMouseDown=${e => { e.preventDefault(); pick(s); }}>
+              <span class="grow"><b>${s.who || s.org}</b>${s.who && s.org ? html`<span class="sub"> at ${s.org}</span>` : null}${s.title ? html`<span class="sub">, ${s.title}</span>` : null}</span>
+              <span class="tiny sub">${s.kind}</span>
+            </button>`)}
+          </div>` : null}
+        </div>
+        <${UI.Input} id="talk-org" label="company" value=${f.org} onChange=${set('org')} placeholder="Tank Tailor"/>
+        <div class="talk-note"><${UI.Input} id="talk-note" label="what was said" value=${f.note} onChange=${set('note')} placeholder="Asked me to connect after 16 Oct"/></div>
+        <${UI.Input} id="talk-met" label="spoke on" type="date" value=${f.met} onChange=${set('met')}/>
+        <${UI.Input} id="talk-next" label="follow up on" type="date" value=${f.next} onChange=${set('next')}
+          hint=${read ? 'Read from the note: ' + U.fmtDay(read.ymd) : 'Optional'}/>
+        <div class="talk-save"><${UI.Btn} id="talk-save" disabled=${busy || !f.who.trim()} onClick=${save}><${icons.plus}/>Save<//></div>
+      </div>
+      ${f.cid ? html`<div class="tiny sub" style=${{marginTop: '8px'}}>Linked to the database entry for ${f.who}.</div>` : null}
+    <//>`;
+  }
+  const clientFor = (ctx, org) => {
+    const k = norm(org);
+    if (!k) return '';
+    const cm = ctx.coll.clients.map;
+    return Object.keys(cm).find(id => norm(cm[id].name) === k) || '';
+  };
+
+  /* ---------- one row ---------- */
+  function Row({ctx, t, today, onOpen, onLog}) {
+    const st = stateOf(t, today);
+    const spoke = lastSpoke(t);
+    const last = logOf(t)[0];
+    return html`<div class=${'talk-row' + (st === 'due' ? ' due' : '') + (t.done ? ' done' : '')} data-talk=${t.id}>
+      <button type="button" class="talk-main rowbtn" onClick=${() => onOpen(t.id)} aria-label=${'Open ' + (t.who || 'person')}>
+        <div class="row between nowrap">
+          <span class="talk-name"><b>${t.who || 'Someone'}</b>${t.org ? html`<span class="sub"> ${t.org}</span>` : null}</span>
+          ${st === 'due' ? html`<span class="pill flame">follow up ${t.next === today ? 'today' : U.fmtDay(t.next)}</span>`
+            : st === 'soon' ? html`<span class="pill">follow up ${U.fmtDay(t.next)}</span>`
+            : st === 'done' ? html`<span class="pill ink">done</span>` : null}
+        </div>
+        ${(last && last.x) || t.note ? html`<div class="small ink62 talk-line">${(last && last.x) || t.note}</div>` : null}
+        <div class="row tiny sub" style=${{gap: '10px', marginTop: '6px'}}>
+          ${spoke ? html`<span>spoke ${U.fmtDay(spoke)}</span>` : null}
+          ${t.nextWhat ? html`<span>next: ${t.nextWhat}</span>` : null}
+          ${t.cid ? html`<span>in the database</span>` : null}
+          ${t.client ? html`<span>client</span>` : null}
+          ${t.pitch ? html`<span>in the pipeline</span>` : null}
+          <${UI.Avatar} id=${t.owner} size=${18}/>
+        </div>
+      </button>
+      ${t.done ? null : html`<div class="talk-acts row nowrap">
+        <button type="button" class="btn ghost sm" onClick=${() => onLog(t.id)}>Log a talk</button>
+        <button type="button" class="btn ghost sm" onClick=${() => patch(ctx, t.id, {done: true}).then(() => M.toast('Marked done'))}><${icons.check}/>Done</button>
+      </div>`}
+    </div>`;
+  }
+
+  /* ---------- log a talk ---------- */
+  function LogDrawer({ctx, t, onClose}) {
+    const [x, setX] = useState('');
+    const [d, setD] = useState(U.todayStr());
+    const [next, setNext] = useState(t.next || '');
+    const [busy, setBusy] = useState(false);
+    const read = readDate(ctx, x, d);
+    useEffect(() => { if (read && (!next || next <= U.todayStr())) setNext(read.ymd); }, [read && read.ymd]);
+    const save = () => {
+      if (busy || !x.trim()) return;
+      setBusy(true);
+      logTalk(ctx, t, x, d, next).then(() => { M.toast('Logged'); onClose(); }, () => setBusy(false));
+    };
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${'Talk with ' + (t.who || 'them')}
+      footer=${html`<${UI.Btn} id="talk-log-save" disabled=${busy || !x.trim()} onClick=${save}>Save the talk<//>`}>
+      <div class="stack">
+        <${UI.TextArea} id="talk-log-x" label="what was said" value=${x} onChange=${setX} rows=${3} placeholder="Wants the proposal by Friday"/>
+        <${UI.Input} id="talk-log-d" label="spoke on" type="date" value=${d} onChange=${setD}/>
+        <${UI.Input} id="talk-log-next" label="next follow-up" type="date" value=${next} onChange=${setNext} hint=${read ? 'Read from what was said: ' + U.fmtDay(read.ymd) : 'Clear it to drop the reminder'}/>
+      </div>
+    <//>`;
+  }
+
+  /* ---------- the person drawer ---------- */
+  function TalkDrawer({ctx, id, onClose}) {
+    const t0 = ctx.coll.talks.map[id];
+    const [f, setF] = useState(() => t0 ? {who: t0.who || '', org: t0.org || '', note: t0.note || '', met: t0.met || '', next: t0.next || '', nextWhat: t0.nextWhat || '', owner: t0.owner || ctx.uid} : null);
+    const [busy, setBusy] = useState(false);
+    const owners = ctx.activeMembers.map(m => m.uid);
+    if (owners.indexOf(ctx.uid) < 0) owners.unshift(ctx.uid);
+    const profs = M.useProfiles(owners);
+    if (!t0 || !f) return html`<${UI.Drawer} open=${true} onClose=${onClose} title="Person"><${UI.Empty} text="This person is not on the list any more."/><//>`;
+    const t = {id, ...t0};
+    const set = k => v => setF(x => ({...x, [k]: v}));
+    const save = () => {
+      setBusy(true);
+      patch(ctx, id, {who: cut(f.who, NAME_MAX), org: cut(f.org, NAME_MAX), note: cut(f.note, NOTE_MAX), met: f.met, next: f.next, nextWhat: cut(f.nextWhat, 160), owner: f.owner,
+        client: t.client || clientFor(ctx, f.org)})
+        .then(() => { M.toast('Saved'); onClose(); }, () => setBusy(false));
+    };
+    const toBase = () => {
+      if (!M.base || !M.base.upsertContact) return;
+      setBusy(true);
+      M.base.upsertContact(ctx, {name: f.who, orgName: f.org, source: 'manual', notes: f.note})
+        .then(cid => patch(ctx, id, {cid}))
+        .then(() => { M.toast(f.who + ' is in the database'); setBusy(false); }, () => setBusy(false));
+    };
+    const pitch = t.pitch ? ctx.coll.pitches.map[t.pitch] : null;
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${t.who || 'Person'}
+      footer=${html`<div class="row between" style=${{width: '100%'}}>
+        <${UI.ConfirmBtn} onConfirm=${() => ctx.W.del('talks/' + id).then(() => { M.toast('Removed'); onClose(); })}>Remove<//>
+        <${UI.Btn} id="talk-drawer-save" disabled=${busy || !f.who.trim()} onClick=${save}>Save<//>
+      </div>`}>
+      <div class="stack">
+        <div class="grid2">
+          <${UI.Input} id="td-who" label="name" value=${f.who} onChange=${set('who')}/>
+          <${UI.Input} id="td-org" label="company" value=${f.org} onChange=${set('org')}/>
+        </div>
+        <${UI.TextArea} id="td-note" label="what it is about" value=${f.note} onChange=${set('note')} rows=${3}/>
+        <div class="grid2">
+          <${UI.Input} id="td-met" label="first spoke on" type="date" value=${f.met} onChange=${set('met')}/>
+          <${UI.Input} id="td-next" label="follow up on" type="date" value=${f.next} onChange=${set('next')}/>
+        </div>
+        <${UI.Input} id="td-nextwhat" label="what the follow-up is" value=${f.nextWhat} onChange=${set('nextWhat')} placeholder="Send the proposal"/>
+        <${UI.Select} id="td-owner" label="whose conversation" value=${f.owner} onChange=${set('owner')} options=${owners.map(u => ({v: u, label: (profs[u] && profs[u].name) || 'Someone'}))}/>
+        <div class="row" style=${{gap: '8px'}}>
+          ${pitch ? html`<${UI.Btn} kind="sec" sm onClick=${() => M.nav('#pitches/' + t.pitch)}><${icons.pitches}/>Open the pitch<//>`
+            : html`<${UI.Btn} kind="sec" sm id="td-pipeline" disabled=${busy} onClick=${() => { setBusy(true); toPipeline(ctx, t).then(() => setBusy(false), () => setBusy(false)); }}><${icons.pitches}/>Send to pipeline<//>`}
+          ${t.cid ? html`<${UI.Btn} kind="ghost" sm onClick=${() => M.nav('#base/' + t.cid)}><${icons.database}/>Open in database<//>`
+            : html`<${UI.Btn} kind="ghost" sm id="td-base" disabled=${busy || !f.who.trim()} onClick=${toBase}><${icons.database}/>Add to database<//>`}
+          ${t.client ? html`<${UI.Btn} kind="ghost" sm onClick=${() => M.nav('#clients/' + t.client)}><${icons.clients}/>Open client<//>` : null}
+          ${t.done ? html`<${UI.Btn} kind="ghost" sm onClick=${() => patch(ctx, id, {done: false})}>Open again<//>` : null}
+        </div>
+        <hr class="hair"/>
+        <${UI.Micro}>the talks<//>
+        ${logOf(t).length ? logOf(t).map(l => html`<div key=${l.id} class="talk-log-row">
+          <div class="row between nowrap"><span class="tiny num sub">${U.fmtDay(l.d)}</span><${UI.Avatar} id=${l.by} size=${18}/></div>
+          <div class="small">${l.x}</div>
+        </div>`) : html`<${UI.Empty} text=${'First spoke ' + (t.met ? U.fmtDay(t.met) : 'recently') + '. Nothing logged since.'}/>`}
+      </div>
+    <//>`;
+  }
+
+  /* ---------- the page ---------- */
+  const FILTERS = [{v: 'due', label: 'Follow up due'}, {v: 'soon', label: 'Coming up'}, {v: 'all', label: 'All'}, {v: 'done', label: 'Done'}];
+  function Talks({id}) {
+    const ctx = M.useCtx();
+    const [q, setQ] = useState('');
+    const [flt, setFlt] = useState(null);
+    const [mine, setMine] = useState(false);
+    const [open, setOpen] = useState(null);
+    const [logFor, setLogFor] = useState(null);
+    const [busy, setBusy] = useState(false);
+    const route = M.useRoute();
+    const routeId = ['talks', 'talk', 'conversations', 'accounts'].indexOf(route.page) >= 0 ? route.id : null;
+    useEffect(() => { if (routeId && ctx.coll.talks.map[routeId]) setOpen(routeId); }, [routeId, ctx.coll.talks.ready]);
+    M.useIntent('talk', () => { const el = document.getElementById('talk-who'); if (el) el.focus(); });
+    const today = U.todayStr();
+    const list = all(ctx);
+    const n = {due: 0, soon: 0, all: 0, done: 0};
+    list.forEach(t => { const s = stateOf(t, today); if (s === 'due') n.due++; if (s === 'soon') n.soon++; if (s === 'done') n.done++; else n.all++; });
+    const f = flt || (n.due ? 'due' : 'all');
+    const shown = list.filter(t => {
+      const s = stateOf(t, today);
+      if (q.trim()) return matches(t, q) && (!mine || t.owner === ctx.uid);
+      if (mine && t.owner !== ctx.uid) return false;
+      return f === 'all' ? s !== 'done' : f === 'soon' ? s === 'soon' : s === f;
+    }).sort((a, b) => {
+      const ka = a.next || '9999', kb = b.next || '9999';
+      return f === 'done' ? (b.updated || 0) - (a.updated || 0) : ka.localeCompare(kb) || (b.updated || 0) - (a.updated || 0);
+    });
+    const pros = M.prospects && M.prospects.data ? Object.keys(M.prospects.data(ctx).people || {}).length : 0;
+    const bring = () => { setBusy(true); bringProspects(ctx).then(k => { M.toast(k ? k + ' brought in' : 'Everyone is already here'); setBusy(false); }, () => setBusy(false)); };
+    const close = () => { setOpen(null); if (routeId) M.nav('#talks'); };
+    const logT = logFor ? {id: logFor, ...ctx.coll.talks.map[logFor]} : null;
+    return html`<div class="stack" style=${{gap: '18px'}}>
+      <${UI.PageHead} micro=${n.due ? n.due + ' to follow up' : n.all + ' people'} title="People we are talking to"/>
+      <${QuickAdd} ctx=${ctx} onOpen=${setOpen}/>
+      <div class="row between" style=${{gap: '10px'}}>
+        <label class="talk-search grow">
+          <${icons.search}/>
+          <input id="talk-q" class="input" type="search" aria-label="Search people" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Search name, company or what was said"/>
+        </label>
+        <${UI.Seg} sm options=${FILTERS.map(x => ({v: x.v, label: x.label + (n[x.v] ? ' ' + n[x.v] : '')}))} value=${f} onChange=${setFlt} ariaLabel="Show"/>
+        <${UI.Check} label="Mine" checked=${mine} onChange=${setMine}/>
+      </div>
+      ${!ctx.coll.talks.ready ? html`<${UI.Empty} text="Loading."/>`
+        : shown.length ? html`<div class="talk-list">${shown.map(t => html`<${Row} key=${t.id} ctx=${ctx} t=${t} today=${today} onOpen=${setOpen} onLog=${setLogFor}/>`)}</div>`
+        : html`<${UI.Card}><${UI.Empty} text=${q.trim() ? 'Nobody matches "' + q.trim() + '".' : f === 'due' ? 'No follow-ups due. Add the next person above.' : 'Nobody here yet. Add the first person above.'}/><//>`}
+      ${pros && !ctx.viewAs ? html`<div class="row tiny sub" style=${{gap: '10px'}}>
+        <span>You have ${pros} people in your private prospects.</span>
+        <button type="button" class="linky tiny" id="talk-bring" disabled=${busy} onClick=${bring}>Bring them into this list</button>
+      </div>` : null}
+      ${open ? html`<${TalkDrawer} key=${open} ctx=${ctx} id=${open} onClose=${close}/>` : null}
+      ${logT && logT.who !== undefined ? html`<${LogDrawer} ctx=${ctx} t=${logT} onClose=${() => setLogFor(null)}/>` : null}
+    </div>`;
+  }
+
+  M.pages.Talks = Talks;
+  M.talks = {all, stateOf, dueFor, matches, add, logTalk, toPipeline, bringProspects, readDate, lastSpoke};
 })();
 
 /* ==== 28-workspace.js ==== */
@@ -24388,7 +25073,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
                 const comp = (M.clients && M.clients.completeness) ? M.clients.completeness(c) : {filled: 0, total: 3};
                 const openN = (M.clients && M.clients.openTaskCount) ? M.clients.openTaskCount(ctx, r.id) : 0;
                 return html`<tr key=${r.id}>
-                  <td class="lead">${r.name}</td><td class="num" data-label="monthly">${U.inr(r.monthly)}</td>
+                  <td class="lead">${r.name}</td><td class="num" data-label="monthly">${r.kind === 'project' ? (r.fee ? U.inr(r.fee) + ' project' : 'project') : U.inr(r.monthly)}</td>
                   <td class="num" data-label="share">${r.share}%</td><td class="num" data-label="open tasks">${openN}</td>
                   <td class=${'num' + (comp.filled < comp.total ? ' flame-t' : '')} data-label="brain">${comp.filled} of ${comp.total}</td>
                 </tr>`;
@@ -24711,6 +25396,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <div style=${{marginTop: '10px'}}>
           <${UI.Check} label="Done needs a sign-off" checked=${f.signoff !== 'no'} onChange=${v => set('signoff', v ? 'yes' : 'no')}/>
           <div class="tiny ink62" style=${{marginTop: '4px'}}>On: a member marking their own work done sends it for sign-off; you or someone on the project ships it, and only then do the points land. Off: anyone can mark done, and each one shows up in your inbox as a flag.</div>
+        </div>
+      <//>
+
+      <${UI.Card} title="Characters" id="settings-characters">
+        <div class="small ink62">Everyone styles their own character under Me, Character. You can restyle or lock anyone's look under Admin, Characters.</div>
+        <div class="row" style=${{marginTop: '10px', gap: '8px'}}>
+          <${UI.Btn} kind="sec" sm=${true} onClick=${() => M.nav('#character')}>Style your character<//>
+          <${UI.Btn} kind="ghost" sm=${true} onClick=${() => M.nav('#office')}>Open the office<//>
         </div>
       <//>
 
@@ -25136,18 +25829,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- the section ---------- */
-  const TABS = {overview: 'overview', invoices: 'Invoices', expenses: 'Expenses', payroll: 'Payroll', letters: 'Letters', billing: 'billing'};
+  const TABS = {overview: 'overview', invoices: 'Invoices', statement: 'Statement', expenses: 'Expenses', payroll: 'Payroll', letters: 'Letters', billing: 'billing'};
   function Books({tab, id}) {
     const ctx = M.useCtx();
     const t = TABS[tab] ? tab : 'overview';
     if (!ctx.isOwner) return html`<div class="stack"><${UI.PageHead} micro="the books" title="Books"/><${UI.Empty} text="The books are the owner's alone."/></div>`;
-    const Page = t === 'invoices' ? M.pages.Invoices : t === 'expenses' ? M.pages.Expenses : t === 'payroll' ? M.pages.Payroll : t === 'letters' ? M.pages.Letters : null;
+    const Page = t === 'invoices' ? M.pages.Invoices : t === 'statement' ? M.pages.Statement : t === 'expenses' ? M.pages.Expenses : t === 'payroll' ? M.pages.Payroll : t === 'letters' ? M.pages.Letters : null;
     return html`<div class="stack" style=${{gap: '20px'}}>
       <header class="hero ink">
         <div>
           <${UI.Micro}>${U.dateLabel(new Date(ctx.now))}<//>
           <h1 class="hi">Books</h1>
-          <div class="sub" style=${{marginTop: '10px'}}>Invoices, expenses, payroll and letters. Yours alone.</div>
+          <div class="sub" style=${{marginTop: '10px'}}>Invoices, bank statements, expenses, payroll and letters. Yours alone.</div>
         </div>
       </header>
       <${M.SectionTabs} section="books" active=${t}/>
@@ -26676,7 +27369,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     </div>`;
   }
 
-  M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf};
+  M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf,
+    /* v37: the Bank tab (48-statement.js) reads statements with the same helpers */
+    parseXlsx, amt, vendorKey, keywordCat, guessMethod, toBase64};
   M.pages.Expenses = Expenses;
 })();
 
@@ -27826,6 +28521,433 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   M.booksWatch = {retainerDrafts, draftRetainer, recurringDue, inboxItems, periodOf};
   M.parts.BooksWatch = BooksWatch;
+})();
+
+/* ==== 48-statement.js ==== */
+/* module: statement. The Bank tab in Books. A current account statement (a month, a quarter or a whole financial
+   year) comes in as CSV, XLSX, PDF or a photo. Every line is read: money in is the business's income, money out is
+   spent. Lines are grouped by party (every Starbucks line under Starbucks, Soho House and Junco Hospitality under one
+   name), each party is named once by AI with a kind, a category and one line on what it is, and the owner's own
+   edits to a party always win. Statements live in statements/<id> (rows as short arrays, split into <id>~2 and on
+   when a document grows past 200 KB); what each party is lives in statements/_parties. Owner only. */
+'use strict';
+(function () {
+  const {html, React, U, UI, icons} = M;
+  const {useState, useMemo} = React;
+
+  const PARTIES = 'statements/_parties';
+  const DOC_MAX = 200000;          /* a statement document stays well under the server's 256 KiB */
+  const NARR_MAX = 80;
+  const WINDOW = 2;                /* PDF pages read per call */
+  const PAR = 3;                   /* calls in flight at once */
+  const PAGE_CAP = 80;
+  const PARTY_BATCH = 60;          /* parties named per AI call */
+  const OUT_CATS = ['Salaries', 'Rent', 'Software and tools', 'Freelancers', 'Production', 'Travel', 'Meals and client', 'Marketing', 'Professional fees', 'Bank and taxes', 'Equipment', 'Other'];
+  const IN_CATS = ['Client payment', 'Refund', 'Interest', 'Own funds', 'Other income'];
+  const KINDS = [{v: 'income', label: 'Income'}, {v: 'expense', label: 'Expense'}, {v: 'transfer', label: 'Own transfer'}, {v: 'refund', label: 'Refund'}, {v: 'tax', label: 'Tax'}, {v: 'salary', label: 'Salary'}];
+  const KIND_OF = {}; KINDS.forEach(k => { KIND_OF[k.v] = k.label; });
+  const hasApi = () => typeof window.M360_API === 'function';
+  const X = () => M.expenses;
+  const num = v => { const n = Number(String(v == null ? '' : v).replace(/[^0-9.-]/g, '')); return Number.isFinite(n) ? n : 0; };
+  const r2 = n => Math.round(n * 100) / 100;
+
+  /* ---------- parties: one key per business ---------- */
+  const SUFFIX = /(private|pvt|limited|ltd|llp|india|inc|co|company|corp|the|and)$/;
+  function keyOf(name) {
+    let k = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    k = k.replace(/\d{3,}$/, '');
+    for (let i = 0; i < 3; i++) { const k2 = k.replace(SUFFIX, ''); if (k2 === k || k2.length < 3) break; k = k2; }
+    return k || 'unknown';
+  }
+  const partyName = r => {
+    const v = String(r.vendor || '').trim();
+    return v || (X() ? X().cleanVendor(r.desc) : '') || 'Unknown';
+  };
+  /* "starbuckscoffee" joins "starbucks": a longer key that starts with a shorter one of 5 or more letters */
+  function aliasMap(keys) {
+    const sorted = Array.from(new Set(keys)).sort((a, b) => a.length - b.length || a.localeCompare(b));
+    const out = {};
+    const roots = [];
+    for (const k of sorted) {
+      const root = roots.find(r => r.length >= 5 && k.startsWith(r));
+      if (root) out[k] = root; else { roots.push(k); out[k] = k; }
+    }
+    return out;
+  }
+
+  /* ---------- reading the store ---------- */
+  function readAll(ctx) {
+    const map = (ctx.coll.statements && ctx.coll.statements.map) || {};
+    const book = (map._parties && map._parties.map) || {};
+    const stm = {};
+    for (const id of Object.keys(map)) {
+      if (id === '_parties') continue;
+      const d = map[id] || {};
+      const sid = d.of || id;
+      if (!stm[sid]) stm[sid] = {id: sid, rows: []};
+      if (!d.of) Object.assign(stm[sid], {name: d.name, bank: d.bank, from: d.from, to: d.to, at: d.at, n: d.n, parts: d.parts});
+      stm[sid].rows = stm[sid].rows.concat((d.rows || []).map(a => ({sid, date: a[0], key: a[1], out: num(a[2]), inn: num(a[3]), desc: a[4] || '', name: a[5] || ''})));
+    }
+    const list = Object.values(stm).filter(s => s.name).sort((a, b) => String(b.to || '').localeCompare(String(a.to || '')) || (b.at || 0) - (a.at || 0));
+    return {list, book};
+  }
+  /* the party a key resolves to, following merges the owner made */
+  function infoOf(book, key) {
+    let k = key, seen = 0;
+    while (book[k] && book[k].into && book[k].into !== k && seen++ < 6) k = book[k].into;
+    return {key: k, ...(book[k] || {})};
+  }
+
+  /* group rows into parties for one direction, the label deciding the group (two keys AI named alike join) */
+  function groups(rows, book, dir) {
+    const g = {};
+    for (const r of rows) {
+      const amount = dir === 'in' ? r.inn : r.out;
+      if (!(amount > 0)) continue;
+      const p = infoOf(book, r.key);
+      const label = p.label || r.name || p.key;
+      const gid = label.toLowerCase().replace(/[^a-z0-9]+/g, '') || p.key;
+      if (!g[gid]) g[gid] = {gid, label, key: p.key, keys: new Set(), kind: p.kind || (dir === 'in' ? 'income' : 'expense'), cat: p.cat || '', what: p.what || '', by: p.by || '', total: 0, n: 0, rows: []};
+      const x = g[gid];
+      x.keys.add(p.key); x.total += amount; x.n++; x.rows.push(r);
+      if (!x.cat && p.cat) x.cat = p.cat;
+      if (!x.what && p.what) x.what = p.what;
+      if (p.by === 'you') { x.kind = p.kind || x.kind; x.cat = p.cat || x.cat; x.what = p.what || x.what; x.by = 'you'; }
+    }
+    return Object.values(g).sort((a, b) => b.total - a.total);
+  }
+  const counted = x => x.kind !== 'transfer';
+
+  /* ---------- reading a file ---------- */
+  async function pdfPages(buf) {
+    try {
+      const s = new TextDecoder('latin1').decode(new Uint8Array(buf));
+      let best = 0;
+      for (const m of s.matchAll(/\/Type\s*\/Pages\b[^>]*?\/Count\s+(\d+)|\/Count\s+(\d+)[^>]*?\/Type\s*\/Pages\b/g)) best = Math.max(best, Number(m[1] || m[2]) || 0);
+      if (!best) best = (s.match(/\/Type\s*\/Page\b(?!s)/g) || []).length;
+      return best > 0 && best <= 400 ? best : 0;
+    } catch (e) { return 0; }
+  }
+  async function readFile(file, say) {
+    const x = X();
+    const lower = file.name.toLowerCase();
+    let rows = null;
+    if (lower.endsWith('.csv') || lower.endsWith('.txt') || /csv|text\/plain/.test(file.type || '')) {
+      const text = await file.text();
+      rows = x.linesFromTable(x.parseDelimited(text.replace(/^﻿/, ''), x.sniffDelim(text)));
+    } else if (lower.endsWith('.xlsx') || lower.endsWith('.xlsm')) {
+      try { rows = x.linesFromTable(await x.parseXlsx(await file.arrayBuffer())); } catch (e) { rows = null; }
+    }
+    if (rows && rows.length) return rows;
+    if (!hasApi()) throw new Error(lower.endsWith('.pdf') ? 'A PDF statement reads on the team site. Here, upload the CSV or XLSX export.' : 'These columns are not ones the page can read.');
+    if (file.size > 4 * 1024 * 1024) throw new Error('Statements up to 4 MB. Split a long year into two files.');
+    const data = await x.toBase64(file);
+    const type = file.type || (lower.endsWith('.pdf') ? 'application/pdf' : '');
+    const isPdf = /pdf/.test(type) || lower.endsWith('.pdf');
+    const call = (from, to) => window.M360_API('bookstatement', {name: file.name, type, data, pageFrom: from, pageTo: to});
+    if (!isPdf) { say('Reading the statement'); const r = await call(0, 0); return (r && r.rows) || []; }
+    let pages = await pdfPages(await file.arrayBuffer());
+    const got = {};
+    say(pages ? 'Reading pages 1 to ' + Math.min(WINDOW, pages) + ' of ' + pages : 'Reading the first pages');
+    const first = await call(1, WINDOW);
+    got[1] = (first && first.rows) || [];
+    if (!pages) pages = Math.min(PAGE_CAP, Number(first && first.pages) || 0);
+    if (pages) {
+      const starts = [];
+      for (let p = 1 + WINDOW; p <= Math.min(pages, PAGE_CAP); p += WINDOW) starts.push(p);
+      let done = WINDOW;
+      for (let i = 0; i < starts.length; i += PAR) {
+        const batch = starts.slice(i, i + PAR);
+        say('Reading pages ' + batch[0] + ' to ' + Math.min(pages, batch[batch.length - 1] + WINDOW - 1) + ' of ' + pages);
+        const res = await Promise.all(batch.map(p => call(p, Math.min(pages, p + WINDOW - 1)).catch(e => ({err: e}))));
+        res.forEach((r, j) => { if (r && r.err) throw r.err; got[batch[j]] = (r && r.rows) || []; });
+        done += batch.length * WINDOW;
+      }
+    } else {
+      /* no count anywhere: windows until one comes back empty */
+      for (let p = 1 + WINDOW; p <= PAGE_CAP; p += WINDOW) {
+        say('Reading pages ' + p + ' to ' + (p + WINDOW - 1));
+        const r = await call(p, p + WINDOW - 1);
+        const rows2 = (r && r.rows) || [];
+        if (!rows2.length) break;
+        got[p] = rows2;
+      }
+    }
+    return Object.keys(got).map(Number).sort((a, b) => a - b).reduce((all, p) => all.concat(got[p]), [])
+      .map(r => ({date: x.parseDate(r.date) || '', vendor: r.vendor || '', desc: r.desc || '', amount: num(r.amount), credit: num(r.credit), ref: r.ref || ''}));
+  }
+
+  /* ---------- naming the parties ---------- */
+  async function nameParties(ctx, parties, say) {
+    const out = {};
+    if (!parties.length) return out;
+    const ask = async batch => {
+      const payload = batch.map(p => ({name: p.name, samples: p.samples, out: Math.round(p.out), in: Math.round(p.inn)}));
+      if (hasApi()) return ((await window.M360_API('bookparties', {parties: payload})) || {}).parties || [];
+      /* the claude.ai page: the same question through the page's AI */
+      const res = await M.ai.json(ctx, 'You help the owner of an Indian marketing agency read their bank statement. For each party give a clean label (the same label for two names that are one business), kind (income, expense, transfer, refund, tax or salary), category (for money out one of ' + OUT_CATS.join(', ') + '; for money in one of ' + IN_CATS.join(', ') + ') and what (one plain sentence, at most 12 words). Reply with only a JSON array of {"label","kind","category","what"} in the same order.\n\n' + JSON.stringify(payload), {cache: false});
+      return Array.isArray(res) ? res : [];
+    };
+    for (let i = 0; i < parties.length; i += PARTY_BATCH) {
+      const batch = parties.slice(i, i + PARTY_BATCH);
+      say('Working out who ' + (i + 1) + ' to ' + (i + batch.length) + ' of ' + parties.length + ' parties are');
+      let res = [];
+      try { res = await ask(batch); } catch (e) { if (e && M.ai.isDown(e.code)) throw e; res = []; }
+      batch.forEach((p, j) => {
+        const a = res[j] || {};
+        const kinds = KINDS.map(k => k.v);
+        const cats = OUT_CATS.concat(IN_CATS);
+        out[p.key] = {label: String(a.label || '').trim().slice(0, 60) || p.name, kind: kinds.includes(a.kind) ? a.kind : (p.inn > p.out ? 'income' : 'expense'),
+          cat: cats.includes(a.category) ? a.category : '', what: String(a.what || '').trim().slice(0, 120), by: 'ai', at: Date.now()};
+      });
+    }
+    return out;
+  }
+  /* what the page knows without AI: the keyword categories for money out, client payment for money in */
+  const guess = p => ({label: p.name, kind: p.inn > p.out ? 'income' : 'expense', cat: p.inn > p.out ? 'Client payment' : ((X() && X().keywordCat(p.name, p.samples[0])) || ''), what: '', by: 'page', at: Date.now()});
+
+  /* ---------- saving ---------- */
+  function packs(rows) {
+    const out = [];
+    let cur = [], size = 0;
+    for (const r of rows) {
+      const a = [r.date, r.key, r.out, r.inn, String(r.desc || '').replace(/\s+/g, ' ').slice(0, NARR_MAX), r.name.slice(0, 40)];
+      const n = JSON.stringify(a).length + 1;
+      if (size + n > DOC_MAX && cur.length) { out.push(cur); cur = []; size = 0; }
+      cur.push(a); size += n;
+    }
+    if (cur.length || !out.length) out.push(cur);
+    return out;
+  }
+
+  /* ---------- the upload ---------- */
+  function Upload({ctx, have, book}) {
+    const [busy, setBusy] = useState(false);
+    const [line, setLine] = useState('');
+    const [bank, setBank] = useState('');
+    const pick = async e => {
+      const file = e.target.files && e.target.files[0]; e.target.value = '';
+      if (!file || busy) return;
+      setBusy(true); setLine('Reading ' + file.name);
+      try {
+        const raw = (await readFile(file, setLine)).filter(r => r.date && (num(r.amount) > 0 || num(r.credit) > 0));
+        if (!raw.length) throw new Error('Nothing readable in that file.');
+        /* a line already in another statement stays out, so overlapping months never count twice */
+        const seen = new Set(have.map(r => r.date + '|' + r.out + '|' + r.inn + '|' + keyOf(r.desc).slice(0, 24)));
+        const named = raw.map(r => ({date: r.date, name: partyName(r), desc: r.desc || '', out: r2(num(r.amount)), inn: r2(num(r.amount) > 0 ? 0 : num(r.credit))}));
+        const fresh = named.filter(r => !seen.has(r.date + '|' + r.out + '|' + r.inn + '|' + keyOf(r.desc).slice(0, 24)));
+        const skipped = named.length - fresh.length;
+        if (!fresh.length) throw new Error('Every line in that file is already here.');
+        const alias = aliasMap(fresh.map(r => keyOf(r.name)).concat(Object.keys(book)));
+        for (const r of fresh) r.key = alias[keyOf(r.name)] || keyOf(r.name);
+        /* the parties no one has named yet */
+        const byKey = {};
+        for (const r of fresh) {
+          if (book[r.key]) continue;
+          const p = byKey[r.key] || (byKey[r.key] = {key: r.key, name: r.name, samples: [], out: 0, inn: 0});
+          if (p.samples.length < 2 && r.desc) p.samples.push(r.desc);
+          p.out += r.out; p.inn += r.inn;
+        }
+        const unknown = Object.values(byKey).sort((a, b) => (b.out + b.inn) - (a.out + a.inn));
+        let namedParties = {}, note = '';
+        try { namedParties = await nameParties(ctx, unknown, setLine); }
+        catch (err) { note = ' AI did not answer, so parties keep the bank\'s names for now.'; }
+        const patch = {};
+        for (const p of unknown) patch[p.key] = namedParties[p.key] || guess(p);
+        const dates = fresh.map(r => r.date).sort();
+        const id = U.uid();
+        const parts = packs(fresh);
+        const now = Date.now();
+        setLine('Saving ' + fresh.length + ' lines');
+        if (Object.keys(patch).length) await ctx.W.merge(PARTIES, {map: patch, updated: now});
+        for (let i = 1; i < parts.length; i++) await ctx.W.set('statements/' + id + '~' + (i + 1), {of: id, part: i + 1, rows: parts[i], at: now});
+        await ctx.W.set('statements/' + id, {name: file.name.slice(0, 80), bank: bank.trim().slice(0, 40), from: dates[0], to: dates[dates.length - 1], n: fresh.length, parts: parts.length, rows: parts[0], at: now});
+        setLine('Read ' + fresh.length + (fresh.length === 1 ? ' line' : ' lines') + ' from ' + U.fmtDate(dates[0]) + ' to ' + U.fmtDate(dates[dates.length - 1]) + '.' + (skipped ? ' ' + skipped + ' already here stayed out.' : '') + note);
+        M.toast('Statement read');
+      } catch (err) {
+        setLine(err && M.ai.isDown(err.code) ? M.ai.errLine(err.code, M.ai.why(err)) : (err && err.message) || 'Could not read that file.');
+      }
+      setBusy(false);
+    };
+    return html`<${UI.Card} title="Upload a statement" id="stm-upload">
+      <div class="stack tight">
+        <div class="small">A month, a quarter or the whole financial year from your current account. CSV and XLSX read right here; a PDF or a photo is read by AI on the team site, two pages at a time.</div>
+        <div class="row" style=${{gap: '10px'}}>
+          <input class="input" style=${{maxWidth: '220px'}} id="stm-bank" placeholder="Account, for example Axis current" value=${bank} onInput=${e => setBank(e.target.value)}/>
+          <label class=${'btn' + (busy ? ' disabled' : '')}>${icons.upload ? html`<${icons.upload}/>` : null}${busy ? 'Reading' : 'Choose a file'}<input type="file" id="stm-file" disabled=${busy} accept=".csv,.xlsx,.xlsm,.pdf,.png,.jpg,.jpeg,text/csv,application/pdf,image/png,image/jpeg,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style=${{display: 'none'}} onChange=${pick}/></label>
+        </div>
+        ${line ? html`<div class="small ink62" id="stm-line">${line}</div>` : null}
+        <div class="tiny ink62">Money in counts as income. Money out is grouped by who it went to. Own transfers are listed and left out of both totals.</div>
+      </div>
+    <//>`;
+  }
+
+  /* ---------- one party, edited ---------- */
+  function PartyDrawer({ctx, g, dir, all, onClose}) {
+    const [f, setF] = useState({label: g.label, kind: g.kind, cat: g.cat, what: g.what, into: ''});
+    const [busy, setBusy] = useState(false);
+    const set = (k, v) => setF(x => ({...x, [k]: v}));
+    const cats = (dir === 'in' ? IN_CATS : OUT_CATS).concat(dir === 'in' ? OUT_CATS : IN_CATS);
+    const others = all.filter(x => x.gid !== g.gid);
+    const save = async () => {
+      if (busy) return;
+      setBusy(true);
+      const now = Date.now();
+      const patch = {};
+      if (f.into) {
+        const target = others.find(x => x.gid === f.into);
+        for (const k of g.keys) if (target && k !== target.key) patch[k] = {into: target.key, by: 'you', at: now};
+      } else {
+        for (const k of g.keys) patch[k] = {label: f.label.trim().slice(0, 60) || g.label, kind: f.kind, cat: f.cat, what: f.what.trim().slice(0, 120), into: '', by: 'you', at: now};
+      }
+      try { await ctx.W.merge(PARTIES, {map: patch, updated: now}); M.toast(f.into ? 'Merged' : 'Saved'); onClose(); } catch (e) { setBusy(false); }
+    };
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${g.label}
+      footer=${html`<div class="row between grow"><span class="small ink62">${g.n} ${g.n === 1 ? 'line' : 'lines'}, <span class="num">${U.inr(g.total)}</span></span><${UI.Btn} id="stm-party-save" disabled=${busy} onClick=${save}>${f.into ? 'Merge into it' : 'Save'}<//></div>`}>
+      <div class="stack" id="stm-party">
+        <${UI.Input} label="name" id="stm-party-label" value=${f.label} onChange=${v => set('label', v)}/>
+        <${UI.Select} label="kind" value=${f.kind} onChange=${v => set('kind', v)} options=${KINDS}/>
+        <${UI.Select} label="category" value=${f.cat} onChange=${v => set('cat', v)} options=${[{v: '', label: 'Not set'}].concat(cats.map(c => ({v: c, label: c})))}/>
+        <${UI.Input} label="what this is" id="stm-party-what" value=${f.what} onChange=${v => set('what', v)} placeholder="One line"/>
+        ${others.length ? html`<${UI.Select} label="same business as" hint="Every line moves under the party you pick, now and on the next upload" value=${f.into} onChange=${v => set('into', v)}
+          options=${[{v: '', label: 'Keep it apart'}].concat(others.slice(0, 200).map(x => ({v: x.gid, label: x.label})))}/>` : null}
+        <div class="stack tight">
+          <${UI.Micro} plain=${true}>the lines<//>
+          ${g.rows.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map((r, i) => html`<div class="listrow" key=${i} style=${{padding: '6px 0'}}>
+            <span class="tiny num ink62" style=${{minWidth: '84px'}}>${U.fmtDate(r.date)}</span>
+            <span class="grow tiny" style=${{overflowWrap: 'anywhere'}}>${r.desc}</span>
+            <span class="num small">${U.inr(dir === 'in' ? r.inn : r.out)}</span>
+          </div>`)}
+        </div>
+      </div>
+    <//>`;
+  }
+
+  /* ---------- a table of parties ---------- */
+  function PartyTable({id, title, list, dir, total, onOpen}) {
+    const [open, setOpen] = useState({});
+    const [more, setMore] = useState(false);
+    const shown = more ? list : list.slice(0, 25);
+    return html`<${UI.Card} title=${title} id=${id} action=${html`<span class="num small">${U.inr(total)}</span>`}>
+      ${list.length ? html`<div class="tbl-wrap"><table class="tbl stm-tbl">
+        <thead><tr><th>party</th><th class="num">lines</th><th class="num">total</th><th class="num">share</th><th>category</th><th>what it is</th></tr></thead>
+        <tbody>${shown.map(g => html`<${React.Fragment} key=${g.gid}>
+          <tr class="stm-row" data-party=${g.label}>
+            <td><button type="button" class="linky" onClick=${() => setOpen(o => ({...o, [g.gid]: !o[g.gid]}))}>${g.label}</button>${g.kind !== (dir === 'in' ? 'income' : 'expense') ? html` <${UI.Pill} kind=${g.kind === 'transfer' ? undefined : 'warm'}>${KIND_OF[g.kind] || g.kind}<//>` : null}</td>
+            <td class="num">${g.n}</td>
+            <td class="num"><b>${U.inr(g.total)}</b></td>
+            <td class="num ink62">${counted(g) && total ? U.pct(g.total, total) + '%' : ''}</td>
+            <td>${g.cat || html`<span class="ink62">not set</span>`}</td>
+            <td class="small"><span class="ink62">${g.what}</span> <button type="button" class="linky tiny" onClick=${() => onOpen(g, dir)}>Edit</button></td>
+          </tr>
+          ${open[g.gid] ? g.rows.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map((r, i) => html`<tr key=${g.gid + i} class="stm-line">
+            <td class="tiny ink62 num">${U.fmtDate(r.date)}</td><td></td><td class="num small">${U.inr(dir === 'in' ? r.inn : r.out)}</td><td></td><td colspan="2" class="tiny ink62" style=${{overflowWrap: 'anywhere'}}>${r.desc}</td>
+          </tr>`) : null}
+        <//>`)}</tbody>
+      </table></div>
+      ${list.length > 25 ? html`<button type="button" class="linky small" style=${{marginTop: '10px'}} onClick=${() => setMore(!more)}>${more ? 'Show the top 25' : 'Show all ' + list.length}</button>` : null}`
+      : html`<${UI.Empty} text=${dir === 'in' ? 'No money in for this view.' : 'No money out for this view.'}/>`}
+    <//>`;
+  }
+
+  /* ---------- the page ---------- */
+  function Statement() {
+    const ctx = M.useCtx();
+    const [pick, setPick] = useState('all');
+    const [q, setQ] = useState('');
+    const [edit, setEdit] = useState(null);
+    const [adding, setAdding] = useState(false);
+    const {list, book} = useMemo(() => readAll(ctx), [ctx.coll.statements]);
+    const allRows = useMemo(() => list.reduce((a, s) => a.concat(s.rows), []), [list]);
+    if (!ctx.isOwner) return html`<${UI.Empty} text="The books are the owner's alone."/>`;
+    const cur = pick === 'all' ? null : list.find(s => s.id === pick) || null;
+    const base = cur ? cur.rows : allRows;
+    const ql = q.trim().toLowerCase();
+    const rows = !ql ? base : base.filter(r => {
+      const p = infoOf(book, r.key);
+      return [p.label, r.name, r.desc, p.cat, p.what, KIND_OF[p.kind]].some(t => String(t || '').toLowerCase().includes(ql));
+    });
+    const ins = groups(rows, book, 'in'), outs = groups(rows, book, 'out');
+    const inTotal = ins.filter(counted).reduce((s, g) => s + g.total, 0);
+    const outTotal = outs.filter(counted).reduce((s, g) => s + g.total, 0);
+    const moved = ins.concat(outs).filter(g => !counted(g)).reduce((s, g) => s + g.total, 0);
+    const byCat = {};
+    for (const g of outs.filter(counted)) byCat[g.cat || 'Not set'] = (byCat[g.cat || 'Not set'] || 0) + g.total;
+    const cats = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]);
+    const span = rows.length ? (() => { const d = rows.map(r => r.date).sort(); return U.fmtDate(d[0]) + ' to ' + U.fmtDate(d[d.length - 1]); })() : '';
+
+    /* the expense lines of this view into the Expenses ledger, once each */
+    const toExpenses = async () => {
+      if (adding) return;
+      setAdding(true);
+      const x = X(), b = M.books;
+      const have = new Set(b.expenses(ctx).map(e => e.date + '|' + num(e.amount) + '|' + x.vendorKey(e.vendor)));
+      const now = Date.now();
+      const byMonth = {};
+      let n = 0;
+      for (const g of outs) {
+        if (!counted(g)) continue;
+        for (const r of g.rows) {
+          const k = r.date + '|' + r.out + '|' + x.vendorKey(g.label);
+          if (have.has(k)) continue;
+          have.add(k);
+          const mid = r.date.slice(0, 7);
+          (byMonth[mid] = byMonth[mid] || {})[U.uid()] = {date: r.date, vendor: g.label, category: OUT_CATS.includes(g.cat) ? g.cat : (g.kind === 'salary' ? 'Salaries' : g.kind === 'tax' ? 'Bank and taxes' : 'Other'),
+            desc: r.desc, amount: r.out, gstInput: 0, method: x.guessMethod(r.desc), paid: true, recurring: '', receipt: null, source: 'statement', ref: '', at: now, updatedAt: now};
+          n++;
+        }
+      }
+      try {
+        for (const mid of Object.keys(byMonth)) await ctx.W.merge('expenses/' + mid, {rows: byMonth[mid], updated: now});
+        M.toast(n ? 'Added ' + n + (n === 1 ? ' expense' : ' expenses') + ' to the books' : 'Every line is already in Expenses');
+      } catch (e) { /* the write toasts */ }
+      setAdding(false);
+    };
+    const remove = async s => {
+      for (let i = 2; i <= (s.parts || 1); i++) await ctx.W.del('statements/' + s.id + '~' + i);
+      await ctx.W.del('statements/' + s.id);
+      if (pick === s.id) setPick('all');
+      M.toast('Statement removed');
+    };
+
+    return html`<div class="stack" style=${{gap: '16px'}} id="stm-page">
+      <${UI.PageHead} micro=${list.length ? list.length + (list.length === 1 ? ' statement' : ' statements') + (span ? ', ' + span : '') : 'your current account'} title="Bank"/>
+      <${Upload} ctx=${ctx} have=${allRows} book=${book}/>
+      ${list.length ? html`<${React.Fragment}>
+        <div class="row between" style=${{gap: '10px'}}>
+          <select class="input" id="stm-pick" style=${{maxWidth: '360px'}} value=${pick} aria-label="Statement" onChange=${e => setPick(e.target.value)}>
+            <option value="all">Every statement</option>
+            ${list.map(s => html`<option key=${s.id} value=${s.id}>${(s.bank ? s.bank + ', ' : '') + U.fmtDate(s.from) + ' to ' + U.fmtDate(s.to)}</option>`)}
+          </select>
+          <input class="input" id="stm-q" type="search" style=${{maxWidth: '280px'}} placeholder="Search party, narration, category" value=${q} onInput=${e => setQ(e.target.value)}/>
+        </div>
+        <div class="kpi-rail" id="stm-kpis">
+          <${UI.Card}><div class="kpi"><span class="v num" id="stm-in">${U.inr(Math.round(inTotal))}</span><span class="l">money in</span></div><//>
+          <${UI.Card}><div class="kpi"><span class="v num" id="stm-out">${U.inr(Math.round(outTotal))}</span><span class="l">money out</span></div><//>
+          <${UI.Card}><div class="kpi"><span class=${'v num' + (inTotal - outTotal < 0 ? ' flame-t' : '')} id="stm-net">${U.inr(Math.round(inTotal - outTotal))}</span><span class="l">net</span></div><//>
+          ${moved ? html`<${UI.Card}><div class="kpi"><span class="v num">${U.inr(Math.round(moved))}</span><span class="l">own transfers, left out</span></div><//>` : null}
+        </div>
+        <${PartyTable} id="stm-ins" title="Money in, by party" list=${ins} dir="in" total=${inTotal} onOpen=${(g, d) => setEdit({g, d})}/>
+        <${PartyTable} id="stm-outs" title="Money out, by party" list=${outs} dir="out" total=${outTotal} onOpen=${(g, d) => setEdit({g, d})}/>
+        <div class="grid2">
+          <${UI.Card} title="Money out, by category" id="stm-cats">
+            ${cats.length ? cats.map(c => html`<div class="listrow" key=${c}><span class="grow">${c}</span><span class="tiny ink62" style=${{minWidth: '42px', textAlign: 'right'}}>${U.pct(byCat[c], outTotal)}%</span><span class="num" style=${{fontWeight: 500, minWidth: '110px', textAlign: 'right'}}>${U.inr(Math.round(byCat[c]))}</span></div>`) : html`<${UI.Empty} text="Nothing spent in this view."/>`}
+          <//>
+          <${UI.Card} title="Into the books" id="stm-actions">
+            <div class="stack tight">
+              <div class="small">Adds every money out line in this view to Expenses, filed under its party and category. A line already there stays out.</div>
+              <div class="row"><${UI.Btn} kind="sec" id="stm-to-exp" disabled=${adding || !outs.length} onClick=${toExpenses}>Add to Expenses<//></div>
+              ${cur ? html`<div class="row between" style=${{marginTop: '8px'}}><span class="tiny ink62">${cur.name}, ${cur.n || cur.rows.length} lines</span><${UI.ConfirmBtn} label="Tap again to remove" onConfirm=${() => remove(cur)}>Remove this statement<//></div>` : html`<div class="tiny ink62">Pick one statement above to remove it.</div>`}
+            </div>
+          <//>
+        </div>
+      <//>` : html`<${UI.Empty} text="No statement yet. Upload one above and every line lands here, grouped by party."/>`}
+      ${edit ? html`<${PartyDrawer} ctx=${ctx} g=${edit.g} dir=${edit.d} all=${edit.d === 'in' ? ins : outs} onClose=${() => setEdit(null)}/>` : null}
+    </div>`;
+  }
+
+  M.statement = {keyOf, aliasMap, groups, readAll, infoOf, pdfPages};
+  M.pages.Statement = Statement;
 })();
 
 /* ==== 49-handshake.js ==== */
@@ -29253,7 +30375,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const pm = ctx.isFounder && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
     const sh = ctx.isFounder && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
     const mrr = sh.reduce((n, r) => n + (r.monthly || 0), 0);
-    const t = tab || 'clients';
+    const t = tab || 'talks';
+    /* the older views still open by their hash; they sit behind one quiet line under the tabs */
+    const older = [{h: '#prospects', l: 'Prospects'}, {h: '#crm', l: 'CRM table'}, {h: '#handshake', l: 'LinkedIn desk'}, {h: '#base', l: 'Database'}];
     return html`<div class="stack" style=${{gap: '20px'}}>
       <${M.SectionHero} title="Accounts">
         <div class="row" style=${{gap: '8px'}}>
@@ -29264,7 +30388,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </div>
       <//>
       <${M.SectionTabs} section="accounts" active=${t}/>
-      ${t === 'pipeline' ? html`<${Embed} page="Pitches"/>` : t === 'prospects' ? html`<${Embed} page="Prospects" id=${id}/>` : t === 'crm' && M.parts.CRM ? html`<${M.parts.CRM}/>` : t === 'handshake' ? html`<${Embed} page="Handshake"/>` : html`<${Embed} page="Clients"/>`}
+      ${t === 'talks' ? (M.pages.Talks ? html`<${Embed} page="Talks" id=${id}/>` : null)
+        : t === 'pipeline' ? html`<${Embed} page=${M.pages.Proposals ? 'Proposals' : 'Pitches'}/>` : t === 'prospects' ? html`<${Embed} page="Prospects" id=${id}/>` : t === 'crm' && M.parts.CRM ? html`<${M.parts.CRM}/>` : t === 'handshake' ? html`<${Embed} page="Handshake"/>` : html`<${Embed} page="Clients" id=${id}/>`}
+      <div class="row tiny sub" style=${{gap: '14px'}} id="accounts-older">
+        <span>More tools</span>
+        ${older.map(o => html`<button key=${o.h} type="button" class="linky tiny" onClick=${() => M.nav(o.h)}>${o.l}</button>`)}
+      </div>
     </div>`;
   }
 
@@ -29362,7 +30491,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${t === 'profile' && M.parts.ProfileCard ? html`<${UI.Fold} title="Your profile" summary="photo, pronouns, city, bio, links, birthday" id="fold-profile"><${M.parts.ProfileCard}/><//>` : null}
       ${t === 'leave' ? html`<${Embed} page="Leave"/>` : t === 'handbook' ? html`<${Embed} page="Handbook" id=${id}/>` : t === 'notes' ? html`<${Embed} page="Notes" id=${id}/>`
         : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>` : t === 'trophies' ? (M.parts.Trophies ? html`<${M.parts.Trophies}/>` : null)
-        : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
+        : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null)
+        : t === 'character' ? (M.pages.Character ? html`<${Embed} page="Character"/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
       ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="your character, look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
       ${t === 'profile' && M.parts.BuddyPrefs ? html`<${M.parts.BuddyPrefs}/>` : null}
       ${t === 'profile' && M.parts.EmailCard ? html`<${UI.Fold} title="Your email" summary="for sign-in links" id="fold-email"><${M.parts.EmailCard}/><//>` : null}
@@ -33796,10 +34926,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       say: 'Chat. Rooms for the team, and direct messages that only the two of you see. At a name to pull someone in, at everyone for the whole team.'},
     {go: '#tasks', sel: '.main h1, .main .card', title: 'Work',
       say: 'Work. Your tasks board. Drag a task across as it moves. Projects, the calendar and reviews sit in the tabs above.'},
-    {go: '#clients', sel: '.main .card, .main h1', title: 'Accounts',
-      say: 'Accounts. Every client we serve. Open one and you get its brain, its people, its news and a meeting prep note.'},
-    {go: '#crm', sel: '#crm-card, .main .card', title: 'CRM',
-      say: 'CRM. Every company we touch on one line: its stage, its owner, its people, open pitches, tasks and the next step. Open a row and everything about that account is there.'},
+    {go: '#talks', sel: '#talk-who, .main .card', title: 'Accounts',
+      say: 'Accounts. Type who you spoke to, the company and what was said, and m360 reminds you on the follow-up date. The pipeline and the clients sit in the tabs above.'},
     {go: '#base', sel: '#base-q, .main .card', title: 'Base',
       say: 'Base is everyone we know. Search a name or a company here before you reach out, and add the people you talk to.'},
     {go: '#feed', sel: '.main .card, .main h1', title: 'Vibe',
@@ -35498,11 +36626,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       {k: 'calendar', label: 'Calendar', route: 'calendar', blurb: 'The month: due tasks and projects, leave, holidays and birthdays, all on one grid.'},
       {k: 'reviews', label: 'Reviews', route: 'reviews', blurb: 'Work waiting for a yes from anyone on the project: approve it or send it back with a note.', signal: ctx => { const n = M.reviews ? M.reviews.queue(ctx).filter(t => M.reviews.canReview(ctx, t)).length : 0; return n ? n + ' waiting on you' : ''; }},
       {k: 'week', label: 'The week', route: 'week', blurb: 'Monday\'s three outcomes for everyone and Friday\'s review, side by side.'}]},
-    {k: 'accounts', label: 'Accounts', icon: 'clients', route: 'accounts', blurb: 'Clients, the pipeline, every account we touch, and the LinkedIn desk.', tabs: [
-      {k: 'clients', label: 'Clients', route: 'clients', blurb: 'One page per client: memory, approvals, never-dos, links, the brain and the news.', signal: ctx => { const n = Object.values(ctx.coll.clients.map).filter(c => c && c.status === 'live').length; return n ? n + ' live' : ''; }},
-      {k: 'pipeline', label: 'Pipeline', route: 'pitches', blurb: 'Every pitch by stage with its next step and date; won ones become clients.', signal: ctx => { const n = Object.values(ctx.coll.pitches.map).filter(p => p && p.stage !== 'won' && p.stage !== 'lost').length; return n ? n + ' in play' : ''; }},
-      {k: 'crm', label: 'CRM', route: 'crm', blurb: 'Every account in one table: contacts, pitches, tasks, last touch and next step.'},
-      {k: 'handshake', label: 'Handshake', route: 'handshake', blurb: 'The LinkedIn DM desk: screenshots in, verified and written messages out, in five beats.', signal: ctx => { const n = M.handshake ? M.handshake.people(ctx).filter(p => p.state === 'ready').length : 0; return n ? n + ' ready to send' : ''; }}]},
+    {k: 'accounts', label: 'Accounts', icon: 'clients', route: 'accounts', blurb: 'Three lists: the people we are talking to, the proposals in the pipeline, and the clients we work for.', tabs: [
+      {k: 'talks', label: 'People', route: 'talks', blurb: 'Everyone we are in conversation with: name, company, what was said, when we spoke and when to follow up.', signal: ctx => { const n = M.talks ? M.talks.dueFor(ctx).length : 0; return n ? n + ' to follow up' : ''; }},
+      {k: 'pipeline', label: 'Pipeline', route: 'pitches', blurb: 'Every proposal in five columns: building, sent, waiting on them, won and lost.', signal: ctx => { const n = Object.values(ctx.coll.pitches.map).filter(p => p && p.stage !== 'won' && p.stage !== 'lost').length; return n ? n + ' in play' : ''; }},
+      {k: 'clients', label: 'Clients', route: 'clients', blurb: 'One page per client, retainer or project: memory, approvals, never-dos, links, the brain and the news.', signal: ctx => { const n = Object.values(ctx.coll.clients.map).filter(c => c && c.status === 'live').length; return n ? n + ' live' : ''; }}]},
     {k: 'vibe', label: 'Vibe', icon: 'feed', route: 'vibe', blurb: 'The team side: the feed, the crew, the pulse, the leaderboard and music.', tabs: [
       {k: 'feed', label: 'Feed', route: 'feed', blurb: 'Updates, wins, questions, polls, kudos and the founder\'s announcements.', signal: ctx => { const w = week(ctx); const n = (M.feed ? M.feed.stream(ctx) : []).filter(it => U.ymd(new Date(it.at)) >= w.from).length; return n ? n + ' this week' : ''; }},
       {k: 'crew', label: 'Crew', route: 'people', blurb: 'Everyone on the team, their profiles, pods and who is in today.', signal: ctx => ctx.activeMembers.length + ' people'},
@@ -37531,7 +38658,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- the sheet ---------- */
-  function CharacterSheet({uid, onClose}) {
+  function CharacterSheet({uid, onClose, inline}) {
     const ctx = M.useCtx();
     const C = M.cast;
     const who = uid || (ctx && ctx.uid);
@@ -37570,6 +38697,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           if (r.locked) await writeLocks(ctx, {[who]: {look: {...look, pic: 'auto'}, at}});
           M.toast('Saved. Their character shows the new look.');
         }
+        if (inline) touched.current = false;
         if (onClose) onClose();
       } catch (e) { /* the write toasted */ }
       setBusy(false);
@@ -37582,8 +38710,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       <span class="grow"/>
       <${UI.Btn} id="cast-save" disabled=${busy || !dirty} onClick=${save}>Save character<//>
     </div>`;
-    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${own ? 'Style your character' : (name || 'Style your character')} footer=${footer}>
-      <div class="cast-sheet" id="cast-sheet" data-uid=${who} data-ro=${ro ? '1' : '0'}>
+    const body = html`<div class="cast-sheet" id="cast-sheet" data-uid=${who} data-ro=${ro ? '1' : '0'} data-inline=${inline ? '1' : '0'}>
         ${own && !ro ? html`<div class="small ink62">Pick what feels like you. You can change it any time.</div>` : own ? null : html`<${UI.Micro}>character<//>`}
         ${note ? html`<div class="cast-note small" id="cast-note">${note}</div>` : null}
         <div class="cast-preview">
@@ -37595,8 +38722,74 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </div>
         <${UI.Seg} sm=${true} ariaLabel="Character parts" options=${TABS} value=${tab} onChange=${setTab}/>
         <${Panel} tab=${tab} draft=${draft} founder=${founder} set=${set} ro=${ro}/>
-      </div>
-    <//>`;
+      </div>`;
+    /* v37: Me, Character shows the sheet on the page itself */
+    if (inline) return html`<${UI.Card} id="character-page-card" title=${own ? 'Style your character' : (name || 'Style your character')}>${body}${footer}<//>`;
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${own ? 'Style your character' : (name || 'Style your character')} footer=${footer}>${body}<//>`;
+  }
+
+  /* ---------- emotes (v37): a wave, a high five, a coffee. The latest sits on the person's me doc as
+     emote {e, at}; the office shows it over their character for about six seconds ---------- */
+  const EMOTES = [{e: 'wave', ch: '\u{1F44B}', label: 'Wave'}, {e: 'five', ch: '\u{1F64C}', label: 'High five'}, {e: 'coffee', ch: '\u2615', label: 'Coffee'},
+    {e: 'clap', ch: '\u{1F44F}', label: 'Clap'}, {e: 'fire', ch: '\u{1F525}', label: 'On fire'}, {e: 'party', ch: '\u{1F389}', label: 'Party'}];
+  const EMOTE_OF = {};
+  EMOTES.forEach(x => { EMOTE_OF[x.e] = x; });
+  function EmoteBar({compact}) {
+    const ctx = M.useCtx();
+    const [sent, setSent] = useState('');
+    const last = useRef(0);
+    if (!ctx || !ctx.uid || ctx.viewAs) return null;
+    const send = async e => {
+      const now = Date.now();
+      if (now - last.current < 1500) return;
+      last.current = now;
+      setSent(e);
+      try { await ctx.W.merge('me/' + ctx.uid, {emote: {e, at: Date.now()}}); } catch (err) { /* the write toasted */ }
+      setTimeout(() => setSent(''), 1800);
+    };
+    return html`<div class=${'emote-bar' + (compact ? ' compact' : '')} role="toolbar" aria-label="Send an emote to the office" id=${compact ? 'office-emotes' : 'emote-bar'}>
+      ${EMOTES.map(x => html`<button key=${x.e} type="button" class=${'emote-btn' + (sent === x.e ? ' on' : '')} data-e=${x.e} title=${x.label} aria-label=${x.label}
+        onClick=${() => send(x.e)}><span class="emote-ch" aria-hidden="true">${x.ch}</span>${compact ? null : html`<span class="tiny">${x.label}</span>`}</button>`)}
+    </div>`;
+  }
+  /* the last few emotes, as a line: for the flat office, and anyone who looks away for a second */
+  function EmoteFeed() {
+    const ctx = M.useCtx();
+    const [, tick] = useState(0);
+    const map = (ctx && ctx.coll && ctx.coll.me && ctx.coll.me.map) || {};
+    const now = Date.now();
+    const recent = Object.keys(map).map(uid => ({uid, m: map[uid] && map[uid].emote})).filter(x => x.m && EMOTE_OF[x.m.e] && Number(x.m.at) > now - 15000)
+      .sort((a, b) => b.m.at - a.m.at).slice(0, 4);
+    const soonest = recent.length ? Math.min(...recent.map(x => x.m.at + 15000 - now)) : 0;
+    useEffect(() => { if (!soonest) return undefined; const t = setTimeout(() => tick(n => n + 1), Math.max(500, soonest + 50)); return () => clearTimeout(t); }, [soonest]);
+    if (!recent.length) return null;
+    return html`<div class="emote-feed small" id="emote-feed" aria-live="polite">${recent.map(x => html`<span key=${x.uid} class="emote-chip">
+      <span aria-hidden="true">${EMOTE_OF[x.m.e].ch}</span> <${UI.Name} id=${x.uid} fallback="Someone"/></span>`)}</div>`;
+  }
+
+  /* office life on this device: people get up, go for coffee and wave (91-office3d.js reads office.life) */
+  function LifePref() {
+    const [on, setOn] = useState(() => M.prefs.get('office.life', 'on') !== 'off');
+    return html`<${UI.Check} label="Office life on this device: people get up, grab a coffee and say hi" checked=${on}
+      onChange=${v => { setOn(!!v); M.prefs.set('office.life', v ? 'on' : 'off'); }}/>`;
+  }
+
+  /* ---------- Me, Character: the sheet on the page, the emote bar, and Kaavish's looks ---------- */
+  function Character() {
+    const ctx = M.useCtx();
+    if (!ctx || !ctx.uid || !M.cast) return null;
+    return html`<div class="stack" id="character-page" style=${{gap: '16px'}}>
+      <${UI.PageHead} micro="the office" title="Your character">
+        <${UI.Btn} kind="sec" onClick=${() => M.nav('#office')}>Open the office<//>
+      <//>
+      <${CharacterSheet} uid=${ctx.uid} inline=${true}/>
+      <${UI.Card} title="Say hi in the office">
+        <div class="small ink62">Your character does it in the office for everyone to see.</div>
+        <div style=${{marginTop: '10px'}}><${EmoteBar}/></div>
+        <div style=${{marginTop: '14px'}}><${LifePref}/></div>
+      <//>
+      ${ctx.isFounder ? html`<${AdminCharacters}/>` : null}
+    </div>`;
   }
 
   /* office/cast: created once with set, then whole-map updates; null clears one lock. Before the doc is known
@@ -37680,6 +38873,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   AdminCharacters.foldSummary = 'the looks people chose, and the ones you set';
 
   M.parts.CharacterCard = CharacterCard;
+  M.parts.EmoteBar = EmoteBar;
+  M.parts.EmoteFeed = EmoteFeed;
+  M.pages.Character = Character;
+  M.character = {EMOTES};
   M.parts.CharacterSheet = CharacterSheet;
   M.meCards.push(CharacterCard);
   M.adminCards.push(AdminCharacters);
@@ -40881,10 +42078,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- the index ---------- */
-  const GROUPS = ['people', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log'];
-  const GROUP_LABEL = {people: 'People', prospects: 'Your people', companies: 'Companies', tasks: 'Tasks', projects: 'Projects', clients: 'Clients', pitches: 'Pitches',
+  const GROUPS = ['people', 'talks', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log'];
+  const GROUP_LABEL = {people: 'People', talks: 'Talking to', prospects: 'Your people', companies: 'Companies', tasks: 'Tasks', projects: 'Projects', clients: 'Clients', pitches: 'Pitches',
     posts: 'Posts', handbook: 'Handbook', inbox: 'Inbox', leave: 'Leave', radar: 'Saved links', log: 'Log'};
-  const GROUP_ICON = {people: 'people', prospects: 'people', companies: 'database', tasks: 'tasks', projects: 'projects', clients: 'clients', pitches: 'pitches',
+  const GROUP_ICON = {people: 'people', talks: 'people', prospects: 'people', companies: 'database', tasks: 'tasks', projects: 'projects', clients: 'clients', pitches: 'pitches',
     posts: 'feed', handbook: 'handbook', inbox: 'bell', leave: 'leave', radar: 'radar', log: 'log'};
 
   /* every hit across every group, ranked and capped. opts: {names, cap, log, groups} */
@@ -40920,6 +42117,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       team.forEach(x => out.push({...x, group: 'people', icon: 'people'}));
       ranked.slice(0, slots).forEach(x => out.push({...x, group: 'people', icon: 'people'}));
       if (ranked.length > slots) { overflow.people = ranked.length - slots; out.push({key: 'people:more', group: 'people', label: 'Show all in Base', sub: (ranked.length - slots) + ' more', icon: 'search', more: 'people', rank: 0}); }
+    }
+    /* v37: the shared list of people we are talking to, by name, company and what was said */
+    if (want('talks') && ctx.coll.talks) {
+      const tm = ctx.coll.talks.map || {};
+      take('talks', Object.keys(tm).filter(id => tm[id] && !tm[id].gone).map((id, i) => { const t = tm[id];
+        return {key: 'tk' + id, label: t.who || 'Someone', hash: '#talks/' + id, order: (t.done ? 1000 : 0) + i,
+          sub: [t.org, t.done ? 'done' : t.next ? 'follow up ' + U.fmtDay(t.next) : ''].filter(Boolean).join(', '),
+          rank: Math.max(rk(t.who), Math.min(2, rk((t.who || '') + ' ' + (t.org || '') + ' ' + (t.note || '') + ' ' + (t.nextWhat || ''))))}; }));
     }
     /* the viewer's own prospects (who, company, the next step): read in the page for the viewer alone, never
        sent to basesearch, nothing in a preview */
@@ -45663,6 +46868,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const meBtn = mine ? html`<button type="button" class="btn sec sm office-me" id="office-character" data-locked=${mine.locked ? '1' : '0'}
         onClick=${() => setCastOpen(true)} title=${mine.locked ? 'Kaavish set this look for you.' : 'Style your character'}>
         <img class="cast-mini" src=${M.cast.head2d(mine.look, {founder: mine.founder, size: 24}).url} alt="" width="24" height="24"/>Your character</button>` : null;
+    /* v37: everyone can wave, high five or call a coffee; the 3D office shows it over the character, the flat one in a line */
+    const EB = M.parts.EmoteBar, EF = M.parts.EmoteFeed;
+    const emoteBar = EB && mode === 'office' ? html`<${EB} compact=${true}/>` : null;
+    const feed = EF && mode === 'office' && !three ? html`<${EF}/>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
@@ -45677,11 +46886,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${mode === 'list' ? html`<${Rail} data=${data} now=${now} id="office-run" list=${true}/>` : phone ? html`<div class="stack">
           <div class="office-chips" role="toolbar" aria-label="Stations">${chips.map(k => html`<button key=${k} type="button" class=${'chip office-chip' + (pick === k ? ' active' : '')} data-key=${k}
             onClick=${() => { setPick(k); dr.station(k); }}>${labelOf(data.ctx, k).replace(/^The /, '')}${data.founder && (k === 'tray' ? data.dec.length : counts[k]) ? html`<b class="num">${k === 'tray' ? data.dec.length : counts[k]}</b>` : null}</button>`)}</div>
-          ${scene}${composer}${hint}${slow}${style}
+          ${emoteBar}${scene}${feed}${composer}${hint}${slow}${style}
           ${data.founder ? html`<section class="card or-card"><div class="card-head"><h2 class="card-title">Today's run</h2></div><${RunList} data=${data} limit=${20}/></section>` : null}
           <section class="card or-card"><div class="card-head"><h2 class="card-title">Desks</h2></div><${DeskList} data=${data}/></section>
-        </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
-        : html`<div class="office-grid">${composer || slow || style ? html`<div class="stack">${scene}${composer}${slow}${style}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
+        </div>` : three ? html`<div class="stack o3-stack">${emoteBar}${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
+        : html`<div class="office-grid"><div class="stack">${emoteBar}${scene}${feed}${composer}${slow}${style}</div><${Rail} data=${data} now=${now}/></div>`}
       ${dr.node}
       ${castOpen && Sheet ? html`<${Sheet} uid=${data.ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
     </div>`;
@@ -46523,6 +47732,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       };
       CORE.forEach(k => { v[k] = read(k); });
       ROLES.forEach(k => { v[k] = read('o3-' + k); });
+      /* v37: the office in colour, from the game palette in 14-cast.js; a role it does not name keeps its token */
+      const room = M.cast && M.cast.ROOM ? M.cast.ROOM[theme === 'dark' ? 'dark' : 'light'] : null;
+      if (room) ROLES.forEach(k => { if (room[k]) v[k] = room[k].slice(); });
     } finally { probeEl.remove(); }
     tok = {theme, v};
     return v;
@@ -46548,10 +47760,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       canvas.className = 'office-gl';
       canvas.setAttribute('aria-hidden', 'true');
       canvas.tabIndex = 0;
-      R.aa = (window.devicePixelRatio || 1) <= 1.5;
+      /* v37: smooth edges on every desktop; only a dense touch screen (already sharp, and short of power) goes without */
+      const coarse = (() => { try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } })();
+      R.aa = !coarse || (window.devicePixelRatio || 1) <= 1.5;
       const gl = new T.WebGLRenderer({canvas, antialias: R.aa, powerPreference: 'default', stencil: false, alpha: false});
       gl.toneMapping = T.NeutralToneMapping;
-      gl.toneMappingExposure = 1;
+      gl.toneMappingExposure = 1.06;
       gl.outputColorSpace = T.SRGBColorSpace;
       gl.shadowMap.enabled = true;
       gl.shadowMap.type = T.VSMShadowMap;
@@ -46703,7 +47917,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       hemi.intensity = (dk ? 0.72 : 0.62) + (phone ? 0.1 : 0);
       setCol(T, key.color, c.key);
       key.intensity = (dk ? 1.55 : 2.3) * (night ? 0.4 : 1);
-      scene.environmentIntensity = dk ? 0.18 : 0.26;
+      scene.environmentIntensity = dk ? 0.3 : 0.42;
+      /* a light haze in the backdrop's colour: the far side of the floor sits back a little */
+      const haze = c['back-c'] || c.warm;
+      /* the bundle carries the fog shaders without the class: the renderer only reads these fields */
+      if (!scene.fog) scene.fog = {isFogExp2: true, name: '', color: mats.floor.color.clone(), density: 0.0055, clone() { return {...this, color: this.color.clone()}; }, toJSON() { return {}; }};
+      setCol(T, scene.fog.color, haze);
+      scene.fog.density = dk ? 0.0075 : 0.0055;
       backdrop();
       if (world) floorTex();
       if (pools.lamp) pools.lamp.visible = glow;
@@ -46902,7 +48122,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (!world) return [];
       const out = [], L = d.L;
       for (const x of d.D || []) {
-        if (x.cabin || walkins.has(x.uid)) continue;
+        if (x.cabin || walkins.has(x.uid) || (visits.has(x.uid) && visits.get(x.uid).phase !== 'home')) continue;
         let p = null;
         if (x.state === 'office' && x.place === 'desk') { const s = world.seats[x.uid]; if (s) p = {x: s.x, y: s.z, h: s.h, pose: 'type', seat: 0.46}; }
         else if (x.place === 'meeting') p = {x: cm(x.x), y: cm(x.y), h: Math.atan2(14.0 - cm(x.x), 3.67 - cm(x.y)), pose: 'sit', seat: 0.46};
@@ -47048,7 +48268,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     function kTick(dt, now) {
       if (!kRig || !data || !world) return false;
       const live = !!(K && K.live);
-      let anim = false;
+      let anim = false, moved2 = false;
       if (live) {
         const s = OF().kaavishAt(Date.now());
         if (s && s.mode !== 'sit') {
@@ -47056,13 +48276,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           const moved = Math.hypot(nx - kav.x, nz - kav.z);
           kav.x = nx; kav.z = nz;
           /* his heading in degrees, a turn about the vertical as the crowd's is (0 faces the front of the floor) */
-          if (isFinite(s.h)) kav.h = s.h * DEG;
-          else if (moved > 0.002) kav.h = Math.atan2(nx - kav.px, nz - kav.pz);
+          /* v37: he turns toward his heading over a few frames */
+          const hWant = isFinite(s.h) ? s.h * DEG : moved > 0.002 ? Math.atan2(nx - kav.px, nz - kav.pz) : kav.h;
+          const hWas = kav.h;
+          kav.h = angle(kav.h, hWant, Math.min(1, (dt || 0.016) * 12));
+          if (Math.abs(kav.h - hWas) > 0.002) moved2 = true;
           kav.px = nx; kav.pz = nz;
           kav.mode = s.mode === 'walk' || (s.mode === 'pad' && moved > 0.0005) ? 'walk' : 'stand';
           kav.dist += moved;
           kav.talking = !!s.talking;
-          anim = s.mode === 'walk' || s.mode === 'pad' || moved > 0.0005;
+          anim = s.mode === 'walk' || s.mode === 'pad' || moved > 0.0005 || moved2;
         } else Object.assign(kav, seatOf('cabin'), {mode: 'sit', talking: !!(s && s.talking)});
       } else Object.assign(kav, seatOf(kOnline(data) ? 'cabin' : 'lounge'), {mode: 'sit', talking: false});
       kav.live = live;
@@ -47111,7 +48334,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         decals.add(blob); actors.add(rig.root);
         const s = world.seats[u], L = data.L;
         const pts = [{x: 0.44, z: cm(O.sy(L, 862))}, {x: 2.32, z: 6.62}, {x: s.x, z: s.z - s.dir * 0.6}, {x: s.x, z: s.z}];
-        walkins.set(u, {rig, blob, pts, t0: now, seat: s});
+        let len = 0;
+        for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+        /* v37: a walking pace, about 1.3 m a second */
+        walkins.set(u, {rig, blob, pts, t0: now, seat: s, dur: clamp(1800, 9000, len / 1.3 * 1000)});
       }
       syncCrowd();
       return changed;
@@ -47119,7 +48345,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     function walkTick(dt, now) {
       let anim = false;
       for (const w of walkins.values()) {
-        const t = clamp(0, 1, (now - w.t0) / 800), e = ease(t);
+        const t = clamp(0, 1, (now - w.t0) / (w.dur || 800)), e = ease(t);
         let len = 0; const L2 = [0];
         for (let i = 1; i < w.pts.length; i++) { len += Math.hypot(w.pts[i].x - w.pts[i - 1].x, w.pts[i].z - w.pts[i - 1].z); L2.push(len); }
         const at = e * len; let i = 1;
@@ -47134,6 +48360,171 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         if (t < 1) anim = true;
       }
       return anim;
+    }
+
+    /* ---------- life (v37): people get up, go over to someone or the coffee, wave, and sit back down ----------
+       A visit takes the person out of the baked crowd for its length: their own rig walks the plan's aisles
+       (M.office.route), holds a wave with a bubble, walks back, and rejoins the crowd. An emote a person sends
+       (me/<uid>.emote {e, at}) stands them up for a wave where they sit, or floats over their desk when they are
+       away. Nothing here runs while the office is hidden, off screen, behind a drawer or dozing */
+    const visits = new Map();
+    const EMOJI = {wave: '\u{1F44B}', five: '\u{1F64C}', coffee: '☕', clap: '\u{1F44F}', fire: '\u{1F525}', party: '\u{1F389}'};
+    const CHAT = [['Coffee?', 'coffee'], ['High five', 'five'], ['Nice work', 'clap'], ['Lunch?', 'party'], ['Quick sync?', 'wave'], ['You got this', 'fire']];
+    const SPEED = 1.15;
+    const seenEmote = {};
+    let nextVisit = performance.now() + 9000 + Math.random() * 9000;
+    const planSeat = uid => (data && data.L && data.L.seats ? data.L.seats[uid] : null);
+    function inOffice(uid) {
+      const d = (data && data.D || []).find(x => x.uid === uid);
+      return !!(d && d.state === 'office' && d.place === 'desk' && !d.cabin && world && world.seats[uid] && planSeat(uid));
+    }
+    const free = uid => inOffice(uid) && !walkins.has(uid) && !visits.has(uid);
+    function bubble(text, anchor) {
+      if (!o.layer) return null;
+      const el = document.createElement('div');
+      el.className = 'o3-emote';
+      el.setAttribute('aria-hidden', 'true');
+      el.textContent = text;
+      o.layer.appendChild(el);
+      el.classList.add('o3-item');
+      extras.set(el, {anchor, prio: 900});
+      sizes.set(el, [el.offsetWidth, el.offsetHeight]);
+      return el;
+    }
+    function unbubble(el) { if (!el) return; extras.delete(el); sizes.delete(el); el.remove(); }
+    /* a visit: pts in world metres from the seat out; hold is the wave at the far end */
+    function visit(uid, pts, o2) {
+      const rig = M.figure.build(T, lookOf(data, uid), {founder: false, lod: 1});
+      rig.root.visible = false;
+      const blob = new T.Mesh(new T.CircleGeometry(0.34, 24), mats.blob); blob.rotation.x = -Math.PI / 2; blob.renderOrder = 1; blob.visible = false;
+      actors.add(rig.root); decals.add(blob);
+      let len = 0; const offs = [0];
+      for (let i = 1; i < pts.length; i++) { len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); offs.push(len); }
+      const v = {uid, rig, blob, pts, offs, len, phase: 'wait', t0: 0, made: performance.now(), hold: o2.hold || 2600, face: o2.face || null,
+        say: o2.say || '', pose: o2.pose || 'wave', el: null, partner: o2.partner || '', seat: world.seats[uid]};
+      /* an emote shows at once, over the desk until the person is up */
+      if (o2.now && v.say) v.el = bubble(v.say, () => { const q = v.rig.root.visible ? v.rig.root.position : v.seat; return [q.x, v.rig.root.visible ? 2.05 : 1.95, q.z]; });
+      visits.set(uid, v);
+      crowdKey = crowdKey + '~';
+      syncCrowd();
+      invalidate(1);
+      return v;
+    }
+    const at = (v, d) => {
+      let i = 1;
+      while (i < v.pts.length - 1 && v.offs[i] < d) i++;
+      const a = v.pts[i - 1], b = v.pts[i], k = clamp(0, 1, (d - v.offs[i - 1]) / Math.max(1e-6, v.offs[i] - v.offs[i - 1]));
+      return {x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k, h: Math.atan2(b.x - a.x, b.z - a.z)};
+    };
+    const inCrowd = uid => crowdItems.some(i => i.uid === uid);
+    function endVisit(v) {
+      unbubble(v.el);
+      actors.remove(v.rig.root); decals.remove(v.blob);
+      try { v.rig.dispose(); } catch (e) { /* gone */ }
+      v.blob.geometry.dispose();
+      visits.delete(v.uid);
+    }
+    function visitTick(dt, now) {
+      if (!visits.size) return false;
+      for (const v of Array.from(visits.values())) {
+        const walkMs = Math.max(400, v.len / SPEED * 1000);
+        /* out of the crowd first, so nobody shows twice */
+        if (v.phase === 'wait') {
+          if (inCrowd(v.uid) && now - v.made < 4000) continue;
+          v.phase = v.len > 0.05 ? 'out' : 'hold'; v.t0 = now; v.rig.root.visible = true; v.blob.visible = true;
+        }
+        let p = null, pose = 'walk', dist = 0;
+        if (v.phase === 'out' || v.phase === 'back') {
+          const t = clamp(0, 1, (now - v.t0) / walkMs), e = ease(t);
+          dist = (v.phase === 'out' ? e : 1 - e) * v.len;
+          p = at(v, dist);
+          if (v.phase === 'back') p.h += Math.PI;
+          if (t >= 1) {
+            if (v.phase === 'out') { v.phase = 'hold'; v.t0 = now; }
+            else { v.phase = 'home'; v.t0 = now; crowdKey = crowdKey + '~'; syncCrowd(); }
+          }
+        }
+        if (v.phase === 'hold') {
+          const end = v.pts[v.pts.length - 1];
+          const f = typeof v.face === 'function' ? v.face() : v.face;
+          const toCam = Math.atan2(camera.position.x - end.x, camera.position.z - end.z);
+          p = {x: end.x, z: end.z, h: f ? angle(Math.atan2(f.x - end.x, f.z - end.z), toCam, 0.3) : toCam};
+          pose = v.pose;
+          if (!v.el && v.say) { const vv = v; v.el = bubble(v.say, () => { const q = vv.rig.root.position; return [q.x, 2.05, q.z]; }); }
+          if (now - v.t0 > v.hold) { unbubble(v.el); v.el = null; v.phase = v.len > 0.05 ? 'back' : 'home'; v.t0 = now; if (v.phase === 'home') { crowdKey = crowdKey + '~'; syncCrowd(); } }
+        }
+        if (v.phase === 'home') {
+          const s = v.seat;
+          p = {x: s.x, z: s.z, h: s.h};
+          pose = 'type';
+          v.blob.visible = false;
+          /* the crowd has them back, or it is taking too long: the rig goes */
+          if (inCrowd(v.uid) || now - v.t0 > 5000) { endVisit(v); invalidate(2); continue; }
+        }
+        if (!p) continue;
+        v.rig.root.position.set(p.x, 0, p.z);
+        v.rig.root.rotation.y = p.h;
+        try { v.rig.setPose(pose, now / 1000, {dist, seat: 0.46}); } catch (e) { /* a rig's own pose */ }
+        v.blob.position.set(p.x, 0.004, p.z);
+      }
+      return visits.size > 0;
+    }
+    /* the world points of a walk on the plan: the seat, then the aisles to the place (plan cm, y down the floor) */
+    function walkPts(uid, to) {
+      const s = world.seats[uid], ps = planSeat(uid);
+      const r = O.route ? O.route(data.L, {x: ps.x, y: ps.y}, to) : [{x: ps.x, y: ps.y}, to];
+      const pts = [{x: s.x, z: s.z}];
+      for (const q of r.slice(1)) pts.push({x: cm(q.x), z: cm(q.y)});
+      return pts;
+    }
+    /* stand up and wave where they sit: a step back from the desk into the aisle */
+    function standWave(uid, say, face, hold, now) {
+      const s = world.seats[uid];
+      const step = {x: s.x, z: s.z - (s.dir || 1) * 0.42};
+      return visit(uid, [{x: s.x, z: s.z}, step], {say, face, hold: hold || 3000, pose: 'wave', now: !!now});
+    }
+    function ambient() {
+      if (dead || !st.ready || !world || !data || paused() || doze || win || M.prefs.get('office.life', 'on') === 'off') return;
+      const now = performance.now();
+      if (now < nextVisit || visits.size >= 2) return;
+      nextVisit = now + 20000 + Math.random() * 20000;
+      if (dayNight()) return;
+      const people = (data.D || []).map(x => x.uid).filter(free);
+      if (!people.length) return;
+      const who = people[Math.floor(Math.random() * people.length)];
+      const others = people.filter(u => u !== who);
+      const [line, emo] = CHAT[Math.floor(Math.random() * CHAT.length)];
+      if (others.length && Math.random() < 0.65) {
+        const mate = others[Math.floor(Math.random() * others.length)];
+        const sp = O.standPoint ? O.standPoint(data.L, 'desk:' + mate) : null;
+        if (!sp) return;
+        const pts = walkPts(who, sp);
+        const ms = world.seats[mate];
+        const v = visit(who, pts, {say: EMOJI[emo] + ' ' + line, face: {x: ms.x, z: ms.z}, hold: 3200, pose: 'wave'});
+        /* the colleague stands to wave back when the visitor arrives */
+        const walkMs = Math.max(400, v.len / SPEED * 1000);
+        setTimeout(safe(() => { if (!dead && free(mate)) { const vv = visits.get(who); standWave(mate, EMOJI.wave, vv ? () => vv.rig.root.position : null, 2600); } }), walkMs + 900);
+      } else {
+        const spot = O.spotOf ? O.spotOf(data.L, 'coffee') : null;
+        if (!spot) return;
+        visit(who, walkPts(who, {x: spot.x, y: spot.y}), {say: EMOJI.coffee + ' Coffee run', hold: 3600, pose: 'talk'});
+      }
+    }
+    const lifeTimer = setInterval(() => { try { ambient(); } catch (e) { fail(e); } }, 1500);
+    /* the emotes people send from the emote bar, read off their me doc */
+    function emotes(d) {
+      const map = d && d.ctx && d.ctx.coll && d.ctx.coll.me ? d.ctx.coll.me.map || {} : {};
+      const now = Date.now();
+      for (const uid of Object.keys(map)) {
+        const m = map[uid] && map[uid].emote;
+        if (!m || !EMOJI[m.e] || !(Number(m.at) > now - 9000) || seenEmote[uid] === m.at) continue;
+        seenEmote[uid] = m.at;
+        if (!st.ready || !world) continue;
+        if (free(uid)) { standWave(uid, EMOJI[m.e], null, 4200, true); continue; }
+        const founder = d.L && uid === d.L.founder;
+        const el = bubble(EMOJI[m.e], () => (founder ? [kav.x, kav.mode === 'sit' ? 1.9 : 2.1, kav.z] : (() => { const a = anchorOf('desk:' + uid); return a ? [a[0], a[1] + 0.55, a[2]] : null; })()));
+        if (el) { invalidate(2); setTimeout(safe(() => { unbubble(el); invalidate(1); }), 6000); }
+      }
     }
 
     /* ---------- the camera ---------- */
@@ -47260,7 +48651,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* ---------- the loop: on demand, capped, paused when nobody can see it ---------- */
     let lastPoke = Date.now();
     function poke() { lastPoke = Date.now(); if (doze) { doze = false; if (o.onDoze) o.onDoze(false); } invalidate(1); }
-    const dprMax = () => Math.min(window.devicePixelRatio || 1, phone ? 1.25 : 1.5);
+    const dprMax = () => Math.min(window.devicePixelRatio || 1, phone ? 1.25 : 2);
     let dprMove = dprMax(), slow = [], watch = [];
     const stillDpr = () => {
       const w = o.view.clientWidth, h = o.view.clientHeight, base = window.devicePixelRatio || 1, cap = phone ? 3 : 2, mp = phone ? 3e6 : 8.3e6;
@@ -47356,6 +48747,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         if (!s) return [cm(d.x), 1.0, cm(d.y)];
         const w = walkins.get(u);
         if (w) { const p = w.rig.root.position; return [p.x, 1.45, p.z]; }
+        const vz = visits.get(u);
+        if (vz && vz.rig.root.visible) { const p = vz.rig.root.position; return [p.x, 1.62, p.z]; }
         return d.state === 'office' ? [s.x, 1.42, s.z] : [s.x, 0.98, s.edge + s.dir * 0.42];
       }
       if (k === 'founder') return [kav.x, kav.mode === 'sit' ? 1.36 : 1.5, kav.z];
@@ -47538,7 +48931,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     }
 
     /* ---------- life ---------- */
-    ticks.add(cooTick); ticks.add(kTick); ticks.add(walkTick); ticks.add(camTick);
+    ticks.add(cooTick); ticks.add(kTick); ticks.add(walkTick); ticks.add(visitTick); ticks.add(camTick);
     /* a new size clears the canvas: it is drawn again at once, even behind a drawer, so it never stands blank */
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(safe(() => {
       const v = o.view;
@@ -47593,6 +48986,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* ---------- start: lights, the world, the actors, the first frame ---------- */
     function start(d0) {
       data = d0;
+      try { const mm = d0 && d0.ctx && d0.ctx.coll && d0.ctx.coll.me ? d0.ctx.coll.me.map || {} : {}; for (const u of Object.keys(mm)) if (mm[u] && mm[u].emote && !(Number(mm[u].emote.at) > Date.now() - 4000)) seenEmote[u] = mm[u].emote.at; } catch (e) { /* none yet */ }
       tok = null;
       makeCoo();
       makeKaavish();
@@ -47630,6 +49024,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const rig = makeKaavish();
       const walk = syncWalkins();
       syncCrowd();
+      emotes(d);
       if (rig || walk) invalidate(1);
     }
     /* the rig's state, from the director's view: walking, asleep on its pad, on its pad at its desk, working, or hovering */
@@ -47665,6 +49060,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       raf = 0;
       clearTimeout(crowdTimer);
       clearTimeout(blinkT);
+      clearInterval(lifeTimer);
+      for (const v of Array.from(visits.values())) { try { endVisit(v); } catch (e) { /* gone */ } }
       if (ro) ro.disconnect();
       if (io) io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
@@ -47691,7 +49088,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     function state() {
       const figures = {};
       for (const it of crowdItems) figures[it.uid] = {x: Math.round(it.x * 100), y: Math.round(it.y * 100), seated: true, state: it.state};
-      for (const [u, w] of walkins) { const p = w.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: performance.now() - w.t0 > 800, state: 'office'}; }
+      for (const [u, w] of walkins) { const p = w.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: performance.now() - w.t0 > (w.dur || 800), state: 'office'}; }
+      for (const [u, v] of visits) { const p = v.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: false, state: 'office', visit: v.phase, say: v.el ? v.el.textContent : ''}; }
       return {ready: st.ready, frames: st.frames, renders: st.renders, dpr: st.dpr, calls: st.calls, tris: st.tris, firstFrame: Math.round(st.firstFrame),
         figures, coo: {spot: view ? view.spot : '', state: view ? (view.walking ? 'walking' : view.state) : '', x: Math.round(coo.x * 100), y: Math.round(coo.z * 100)},
         kaavish: {mode: kav.mode, x: Math.round(kav.x * 100), y: Math.round(kav.z * 100), seq: K ? K.seq || 0 : 0, say: K && K.say ? K.say : null, live: kav.live},
@@ -47699,7 +49097,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     }
     return {start: safe(start), setData: safe(setData), setView: safe(setView), setKaavish: safe(setKaavish), setPause: safe(setPause), setCam: safe(setCam),
       invalidate: safe(invalidate), measure: safe(measure), overlay: safe(overlayUpdate), flight: safe(flight), beat: safe(beat), cooWalk, look: safe(look), api, state,
-      dispose: disposeAll, get ready() { return st.ready; }, anchorOf: safe(anchorOf), poke: safe(poke)};
+      dispose: disposeAll, get ready() { return st.ready; }, anchorOf: safe(anchorOf), poke: safe(poke),
+      /* v37: start the next visit now (the checks and a curious founder) */
+      life: safe(() => { nextVisit = 0; ambient(); })};
   }
 
   /* ---------- the stage in 3D: the director's walk, fly, fade and fx ---------- */
@@ -47993,7 +49393,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
   const apiNow = () => (cur ? cur.api : null);
 
-  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry});
+  /* life(): the next visit now, for the checks */
+  const life = () => (cur && cur.life ? cur.life() : undefined);
+  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry, life});
 })();
 
 /* ==== 92-figure.js ==== */

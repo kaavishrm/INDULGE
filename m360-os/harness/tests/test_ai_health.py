@@ -245,7 +245,7 @@ def site_part(check):
 
             # ---- the recoveries: one extra call, and it answers ----
             for mode, n, tier, models, label in (('model', 1, 'default', ['claude-opus-5-5', 'claude-sonnet-5-5'], 'a missing model falls back once (thinking answers)'),
-                                                ('model', 1, 'quick', ['claude-haiku-4-5-20251001', 'claude-haiku-5-5'], 'a missing model falls back once (quick answers)'),
+                                                ('model', 1, 'quick', ['claude-haiku-5-5', 'claude-sonnet-5-5'], 'a missing model falls back once (quick answers)'),
                                                 ('busy', 1, 'default', ['claude-opus-5-5', 'claude-opus-5-5'], 'an overloaded API is tried once more after a short wait'),
                                                 ('beta', 0, 'default', ['claude-opus-5-5', 'claude-opus-5-5'], 'a refused beta is tried once without it')):
                 fail(mode, n)

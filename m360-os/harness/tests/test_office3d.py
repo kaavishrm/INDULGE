@@ -147,6 +147,8 @@ def test(h):
 
     # ---- 5. zero frames at idle ----
     if part('idle'):
+        # v37: office life walks someone over now and then; idle here means with it switched off on this device
+        p.evaluate("() => M.prefs.set('office.life', 'off')")
         settle(p)
         f = held(p, 3000)
         check(f[0] == f[1], '5. no frame at idle over 3 s: %r' % f)

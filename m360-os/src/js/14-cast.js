@@ -28,6 +28,30 @@
     bindi: '#7A2230'
   };
   /* natural palette: end */
+  /* v37, the game palette: the office and its people in full colour, asked for by Kaavish. It is the one block in
+     the app that may hold any hue, and it is read by the 3D office and the characters only; every page outside the
+     office keeps ink and flame. Clothes and hair below are added to the editor's swatches; the office roles
+     replace the room's paper tokens, a set for day and a set for night */
+  /* game palette: start */
+  const GAME = {
+    cloth: {navy: '#1F3A5F', denim: '#4A6FA5', sky: '#8EC5E8', teal: '#2A9D8F', forest: '#2D6A4F', sage: '#95B8A0',
+      mustard: '#E9B44C', sun: '#F6D365', coral: '#F28482', red: '#D64545', burgundy: '#7B2D3A', berry: '#B5446E',
+      lilac: '#B8A1D9', plum: '#5E3B73', rust: '#B5532F', cream: '#F5EBDD'},
+    hair: {blonde: '#D9B46A', platinum: '#EDE3C8', copper: '#B5562B', rose: '#E58FB0', cobalt: '#4A7BD0', violet: '#7E5BB5', mint: '#3E9C6B'},
+    office: {
+      light: {'back-c': '#FCE9D8', 'back-e': '#BFD3F2', floor: '#E6EBE3', plinth: '#B98A5E', rug: '#E07A5F', 'rug-edge': '#F2CC8F',
+        shade: '#2B1E16', wall: '#FFF4E6', cap: '#9C6644', leg: '#3D405B', seat: '#2A9D8F', board: '#FFFFFF', cell: '#F6E7D2',
+        mark: '#81B29A', ink: '#264653', glass: '#BDE0FE', pot: '#C8553D', 'screen-off': '#2F3E46', 'screen-on': '#9AD1F5',
+        lamp: '#FFD8A8', pool: '#FFE8C2', pampas: '#4F9D4A', 'hemi-sky': '#DCEBFF', 'hemi-ground': '#F3D9B1', key: '#FFF1DC',
+        clay: '#D8C7B5', suit: '#1D1D1F'},
+      dark: {'back-c': '#2E3150', 'back-e': '#10111B', floor: '#5A4433', plinth: '#3B2A20', rug: '#9B3D2E', 'rug-edge': '#B88A3E',
+        shade: '#050508', wall: '#3A3550', cap: '#5C3B28', leg: '#1F2233', seat: '#1F7A70', board: '#E8E4DA', cell: '#4A4560',
+        mark: '#5E8C74', ink: '#E8E4DA', glass: '#5B7FA6', pot: '#9E412E', 'screen-off': '#1B2430', 'screen-on': '#7EC8F2',
+        lamp: '#FFC98A', pool: '#FFB870', pampas: '#3E7E3A', 'hemi-sky': '#6F7BB5', 'hemi-ground': '#3A2E28', key: '#FFE2B8',
+        clay: '#8F8274', suit: '#0E0E0E'}
+    }
+  };
+  /* game palette: end */
   const rgbOf = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const HOUSE = {};
   for (const k of Object.keys(HOUSE_HEX)) HOUSE[k] = rgbOf(HOUSE_HEX[k]);
@@ -56,9 +80,12 @@
   };
   const list = (o, f) => Object.keys(o).map(id => ({id, c: f ? f(o[id]) : o[id]}));
   const SKIN = list(NATURAL.skin, rgbOf);
-  const HAIR = list(NATURAL.hair, rgbOf);
+  const HAIR = list(NATURAL.hair, rgbOf).concat(list(GAME.hair, rgbOf));
   const FRAMES = list(NATURAL.frame, rgbOf);
-  const CLOTH = list(CLOTH_RGB);
+  const CLOTH = list(CLOTH_RGB).concat(list(GAME.cloth, rgbOf));
+  /* the office roles as sRGB bytes, by theme (91-office3d.js reads these over the paper tokens) */
+  const ROOM = {};
+  for (const th of Object.keys(GAME.office)) { ROOM[th] = {}; for (const k of Object.keys(GAME.office[th])) ROOM[th][k] = rgbOf(GAME.office[th][k]); }
   const WOOD = {oak: rgbOf(NATURAL.oak), walnut: rgbOf(NATURAL.walnut)};
   const BINDI = rgbOf(NATURAL.bindi);
   const METAL = mix(H.col, H.ink, 0.25);
@@ -136,7 +163,7 @@
      Only what the roster says is used: the pod picks the tee (pod mates match), the name gives the initials on
      the chest sticker, and Kaavish gets an ink blazer with his flame pocket square. Skin, hair and face are
      never guessed. */
-  const POD_TONES = ['oat', 'stone', 'ash', 'camel', 'chalk', 'cocoa', 'graphite'];
+  const POD_TONES = ['teal', 'coral', 'navy', 'mustard', 'forest', 'lilac', 'denim'];
   function starter(o) {
     const opts = o || {};
     const pod = String(opts.pod || '').trim().toLowerCase() || 'studio';
@@ -405,6 +432,6 @@
     return clean(out);
   }
 
-  M.cast = {NATURAL, HOUSE, SKIN, HAIR, CLOTH, FRAMES, WOOD, SHAPES, COLOURS, FLAGS, ORDER, DEFAULT,
+  M.cast = {NATURAL, GAME, ROOM, HOUSE, SKIN, HAIR, CLOTH, FRAMES, WOOD, SHAPES, COLOURS, FLAGS, ORDER, DEFAULT,
     clean, hash, same, starter, initials, sticker, resolve, resolveFor, lookOf, paint, mix, css, head2d, headUrl, shuffle};
 })();

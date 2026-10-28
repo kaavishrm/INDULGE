@@ -185,7 +185,7 @@
   }
 
   /* ---------- the sheet ---------- */
-  function CharacterSheet({uid, onClose}) {
+  function CharacterSheet({uid, onClose, inline}) {
     const ctx = M.useCtx();
     const C = M.cast;
     const who = uid || (ctx && ctx.uid);
@@ -224,6 +224,7 @@
           if (r.locked) await writeLocks(ctx, {[who]: {look: {...look, pic: 'auto'}, at}});
           M.toast('Saved. Their character shows the new look.');
         }
+        if (inline) touched.current = false;
         if (onClose) onClose();
       } catch (e) { /* the write toasted */ }
       setBusy(false);
@@ -236,8 +237,7 @@
       <span class="grow"/>
       <${UI.Btn} id="cast-save" disabled=${busy || !dirty} onClick=${save}>Save character<//>
     </div>`;
-    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${own ? 'Style your character' : (name || 'Style your character')} footer=${footer}>
-      <div class="cast-sheet" id="cast-sheet" data-uid=${who} data-ro=${ro ? '1' : '0'}>
+    const body = html`<div class="cast-sheet" id="cast-sheet" data-uid=${who} data-ro=${ro ? '1' : '0'} data-inline=${inline ? '1' : '0'}>
         ${own && !ro ? html`<div class="small ink62">Pick what feels like you. You can change it any time.</div>` : own ? null : html`<${UI.Micro}>character<//>`}
         ${note ? html`<div class="cast-note small" id="cast-note">${note}</div>` : null}
         <div class="cast-preview">
@@ -249,8 +249,74 @@
         </div>
         <${UI.Seg} sm=${true} ariaLabel="Character parts" options=${TABS} value=${tab} onChange=${setTab}/>
         <${Panel} tab=${tab} draft=${draft} founder=${founder} set=${set} ro=${ro}/>
-      </div>
-    <//>`;
+      </div>`;
+    /* v37: Me, Character shows the sheet on the page itself */
+    if (inline) return html`<${UI.Card} id="character-page-card" title=${own ? 'Style your character' : (name || 'Style your character')}>${body}${footer}<//>`;
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${own ? 'Style your character' : (name || 'Style your character')} footer=${footer}>${body}<//>`;
+  }
+
+  /* ---------- emotes (v37): a wave, a high five, a coffee. The latest sits on the person's me doc as
+     emote {e, at}; the office shows it over their character for about six seconds ---------- */
+  const EMOTES = [{e: 'wave', ch: '\u{1F44B}', label: 'Wave'}, {e: 'five', ch: '\u{1F64C}', label: 'High five'}, {e: 'coffee', ch: '\u2615', label: 'Coffee'},
+    {e: 'clap', ch: '\u{1F44F}', label: 'Clap'}, {e: 'fire', ch: '\u{1F525}', label: 'On fire'}, {e: 'party', ch: '\u{1F389}', label: 'Party'}];
+  const EMOTE_OF = {};
+  EMOTES.forEach(x => { EMOTE_OF[x.e] = x; });
+  function EmoteBar({compact}) {
+    const ctx = M.useCtx();
+    const [sent, setSent] = useState('');
+    const last = useRef(0);
+    if (!ctx || !ctx.uid || ctx.viewAs) return null;
+    const send = async e => {
+      const now = Date.now();
+      if (now - last.current < 1500) return;
+      last.current = now;
+      setSent(e);
+      try { await ctx.W.merge('me/' + ctx.uid, {emote: {e, at: Date.now()}}); } catch (err) { /* the write toasted */ }
+      setTimeout(() => setSent(''), 1800);
+    };
+    return html`<div class=${'emote-bar' + (compact ? ' compact' : '')} role="toolbar" aria-label="Send an emote to the office" id=${compact ? 'office-emotes' : 'emote-bar'}>
+      ${EMOTES.map(x => html`<button key=${x.e} type="button" class=${'emote-btn' + (sent === x.e ? ' on' : '')} data-e=${x.e} title=${x.label} aria-label=${x.label}
+        onClick=${() => send(x.e)}><span class="emote-ch" aria-hidden="true">${x.ch}</span>${compact ? null : html`<span class="tiny">${x.label}</span>`}</button>`)}
+    </div>`;
+  }
+  /* the last few emotes, as a line: for the flat office, and anyone who looks away for a second */
+  function EmoteFeed() {
+    const ctx = M.useCtx();
+    const [, tick] = useState(0);
+    const map = (ctx && ctx.coll && ctx.coll.me && ctx.coll.me.map) || {};
+    const now = Date.now();
+    const recent = Object.keys(map).map(uid => ({uid, m: map[uid] && map[uid].emote})).filter(x => x.m && EMOTE_OF[x.m.e] && Number(x.m.at) > now - 15000)
+      .sort((a, b) => b.m.at - a.m.at).slice(0, 4);
+    const soonest = recent.length ? Math.min(...recent.map(x => x.m.at + 15000 - now)) : 0;
+    useEffect(() => { if (!soonest) return undefined; const t = setTimeout(() => tick(n => n + 1), Math.max(500, soonest + 50)); return () => clearTimeout(t); }, [soonest]);
+    if (!recent.length) return null;
+    return html`<div class="emote-feed small" id="emote-feed" aria-live="polite">${recent.map(x => html`<span key=${x.uid} class="emote-chip">
+      <span aria-hidden="true">${EMOTE_OF[x.m.e].ch}</span> <${UI.Name} id=${x.uid} fallback="Someone"/></span>`)}</div>`;
+  }
+
+  /* office life on this device: people get up, go for coffee and wave (91-office3d.js reads office.life) */
+  function LifePref() {
+    const [on, setOn] = useState(() => M.prefs.get('office.life', 'on') !== 'off');
+    return html`<${UI.Check} label="Office life on this device: people get up, grab a coffee and say hi" checked=${on}
+      onChange=${v => { setOn(!!v); M.prefs.set('office.life', v ? 'on' : 'off'); }}/>`;
+  }
+
+  /* ---------- Me, Character: the sheet on the page, the emote bar, and Kaavish's looks ---------- */
+  function Character() {
+    const ctx = M.useCtx();
+    if (!ctx || !ctx.uid || !M.cast) return null;
+    return html`<div class="stack" id="character-page" style=${{gap: '16px'}}>
+      <${UI.PageHead} micro="the office" title="Your character">
+        <${UI.Btn} kind="sec" onClick=${() => M.nav('#office')}>Open the office<//>
+      <//>
+      <${CharacterSheet} uid=${ctx.uid} inline=${true}/>
+      <${UI.Card} title="Say hi in the office">
+        <div class="small ink62">Your character does it in the office for everyone to see.</div>
+        <div style=${{marginTop: '10px'}}><${EmoteBar}/></div>
+        <div style=${{marginTop: '14px'}}><${LifePref}/></div>
+      <//>
+      ${ctx.isFounder ? html`<${AdminCharacters}/>` : null}
+    </div>`;
   }
 
   /* office/cast: created once with set, then whole-map updates; null clears one lock. Before the doc is known
@@ -334,6 +400,10 @@
   AdminCharacters.foldSummary = 'the looks people chose, and the ones you set';
 
   M.parts.CharacterCard = CharacterCard;
+  M.parts.EmoteBar = EmoteBar;
+  M.parts.EmoteFeed = EmoteFeed;
+  M.pages.Character = Character;
+  M.character = {EMOTES};
   M.parts.CharacterSheet = CharacterSheet;
   M.meCards.push(CharacterCard);
   M.adminCards.push(AdminCharacters);

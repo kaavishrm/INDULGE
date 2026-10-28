@@ -101,10 +101,10 @@
   }
 
   /* ---------- the index ---------- */
-  const GROUPS = ['people', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log'];
-  const GROUP_LABEL = {people: 'People', prospects: 'Your people', companies: 'Companies', tasks: 'Tasks', projects: 'Projects', clients: 'Clients', pitches: 'Pitches',
+  const GROUPS = ['people', 'talks', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log'];
+  const GROUP_LABEL = {people: 'People', talks: 'Talking to', prospects: 'Your people', companies: 'Companies', tasks: 'Tasks', projects: 'Projects', clients: 'Clients', pitches: 'Pitches',
     posts: 'Posts', handbook: 'Handbook', inbox: 'Inbox', leave: 'Leave', radar: 'Saved links', log: 'Log'};
-  const GROUP_ICON = {people: 'people', prospects: 'people', companies: 'database', tasks: 'tasks', projects: 'projects', clients: 'clients', pitches: 'pitches',
+  const GROUP_ICON = {people: 'people', talks: 'people', prospects: 'people', companies: 'database', tasks: 'tasks', projects: 'projects', clients: 'clients', pitches: 'pitches',
     posts: 'feed', handbook: 'handbook', inbox: 'bell', leave: 'leave', radar: 'radar', log: 'log'};
 
   /* every hit across every group, ranked and capped. opts: {names, cap, log, groups} */
@@ -140,6 +140,14 @@
       team.forEach(x => out.push({...x, group: 'people', icon: 'people'}));
       ranked.slice(0, slots).forEach(x => out.push({...x, group: 'people', icon: 'people'}));
       if (ranked.length > slots) { overflow.people = ranked.length - slots; out.push({key: 'people:more', group: 'people', label: 'Show all in Base', sub: (ranked.length - slots) + ' more', icon: 'search', more: 'people', rank: 0}); }
+    }
+    /* v37: the shared list of people we are talking to, by name, company and what was said */
+    if (want('talks') && ctx.coll.talks) {
+      const tm = ctx.coll.talks.map || {};
+      take('talks', Object.keys(tm).filter(id => tm[id] && !tm[id].gone).map((id, i) => { const t = tm[id];
+        return {key: 'tk' + id, label: t.who || 'Someone', hash: '#talks/' + id, order: (t.done ? 1000 : 0) + i,
+          sub: [t.org, t.done ? 'done' : t.next ? 'follow up ' + U.fmtDay(t.next) : ''].filter(Boolean).join(', '),
+          rank: Math.max(rk(t.who), Math.min(2, rk((t.who || '') + ' ' + (t.org || '') + ' ' + (t.note || '') + ' ' + (t.nextWhat || ''))))}; }));
     }
     /* the viewer's own prospects (who, company, the next step): read in the page for the viewer alone, never
        sent to basesearch, nothing in a preview */

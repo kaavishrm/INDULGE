@@ -221,6 +221,7 @@ def mock_part(h):
     check(hot == [True], 'without the COO card the late one is hot: %r' % hot)
 
     # ---- the pitch drawer and the board ----
+    p.evaluate("() => M.prefs.set('pipeline.view', 'stages')")  # v37: the sends show on the full board
     go('#pitches')
     p.wait_for_selector('.pitch-sent-line')
     line = p.inner_text('.pitch-sent-line')
@@ -346,6 +347,7 @@ def site_part():
             now = int(time.time() * 1000)
             f.evaluate('u => window.M360_API("write", {op: "set", path: "pitches/pt_sw", data: {brand: "Swisse", category: "", contact: "c_meera", source: "", owner: u, updated: Date.now(), stage: "proposal", stageAt: Date.now(), next: "", nextDate: "", project: "", lost: "", created: Date.now(),'
                        ' sent: {sd1: {to: "c_meera", via: "mail", what: "Proposal v2", link: "", at: Date.now() - 2 * 86400000, by: u, reply: "", replyAt: 0}}}})', fuid)
+            f.evaluate("() => M.prefs.set('pipeline.view', 'stages')")  # v37: the sends show on the full board
             f.goto(base + '#pitches/pt_sw')
             f.wait_for_selector('#pitch-contact-name')
             f.wait_for_function('() => /Meera Shah/.test(document.querySelector("#pitch-contact-name").textContent)')

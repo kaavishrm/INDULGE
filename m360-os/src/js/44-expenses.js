@@ -687,6 +687,8 @@
     </div>`;
   }
 
-  M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf};
+  M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf,
+    /* v37: the Bank tab (48-statement.js) reads statements with the same helpers */
+    parseXlsx, amt, vendorKey, keywordCat, guessMethod, toBase64};
   M.pages.Expenses = Expenses;
 })();
