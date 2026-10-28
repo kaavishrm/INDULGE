@@ -89,6 +89,9 @@ def other_page(h, page, ident, width, hash):
 def test(h):
     checks = []
     page = h.open('founder', width=1280, hash='#pitches', reset=True, seed=True)
+    # v37: #pitches opens the five column pipeline; this suite covers the full board behind "All stages"
+    page.evaluate("() => M.prefs.set('pipeline.view', 'stages')")
+    page.reload(); page.wait_for_selector('#pipeline-stages')
     h.roster(page, ('u_m1', 'u_m2'))
     page.wait_for_timeout(250)
     check('Pipeline' in page.locator('h1.pgt').inner_text(), 'page title')

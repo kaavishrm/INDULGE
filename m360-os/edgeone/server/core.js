@@ -58,9 +58,11 @@ const WEAK = new Set(['password', '12345678']);
 const LAST_SEEN_MS = 3600000;   /* a session's last-seen stamp moves at most once an hour */
 const BODY_MAX = 6 * 1024 * 1024; /* the platform's own limit, refused early with a clear code */
 /* the model behind the page's AI: quick answers on Haiku, everything else on the current Opus */
-const AI_MODELS = {quick: 'claude-haiku-4-5-20251001', default: 'claude-opus-5-5', complex: 'claude-opus-5-5'};
+const AI_MODELS = {quick: 'claude-haiku-5-5', default: 'claude-opus-5-5', complex: 'claude-opus-5-5'};
 /* a model the account cannot reach (404) gets one more try on the tier's fallback (aicall.js) */
-const AI_FALLBACK = {quick: 'claude-haiku-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
+const AI_FALLBACK = {quick: 'claude-sonnet-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
+/* v37: actions that wait on the model skip the background passes, so the model gets the whole 27 seconds */
+const AI_ACTIONS = new Set(['ai', 'aicheck', 'booksmine', 'bookstatement', 'bookscategorize', 'bookparties']);
 const AI_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const AI_IMAGE_MAX = 2200000;   /* base64 characters per image, about 1.6 MB */
 const AI_DAILY_MAX = 600;        /* model turns one person gets in a day */
@@ -1284,16 +1286,19 @@ export function createApp({store, env = {}}) {
       /* sign-in shaped calls are counted per address before anything else; with no address to count, per email */
       if (AUTH_ACTIONS.has(a)) await sec.throttle({ip: ip || (body && typeof body.email === 'string' ? 'e:' + cleanEmail(body.email) : ''), ua: deviceLabel(request.headers.get('user-agent'))});
       const v = await viewer(request);
+      /* the passes below share the request's 30 seconds. A model call needs all of them, and the page polls every
+         3 seconds anyway, so the next ordinary request runs the passes (v37) */
+      const quiet = AI_ACTIONS.has(a);
       /* once a day: the backup and the trash and backup pruning (safety.js); never fails a request */
-      if (hooks.upkeep) await hooks.upkeep().catch(() => {});
+      if (hooks.upkeep && !quiet) await hooks.upkeep().catch(() => {});
       /* the day before a holiday, once: the announcement and the mails */
-      await holiday().catch(() => {});
+      if (!quiet) await holiday().catch(() => {});
       /* the books' pass: retainer drafts on the billing day, reminder steps when auto-chase is on */
-      await books.run(site).catch(() => {});
+      if (!quiet) await books.run(site).catch(() => {});
       /* the personal managers: email to someone who is away, at most every ten minutes per instance */
-      await pm.run(site).catch(() => {});
+      if (!quiet) await pm.run(site).catch(() => {});
       /* the m360 COO: a tick always looks, other requests only when the heartbeat is late; a tick gets the summary */
-      const cooSum = await coo.run(site, {t0, tick: a === 'tick'}).catch(() => null);
+      const cooSum = quiet ? null : await coo.run(site, {t0, tick: a === 'tick'}).catch(() => null);
       /* once a day per instance, off the request's path: old log days go */
       const today = ymdIST(Date.now());
       if (logPruneDay !== today) { logPruneDay = today; pruneOldLogs(LOG_DAYS).catch(() => {}); }

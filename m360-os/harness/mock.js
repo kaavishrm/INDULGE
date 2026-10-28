@@ -368,6 +368,14 @@
     if (/end of day line/.test(text)) return {shipped: 'Storyboarded the hero reel.', next: 'Lock the shot list.', blocked: ''};
     if (/Break this brief/.test(text)) return [{title: 'Write ten Diwali reel scripts', owner: 'Durvesh', due: tomorrow, section: 'Strategy', why: 'Strategist owns scripts'},
       {title: 'Book the studio day', owner: 'Ishaan', due: tomorrow, section: '', why: 'Producer runs logistics'}];
+    /* the Bank tab names statement parties (48-statement.js); Soho House and Junco Hospitality share a label */
+    if (/read their bank statement/.test(text)) {
+      let list = [];
+      try { list = JSON.parse(text.slice(text.indexOf('\n\n[') + 2)); } catch (e) { list = []; }
+      return list.map(p => { const nm = String(p.name || ''); const money = Number(p.in) > Number(p.out);
+        const label = /junco|soho/i.test(nm) ? 'Soho House' : /starbucks/i.test(nm) ? 'Starbucks' : nm;
+        return {label, kind: money ? 'income' : 'expense', category: money ? 'Client payment' : /starbucks|soho|junco/i.test(nm) ? 'Meals and client' : 'Other', what: money ? 'A client paying an invoice.' : 'Spend at ' + label + '.'}; });
+    }
     if (/Turn this note into one task/.test(text)) return {title: 'Cut the teaser', owner: 'Aanya', due: tomorrow, priority: 'high'};
     return {};
   }

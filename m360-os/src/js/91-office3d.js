@@ -161,6 +161,9 @@
       };
       CORE.forEach(k => { v[k] = read(k); });
       ROLES.forEach(k => { v[k] = read('o3-' + k); });
+      /* v37: the office in colour, from the game palette in 14-cast.js; a role it does not name keeps its token */
+      const room = M.cast && M.cast.ROOM ? M.cast.ROOM[theme === 'dark' ? 'dark' : 'light'] : null;
+      if (room) ROLES.forEach(k => { if (room[k]) v[k] = room[k].slice(); });
     } finally { probeEl.remove(); }
     tok = {theme, v};
     return v;
@@ -186,10 +189,12 @@
       canvas.className = 'office-gl';
       canvas.setAttribute('aria-hidden', 'true');
       canvas.tabIndex = 0;
-      R.aa = (window.devicePixelRatio || 1) <= 1.5;
+      /* v37: smooth edges on every desktop; only a dense touch screen (already sharp, and short of power) goes without */
+      const coarse = (() => { try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } })();
+      R.aa = !coarse || (window.devicePixelRatio || 1) <= 1.5;
       const gl = new T.WebGLRenderer({canvas, antialias: R.aa, powerPreference: 'default', stencil: false, alpha: false});
       gl.toneMapping = T.NeutralToneMapping;
-      gl.toneMappingExposure = 1;
+      gl.toneMappingExposure = 1.06;
       gl.outputColorSpace = T.SRGBColorSpace;
       gl.shadowMap.enabled = true;
       gl.shadowMap.type = T.VSMShadowMap;
@@ -341,7 +346,13 @@
       hemi.intensity = (dk ? 0.72 : 0.62) + (phone ? 0.1 : 0);
       setCol(T, key.color, c.key);
       key.intensity = (dk ? 1.55 : 2.3) * (night ? 0.4 : 1);
-      scene.environmentIntensity = dk ? 0.18 : 0.26;
+      scene.environmentIntensity = dk ? 0.3 : 0.42;
+      /* a light haze in the backdrop's colour: the far side of the floor sits back a little */
+      const haze = c['back-c'] || c.warm;
+      /* the bundle carries the fog shaders without the class: the renderer only reads these fields */
+      if (!scene.fog) scene.fog = {isFogExp2: true, name: '', color: mats.floor.color.clone(), density: 0.0055, clone() { return {...this, color: this.color.clone()}; }, toJSON() { return {}; }};
+      setCol(T, scene.fog.color, haze);
+      scene.fog.density = dk ? 0.0075 : 0.0055;
       backdrop();
       if (world) floorTex();
       if (pools.lamp) pools.lamp.visible = glow;
@@ -540,7 +551,7 @@
       if (!world) return [];
       const out = [], L = d.L;
       for (const x of d.D || []) {
-        if (x.cabin || walkins.has(x.uid)) continue;
+        if (x.cabin || walkins.has(x.uid) || (visits.has(x.uid) && visits.get(x.uid).phase !== 'home')) continue;
         let p = null;
         if (x.state === 'office' && x.place === 'desk') { const s = world.seats[x.uid]; if (s) p = {x: s.x, y: s.z, h: s.h, pose: 'type', seat: 0.46}; }
         else if (x.place === 'meeting') p = {x: cm(x.x), y: cm(x.y), h: Math.atan2(14.0 - cm(x.x), 3.67 - cm(x.y)), pose: 'sit', seat: 0.46};
@@ -686,7 +697,7 @@
     function kTick(dt, now) {
       if (!kRig || !data || !world) return false;
       const live = !!(K && K.live);
-      let anim = false;
+      let anim = false, moved2 = false;
       if (live) {
         const s = OF().kaavishAt(Date.now());
         if (s && s.mode !== 'sit') {
@@ -694,13 +705,16 @@
           const moved = Math.hypot(nx - kav.x, nz - kav.z);
           kav.x = nx; kav.z = nz;
           /* his heading in degrees, a turn about the vertical as the crowd's is (0 faces the front of the floor) */
-          if (isFinite(s.h)) kav.h = s.h * DEG;
-          else if (moved > 0.002) kav.h = Math.atan2(nx - kav.px, nz - kav.pz);
+          /* v37: he turns toward his heading over a few frames */
+          const hWant = isFinite(s.h) ? s.h * DEG : moved > 0.002 ? Math.atan2(nx - kav.px, nz - kav.pz) : kav.h;
+          const hWas = kav.h;
+          kav.h = angle(kav.h, hWant, Math.min(1, (dt || 0.016) * 12));
+          if (Math.abs(kav.h - hWas) > 0.002) moved2 = true;
           kav.px = nx; kav.pz = nz;
           kav.mode = s.mode === 'walk' || (s.mode === 'pad' && moved > 0.0005) ? 'walk' : 'stand';
           kav.dist += moved;
           kav.talking = !!s.talking;
-          anim = s.mode === 'walk' || s.mode === 'pad' || moved > 0.0005;
+          anim = s.mode === 'walk' || s.mode === 'pad' || moved > 0.0005 || moved2;
         } else Object.assign(kav, seatOf('cabin'), {mode: 'sit', talking: !!(s && s.talking)});
       } else Object.assign(kav, seatOf(kOnline(data) ? 'cabin' : 'lounge'), {mode: 'sit', talking: false});
       kav.live = live;
@@ -749,7 +763,10 @@
         decals.add(blob); actors.add(rig.root);
         const s = world.seats[u], L = data.L;
         const pts = [{x: 0.44, z: cm(O.sy(L, 862))}, {x: 2.32, z: 6.62}, {x: s.x, z: s.z - s.dir * 0.6}, {x: s.x, z: s.z}];
-        walkins.set(u, {rig, blob, pts, t0: now, seat: s});
+        let len = 0;
+        for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+        /* v37: a walking pace, about 1.3 m a second */
+        walkins.set(u, {rig, blob, pts, t0: now, seat: s, dur: clamp(1800, 9000, len / 1.3 * 1000)});
       }
       syncCrowd();
       return changed;
@@ -757,7 +774,7 @@
     function walkTick(dt, now) {
       let anim = false;
       for (const w of walkins.values()) {
-        const t = clamp(0, 1, (now - w.t0) / 800), e = ease(t);
+        const t = clamp(0, 1, (now - w.t0) / (w.dur || 800)), e = ease(t);
         let len = 0; const L2 = [0];
         for (let i = 1; i < w.pts.length; i++) { len += Math.hypot(w.pts[i].x - w.pts[i - 1].x, w.pts[i].z - w.pts[i - 1].z); L2.push(len); }
         const at = e * len; let i = 1;
@@ -772,6 +789,171 @@
         if (t < 1) anim = true;
       }
       return anim;
+    }
+
+    /* ---------- life (v37): people get up, go over to someone or the coffee, wave, and sit back down ----------
+       A visit takes the person out of the baked crowd for its length: their own rig walks the plan's aisles
+       (M.office.route), holds a wave with a bubble, walks back, and rejoins the crowd. An emote a person sends
+       (me/<uid>.emote {e, at}) stands them up for a wave where they sit, or floats over their desk when they are
+       away. Nothing here runs while the office is hidden, off screen, behind a drawer or dozing */
+    const visits = new Map();
+    const EMOJI = {wave: '\u{1F44B}', five: '\u{1F64C}', coffee: '☕', clap: '\u{1F44F}', fire: '\u{1F525}', party: '\u{1F389}'};
+    const CHAT = [['Coffee?', 'coffee'], ['High five', 'five'], ['Nice work', 'clap'], ['Lunch?', 'party'], ['Quick sync?', 'wave'], ['You got this', 'fire']];
+    const SPEED = 1.15;
+    const seenEmote = {};
+    let nextVisit = performance.now() + 9000 + Math.random() * 9000;
+    const planSeat = uid => (data && data.L && data.L.seats ? data.L.seats[uid] : null);
+    function inOffice(uid) {
+      const d = (data && data.D || []).find(x => x.uid === uid);
+      return !!(d && d.state === 'office' && d.place === 'desk' && !d.cabin && world && world.seats[uid] && planSeat(uid));
+    }
+    const free = uid => inOffice(uid) && !walkins.has(uid) && !visits.has(uid);
+    function bubble(text, anchor) {
+      if (!o.layer) return null;
+      const el = document.createElement('div');
+      el.className = 'o3-emote';
+      el.setAttribute('aria-hidden', 'true');
+      el.textContent = text;
+      o.layer.appendChild(el);
+      el.classList.add('o3-item');
+      extras.set(el, {anchor, prio: 900});
+      sizes.set(el, [el.offsetWidth, el.offsetHeight]);
+      return el;
+    }
+    function unbubble(el) { if (!el) return; extras.delete(el); sizes.delete(el); el.remove(); }
+    /* a visit: pts in world metres from the seat out; hold is the wave at the far end */
+    function visit(uid, pts, o2) {
+      const rig = M.figure.build(T, lookOf(data, uid), {founder: false, lod: 1});
+      rig.root.visible = false;
+      const blob = new T.Mesh(new T.CircleGeometry(0.34, 24), mats.blob); blob.rotation.x = -Math.PI / 2; blob.renderOrder = 1; blob.visible = false;
+      actors.add(rig.root); decals.add(blob);
+      let len = 0; const offs = [0];
+      for (let i = 1; i < pts.length; i++) { len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); offs.push(len); }
+      const v = {uid, rig, blob, pts, offs, len, phase: 'wait', t0: 0, made: performance.now(), hold: o2.hold || 2600, face: o2.face || null,
+        say: o2.say || '', pose: o2.pose || 'wave', el: null, partner: o2.partner || '', seat: world.seats[uid]};
+      /* an emote shows at once, over the desk until the person is up */
+      if (o2.now && v.say) v.el = bubble(v.say, () => { const q = v.rig.root.visible ? v.rig.root.position : v.seat; return [q.x, v.rig.root.visible ? 2.05 : 1.95, q.z]; });
+      visits.set(uid, v);
+      crowdKey = crowdKey + '~';
+      syncCrowd();
+      invalidate(1);
+      return v;
+    }
+    const at = (v, d) => {
+      let i = 1;
+      while (i < v.pts.length - 1 && v.offs[i] < d) i++;
+      const a = v.pts[i - 1], b = v.pts[i], k = clamp(0, 1, (d - v.offs[i - 1]) / Math.max(1e-6, v.offs[i] - v.offs[i - 1]));
+      return {x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k, h: Math.atan2(b.x - a.x, b.z - a.z)};
+    };
+    const inCrowd = uid => crowdItems.some(i => i.uid === uid);
+    function endVisit(v) {
+      unbubble(v.el);
+      actors.remove(v.rig.root); decals.remove(v.blob);
+      try { v.rig.dispose(); } catch (e) { /* gone */ }
+      v.blob.geometry.dispose();
+      visits.delete(v.uid);
+    }
+    function visitTick(dt, now) {
+      if (!visits.size) return false;
+      for (const v of Array.from(visits.values())) {
+        const walkMs = Math.max(400, v.len / SPEED * 1000);
+        /* out of the crowd first, so nobody shows twice */
+        if (v.phase === 'wait') {
+          if (inCrowd(v.uid) && now - v.made < 4000) continue;
+          v.phase = v.len > 0.05 ? 'out' : 'hold'; v.t0 = now; v.rig.root.visible = true; v.blob.visible = true;
+        }
+        let p = null, pose = 'walk', dist = 0;
+        if (v.phase === 'out' || v.phase === 'back') {
+          const t = clamp(0, 1, (now - v.t0) / walkMs), e = ease(t);
+          dist = (v.phase === 'out' ? e : 1 - e) * v.len;
+          p = at(v, dist);
+          if (v.phase === 'back') p.h += Math.PI;
+          if (t >= 1) {
+            if (v.phase === 'out') { v.phase = 'hold'; v.t0 = now; }
+            else { v.phase = 'home'; v.t0 = now; crowdKey = crowdKey + '~'; syncCrowd(); }
+          }
+        }
+        if (v.phase === 'hold') {
+          const end = v.pts[v.pts.length - 1];
+          const f = typeof v.face === 'function' ? v.face() : v.face;
+          const toCam = Math.atan2(camera.position.x - end.x, camera.position.z - end.z);
+          p = {x: end.x, z: end.z, h: f ? angle(Math.atan2(f.x - end.x, f.z - end.z), toCam, 0.3) : toCam};
+          pose = v.pose;
+          if (!v.el && v.say) { const vv = v; v.el = bubble(v.say, () => { const q = vv.rig.root.position; return [q.x, 2.05, q.z]; }); }
+          if (now - v.t0 > v.hold) { unbubble(v.el); v.el = null; v.phase = v.len > 0.05 ? 'back' : 'home'; v.t0 = now; if (v.phase === 'home') { crowdKey = crowdKey + '~'; syncCrowd(); } }
+        }
+        if (v.phase === 'home') {
+          const s = v.seat;
+          p = {x: s.x, z: s.z, h: s.h};
+          pose = 'type';
+          v.blob.visible = false;
+          /* the crowd has them back, or it is taking too long: the rig goes */
+          if (inCrowd(v.uid) || now - v.t0 > 5000) { endVisit(v); invalidate(2); continue; }
+        }
+        if (!p) continue;
+        v.rig.root.position.set(p.x, 0, p.z);
+        v.rig.root.rotation.y = p.h;
+        try { v.rig.setPose(pose, now / 1000, {dist, seat: 0.46}); } catch (e) { /* a rig's own pose */ }
+        v.blob.position.set(p.x, 0.004, p.z);
+      }
+      return visits.size > 0;
+    }
+    /* the world points of a walk on the plan: the seat, then the aisles to the place (plan cm, y down the floor) */
+    function walkPts(uid, to) {
+      const s = world.seats[uid], ps = planSeat(uid);
+      const r = O.route ? O.route(data.L, {x: ps.x, y: ps.y}, to) : [{x: ps.x, y: ps.y}, to];
+      const pts = [{x: s.x, z: s.z}];
+      for (const q of r.slice(1)) pts.push({x: cm(q.x), z: cm(q.y)});
+      return pts;
+    }
+    /* stand up and wave where they sit: a step back from the desk into the aisle */
+    function standWave(uid, say, face, hold, now) {
+      const s = world.seats[uid];
+      const step = {x: s.x, z: s.z - (s.dir || 1) * 0.42};
+      return visit(uid, [{x: s.x, z: s.z}, step], {say, face, hold: hold || 3000, pose: 'wave', now: !!now});
+    }
+    function ambient() {
+      if (dead || !st.ready || !world || !data || paused() || doze || win || M.prefs.get('office.life', 'on') === 'off') return;
+      const now = performance.now();
+      if (now < nextVisit || visits.size >= 2) return;
+      nextVisit = now + 20000 + Math.random() * 20000;
+      if (dayNight()) return;
+      const people = (data.D || []).map(x => x.uid).filter(free);
+      if (!people.length) return;
+      const who = people[Math.floor(Math.random() * people.length)];
+      const others = people.filter(u => u !== who);
+      const [line, emo] = CHAT[Math.floor(Math.random() * CHAT.length)];
+      if (others.length && Math.random() < 0.65) {
+        const mate = others[Math.floor(Math.random() * others.length)];
+        const sp = O.standPoint ? O.standPoint(data.L, 'desk:' + mate) : null;
+        if (!sp) return;
+        const pts = walkPts(who, sp);
+        const ms = world.seats[mate];
+        const v = visit(who, pts, {say: EMOJI[emo] + ' ' + line, face: {x: ms.x, z: ms.z}, hold: 3200, pose: 'wave'});
+        /* the colleague stands to wave back when the visitor arrives */
+        const walkMs = Math.max(400, v.len / SPEED * 1000);
+        setTimeout(safe(() => { if (!dead && free(mate)) { const vv = visits.get(who); standWave(mate, EMOJI.wave, vv ? () => vv.rig.root.position : null, 2600); } }), walkMs + 900);
+      } else {
+        const spot = O.spotOf ? O.spotOf(data.L, 'coffee') : null;
+        if (!spot) return;
+        visit(who, walkPts(who, {x: spot.x, y: spot.y}), {say: EMOJI.coffee + ' Coffee run', hold: 3600, pose: 'talk'});
+      }
+    }
+    const lifeTimer = setInterval(() => { try { ambient(); } catch (e) { fail(e); } }, 1500);
+    /* the emotes people send from the emote bar, read off their me doc */
+    function emotes(d) {
+      const map = d && d.ctx && d.ctx.coll && d.ctx.coll.me ? d.ctx.coll.me.map || {} : {};
+      const now = Date.now();
+      for (const uid of Object.keys(map)) {
+        const m = map[uid] && map[uid].emote;
+        if (!m || !EMOJI[m.e] || !(Number(m.at) > now - 9000) || seenEmote[uid] === m.at) continue;
+        seenEmote[uid] = m.at;
+        if (!st.ready || !world) continue;
+        if (free(uid)) { standWave(uid, EMOJI[m.e], null, 4200, true); continue; }
+        const founder = d.L && uid === d.L.founder;
+        const el = bubble(EMOJI[m.e], () => (founder ? [kav.x, kav.mode === 'sit' ? 1.9 : 2.1, kav.z] : (() => { const a = anchorOf('desk:' + uid); return a ? [a[0], a[1] + 0.55, a[2]] : null; })()));
+        if (el) { invalidate(2); setTimeout(safe(() => { unbubble(el); invalidate(1); }), 6000); }
+      }
     }
 
     /* ---------- the camera ---------- */
@@ -898,7 +1080,7 @@
     /* ---------- the loop: on demand, capped, paused when nobody can see it ---------- */
     let lastPoke = Date.now();
     function poke() { lastPoke = Date.now(); if (doze) { doze = false; if (o.onDoze) o.onDoze(false); } invalidate(1); }
-    const dprMax = () => Math.min(window.devicePixelRatio || 1, phone ? 1.25 : 1.5);
+    const dprMax = () => Math.min(window.devicePixelRatio || 1, phone ? 1.25 : 2);
     let dprMove = dprMax(), slow = [], watch = [];
     const stillDpr = () => {
       const w = o.view.clientWidth, h = o.view.clientHeight, base = window.devicePixelRatio || 1, cap = phone ? 3 : 2, mp = phone ? 3e6 : 8.3e6;
@@ -994,6 +1176,8 @@
         if (!s) return [cm(d.x), 1.0, cm(d.y)];
         const w = walkins.get(u);
         if (w) { const p = w.rig.root.position; return [p.x, 1.45, p.z]; }
+        const vz = visits.get(u);
+        if (vz && vz.rig.root.visible) { const p = vz.rig.root.position; return [p.x, 1.62, p.z]; }
         return d.state === 'office' ? [s.x, 1.42, s.z] : [s.x, 0.98, s.edge + s.dir * 0.42];
       }
       if (k === 'founder') return [kav.x, kav.mode === 'sit' ? 1.36 : 1.5, kav.z];
@@ -1176,7 +1360,7 @@
     }
 
     /* ---------- life ---------- */
-    ticks.add(cooTick); ticks.add(kTick); ticks.add(walkTick); ticks.add(camTick);
+    ticks.add(cooTick); ticks.add(kTick); ticks.add(walkTick); ticks.add(visitTick); ticks.add(camTick);
     /* a new size clears the canvas: it is drawn again at once, even behind a drawer, so it never stands blank */
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(safe(() => {
       const v = o.view;
@@ -1231,6 +1415,7 @@
     /* ---------- start: lights, the world, the actors, the first frame ---------- */
     function start(d0) {
       data = d0;
+      try { const mm = d0 && d0.ctx && d0.ctx.coll && d0.ctx.coll.me ? d0.ctx.coll.me.map || {} : {}; for (const u of Object.keys(mm)) if (mm[u] && mm[u].emote && !(Number(mm[u].emote.at) > Date.now() - 4000)) seenEmote[u] = mm[u].emote.at; } catch (e) { /* none yet */ }
       tok = null;
       makeCoo();
       makeKaavish();
@@ -1268,6 +1453,7 @@
       const rig = makeKaavish();
       const walk = syncWalkins();
       syncCrowd();
+      emotes(d);
       if (rig || walk) invalidate(1);
     }
     /* the rig's state, from the director's view: walking, asleep on its pad, on its pad at its desk, working, or hovering */
@@ -1303,6 +1489,8 @@
       raf = 0;
       clearTimeout(crowdTimer);
       clearTimeout(blinkT);
+      clearInterval(lifeTimer);
+      for (const v of Array.from(visits.values())) { try { endVisit(v); } catch (e) { /* gone */ } }
       if (ro) ro.disconnect();
       if (io) io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
@@ -1329,7 +1517,8 @@
     function state() {
       const figures = {};
       for (const it of crowdItems) figures[it.uid] = {x: Math.round(it.x * 100), y: Math.round(it.y * 100), seated: true, state: it.state};
-      for (const [u, w] of walkins) { const p = w.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: performance.now() - w.t0 > 800, state: 'office'}; }
+      for (const [u, w] of walkins) { const p = w.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: performance.now() - w.t0 > (w.dur || 800), state: 'office'}; }
+      for (const [u, v] of visits) { const p = v.rig.root.position; figures[u] = {x: Math.round(p.x * 100), y: Math.round(p.z * 100), seated: false, state: 'office', visit: v.phase, say: v.el ? v.el.textContent : ''}; }
       return {ready: st.ready, frames: st.frames, renders: st.renders, dpr: st.dpr, calls: st.calls, tris: st.tris, firstFrame: Math.round(st.firstFrame),
         figures, coo: {spot: view ? view.spot : '', state: view ? (view.walking ? 'walking' : view.state) : '', x: Math.round(coo.x * 100), y: Math.round(coo.z * 100)},
         kaavish: {mode: kav.mode, x: Math.round(kav.x * 100), y: Math.round(kav.z * 100), seq: K ? K.seq || 0 : 0, say: K && K.say ? K.say : null, live: kav.live},
@@ -1337,7 +1526,9 @@
     }
     return {start: safe(start), setData: safe(setData), setView: safe(setView), setKaavish: safe(setKaavish), setPause: safe(setPause), setCam: safe(setCam),
       invalidate: safe(invalidate), measure: safe(measure), overlay: safe(overlayUpdate), flight: safe(flight), beat: safe(beat), cooWalk, look: safe(look), api, state,
-      dispose: disposeAll, get ready() { return st.ready; }, anchorOf: safe(anchorOf), poke: safe(poke)};
+      dispose: disposeAll, get ready() { return st.ready; }, anchorOf: safe(anchorOf), poke: safe(poke),
+      /* v37: start the next visit now (the checks and a curious founder) */
+      life: safe(() => { nextVisit = 0; ambient(); })};
   }
 
   /* ---------- the stage in 3D: the director's walk, fly, fade and fx ---------- */
@@ -1631,5 +1822,7 @@
   }
   const apiNow = () => (cur ? cur.api : null);
 
-  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry});
+  /* life(): the next visit now, for the checks */
+  const life = () => (cur && cur.life ? cur.life() : undefined);
+  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry, life});
 })();

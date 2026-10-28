@@ -306,6 +306,14 @@
         </div>
       <//>
 
+      <${UI.Card} title="Characters" id="settings-characters">
+        <div class="small ink62">Everyone styles their own character under Me, Character. You can restyle or lock anyone's look under Admin, Characters.</div>
+        <div class="row" style=${{marginTop: '10px', gap: '8px'}}>
+          <${UI.Btn} kind="sec" sm=${true} onClick=${() => M.nav('#character')}>Style your character<//>
+          <${UI.Btn} kind="ghost" sm=${true} onClick=${() => M.nav('#office')}>Open the office<//>
+        </div>
+      <//>
+
       <div class="row"><${UI.Btn} onClick=${save}>Save settings<//></div>
     </div>`;
   }

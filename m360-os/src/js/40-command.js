@@ -300,7 +300,7 @@
                 const comp = (M.clients && M.clients.completeness) ? M.clients.completeness(c) : {filled: 0, total: 3};
                 const openN = (M.clients && M.clients.openTaskCount) ? M.clients.openTaskCount(ctx, r.id) : 0;
                 return html`<tr key=${r.id}>
-                  <td class="lead">${r.name}</td><td class="num" data-label="monthly">${U.inr(r.monthly)}</td>
+                  <td class="lead">${r.name}</td><td class="num" data-label="monthly">${r.kind === 'project' ? (r.fee ? U.inr(r.fee) + ' project' : 'project') : U.inr(r.monthly)}</td>
                   <td class="num" data-label="share">${r.share}%</td><td class="num" data-label="open tasks">${openN}</td>
                   <td class=${'num' + (comp.filled < comp.total ? ' flame-t' : '')} data-label="brain">${comp.filled} of ${comp.total}</td>
                 </tr>`;
