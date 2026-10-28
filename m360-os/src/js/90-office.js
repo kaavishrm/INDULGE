@@ -1643,6 +1643,10 @@
     const meBtn = mine ? html`<button type="button" class="btn sec sm office-me" id="office-character" data-locked=${mine.locked ? '1' : '0'}
         onClick=${() => setCastOpen(true)} title=${mine.locked ? 'Kaavish set this look for you.' : 'Style your character'}>
         <img class="cast-mini" src=${M.cast.head2d(mine.look, {founder: mine.founder, size: 24}).url} alt="" width="24" height="24"/>Your character</button>` : null;
+    /* v37: everyone can wave, high five or call a coffee; the 3D office shows it over the character, the flat one in a line */
+    const EB = M.parts.EmoteBar, EF = M.parts.EmoteFeed;
+    const emoteBar = EB && mode === 'office' ? html`<${EB} compact=${true}/>` : null;
+    const feed = EF && mode === 'office' && !three ? html`<${EF}/>` : null;
     return html`<div class=${'office-page stack' + (three ? ' o3-page' : '')} data-scope=${data.scope}>
       <div class="office-head">
         <div class="grow"><h2 class="office-title">The office</h2><div class="sub small">${clockLine(data.ctx, data)}</div></div>
@@ -1657,11 +1661,11 @@
       ${mode === 'list' ? html`<${Rail} data=${data} now=${now} id="office-run" list=${true}/>` : phone ? html`<div class="stack">
           <div class="office-chips" role="toolbar" aria-label="Stations">${chips.map(k => html`<button key=${k} type="button" class=${'chip office-chip' + (pick === k ? ' active' : '')} data-key=${k}
             onClick=${() => { setPick(k); dr.station(k); }}>${labelOf(data.ctx, k).replace(/^The /, '')}${data.founder && (k === 'tray' ? data.dec.length : counts[k]) ? html`<b class="num">${k === 'tray' ? data.dec.length : counts[k]}</b>` : null}</button>`)}</div>
-          ${scene}${composer}${hint}${slow}${style}
+          ${emoteBar}${scene}${feed}${composer}${hint}${slow}${style}
           ${data.founder ? html`<section class="card or-card"><div class="card-head"><h2 class="card-title">Today's run</h2></div><${RunList} data=${data} limit=${20}/></section>` : null}
           <section class="card or-card"><div class="card-head"><h2 class="card-title">Desks</h2></div><${DeskList} data=${data}/></section>
-        </div>` : three ? html`<div class="stack o3-stack">${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
-        : html`<div class="office-grid">${composer || slow || style ? html`<div class="stack">${scene}${composer}${slow}${style}</div>` : scene}<${Rail} data=${data} now=${now}/></div>`}
+        </div>` : three ? html`<div class="stack o3-stack">${emoteBar}${scene}${composer}${hint}${style}<${Rail} data=${data} now=${now} wide=${true}/></div>`
+        : html`<div class="office-grid"><div class="stack">${emoteBar}${scene}${feed}${composer}${slow}${style}</div><${Rail} data=${data} now=${now}/></div>`}
       ${dr.node}
       ${castOpen && Sheet ? html`<${Sheet} uid=${data.ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
     </div>`;

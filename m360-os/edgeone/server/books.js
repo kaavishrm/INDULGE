@@ -99,11 +99,23 @@ export const booksView = {
 };
 
 /* the model reads mail, attachments and statements for the books; JSON in, JSON out */
-const MODEL = 'claude-sonnet-5';
+const MODEL = 'claude-sonnet-5-5';
 /* a 404 on the model gets one more try here (aicall.js) */
-const MODEL_FALLBACK = 'claude-sonnet-5-5';
+const MODEL_FALLBACK = 'claude-opus-5-5';
 const MINE_SYSTEM = 'BOOKS MINE. You read a company\'s mail about one client and pick out the billing details for that client. Reply with JSON only, one object: {"legalName": "", "address": "", "country": "", "taxId": "", "contactName": "", "contactEmail": "", "currency": "", "termsDays": 0, "po": "", "note": ""}. legalName is the registered name that should print on an invoice to them (the payer, not us). address is their billing address, lines separated by newlines. country is the country of that address. taxId is their GSTIN (India, 15 characters) or VAT or TRN number. contactName and contactEmail are the accounts payable person who receives invoices. currency is the ISO code they pay in. termsDays is the payment terms in days when stated. po is the latest purchase order number. Leave a field empty ("" or 0) when the mail does not say; never guess, never invent, never use our own company details. note is one short sentence on what you read and anything unsure.';
-const STATEMENT_SYSTEM = 'BOOKS STATEMENT. You read a bank or card statement and list every transaction. Reply with JSON only: {"rows": [{"date": "yyyy-mm-dd", "vendor": "", "desc": "", "amount": 0, "credit": 0, "method": "bank", "ref": ""}]}. amount is the money out (debit, positive number, 0 when the line is money in); credit is the money in (positive, 0 otherwise). vendor is the merchant or person the line names, cleaned of UPI, NEFT, IMPS, POS prefixes and reference numbers; desc is the narration as printed. method is upi, card, cash or bank from the narration. ref is the transaction or cheque reference. Keep the order of the statement. Skip opening and closing balance lines.';
+/* v37: statements come back as one short line per transaction, a page window at a time, on the fast model, so a full
+   year reads in pieces that each finish well inside the 27 seconds */
+const FAST = 'claude-haiku-5-5';
+const FAST_FALLBACK = 'claude-sonnet-5-5';
+const STATEMENT_SYSTEM = 'BOOKS STATEMENT. You read a bank or card statement and list every transaction, one per line, in this exact form and nothing else:\n' +
+  'yyyy-mm-dd|party|out|in|narration|ref\n' +
+  'party is the merchant, company or person the line names, cleaned of UPI, NEFT, IMPS, RTGS, POS, ACH prefixes, bank codes, handles and reference numbers (for example "Starbucks", "Junco Hospitality", "Titan Company"). out is the money out (a plain number, 0 when the line is money in). in is the money in (0 otherwise). narration is the particulars as printed, at most 80 characters, with no pipe characters. ref is the cheque or transaction reference or empty. ' +
+  'Use the statement\'s own debit and credit columns for the direction. Keep the order of the statement. Skip opening balance, closing balance, totals and carried forward lines. ' +
+  'The first line of your reply is PAGES followed by the number of pages in the whole document, for example "PAGES 12". When you are asked for a page range, list only the transactions printed on those pages; when the range starts past the last page, reply with the PAGES line alone.';
+const PARTIES_SYSTEM = 'BOOKS PARTIES. You help the owner of an Indian marketing agency (Mask360, Mask Management) read their current account. For each numbered party you get its name as the bank printed it, two sample narrations, the money out and money in. Reply with one line per party and nothing else, in this exact form:\n' +
+  'number|label|kind|category|what\n' +
+  'label is the clean, well known name to group under; give two parties the same label when they are the same business (a brand and its operating company, for example Soho House and Junco Hospitality, or Starbucks and Tata Starbucks). kind is one of: income, expense, transfer, refund, tax, salary. Money in from a client or a business is income; money moved between the owner\'s own accounts, a loan or a credit card bill payment is transfer. ' +
+  'category for money out is one of: Salaries, Rent, Software and tools, Freelancers, Production, Travel, Meals and client, Marketing, Professional fees, Bank and taxes, Equipment, Other. category for money in is one of: Client payment, Refund, Interest, Own funds, Other income. what is one short plain sentence (at most 12 words) on what this party is or what the money was for. No pipe characters inside a field. Never invent a client relationship you cannot see; say what the name suggests.';
 const CAT_SYSTEM = 'BOOKS CATEGORIES. You sort a marketing agency\'s expenses into categories. The only categories are: Salaries, Rent, Software and tools, Freelancers, Production, Travel, Meals and client, Marketing, Professional fees, Bank and taxes, Equipment, Other. Reply with JSON only: {"categories": ["...", ...]} with exactly one category per row, in the same order as the rows given.';
 const jsonOut = txt => { const m = String(txt || '').match(/\{[\s\S]*\}/); if (!m) return null; try { return JSON.parse(m[0]); } catch (e) { return null; } };
 const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
@@ -113,16 +125,17 @@ export function booksDesk(h) {
   const {getJ, docKey, listAll, ownerUid, sendMail, writeAs, ymdIST, levelOf, LEVEL, HttpError, env, aiKey, google} = h;
   const MAX_FILE = 3 * 1024 * 1024;
   /* one question to the model, the answer parsed as JSON */
-  async function ask(system, content, maxTokens, t0) {
+  async function ask(system, content, maxTokens, t0, model, fallback, raw) {
     const key = aiKey ? await aiKey() : null;
     if (!key) throw new HttpError(403, 'not_granted', 'AI is off. Add the key under Admin.');
     /* the same failures, named the same way, as the page's AI (aicall.js); only the owner calls these. The answer
        has to be in before the platform's 30 seconds (AI_BUDGET_MS), counted from when the request came in (t0) */
-    const res = await askModel({doFetch: env.fetch || fetch, key, req: {model: MODEL, max_tokens: maxTokens || 2048, system, messages: [{role: 'user', content}]},
-      fallback: MODEL_FALLBACK, deadline: (Number(t0) || Date.now()) + (Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : AI_BUDGET_MS)});
+    const res = await askModel({doFetch: env.fetch || fetch, key, req: {model: model || MODEL, max_tokens: maxTokens || 2048, system, messages: [{role: 'user', content}]},
+      fallback: fallback || MODEL_FALLBACK, deadline: (Number(t0) || Date.now()) + (Number(env.AI_BUDGET_MS) > 0 ? Number(env.AI_BUDGET_MS) : AI_BUDGET_MS)});
     if (!res.ok) throw new HttpError(aiStatusOf(res.code), res.code, res.reason);
     const j = res.j;
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
+    if (raw) return text;
     const out = jsonOut(text);
     if (!out) throw new HttpError(502, 'invalid_json', 'The reading came back scrambled. Try again.');
     return out;
@@ -277,28 +290,75 @@ export function booksDesk(h) {
   const atobUrl = s => { try { const bin = atob(String(s || '').replace(/-/g, '+').replace(/_/g, '/')); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return new TextDecoder().decode(u8); } catch (e) { return ''; } };
 
   /* ---------- a bank statement into rows ---------- */
+  /* body: {name, type, data (base64), pageFrom, pageTo}. A PDF is read a page window at a time when the page asks for
+     one; the document block is cached, so the next window costs little. Returns {rows, pages} */
+  const DIRS = /^(\d{4}-\d{2}-\d{2})\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)(?:\|([^|]*))?/;
+  const methodOf = t => { const x = String(t || '').toLowerCase(); return /\bupi\b|@/.test(x) ? 'upi' : /\bpos\b|card|visa|rupay|master/.test(x) ? 'card' : /\batm\b|cash/.test(x) ? 'cash' : 'bank'; };
+  function readLines(text) {
+    const rows = [];
+    let pages = 0;
+    for (const line0 of String(text || '').split(/\r?\n/)) {
+      const line = line0.trim().replace(/^[-*]\s*/, '');
+      const pm = line.match(/^PAGES\s+(\d+)/i);
+      if (pm) { pages = Number(pm[1]) || 0; continue; }
+      const m = line.match(DIRS);
+      if (!m) continue;
+      const out = Math.max(0, Math.abs(num(m[3]))), inn = Math.max(0, Math.abs(num(m[4])));
+      if (!(out > 0 || inn > 0)) continue;
+      const desc = String(m[5] || '').trim().slice(0, 300);
+      rows.push({date: m[1], vendor: String(m[2] || '').trim().slice(0, 120), desc, amount: out > 0 ? out : 0, credit: out > 0 ? 0 : inn, method: methodOf(desc + ' ' + m[2]), ref: String(m[6] || '').trim().slice(0, 60)});
+    }
+    return {rows, pages};
+  }
   actions.bookstatement = async function bookstatement(v, body, req) {
     await owner(v);
     const data = String(body.data || '');
     const name = String(body.name || 'statement').slice(0, 120);
     const type = String(body.type || '').toLowerCase();
     if (!data || data.length > 5.6 * 1024 * 1024) throw new HttpError(400, 'invalid_argument', 'Statements up to 4 MB.');
+    const from = Math.max(0, Math.floor(num(body.pageFrom))), to = Math.max(from, Math.floor(num(body.pageTo)));
     const content = [];
-    if (/pdf/.test(type) || /\.pdf$/i.test(name)) content.push({type: 'document', source: {type: 'base64', media_type: 'application/pdf', data}, title: name});
-    else if (/image\/(png|jpeg|jpg)/.test(type)) content.push({type: 'image', source: {type: 'base64', media_type: type.replace('jpg', 'jpeg'), data}});
+    let isPdf = false;
+    if (/pdf/.test(type) || /\.pdf$/i.test(name)) { isPdf = true; content.push({type: 'document', source: {type: 'base64', media_type: 'application/pdf', data}, title: name, cache_control: {type: 'ephemeral'}}); }
+    else if (/image\/(png|jpeg|jpg|webp)/.test(type)) content.push({type: 'image', source: {type: 'base64', media_type: type.replace('jpg', 'jpeg'), data}});
     else {
       let text = '';
       try { text = new TextDecoder().decode(Uint8Array.from(atob(data), c => c.charCodeAt(0))); } catch (e) { text = ''; }
       if (!text.trim()) throw new HttpError(400, 'invalid_argument', 'That file is not a statement m360 can read.');
-      content.push({type: 'text', text: 'STATEMENT ' + name + ':\n' + text.slice(0, 120000)});
+      content.push({type: 'text', text: 'STATEMENT ' + name + ':\n' + text.slice(0, 60000)});
     }
-    content.push({type: 'text', text: 'List every transaction as JSON.'});
-    const out = await ask(STATEMENT_SYSTEM, content, 8000, req && req.t0);
-    const rows = (Array.isArray(out.rows) ? out.rows : []).slice(0, 600).map(r => ({
-      date: /^\d{4}-\d{2}-\d{2}$/.test(String(r.date || '')) ? r.date : '', vendor: String(r.vendor || '').slice(0, 120), desc: String(r.desc || '').slice(0, 300),
-      amount: Math.max(0, num(r.amount)), credit: Math.max(0, num(r.credit)), method: ['upi', 'card', 'cash', 'bank'].includes(String(r.method)) ? r.method : 'bank', ref: String(r.ref || '').slice(0, 60)
-    })).filter(r => r.date && (r.amount > 0 || r.credit > 0));
-    return {rows};
+    content.push({type: 'text', text: isPdf && from ? 'List the transactions printed on pages ' + from + ' to ' + to + ' only.' : 'List every transaction.'});
+    const text = await ask(STATEMENT_SYSTEM, content, 7000, req && req.t0, FAST, FAST_FALLBACK, true);
+    const got = readLines(text);
+    return {rows: got.rows.slice(0, 900), pages: got.pages};
+  };
+
+  /* ---------- who each party on a statement is ---------- */
+  /* body: {parties: [{name, samples: [], out, in}]}, at most 80. Returns {parties: [{label, kind, category, what}]} in order */
+  const KINDS = ['income', 'expense', 'transfer', 'refund', 'tax', 'salary'];
+  const OUT_CATS = ['Salaries', 'Rent', 'Software and tools', 'Freelancers', 'Production', 'Travel', 'Meals and client', 'Marketing', 'Professional fees', 'Bank and taxes', 'Equipment', 'Other'];
+  const IN_CATS = ['Client payment', 'Refund', 'Interest', 'Own funds', 'Other income'];
+  actions.bookparties = async function bookparties(v, body, req) {
+    await owner(v);
+    const list = (Array.isArray(body.parties) ? body.parties : []).slice(0, 80).map(p => ({
+      name: String((p && p.name) || '').slice(0, 80), samples: (Array.isArray(p && p.samples) ? p.samples : []).slice(0, 2).map(x => String(x || '').replace(/\|/g, ' ').slice(0, 90)),
+      out: Math.round(num(p && p.out)), inn: Math.round(num(p && p.in))}));
+    if (!list.length) return {parties: []};
+    const prompt = 'PARTIES:\n' + list.map((p, i) => (i + 1) + '. ' + p.name + ' | out ' + p.out + ' | in ' + p.inn + ' | ' + p.samples.join(' ; ')).join('\n');
+    const text = await ask(PARTIES_SYSTEM, [{type: 'text', text: prompt}], 5000, req && req.t0, FAST, FAST_FALLBACK, true);
+    const out = list.map(p => ({label: '', kind: p.inn > p.out ? 'income' : 'expense', category: '', what: ''}));
+    for (const line0 of String(text || '').split(/\r?\n/)) {
+      const m = line0.trim().match(/^(\d+)[.)]?\s*\|([^|]*)\|([^|]*)\|([^|]*)\|?(.*)$/);
+      if (!m) continue;
+      const i = Number(m[1]) - 1;
+      if (!(i >= 0 && i < out.length)) continue;
+      const kind = String(m[3] || '').trim().toLowerCase();
+      const cat = String(m[4] || '').trim();
+      const cats = list[i].inn > list[i].out ? IN_CATS : OUT_CATS;
+      out[i] = {label: String(m[2] || '').trim().slice(0, 60), kind: KINDS.includes(kind) ? kind : out[i].kind,
+        category: cats.find(c => c.toLowerCase() === cat.toLowerCase()) || OUT_CATS.concat(IN_CATS).find(c => c.toLowerCase() === cat.toLowerCase()) || '', what: String(m[5] || '').replace(/\|/g, ' ').trim().slice(0, 120)};
+    }
+    return {parties: out};
   };
 
   /* ---------- categories for rows the books have not seen ---------- */

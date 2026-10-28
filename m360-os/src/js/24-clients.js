@@ -42,10 +42,22 @@
     const d = (ctx.priv && ctx.priv.finance && ctx.priv.finance.data) || {};
     return d.clients || {};
   }
+  /* v37: a client is a monthly retainer or a one-off project. The kind sits on the client (everyone sees the pill),
+     the money in the founder's finance doc: finance.clients[cid] = {kind, monthly, fee, from, to, paid} */
+  const KINDS = [{v: 'retainer', label: 'Retainer'}, {v: 'project', label: 'Project'}];
+  function kindOf(ctx, id) {
+    const fe = financeOf(ctx)[id] || {};
+    const c = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map[id]) || {};
+    return (fe.kind || c.billing) === 'project' ? 'project' : 'retainer';
+  }
+  /* monthly revenue counts retainers only: a project fee is one payment, so it never inflates the monthly line */
   function shares(ctx) {
     const map = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map) || {};
     const fin = financeOf(ctx);
-    const rows = Object.keys(map).map(id => ({id, name: map[id].name || '', monthly: Number((fin[id] || {}).monthly) || 0}));
+    const rows = Object.keys(map).map(id => {
+      const kind = kindOf(ctx, id), fe = fin[id] || {};
+      return {id, name: map[id].name || '', kind, monthly: kind === 'project' ? 0 : (Number(fe.monthly) || 0), fee: kind === 'project' ? (Number(fe.fee) || 0) : 0};
+    });
     const total = rows.reduce((n, r) => n + r.monthly, 0);
     return rows.map(r => ({...r, share: total > 0 ? Math.round(100 * r.monthly / total) : 0}));
   }
@@ -436,7 +448,7 @@
   }
 
   /* ---------- the drawer ---------- */
-  function ClientDrawer({id, onClose}) {
+  function ClientDrawer({id, onClose, seed}) {
     const ctx = M.useCtx();
     const existing = id ? ctx.coll.clients.map[id] : null;
     const fin = financeOf(ctx);
@@ -447,7 +459,11 @@
       website: ex('website'), industry: ex('industry'), hq: ex('hq'), since: ex('since'), tone: ex('tone'),
       instagram: (ex('socials') || {}).instagram || '', linkedin: (ex('socials') || {}).linkedin || '', youtube: (ex('socials') || {}).youtube || '',
       logo: ex('logo'), useAutoLogo: !!(existing && existing.useAutoLogo),
-      monthly: id && fin[id] ? String(fin[id].monthly || '') : ''
+      monthly: id && fin[id] ? String(fin[id].monthly || '') : '',
+      kind: id ? kindOf(ctx, id) : (seed && seed.kind) || 'retainer',
+      fee: id && fin[id] && fin[id].fee ? String(fin[id].fee) : '', from: (id && fin[id] && fin[id].from) || '', to: (id && fin[id] && fin[id].to) || '',
+      paid: id && fin[id] && fin[id].paid ? String(fin[id].paid) : '',
+      ...(id ? {} : seedFields(seed))
     }));
     const [busy, setBusy] = useState(false);
     const fileRef = useRef(null);
@@ -491,7 +507,7 @@
       const org = linked.org;
       const cid = id || U.uid();
       const doc = {name: f.name.trim(), status: f.status, pod: f.pod, owner: f.owner,
-        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})),
+        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})), billing: f.kind,
         website, domain: domainFrom(website) || (org ? (org.domain || domainFrom(org.website)) : ''),
         industry: f.industry.trim(), hq: f.hq.trim(), since: f.since.trim(), tone: f.tone.trim(), socials,
         logo: f.logo || '', useAutoLogo: !!f.useAutoLogo,
@@ -506,8 +522,16 @@
           if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
           if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
         }
-        if (ctx.isFounder && String(f.monthly).trim() !== '') {
-          await ctx.W.merge('data/users/' + ctx.uid + '/finance', {clients: {[cid]: {monthly: Number(f.monthly) || 0}}});
+        /* a company typed by hand becomes a company in the database too, linked both ways */
+        if (!id && !f.org && seed && seed.newOrg && M.base && M.base.upsertOrg && M.base.linkOrgToClient) {
+          const oid = await M.base.upsertOrg(ctx, {name: doc.name, website, industry: doc.industry, city: doc.hq, source: 'manual'}).catch(() => null);
+          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid).catch(() => {}); }
+        }
+        if (ctx.isFounder) {
+          const money = f.kind === 'project'
+            ? {kind: 'project', fee: Number(f.fee) || 0, from: f.from || '', to: f.to || '', paid: Number(f.paid) || 0}
+            : {kind: 'retainer', ...(String(f.monthly).trim() !== '' ? {monthly: Number(f.monthly) || 0} : {})};
+          await ctx.W.merge('data/users/' + ctx.uid + '/finance', {clients: {[cid]: money}});
         }
         M.toast('Saved');
         onClose();
@@ -541,6 +565,7 @@
       ${id ? html`<${HealthLine} id=${id}/>` : null}
       <${UI.Input} id="client-name" label="name" value=${f.name} onChange=${v => set('name', v)}/>
       <${UI.Field} label="status"><${UI.Seg} options=${STATUS} value=${f.status} onChange=${v => set('status', v)} ariaLabel="Status"/><//>
+      <${UI.Field} label="how they pay"><${UI.Seg} options=${KINDS} value=${f.kind} onChange=${v => set('kind', v)} ariaLabel="How they pay"/><//>
       <div class="grid2">
         <${UI.Input} label="pod" value=${f.pod} onChange=${v => set('pod', v)}/>
         <${UI.Select} label="owner" value=${f.owner} onChange=${v => set('owner', v)} options=${[{v: '', label: 'No owner'}].concat(owners)}/>
@@ -573,36 +598,109 @@
       ${id && M.parts.PeopleAtClient && orgOf(ctx, id) ? html`<${UI.Fold} title="People at this client" id="fold-client-people"><${M.parts.PeopleAtClient} id=${id}/><//>` : null}
       ${id && M.parts.Connections ? html`<${M.parts.Connections} kind="client" id=${id}/>` : null}
       ${id && M.parts.ClientUpdate && M.ai.on(ctx) ? html`<${M.fx.Beam}><${UI.Fold} title="Client update" summary="a client-ready note" id="fold-client-update"><${M.parts.ClientUpdate} id=${id} name=${f.name}/><//><//>` : null}
-      ${ctx.isFounder ? html`<${UI.Input} label="monthly revenue" type="number" value=${f.monthly}
-        onChange=${v => set('monthly', v)} hint="Private to you."/>` : null}
+      ${ctx.isFounder && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
+        onChange=${v => set('monthly', v)} hint="Private to you. Counts in monthly revenue."/>` : null}
+      ${ctx.isFounder && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
+        <div class="grid2">
+          <${UI.Input} id="client-fee" label="project fee, ₹" type="number" value=${f.fee} onChange=${v => set('fee', v)} hint="Private to you. One payment, kept out of monthly revenue."/>
+          <${UI.Input} id="client-paid" label="paid so far, ₹" type="number" value=${f.paid} onChange=${v => set('paid', v)}/>
+        </div>
+        <div class="grid2">
+          <${UI.Input} id="client-from" label="starts" type="date" value=${f.from} onChange=${v => set('from', v)}/>
+          <${UI.Input} id="client-to" label="ends, or expected" type="date" value=${f.to} onChange=${v => set('to', v)}/>
+        </div>
+      </div>` : null}
+    <//>`;
+  }
+
+  const seedFields = sd => !sd ? {} : {name: sd.name || '', org: sd.org || '', website: sd.website || '', industry: sd.industry || '', hq: sd.hq || ''};
+  const projEnd = (ctx, id) => { const fe = financeOf(ctx)[id] || {}; return fe.to ? ', ends ' + U.fmtDate(fe.to) : ''; };
+
+  /* ---------- a new client starts with a search: the company database first, then the clients already here ---------- */
+  function NewClient({onClose, onAdd, onOpen}) {
+    const ctx = M.useCtx();
+    const [q, setQ] = useState('');
+    const [dq, setDq] = useState('');
+    const [kind, setKind] = useState('retainer');
+    const [busy, setBusy] = useState(false);
+    useEffect(() => { const t = setTimeout(() => setDq(q), 200); return () => clearTimeout(t); }, [q]);
+    const on = nameKey(dq).length >= 2;
+    const orgs = M.base && M.base.useQuery ? M.base.useQuery('orgs', {q: dq, limit: 8}, on) : {rows: []};
+    const k = nameKey(dq);
+    const cm = ctx.coll.clients.map;
+    const clientHits = on ? Object.keys(cm).filter(x => nameKey(cm[x].name).indexOf(k) >= 0).slice(0, 4) : [];
+    const pick = o => {
+      if (o.client && cm[o.client]) { onOpen(o.client); return; }
+      onAdd({name: o.name || q.trim(), org: o.id, website: o.website || o.domain || '', industry: o.industry || '', hq: o.city || '', kind});
+    };
+    const addNew = () => { if (!q.trim()) return; onAdd({name: q.trim(), kind, newOrg: true}); };
+    useEffect(() => { const el = document.getElementById('client-find'); if (el) el.focus(); }, []);
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title="New client">
+      <div class="stack">
+        <div class="field"><label for="client-find">find the company</label>
+          <input id="client-find" class="input" type="search" autocomplete="off" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Type the company name"
+            onKeyDown=${e => { if (e.key === 'Enter') { e.preventDefault(); const first = (orgs.rows || [])[0]; if (first) pick(first); else addNew(); } }}/>
+          <div class="hint">Searches the company database. Pick one and the client is linked to it.</div>
+        </div>
+        <${UI.Field} label="how they pay"><${UI.Seg} options=${KINDS} value=${kind} onChange=${setKind} ariaLabel="How they pay"/><//>
+        ${clientHits.length ? html`<div class="stack tight"><${UI.Micro} plain>already a client<//>
+          ${clientHits.map(x => html`<button key=${x} type="button" class="listrow rowbtn" onClick=${() => onOpen(x)}>
+            <span class="grow"><b>${cm[x].name}</b></span><span class="tiny sub">open</span></button>`)}
+        </div>` : null}
+        ${on ? html`<div class="stack tight" id="client-find-results"><${UI.Micro} plain>in the database<//>
+          ${orgs.loading && !(orgs.rows || []).length ? html`<${UI.Empty} text="Searching."/>` : null}
+          ${(orgs.rows || []).map(o => html`<button key=${o.id} type="button" class="listrow rowbtn" data-org=${o.id} disabled=${busy} onClick=${() => { setBusy(true); pick(o); }}>
+            <span class="grow"><b>${o.name}</b><span class="sub small">${[o.industry, o.city, o.domain].filter(Boolean).length ? ', ' + [o.industry, o.city, o.domain].filter(Boolean).join(', ') : ''}</span></span>
+            <span class="tiny sub">${o.client ? 'open client' : (o.people ? o.people + ' people' : 'pick')}</span>
+          </button>`)}
+          ${!orgs.loading && !(orgs.rows || []).length ? html`<${UI.Empty} text="No company by that name in the database."/>` : null}
+        </div>` : null}
+        ${q.trim() ? html`<div><${UI.Btn} kind="sec" id="client-add-new" onClick=${addNew}><${M.icons.plus}/>Add ${q.trim()} as a new company<//></div>` : null}
+      </div>
     <//>`;
   }
 
   /* ---------- the page ---------- */
   function Clients() {
     const ctx = M.useCtx();
-    const [open, setOpen] = useState(null); /* id, or 'new' */
+    const [open, setOpen] = useState(null); /* id, 'new' (the search), or 'add' (the form, seeded) */
+    const [seed, setSeed] = useState(null);
+    const [q, setQ] = useState('');
+    const [kf, setKf] = useState('all');
     M.useIntent('client', () => setOpen('new'));
     /* #clients/<id> opens that client (search results and Connections land here) */
     const route = M.useRoute();
     const routeId = route.page === 'clients' ? route.id : null;
     useEffect(() => { if (routeId) setOpen(routeId); }, [routeId]);
-    const close = () => { setOpen(null); if (routeId) M.nav('#clients'); };
+    const close = () => { setOpen(null); setSeed(null); if (routeId) M.nav('#clients'); };
     const map = ctx.coll.clients.map;
     const sh = useMemo(() => {
       const out = {};
       if (ctx.isFounder) shares(ctx).forEach(r => { out[r.id] = r; });
       return out;
     }, [ctx]);
-    const ids = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));
+    const allIds = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));
+    const ws = nameKey(q).split(' ').filter(Boolean);
+    const nKind = {retainer: 0, project: 0};
+    allIds.forEach(x => { nKind[kindOf(ctx, x)]++; });
+    const ids = allIds.filter(x => (kf === 'all' || kindOf(ctx, x) === kf)
+      && (!ws.length || ws.every(w => nameKey([map[x].name, map[x].industry, map[x].pod, map[x].hq, map[x].website].join(' ')).indexOf(w) >= 0)));
     /* the one client most in need of a look rides the beam: the first off track, else the first to watch */
     const hotId = ids.find(x => health(ctx, x).level === 'risk') || ids.find(x => health(ctx, x).level === 'watch') || null;
 
     return html`<div class="stack" style=${{gap: '18px'}}>
       <${UI.PageHead} micro="client brains" title="Clients">
         <${M.fx.Bot} feature="clients" size=${40} label="m360, client brains" className="ai-bot"/>
-        <${UI.Btn} onClick=${() => setOpen('new')}>New client<//>
+        <${UI.Btn} id="client-new" onClick=${() => setOpen('new')}>New client<//>
       <//>
+      <div class="row between" style=${{gap: '10px'}}>
+        <label class="talk-search grow">
+          <${M.icons.search}/>
+          <input id="client-q" class="input" type="search" aria-label="Search clients" value=${q} onInput=${e => setQ(e.target.value)} placeholder="Search clients"/>
+        </label>
+        <${UI.Seg} sm options=${[{v: 'all', label: 'All ' + allIds.length}, {v: 'retainer', label: 'Retainers ' + nKind.retainer}, {v: 'project', label: 'Projects ' + nKind.project}]}
+          value=${kf} onChange=${setKf} ariaLabel="Show"/>
+      </div>
       ${ids.length ? html`<div class="grid2">
         ${ids.map(id => {
           const c = map[id];
@@ -615,6 +713,7 @@
             <div class="row between nowrap">
               <span class="cl-title grow"><${Logo} id=${id} client=${c} sm=${true}/><span class="nm">${c.name}</span></span>
               ${fresh ? html`<${M.fx.MetalBadge}>new<//>` : null}
+              <span class="pill" data-kind=${kindOf(ctx, id)}>${kindOf(ctx, id) === 'project' ? 'project' : 'retainer'}</span>
               <${UI.Pill} kind=${STATUS_PILL[c.status]}>${c.status || 'live'}<//>
             </div>
             <div class="row small ink62" style=${{marginTop: '8px'}}>
@@ -628,15 +727,18 @@
               <span class=${'small num' + (comp.filled < comp.total ? ' flame-t' : '')}>${comp.filled} of ${comp.total} fields</span>
               <span class="tiny ink62">updated ${c.updated ? U.timeAgo(c.updated) : 'never'}</span>
             </div>
-            ${s ? html`<div class="row small" style=${{marginTop: '8px'}}>
+            ${s && s.kind === 'project' ? html`<div class="row small" style=${{marginTop: '8px'}}>
+              <span class="num" style=${{fontWeight: 500}}>${U.inr(s.fee)}</span><span class="ink62">project fee${projEnd(ctx, id)}</span>
+            </div>` : s ? html`<div class="row small" style=${{marginTop: '8px'}}>
               <span class="num" style=${{fontWeight: 500}}>${U.inr(s.monthly)}</span>
               <span class="ink62 num">${s.share}% of monthly revenue</span>
             </div>` : null}
           </button>`;
           return id === hotId ? html`<${M.fx.Beam} key=${id}>${card}<//>` : card;
         })}
-      </div>` : html`<${UI.Card}><${UI.Empty} text="No clients yet."/><//>`}
-      ${open ? html`<${ClientDrawer} id=${open === 'new' ? null : open} onClose=${close}/>` : null}
+      </div>` : html`<${UI.Card}><${UI.Empty} text=${q.trim() || kf !== 'all' ? 'No client matches.' : 'No clients yet.'}/><//>`}
+      ${open === 'new' ? html`<${NewClient} onClose=${close} onAdd=${sd => { setSeed(sd); setOpen('add'); }} onOpen=${x => { setOpen(x); }}/>`
+        : open ? html`<${ClientDrawer} key=${open} id=${open === 'add' ? null : open} seed=${open === 'add' ? seed : null} onClose=${close}/>` : null}
     </div>`;
   }
 
@@ -696,5 +798,5 @@
     return null;
   };
 
-  M.clients = {completeness, shares, openTaskCount, STATUS, FIELDS, BRAIN, HEALTH, health, domainOf, domainFrom, cleanSite, newsFor, eodMentions, brandWord, MODEL_LINE, referrers, sameName, nameKey};
+  M.clients = {completeness, shares, kindOf, KINDS, openTaskCount, STATUS, FIELDS, BRAIN, HEALTH, health, domainOf, domainFrom, cleanSite, newsFor, eodMentions, brandWord, MODEL_LINE, referrers, sameName, nameKey};
 })();

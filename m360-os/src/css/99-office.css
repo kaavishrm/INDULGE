@@ -244,3 +244,15 @@
 @keyframes of-drawer{from{transform:translateX(30px)} to{transform:translateX(0)}}
 @keyframes of-stroke{to{stroke-dashoffset:0}}
 @keyframes of-rise{from{opacity:0; margin-bottom:-6px} to{opacity:1; margin-bottom:0}}
+/* v37: the emote bar (Me, Character and the office) and the line of recent emotes */
+.emote-bar{display:flex; flex-wrap:wrap; gap:8px}
+.emote-btn{display:inline-flex; align-items:center; gap:6px; min-height:40px; padding:6px 12px; border-radius:999px; border:1px solid var(--line2);
+  background:var(--paper); color:var(--ink); font:inherit; cursor:pointer; transition:transform var(--fast, .14s) var(--ease, ease), border-color var(--fast, .14s)}
+.emote-btn:hover{border-color:var(--ink)}
+.emote-btn.on{border-color:var(--flame); box-shadow:0 0 0 2px var(--flame) inset}
+.emote-btn .emote-ch{font-size:18px; line-height:1}
+.emote-bar.compact .emote-btn{min-height:36px; min-width:40px; padding:4px 9px; justify-content:center}
+@media (prefers-reduced-motion:no-preference){ .emote-btn:active{transform:scale(.92)} }
+.emote-feed{display:flex; flex-wrap:wrap; gap:8px}
+.emote-chip{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--warm); border:1px solid var(--line)}
+.cast-sheet[data-inline="1"]{margin-bottom:12px}

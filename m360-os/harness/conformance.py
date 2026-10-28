@@ -68,6 +68,7 @@ for m in COLOUR.finditer(CSS):
 # markers. It is exempt from the house hexes and held to its own rule: a warm hue (under 50 or over 330 degrees)
 # or near grey (saturation under 12 percent), so it can never hold green, blue or yellow
 NATURAL = re.compile(r'/\* natural palette: start \*/(.*?)/\* natural palette: end \*/', re.S)
+GAME = re.compile(r'/\* game palette: start \*/(.*?)/\* game palette: end \*/', re.S)
 for f, s in JS.items():
     blocks = NATURAL.findall(s)
     if blocks and (f != '14-cast.js' or len(blocks) != 1):
@@ -80,6 +81,12 @@ for f, s in JS.items():
             if not (h_ * 360 < 50 or h_ * 360 > 330 or s_ < 0.12):
                 bad('natural palette colour %s is not a warm hue or a near grey (hue %d, saturation %d%%)' % (m.group(0), h_ * 360, s_ * 100))
         s = NATURAL.sub('', s)
+    # v37: the game palette, the office and its people in full colour (Kaavish asked for it). One block, in
+    # 14-cast.js only; it may hold any hue, and nothing outside the office reads it
+    games = GAME.findall(s)
+    if games and (f != '14-cast.js' or len(games) != 1):
+        bad('a game palette block outside 14-cast.js or more than one: %s' % f)
+    s = GAME.sub('', s)
     for m in re.finditer(r'#[0-9a-fA-F]{6}\b', s):
         if m.group(0) not in ALLOWED_HEX and m.group(0).upper() not in ALLOWED_HEX:
             bad('unexpected hex in %s: %s' % (f, m.group(0)))

@@ -285,7 +285,30 @@ async function fakeFetch(url, init) {
   }
   else if (/^COO MEMO/.test(body.system || '')) content = [{type: 'text', text: 'A steady week. The team shipped what it promised and the dates held.'}];
   else if (/^BOOKS MINE/.test(body.system || '')) content = [{type: 'text', text: JSON.stringify({legalName: 'Swisse Wellness Middle East FZ LLC', address: 'Office 1204, Dubai Science Park\nDubai', country: 'United Arab Emirates', taxId: '100234567800003', contactName: 'Omar Haddad', contactEmail: 'ap@swisse.example', currency: 'AED', termsDays: 30, po: '4471', note: 'From the vendor registration mail and PO 4471.'})}];
-  else if (/^BOOKS STATEMENT/.test(body.system || '')) content = [{type: 'text', text: JSON.stringify({rows: [{date: '2026-09-03', vendor: 'Adobe', desc: 'POS ADOBE SYSTEMS', amount: 4999, credit: 0, method: 'card', ref: 'P1'}, {date: '2026-09-05', vendor: 'Titan Company', desc: 'NEFT CR TITAN COMPANY LTD', amount: 0, credit: 295000, method: 'bank', ref: 'N2'}, {date: '2026-09-09', vendor: 'Uber', desc: 'UPI/UBER INDIA/9091', amount: 640, credit: 0, method: 'upi', ref: 'U3'}]})}];
+  /* a statement in page windows: a canned 3 page PDF, two lines a page; a window past page 3 answers PAGES alone */
+  else if (/^BOOKS STATEMENT/.test(body.system || '')) {
+    const PAGE = {1: ['2026-09-03|Adobe|4999|0|POS ADOBE SYSTEMS|P1', '2026-09-05|Titan Company|0|295000|NEFT CR TITAN COMPANY LTD|N2'],
+      2: ['2026-09-09|Uber|640|0|UPI/UBER INDIA/9091|U3', '2026-09-12|Starbucks|420|0|UPI/TATA STARBUCKS PVT LTD/1123|U4'],
+      3: ['2026-09-20|Junco Hospitality|18500|0|POS JUNCO HOSPITALITY PVT LTD SOHO HOUSE|P5', '2026-09-28|Starbucks|380|0|POS STARBUCKS COFFEE 0412|P6']};
+    const w = text.match(/pages (\d+) to (\d+)/);
+    const lo = w ? Number(w[1]) : 1, hi = w ? Number(w[2]) : 3;
+    const lines = ['PAGES 3'];
+    for (let i = lo; i <= Math.min(hi, 3); i++) lines.push(...PAGE[i]);
+    content = [{type: 'text', text: lines.join('\n')}];
+  }
+  /* parties: a clean label, kind, category and a line for each; Soho House and Junco Hospitality share a label */
+  else if (/^BOOKS PARTIES/.test(body.system || '')) {
+    const out = [];
+    for (const l of text.split('\n')) {
+      const m = l.match(/^(\d+)\. ([^|]*)\| out (\d+) \| in (\d+)/);
+      if (!m) continue;
+      const nm = m[2].trim(), money = Number(m[4]) > Number(m[3]);
+      const label = /junco|soho/i.test(nm) ? 'Soho House' : /starbucks/i.test(nm) ? 'Starbucks' : nm;
+      const cat = money ? 'Client payment' : /starbucks|soho|junco|cafe/i.test(nm) ? 'Meals and client' : /uber|ola/i.test(nm) ? 'Travel' : /adobe|figma/i.test(nm) ? 'Software and tools' : 'Other';
+      out.push(m[1] + '|' + label + '|' + (money ? 'income' : 'expense') + '|' + cat + '|' + (money ? 'A client paying an invoice.' : 'Spend at ' + label + '.'));
+    }
+    content = [{type: 'text', text: out.join('\n')}];
+  }
   else if (/^BOOKS CATEGORIES/.test(body.system || '')) { const n = ((text.match(/^\d+\. /gm) || []).length) || 1; content = [{type: 'text', text: JSON.stringify({categories: Array.from({length: n}, (_, i) => /uber|ola|indigo/i.test((text.split('\n')[i + 1] || '')) ? 'Travel' : /adobe|figma|notion/i.test((text.split('\n')[i + 1] || '')) ? 'Software and tools' : 'Other')})}]; }
   else if (Array.isArray(last.content) && last.content.some(c => c.type === 'tool_result')) {
     /* the round after a tool: read what came back and say it */

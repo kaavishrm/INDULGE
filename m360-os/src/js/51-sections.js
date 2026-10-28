@@ -142,7 +142,9 @@
     const pm = ctx.isFounder && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
     const sh = ctx.isFounder && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
     const mrr = sh.reduce((n, r) => n + (r.monthly || 0), 0);
-    const t = tab || 'clients';
+    const t = tab || 'talks';
+    /* the older views still open by their hash; they sit behind one quiet line under the tabs */
+    const older = [{h: '#prospects', l: 'Prospects'}, {h: '#crm', l: 'CRM table'}, {h: '#handshake', l: 'LinkedIn desk'}, {h: '#base', l: 'Database'}];
     return html`<div class="stack" style=${{gap: '20px'}}>
       <${M.SectionHero} title="Accounts">
         <div class="row" style=${{gap: '8px'}}>
@@ -153,7 +155,12 @@
         </div>
       <//>
       <${M.SectionTabs} section="accounts" active=${t}/>
-      ${t === 'pipeline' ? html`<${Embed} page="Pitches"/>` : t === 'prospects' ? html`<${Embed} page="Prospects" id=${id}/>` : t === 'crm' && M.parts.CRM ? html`<${M.parts.CRM}/>` : t === 'handshake' ? html`<${Embed} page="Handshake"/>` : html`<${Embed} page="Clients"/>`}
+      ${t === 'talks' ? (M.pages.Talks ? html`<${Embed} page="Talks" id=${id}/>` : null)
+        : t === 'pipeline' ? html`<${Embed} page=${M.pages.Proposals ? 'Proposals' : 'Pitches'}/>` : t === 'prospects' ? html`<${Embed} page="Prospects" id=${id}/>` : t === 'crm' && M.parts.CRM ? html`<${M.parts.CRM}/>` : t === 'handshake' ? html`<${Embed} page="Handshake"/>` : html`<${Embed} page="Clients" id=${id}/>`}
+      <div class="row tiny sub" style=${{gap: '14px'}} id="accounts-older">
+        <span>More tools</span>
+        ${older.map(o => html`<button key=${o.h} type="button" class="linky tiny" onClick=${() => M.nav(o.h)}>${o.l}</button>`)}
+      </div>
     </div>`;
   }
 
@@ -251,7 +258,8 @@
       ${t === 'profile' && M.parts.ProfileCard ? html`<${UI.Fold} title="Your profile" summary="photo, pronouns, city, bio, links, birthday" id="fold-profile"><${M.parts.ProfileCard}/><//>` : null}
       ${t === 'leave' ? html`<${Embed} page="Leave"/>` : t === 'handbook' ? html`<${Embed} page="Handbook" id=${id}/>` : t === 'notes' ? html`<${Embed} page="Notes" id=${id}/>`
         : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>` : t === 'trophies' ? (M.parts.Trophies ? html`<${M.parts.Trophies}/>` : null)
-        : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
+        : t === 'coo' ? (M.pages.CooCharter ? html`<${M.pages.CooCharter}/>` : null)
+        : t === 'character' ? (M.pages.Character ? html`<${Embed} page="Character"/>` : null) : html`<${Embed} page="People" id=${ctx.uid}/>`}
       ${t === 'profile' ? html`<${UI.Fold} title="Your m360" summary="your character, look, sounds, notices, shortcuts" id="fold-prefs"><${Prefs}/><//>` : null}
       ${t === 'profile' && M.parts.BuddyPrefs ? html`<${M.parts.BuddyPrefs}/>` : null}
       ${t === 'profile' && M.parts.EmailCard ? html`<${UI.Fold} title="Your email" summary="for sign-in links" id="fold-email"><${M.parts.EmailCard}/><//>` : null}

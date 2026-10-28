@@ -32,11 +32,11 @@
       {k: 'tasks', label: 'My tasks', route: 'tasks'}, {k: 'projects', label: 'Projects', route: 'projects'},
       {k: 'calendar', label: 'Calendar', route: 'calendar'}, {k: 'reviews', label: 'Reviews', route: 'reviews'},
       {k: 'week', label: 'The week', route: 'week'}]},
+    /* v37: three tabs. People we are talking to, proposals in the pipeline, clients we work for. The older
+       views (prospects, crm, handshake) still open by their own hash and sit behind "More tools" */
     accounts: {label: 'Accounts', icon: 'clients', page: 'Accounts', tabs: [
-      {k: 'clients', label: 'Clients', route: 'clients'}, {k: 'pipeline', label: 'Pipeline', route: 'pitches'},
-      /* each member's own people, talks and follow-ups (v34); the pitch itself stays on the pipeline */
-      {k: 'prospects', label: 'Prospects', route: 'prospects'},
-      {k: 'crm', label: 'CRM', route: 'crm'}, {k: 'handshake', label: 'Handshake', route: 'handshake'}]},
+      {k: 'talks', label: 'People', route: 'talks'}, {k: 'pipeline', label: 'Pipeline', route: 'pitches'},
+      {k: 'clients', label: 'Clients', route: 'clients'}]},
     vibe: {label: 'Vibe', icon: 'feed', page: 'Vibe', tabs: [
       {k: 'feed', label: 'Feed', route: 'feed'}, {k: 'crew', label: 'Crew', route: 'people'},
       {k: 'pulse', label: 'Pulse and ideas', route: 'voice'}, {k: 'scores', label: 'Leaderboard', route: 'scores'}, {k: 'music', label: 'Music', route: 'music'},
@@ -53,7 +53,7 @@
     radar: {label: 'Radar', icon: 'radar', page: 'Radar', tabs: [
       {k: 'news', label: 'News', route: 'radar'}, {k: 'awards', label: 'Awards', route: 'awards'}, {k: 'watch', label: 'Watch', route: 'watch'}]},
     me: {label: 'Me', icon: 'people', page: 'Me', tabs: [
-      {k: 'profile', label: 'Profile', route: 'me'}, {k: 'notes', label: 'Notes', route: 'notes'}, {k: 'trophies', label: 'Trophies', route: 'trophies'}, {k: 'leave', label: 'Leave', route: 'leave'},
+      {k: 'profile', label: 'Profile', route: 'me'}, {k: 'character', label: 'Character', route: 'character'}, {k: 'notes', label: 'Notes', route: 'notes'}, {k: 'trophies', label: 'Trophies', route: 'trophies'}, {k: 'leave', label: 'Leave', route: 'leave'},
       {k: 'handbook', label: 'Handbook', route: 'handbook'}, {k: 'hiring', label: 'Hiring', route: 'hiring'},
       /* what the m360 COO does, read only (the founder runs it from HQ) */
       {k: 'coo', label: 'COO', route: 'coo', member: true}]},
@@ -64,7 +64,7 @@
     admin: {label: 'Admin', icon: 'desk', page: 'Admin', founder: true},
     books: {label: 'Books', icon: 'log', page: 'Books', founder: true, owner: true, tabs: [
       {k: 'overview', label: 'Overview', route: 'books'}, {k: 'invoices', label: 'Invoices', route: 'invoices'},
-      {k: 'expenses', label: 'Expenses', route: 'expenses'}, {k: 'payroll', label: 'Payroll', route: 'payroll'},
+      {k: 'statement', label: 'Bank', route: 'statement'}, {k: 'expenses', label: 'Expenses', route: 'expenses'}, {k: 'payroll', label: 'Payroll', route: 'payroll'},
       {k: 'letters', label: 'Letters', route: 'letters'}, {k: 'billing', label: 'Setup', route: 'billing'}]},
     map: {label: 'What\'s here', icon: 'map', page: 'Map'}
   };
@@ -79,6 +79,7 @@
       case 'payroll': case 'payslips': return isOwner ? {s: 'books', t: 'payroll', id} : {s: 'home'};
       case 'letters': case 'letter': return isOwner ? {s: 'books', t: 'letters', id} : {s: 'home'};
       case 'billing': return isOwner ? {s: 'books', t: 'billing', id} : {s: 'home'};
+      case 'statement': case 'statements': case 'bank': return isOwner ? {s: 'books', t: 'statement', id} : {s: 'home'};
       case 'home': case 'today': return {s: 'home'};
       case 'map': case 'explore': case 'whats-here': case 'help': return {s: 'map', id};
       case 'break': case 'wellness': case 'games': case 'play': case 'daily': case 'five': return {s: 'break', t: 'play'};
@@ -91,7 +92,9 @@
       case 'calendar': return {s: 'work', t: 'calendar'};
       case 'reviews': case 'review': return {s: 'work', t: 'reviews'};
       case 'trophies': return {s: 'me', t: 'trophies'};
-      case 'accounts': case 'clients': return {s: 'accounts', t: 'clients'};
+      case 'character': case 'avatar': case 'look': return {s: 'me', t: 'character'};
+      case 'clients': return {s: 'accounts', t: 'clients', id};
+      case 'accounts': case 'talks': case 'talk': case 'conversations': return {s: 'accounts', t: 'talks', id};
       case 'pitches': case 'pipeline': return {s: 'accounts', t: 'pipeline'};
       case 'prospects': case 'followups': case 'follow-ups': return {s: 'accounts', t: 'prospects', id};
       case 'crm': return {s: 'accounts', t: 'crm'};

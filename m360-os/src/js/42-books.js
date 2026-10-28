@@ -271,18 +271,18 @@
   }
 
   /* ---------- the section ---------- */
-  const TABS = {overview: 'overview', invoices: 'Invoices', expenses: 'Expenses', payroll: 'Payroll', letters: 'Letters', billing: 'billing'};
+  const TABS = {overview: 'overview', invoices: 'Invoices', statement: 'Statement', expenses: 'Expenses', payroll: 'Payroll', letters: 'Letters', billing: 'billing'};
   function Books({tab, id}) {
     const ctx = M.useCtx();
     const t = TABS[tab] ? tab : 'overview';
     if (!ctx.isOwner) return html`<div class="stack"><${UI.PageHead} micro="the books" title="Books"/><${UI.Empty} text="The books are the owner's alone."/></div>`;
-    const Page = t === 'invoices' ? M.pages.Invoices : t === 'expenses' ? M.pages.Expenses : t === 'payroll' ? M.pages.Payroll : t === 'letters' ? M.pages.Letters : null;
+    const Page = t === 'invoices' ? M.pages.Invoices : t === 'statement' ? M.pages.Statement : t === 'expenses' ? M.pages.Expenses : t === 'payroll' ? M.pages.Payroll : t === 'letters' ? M.pages.Letters : null;
     return html`<div class="stack" style=${{gap: '20px'}}>
       <header class="hero ink">
         <div>
           <${UI.Micro}>${U.dateLabel(new Date(ctx.now))}<//>
           <h1 class="hi">Books</h1>
-          <div class="sub" style=${{marginTop: '10px'}}>Invoices, expenses, payroll and letters. Yours alone.</div>
+          <div class="sub" style=${{marginTop: '10px'}}>Invoices, bank statements, expenses, payroll and letters. Yours alone.</div>
         </div>
       </header>
       <${M.SectionTabs} section="books" active=${t}/>
