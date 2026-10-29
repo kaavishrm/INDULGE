@@ -355,16 +355,20 @@
       if (adding) return;
       setAdding(true);
       const x = X(), b = M.books;
-      const have = new Set(b.expenses(ctx).map(e => e.date + '|' + num(e.amount) + '|' + x.vendorKey(e.vendor)));
+      /* v39: a line from a statement is known by its date, amount and narration, so a renamed party is still the same
+         line; anything typed by hand by its date, amount and payee. Each saved expense stands for one line, so two real
+         lines alike both land */
+      const have = {};
+      const bump = k => { have[k] = (have[k] || 0) + 1; };
+      const take = k => { if (have[k] > 0) { have[k]--; return true; } return false; };
+      for (const e of b.expenses(ctx)) bump(e.source === 'statement' && x.narrKey(e.desc) ? e.date + '|' + num(e.amount) + '|n' + x.narrKey(e.desc) : e.date + '|' + num(e.amount) + '|v' + x.vendorKey(e.vendor));
       const now = Date.now();
       const byMonth = {};
       let n = 0;
       for (const g of outs) {
         if (!counted(g)) continue;
         for (const r of g.rows) {
-          const k = r.date + '|' + r.out + '|' + x.vendorKey(g.label);
-          if (have.has(k)) continue;
-          have.add(k);
+          if ((x.narrKey(r.desc) && take(r.date + '|' + r.out + '|n' + x.narrKey(r.desc))) || take(r.date + '|' + r.out + '|v' + x.vendorKey(g.label))) continue;
           const mid = r.date.slice(0, 7);
           (byMonth[mid] = byMonth[mid] || {})[U.uid()] = {date: r.date, vendor: g.label, category: OUT_CATS.includes(g.cat) ? g.cat : (g.kind === 'salary' ? 'Salaries' : g.kind === 'tax' ? 'Bank and taxes' : 'Other'),
             desc: r.desc, amount: r.out, gstInput: 0, method: x.guessMethod(r.desc), paid: true, recurring: '', receipt: null, source: 'statement', ref: '', at: now, updatedAt: now};

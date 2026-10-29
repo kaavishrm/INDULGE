@@ -146,8 +146,9 @@
     const s = settings(ctx);
     const head = s.numbering.prefix + '/' + fy + '/' + code + '-';
     let max = 0;
+    /* v39: every invoice with this head counts, wherever it is filed, so one moved to another year keeps its number taken */
     for (const inv of invoices(ctx)) {
-      if (inv.fy !== fy || !String(inv.no || '').startsWith(head)) continue;
+      if (!String(inv.no || '').startsWith(head)) continue;
       const n = Number(String(inv.no).slice(head.length)) || 0;
       if (n > max) max = n;
     }
@@ -163,6 +164,8 @@
     out.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || (b.at || 0) - (a.at || 0));
     return out;
   };
+  /* v39: the article for a letter kind, "An offer letter", "A relieving letter" */
+  const aOr = w => /^[aeiou]/i.test(String(w || 'letter')) ? 'An' : 'A';
   /* days past due, for aging */
   const ageOf = (inv, today) => inv.due ? U.daysBetween(inv.due, today || U.todayStr()) : 0;
 
@@ -335,7 +338,7 @@
     for (const i of overdue.slice(0, 6)) calls.push({key: 'inv' + i.id, text: i.no + ', ' + (i.clientName || 'client') + ', ' + money(totals(i).balance, i.currency) + ' due ' + U.fmtDate(i.due) + ', ' + ageOf(i, today) + ' days late', to: '#invoices/' + i.id, hot: true});
     for (const i of list.filter(x => x.auto === 'retainer' && status(x, today) === 'draft').slice(0, 4)) calls.push({key: 'draft' + i.id, text: 'Retainer draft ready: ' + i.no + ', ' + (i.clientName || ''), to: '#invoices/' + i.id});
     const hrMap = (ctx.coll.hr && ctx.coll.hr.map) || {};
-    for (const uid of Object.keys(hrMap)) for (const lid of Object.keys((hrMap[uid] || {}).letters || {})) { const l = hrMap[uid].letters[lid]; if (l && l.status === 'draft') calls.push({key: 'let' + lid, text: 'A ' + (l.kind || 'letter') + ' letter is drafted and not issued', to: '#letters/' + uid}); }
+    for (const uid of Object.keys(hrMap)) for (const lid of Object.keys((hrMap[uid] || {}).letters || {})) { const l = hrMap[uid].letters[lid]; if (l && l.status === 'draft') calls.push({key: 'let' + lid, text: aOr(l.kind) + ' ' + (l.kind || 'letter') + ' letter is drafted and not issued', to: '#letters/' + uid}); }
     const dates = nextDates(ctx, today);
     const fx = list.some(i => i.currency && i.currency !== 'INR' && !num(i.fx));
     return html`<div class="stack" style=${{gap: '18px'}}>
@@ -489,7 +492,6 @@
           <//>
         </div>
       </div>
-      <${ClientBilling} id=${id}/>
     </div>`;
   }
 
@@ -660,7 +662,7 @@
     </div>`;
   }
 
-  M.books = {CUR, CUR_OPTS, num, fmt, money, words, fyOf, fyRange, settings, clientBook, totals, status, STATUS_PILL, STATUS_TEXT, invoices, expenses, nextNumber, codeOf, ageOf, nextDates, print, shrinkImage, deep, blankBilling, draftBilling, cleanBilling};
+  M.books = {CUR, CUR_OPTS, num, fmt, money, words, fyOf, fyRange, settings, clientBook, totals, status, STATUS_PILL, STATUS_TEXT, invoices, expenses, nextNumber, codeOf, aOr, ageOf, nextDates, print, shrinkImage, deep, blankBilling, draftBilling, cleanBilling};
   M.parts.DocFrame = DocFrame;
   M.parts.DocHead = DocHead;
   M.parts.DocSign = DocSign;
