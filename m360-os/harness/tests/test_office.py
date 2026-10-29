@@ -160,7 +160,8 @@ def test(h):
     p.evaluate('''() => { Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'hidden'});
       Object.defineProperty(document, 'hidden', {configurable: true, get: () => true}); document.dispatchEvent(new Event('visibilitychange')); }''')
     p.wait_for_timeout(500)
-    check(p.evaluate(RUNNING) == 0, 'nothing in the office animates while the page is hidden')
+    check(p.evaluate(RUNNING) == 0, 'nothing in the office animates while the page is hidden: %r' % p.evaluate('''() => { const o = document.querySelector('.office');
+      return document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.target && o.contains(a.effect.target)).map(a => [a.effect.target.className, a.animationName || a.id || '', a.effect.getTiming().duration, a.effect.getTiming().iterations]); }'''))
     # nor does the mascot's own canvas: its pixels hold while hidden
     h0 = p.evaluate('() => document.querySelector(".office-mascot canvas").toDataURL()')
     p.wait_for_timeout(1500)
@@ -215,8 +216,42 @@ def test(h):
     check(not PRIVATE.search(re.sub(r'\b\d{1,2}:\d{2}\b', '', texts['run'])), 'the run list carries no names or reasons for a member: %r' % texts['run'][:200])
     p.screenshot(path=os.path.join(SHOTS, 'office-member.png'))
 
+    # ---- v39: a member's station drawers say what the COO does there, and the task board is never blank ----
+    def drawer(k):
+        p.locator('.office-station[data-key="%s"]' % k).first.evaluate('e => e.click()')
+        p.wait_for_selector('.office-drawer[data-station="%s"]' % k, timeout=10000)
+        t = p.locator('.office-drawer[data-station="%s"]' % k).inner_text()
+        p.keyboard.press('Escape')
+        p.wait_for_timeout(300)
+        return t
+    att, board = drawer('attendance'), drawer('board')
+    check('Doing the morning roll call.' not in att and 'The COO takes the morning roll call here.' in att,
+          'v39: the attendance drawer says what happens there while the COO is at its desk: %r' % att[:120])
+    check('The COO tidies the task board here.' in board and re.search(r'You have \d+ open|Nothing open for you\.', board),
+          'v39: a member\'s task board drawer carries a line of its own: %r' % board[:160])
+
+    # ---- v39: emotes are timed from when they arrive, whatever the sender's clock says ----
+    em = p.evaluate('''() => { const see = M.character.emoteClock(), now = Date.now();
+      const coll = map => ({ready: true, map});
+      const a = see(coll({u1: {emote: {e: 'wave', at: now - 60000}}}), now);
+      const b = see(coll({u1: {emote: {e: 'wave', at: now - 30000}}, u2: {emote: {e: 'five', at: now + 120000}}}), now + 1000);
+      const c = see(coll({u1: {emote: {e: 'wave', at: now - 30000}}, u2: {emote: {e: 'five', at: now + 120000}}}), now + 20000);
+      return {load: a[0].seen - now, behind: b.find(x => x.uid === 'u1').seen - now, ahead: b.find(x => x.uid === 'u2').seen - now,
+        later: c.map(x => x.seen - now)}; }''')
+    check(em['load'] == -60000 and em['behind'] == 1000 and em['ahead'] == 1000 and em['later'] == [1000, 1000],
+          'v39: an emote already there places by its own at; one that changes is timed from its arrival: %r' % em)
+
+    # ---- v39: 3D name tags tell people apart ----
+    tags = p.evaluate('''() => { const n = {a: 'Rahul Sharma', b: 'Rahul Verma', c: 'Rahul Singh', d: 'Rahul Shah', e: 'Aanya Rao', f: 'Staff 11', g: 'Staff 12'};
+      return M.office3d.tagNames(Object.keys(n), u => n[u]); }''')
+    check(tags == {'a': 'Rahul Sharma', 'b': 'Rahul V.', 'c': 'Rahul Singh', 'd': 'Rahul Shah', 'e': 'Aanya', 'f': 'Staff 11', 'g': 'Staff 12'},
+          'v39: a shared first name takes an initial, or the whole name where the initial matches too: %r' % tags)
+
     # ---- a burst: six steps, then one summary ----
     open_office(p)
+    # v39: the founder's #office (HQ > Office) opens on the office, with no HQ hero or checklist above it
+    hq = p.evaluate('() => ({hero: document.querySelectorAll(".hero").length, setup: document.querySelectorAll("#fold-setup").length, top: Math.round(document.querySelector(".office-head").getBoundingClientRect().top + window.scrollY)})')
+    check(hq['hero'] == 0 and hq['setup'] == 0 and hq['top'] < 260, 'v39: HQ > Office starts with the office: %r' % hq)
     p.evaluate('''() => { window.__bubbles = []; const seen = new Set();
       new MutationObserver(() => document.querySelectorAll('.office-bubble').forEach(b => { const t = b.innerText.trim(); if (t && !seen.has(t)) { seen.add(t); window.__bubbles.push(t); } }))
         .observe(document.body, {subtree: true, childList: true, characterData: true}); }''')
@@ -269,6 +304,26 @@ def test(h):
     b = r.evaluate(frame)
     check(a == b, 'the mascot is a still frame under reduced motion')
     r.context.close()
+
+    # ---- v39: a second founder sees the looks and is never offered a restyle of anyone ----
+    a = ctx_page()
+    seed(a)
+    # Aanya as a roster founder who can edit the room: a founder, never the owner
+    a.evaluate('u => { const r = window.__db.get("roster/team"); r.members[u].role = "founder"; window.__db.set("roster/team", r); }', M2)
+    a.wait_for_timeout(300)
+    a.goto(h.url('m2', '#character', edit=True))
+    h.ready(a)
+    a.wait_for_selector('#cast-admin', timeout=20000)
+    adm = a.evaluate('() => ({owner: !!M.lastCtx.isOwner, founder: !!M.lastCtx.isFounder, buttons: document.querySelectorAll("#cast-admin button").length})')
+    check(adm == {'owner': False, 'founder': True, 'buttons': 0}, 'v39: a second founder sees Characters with no Restyle, Lock or Unlock: %r' % adm)
+    a.goto(h.url('m2', '#office', edit=True))
+    h.ready(a)
+    a.wait_for_selector('.office-desk[data-uid="%s"]' % M1, timeout=20000)
+    a.locator('.office-desk[data-uid="%s"]' % M1).first.evaluate('e => e.click()')
+    a.wait_for_selector('.office-drawer[data-uid="%s"]' % M1, timeout=10000)
+    btns = a.evaluate('() => [...document.querySelectorAll("[role=dialog] button")].map(b => b.innerText.trim())')
+    check('Character' not in btns, 'v39: and a desk drawer offers that founder no Character button: %r' % btns)
+    a.context.close()
 
     errs = [e for e in h.errors() if 'AudioContext' not in str(e) and 'play()' not in str(e)]
     check(not errs, 'console errors: %r' % errs[:3])
