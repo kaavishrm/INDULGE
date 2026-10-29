@@ -26,12 +26,14 @@
     const [project, setProject] = useState('');
     const [rows, setRows] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [unread, setUnread] = useState('');
     const r = M.ai.useRun();
     const projects = Object.keys(ctx.coll.projects.map).map(id => ({id, ...ctx.coll.projects.map[id]})).filter(p => !p.archived && p.status !== 'done');
     const people = ctx.activeMembers;
     const profs = M.useProfiles(people.map(m => m.uid));
 
     async function breakDown() {
+      setUnread('');
       const nm = await M.ai.names(ctx);
       const tasks = ctx.coll.tasks.map;
       const load = people.map(m => {
@@ -45,8 +47,12 @@
         'working days are Monday to Saturday. ' + (p ? 'Use these project sections where they fit: ' + (p.sections || []).map(s => s.name).join(', ') + '. ' : '') +
         'Reply with only a JSON array of {"title": "starts with a verb", "owner": "first name", "due": "YYYY-MM-DD", "section": "section name or empty", "why": "under 12 words"}.\n\n' +
         'TEAM AND LOAD:\n' + load + '\n\nBRIEF:\n' + brief.slice(0, 6000), {signal: o.signal, cache: false}));
-      if (Array.isArray(out)) {
-        setRows(out.slice(0, 12).map((t, i) => {
+      /* v39: a list wrapped in an object ({"tasks": [...]}) is read too; an answer with no tasks in it says so */
+      const list = Array.isArray(out) ? out : (out && typeof out === 'object' ? (Object.values(out).find(Array.isArray) || null) : null);
+      const usable = (list || []).filter(t => t && typeof t === 'object' && String(t.title || '').trim());
+      if (out != null && !usable.length) setUnread('The answer held no tasks m360 could read. Tap Break it down to try again.');
+      if (usable.length) {
+        setRows(usable.slice(0, 12).map((t, i) => {
           const owner = M.ai.findMember(ctx, nm, t.owner) || ctx.uid;
           const sec = p ? ((p.sections || []).find(s => String(s.name).toLowerCase() === String(t.section || '').toLowerCase()) || (p.sections || [])[0] || {}).id || '' : '';
           return {k: i, on: true, title: String(t.title || '').slice(0, 140), owner, due: /^\d{4}-\d{2}-\d{2}$/.test(String(t.due || '')) ? t.due : '', section: sec, why: String(t.why || '')};
@@ -80,7 +86,7 @@
           options=${[{v: '', label: 'No project'}].concat(projects.map(p => ({v: p.id, label: p.name})))}/>
         <${Metal} kind="ink" block=${true}><button type="button" class="btn" disabled=${thinking || brief.trim().length < 12} onClick=${breakDown}>
           ${thinking ? html`<${M.Thinking} label="Breaking it down" state="composing"/>` : html`<span class="spark">${SPARK}</span> Break it down`}</button><//>
-        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : unread ? html`<div class="small flame-t" id="b2t-unread">${unread}</div>` : null}
       </div>` : html`<div class="stack tight">
         <div class="small" style=${{fontWeight: 500}}>Untick anything you don't want. Change owners or dates, then send.</div>
         ${rows.map(t => html`<div class="focus" key=${t.k} style=${{alignItems: 'flex-start', flexWrap: 'wrap'}}>
