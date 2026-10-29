@@ -49,7 +49,8 @@
     const s = b.settings(ctx);
     const t = b.totals(inv);
     const who = inv.billTo && inv.billTo.contactName ? inv.billTo.contactName.split(' ')[0] : 'there';
-    const amt = b.money(kind === 'remind' ? t.balance : t.total, inv.currency);
+    /* v39: what the client pays is the total less the TDS they deduct */
+    const amt = b.money(kind === 'remind' ? t.balance : t.total - t.tds, inv.currency);
     const late = inv.due ? b.ageOf(inv, U.todayStr()) : 0;
     const subject = kind === 'remind'
       ? 'Reminder: invoice ' + inv.no + ', ' + amt + (late > 0 ? ', ' + late + ' days past due' : '')
@@ -60,7 +61,7 @@
       ? ['Hi ' + who + ',', '', 'A gentle reminder that invoice ' + inv.no + ' for ' + amt + ' was due on ' + U.fmtDate(inv.due) + (late > 0 ? ' and is ' + late + ' days past due.' : '.'), 'Could you let us know when it is scheduled for payment? If it has already gone out, please share the reference and we will close it on our side.', '', 'Bank details for the transfer:', ...bank, '', 'Thank you,', s.signatory.who, s.signatory.title, s.company.mail].join('\n')
       : ['Hi ' + who + ',', '', 'Please find invoice ' + inv.no + ' for ' + amt + ', due on ' + U.fmtDate(inv.due) + '.', '', ...lines, '', 'Bank details for the transfer:', ...bank, '', 'The invoice is attached as a page below. Reply here with any question.', '', 'Thank you,', s.signatory.who, s.signatory.title, s.company.mail].join('\n');
     const rows = (inv.lines || []).filter(l => l.desc).map(l => '<tr><td style="padding:6px 8px;border-bottom:1px solid #EFEDE7">' + esc(l.desc) + (l.note ? '<div style="color:#BBBBBB;font-size:12px">' + esc(l.note) + '</div>' : '') + '</td><td style="padding:6px 8px;border-bottom:1px solid #EFEDE7;text-align:right;white-space:nowrap">' + esc(b.money(b.num(l.qty) * b.num(l.rate), inv.currency)) + '</td></tr>').join('');
-    const tot = [['Subtotal', t.sub]].concat(inv.gst === 'intra' ? [['CGST', t.cgst], ['SGST', t.sgst]] : inv.gst === 'inter' ? [['IGST', t.igst]] : []).concat(t.tds ? [['TDS deductible', -t.tds]] : []).concat([['Total due', t.total]]).concat(t.paid ? [['Paid', -t.paid], ['Balance', t.balance]] : []);
+    const tot = [['Subtotal', t.sub]].concat(inv.gst === 'intra' ? [['CGST', t.cgst], ['SGST', t.sgst]] : inv.gst === 'inter' ? [['IGST', t.igst]] : []).concat(t.tds ? [['Invoice total', t.total], ['TDS deductible', -t.tds]] : []).concat([['Total due', t.total - t.tds]]).concat(t.paid ? [['Paid', -t.paid], ['Balance', t.balance]] : []);
     const totHtml = tot.map(([l, v], i) => '<tr><td style="padding:5px 8px;color:' + (i === tot.length - 1 || l === 'Total due' ? '#0E0E0E;font-weight:700' : '#0E0E0E') + '">' + esc(l) + '</td><td style="padding:5px 8px;text-align:right;white-space:nowrap' + (l === 'Total due' ? ';font-weight:700' : '') + '">' + esc(b.money(v, inv.currency)) + '</td></tr>').join('');
     const htmlBody = '<p>' + esc(text.split('\n\n')[0]) + '</p><p>' + esc(text.split('\n\n')[1]) + '</p>' +
       '<table style="width:100%;border-collapse:collapse;font-size:14px;margin:12px 0"><tr><th style="text-align:left;padding:6px 8px;border-bottom:2px solid #0E0E0E">Invoice ' + esc(inv.no) + '</th><th style="text-align:right;padding:6px 8px;border-bottom:2px solid #0E0E0E">' + esc(inv.currency) + '</th></tr>' + rows + '</table>' +
@@ -126,7 +127,7 @@
           <td class="n num">${b.fmt(b.num(l.qty) * b.num(l.rate), inv.currency)}</td>
         </tr>`)}</tbody>
       </table>
-      <div class="doc-words"><span class="doc-micro">Amount in words</span><b>${b.words(t.total, inv.currency)}</b></div>
+      <div class="doc-words"><span class="doc-micro">${t.tds ? 'Invoice total in words' : 'Amount in words'}</span><b>${b.words(t.total, inv.currency)}</b></div>
       <div class="doc-lower">
         <div>
           <div class="doc-block"><div class="doc-micro">Payment terms</div><div class="small">${inv.terms || s.defaults.terms}</div></div>
@@ -153,8 +154,9 @@
             ${inv.gst === 'intra' ? html`<div class="doc-total-row"><span>CGST @ ${b.num(inv.gstRate) / 2}%</span><span class="num">${b.money(t.cgst, inv.currency)}</span></div>
               <div class="doc-total-row"><span>SGST @ ${b.num(inv.gstRate) / 2}%</span><span class="num">${b.money(t.sgst, inv.currency)}</span></div>` : null}
             ${inv.gst === 'inter' ? html`<div class="doc-total-row"><span>IGST @ ${b.num(inv.gstRate)}%</span><span class="num">${b.money(t.igst, inv.currency)}</span></div>` : null}
-            ${t.tds ? html`<div class="doc-total-row"><span>TDS deductible${inv.tdsNote ? ' (' + inv.tdsNote + ')' : ''}</span><span class="num">${b.money(t.tds, inv.currency)}</span></div>` : null}
-            <div class="doc-total-row grand"><span>Total due</span><span class="num">${b.money(t.total, inv.currency)}</span></div>
+            ${t.tds ? html`<div class="doc-total-row"><span>Invoice total</span><span class="num">${b.money(t.total, inv.currency)}</span></div>
+              <div class="doc-total-row"><span>Less TDS deductible${inv.tdsNote ? ' (' + inv.tdsNote + ')' : ''}</span><span class="num">${b.money(t.tds, inv.currency)}</span></div>` : null}
+            <div class="doc-total-row grand"><span>Total due</span><span class="num">${b.money(t.total - t.tds, inv.currency)}</span></div>
             ${t.paid ? html`<div class="doc-total-row"><span>Received</span><span class="num">${b.money(t.paid, inv.currency)}</span></div>
               <div class="doc-total-row"><span>Balance</span><span class="num">${b.money(t.balance, inv.currency)}</span></div>` : null}
           </div>
@@ -171,6 +173,7 @@
     const ctx = M.useCtx();
     const b = B();
     const [f, setF] = useState(() => U.clone(inv));
+    const [base] = useState(() => U.clone(inv));   /* the copy the drawer opened on; inv itself follows the store */
     const [busy, setBusy] = useState(false);
     const clients = Object.keys(ctx.coll.clients.map).map(k => ({v: k, label: ctx.coll.clients.map[k].name || k})).sort((x, y) => x.label.localeCompare(y.label));
     const set = (k, v) => setF(x => ({...x, [k]: v}));
@@ -190,9 +193,17 @@
       const row = {...f, tds: b.num(f.tds), gstRate: b.num(f.gstRate), fx: f.currency === 'INR' ? '' : (b.num(f.fx) || ''), updatedAt: Date.now()};
       delete row.id; delete row.fy;
       if (andSend && !row.sentAt) { row.sentAt = Date.now(); row.status = 'sent'; }
+      /* v39: an edit saves only the fields this drawer changed, on top of the latest row, so a payment or a
+         reminder recorded elsewhere while the drawer was open stays */
+      const latest = inv.id && inv.fy ? (((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || null) : null;
+      const patch = inv.id ? U.changes(base, row) : row;
       try {
-        if (inv.fy && inv.fy !== fy) await ctx.W.merge('invoices/' + inv.fy, {rows: {[id]: null}, updated: Date.now()});
-        await ctx.W.merge('invoices/' + fy, {rows: {[id]: row}, updated: Date.now()});
+        if (inv.fy && inv.fy !== fy) {
+          const whole = {...U.clone(latest || inv), ...patch};
+          delete whole.id; delete whole.fy;
+          await ctx.W.merge('invoices/' + fy, {rows: {[id]: whole}, updated: Date.now()});
+          await ctx.W.merge('invoices/' + inv.fy, {rows: {[id]: null}, updated: Date.now()});
+        } else await ctx.W.merge('invoices/' + fy, {rows: {[id]: patch}, updated: Date.now()});
         M.toast(andSend ? 'Saved and marked sent' : 'Saved');
         onSaved(id);
       } catch (e) { M.toast('Could not save', true); setBusy(false); }
@@ -267,7 +278,9 @@
     const save = async () => {
       if (!b.num(f.amount) || busy) return;
       setBusy(true);
-      const payments = (inv.payments || []).concat([{at: U.parseYmd(f.date).getTime() + 43200000, amount: b.num(f.amount), ref: f.ref.trim(), note: f.note.trim()}]);
+      /* v39: the payments as they stand now, so one recorded on another device a moment ago stays */
+      const now = ((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || inv;
+      const payments = (now.payments || []).concat([{at: U.parseYmd(f.date).getTime() + 43200000, amount: b.num(f.amount), ref: f.ref.trim(), note: f.note.trim()}]);
       try { await ctx.W.merge('invoices/' + inv.fy, {rows: {[inv.id]: {payments, updatedAt: Date.now()}}, updated: Date.now()}); M.toast('Payment recorded'); onClose(); }
       catch (e) { M.toast('Could not save', true); setBusy(false); }
     };
@@ -296,7 +309,7 @@
     const site = typeof window.M360_API === 'function';
     const mark = async (via) => {
       const patch = {updatedAt: Date.now()};
-      if (kind === 'remind') patch.chased = (inv.chased || []).concat([{at: Date.now(), step: 'hand', via}]);
+      if (kind === 'remind') patch.chased = ((((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || inv).chased || []).concat([{at: Date.now(), step: 'hand', via}]);
       else { patch.sentAt = inv.sentAt || Date.now(); patch.status = 'sent'; patch.sentTo = to; }
       await ctx.W.merge('invoices/' + inv.fy, {rows: {[inv.id]: patch}, updated: Date.now()}).catch(() => {});
     };

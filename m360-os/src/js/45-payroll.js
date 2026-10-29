@@ -94,6 +94,9 @@
       if (k === 'pf' && p.pf && row.pf === pfOf(s.basic, p)) row.pf = pfOf(row.basic, p);
       if (k === 'esi' && p.esi && row.esi === esiOf(EARN.reduce((t, [e]) => t + num(s[e]), 0), p)) row.esi = esiOf(gross, p);
       if (k === 'pt' && row.pt === PT && isFeb(month)) row.pt = PT_FEB;
+      /* v39: professional tax only on a gross over the limit, and no deduction takes the net below zero */
+      if (k === 'pt' && gross <= PT_LIMIT) row.pt = 0;
+      row[k] = Math.max(0, Math.min(row[k], gross - ded));
       ded += row[k];
     }
     row.gross = gross;
@@ -317,7 +320,13 @@
     const undo = async (uid) => {
       if (busy) return;
       setBusy(true);
-      try { await ctx.W.merge('payroll/' + month, {run: {closed: false, rows: {[uid]: null}}, updated: Date.now()}); M.toast('Undone'); }
+      try {
+        await ctx.W.merge('payroll/' + month, {run: {closed: false, rows: {[uid]: null}}, updated: Date.now()});
+        /* v39: the Salaries expense stands for a closed month; it goes with the reopen and comes back when everyone is paid again */
+        const ex = (((ctx.coll.expenses && ctx.coll.expenses.map[month]) || {}).rows) || {};
+        if (ex['payroll-' + month]) await ctx.W.merge('expenses/' + month, {rows: {['payroll-' + month]: null}, updated: Date.now()});
+        M.toast('Undone');
+      }
       catch (e) { M.toast('Could not save', true); }
       setBusy(false);
     };

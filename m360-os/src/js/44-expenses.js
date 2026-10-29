@@ -110,6 +110,8 @@
     return best || s.slice(0, 48);
   }
   const vendorKey = v => cleanVendor(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+  /* v39: one bank line, whoever filed it: the narration as the Bank tab keeps it (80 characters), letters and digits only */
+  const narrKey = d => String(d || '').replace(/\s+/g, ' ').slice(0, 80).toLowerCase().replace(/[^a-z0-9]/g, '');
 
   const KEYWORDS = [
     [/google ads|meta ads|facebook ads|adwords|instagram ads|linkedin ads|sponsor|advert|promot/, 'Marketing'],
@@ -521,6 +523,8 @@
       return m;
     }, [all]);
     const savedKeys = useMemo(() => new Set(all.map(e => e.date + '|' + num(e.amount) + '|' + vendorKey(e.vendor))), [all]);
+    /* v39: lines the Bank tab filed under a party name match here by their narration */
+    const savedNarr = useMemo(() => new Set(all.filter(e => narrKey(e.desc)).map(e => e.date + '|' + num(e.amount) + '|' + narrKey(e.desc))), [all]);
 
     const prepare = async rows => {
       const debits = rows.filter(r => num(r.amount) > 0);
@@ -528,7 +532,7 @@
       let unknown = [];
       const out = debits.map((r, i) => {
         const vendor = r.vendor || cleanVendor(r.desc) || 'Unknown';
-        const dup = savedKeys.has(r.date + '|' + num(r.amount) + '|' + vendorKey(vendor));
+        const dup = savedKeys.has(r.date + '|' + num(r.amount) + '|' + vendorKey(vendor)) || (!!narrKey(r.desc) && savedNarr.has(r.date + '|' + num(r.amount) + '|' + narrKey(r.desc)));
         let category = known[vendorKey(vendor)] || keywordCat(vendor, r.desc);
         if (!category) { unknown.push(i); category = 'Other'; }
         return {i, date: r.date, vendor, desc: r.desc || '', amount: num(r.amount), method: r.method || guessMethod(r.desc), ref: r.ref || '', category, on: !dup, dup};
@@ -665,7 +669,12 @@
         <${UI.Btn} id="exp-new" onClick=${() => setOpen({})}><${icons.plus}/>New expense<//>
       <//>
       <div class="row between">
-        <${UI.Seg} sm=${true} options=${months.slice(0, 8).map(m => ({v: m, label: monthLabel(m)}))} value=${month} onChange=${setMonth} ariaLabel="Month"/>
+        <div class="row" style=${{gap: '8px'}}>
+          <${UI.Seg} sm=${true} options=${months.slice(0, 8).concat(months.slice(0, 8).includes(month) ? [] : [month]).map(m => ({v: m, label: monthLabel(m)}))} value=${month} onChange=${setMonth} ariaLabel="Month"/>
+          ${months.length > 8 ? html`<select class="input" id="exp-month" style=${{maxWidth: '180px', minHeight: '34px'}} aria-label="Any month" value=${month} onChange=${e => setMonth(e.target.value)}>
+            ${months.map(m => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+          </select>` : null}
+        </div>
         ${ctx.downloads && list.length ? html`<${UI.Btn} kind="sec" sm=${true} id="exp-csv" onClick=${csv}>Download the month<//>` : null}
       </div>
       <${UI.Card} id="exp-list" title=${phone ? undefined : 'The sheet'} action=${phone ? undefined : html`<div class="row" style=${{gap: '8px'}}><span class="tiny ink62">Tab, Enter and the arrows move. Paste rows from Excel or Sheets.</span>${dirtyN ? html`<${UI.Pill} kind="flame-o">${dirtyN} unsaved<//>` : null}</div>`}>
@@ -689,6 +698,6 @@
 
   M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf,
     /* v37: the Bank tab (48-statement.js) reads statements with the same helpers */
-    parseXlsx, amt, vendorKey, keywordCat, guessMethod, toBase64};
+    parseXlsx, amt, vendorKey, narrKey, keywordCat, guessMethod, toBase64};
   M.pages.Expenses = Expenses;
 })();
