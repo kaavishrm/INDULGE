@@ -253,10 +253,10 @@
   }
 
   /* ---------- banners above the page: lock, alert, preview ---------- */
-  /* everyone but the founder sees the lock line while settings.locked is on */
+  /* everyone but the owner sees the lock line while settings.locked is on (v39: admins are locked too) */
   function LockBanner() {
     const ctx = M.useCtx();
-    if (!ctx.locked || ctx.isFounder) return null;
+    if (!ctx.locked || ctx.isOwner) return null;
     const note = String(ctx.settings.lockNote || '').trim();
     return html`<div class="lockbar" id="lock-banner" role="status">
       <span>m360 is locked for changes right now.${note ? ' ' + note : ''}</span>

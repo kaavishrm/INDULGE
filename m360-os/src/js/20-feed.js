@@ -488,5 +488,5 @@
   }
 
   M.pages.Feed = Feed;
-  M.feed = {stream, reactCounts, commentsOf, commentCounts, addComment};
+  M.feed = {stream, reactCounts, commentsOf, commentCounts, addComment, kudosLeft: (ctx, uid) => Math.max(0, KUDOS_CAP - kudosThisWeek(ctx, uid, ctx.now))};
 })();

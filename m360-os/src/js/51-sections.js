@@ -145,8 +145,9 @@
     const live = clients.filter(c => c.status === 'live').length;
     const pitches = Object.keys(ctx.coll.pitches.map).map(k => ctx.coll.pitches.map[k]);
     const inPlay = pitches.filter(p => p.stage !== 'won' && p.stage !== 'lost').length;
-    const pm = ctx.isFounder && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
-    const sh = ctx.isFounder && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
+    /* v39: money is the owner's alone (their finance doc is the only one loaded), so a second founder sees no money tiles */
+    const pm = ctx.isOwner && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
+    const sh = ctx.isOwner && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
     const mrr = sh.reduce((n, r) => n + (r.monthly || 0), 0);
     const t = tab || 'talks';
     /* the older views still open by their hash; they sit behind one quiet line under the tabs */
@@ -157,7 +158,7 @@
           <${Mini} v=${live} l=${live === 1 ? 'live client' : 'live clients'}/>
           <${Mini} v=${inPlay} l=${inPlay === 1 ? 'pitch in play' : 'pitches in play'}/>
           ${pm ? html`<${Mini} v=${U.inr(pm.weighted)} l="weighted pipeline" metal=${true}/>` : null}
-          ${ctx.isFounder ? html`<${Mini} v=${U.inr(mrr)} l="monthly revenue" metal=${true}/>` : null}
+          ${ctx.isOwner ? html`<${Mini} v=${U.inr(mrr)} l="monthly revenue" metal=${true}/>` : null}
         </div>
       <//>
       <${M.SectionTabs} section="accounts" active=${t}/>

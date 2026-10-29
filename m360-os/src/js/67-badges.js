@@ -69,6 +69,8 @@
     const list = today(ctx);
     if (!list.length) return null;
     const wish = async c => {
+      /* v39: a wish is a kudos, and the server holds everyone to three a week */
+      if (M.feed && M.feed.kudosLeft && !M.feed.kudosLeft(ctx, ctx.uid)) { M.toast('You have given your three kudos this week. Say it in chat instead.'); return; }
       const given = [{id: U.uid(), to: c.uid, why: c.kind === 'birthday' ? 'Happy birthday. Have the best one.' : 'Happy work anniversary. Thank you for everything.', at: Date.now()}]
         .concat(((ctx.coll.kudos.map[ctx.uid] || {}).given) || []).slice(0, 60);
       try { await ctx.W.merge('kudos/' + ctx.uid, {given}); } catch (e) { return; }
