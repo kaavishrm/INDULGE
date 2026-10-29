@@ -8,6 +8,8 @@
     {v: 'keeper', label: 'Keeper test'}, {v: 'leave', label: 'Leave'},
     {v: 'export', label: 'Export'}, {v: 'cleanup', label: 'Cleanup'}];
   const ROLES = [{v: 'member', label: 'Member'}, {v: 'lead', label: 'Pod lead'}, {v: 'founder', label: 'Full access'}];
+  /* v39: the roster pill uses the drawer's words, so 'founder' reads full access */
+  const roleWord = v => ((ROLES.find(x => x.v === v) || {label: v || 'member'}).label).toLowerCase();
   const YN = [{v: 'yes', label: 'Yes'}, {v: 'no', label: 'No'}];
   const KEEPER_LINE = 'A no ends it quickly. Documented, paid in full, neutral relieving letter.';
   const THRESHOLDS = [
@@ -32,7 +34,7 @@
   };
 
   /* ---------- roster ---------- */
-  function AddDrawer({person, member, onClose, title, onSaved}) {
+  function AddDrawer({person, member, onClose, title, onSaved, join}) {
     const ctx = M.useCtx();
     const [f, setF] = useState(() => ({
       title: (member && member.title) || title || '', pod: (member && member.pod) || '',
@@ -55,13 +57,13 @@
       const patch = {members: {[person.id]: body}, updated: Date.now()};
       if (!existing) patch.nextEmp = (roster.nextEmp || 2) + 1;
       await ctx.W.merge('roster/team', patch);
-      M.toast(existing ? 'Saved' : 'Added, ' + empId);
+      M.toast(existing ? (join ? 'Back on the team' : 'Saved') : 'Added, ' + empId);
       if (onSaved) await onSaved(person.id);
       onClose();
     }
     const self = person.id === ctx.uid;
-    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${member ? 'Edit person' : 'Let them in'}
-      footer=${html`<${UI.Btn} onClick=${save}>${member ? 'Save' : 'Add to the team'}<//>`}>
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${member && !join ? 'Edit person' : 'Let them in'}
+      footer=${html`<${UI.Btn} onClick=${save}>${member && !join ? 'Save' : 'Add to the team'}<//>`}>
       <div class="row"><${UI.Avatar} id=${person.id} size=${34}/>
         <span style=${{fontWeight: 500}}>${person.name || html`<${UI.Name} id=${person.id}/>`}</span></div>
       <${UI.Input} id="desk-title" label="title" value=${f.title} onChange=${v => set('title', v)}/>
@@ -104,8 +106,9 @@
     const setActive = (uid, active) => ctx.W.merge('roster/team', {members: {[uid]: {active}}, updated: Date.now()})
       .then(() => M.toast(active ? 'Restored' : 'Removed'));
 
+    /* v39: someone removed who asks back opens on their old record, so title, pod, role and joined stay */
     return html`<div class="stack" style=${{gap: '18px'}}>
-      ${M.parts.JoinRequests ? html`<${M.parts.JoinRequests} onApprove=${r => setAdd({person: {id: r.uid, name: ''}, member: null, title: r.title, join: true})}/>` : null}
+      ${M.parts.JoinRequests ? html`<${M.parts.JoinRequests} onApprove=${r => setAdd({person: {id: r.uid, name: ''}, member: members[r.uid] ? {uid: r.uid, ...members[r.uid]} : null, title: r.title, join: true})}/>` : null}
       ${M.parts.InviteByEmail ? html`<${M.parts.InviteByEmail}/>` : null}
       ${M.parts.InviteCard ? html`<${M.parts.InviteCard} open=${onlyFounder && !M.parts.InviteByEmail}/>` : null}
 
@@ -131,9 +134,9 @@
             ${rows.map(r => html`<tr key=${r.uid}>
               <td class="lead"><span class="row nowrap"><${UI.Avatar} id=${r.uid} size=${24}/><${UI.Name} id=${r.uid}/><span class="num tiny ink62">${r.empId}</span>${isNew(r) && M.fx ? html`<${M.fx.MetalBadge}>new hire<//>` : null}</span></td>
               <td>${r.title || ''}</td><td>${r.pod || ''}</td>
-              <td><${UI.Pill}>${r.role}<//></td>
+              <td><${UI.Pill}>${roleWord(r.role)}<//></td>
               <td>${r.active === false ? html`<${UI.Pill} kind="warm">inactive<//>` : html`<${UI.Pill} kind="ink">active<//>`}</td>
-              <td><span class="row nowrap">
+              <td><span class="row" style=${{gap: '6px'}}>
                 <${UI.Btn} kind="ghost" sm=${true} onClick=${() => setAdd({person: {id: r.uid, name: ''}, member: r})}>Edit<//>
                 ${M.parts.LinkDrawer ? html`<${UI.Btn} kind="ghost" sm=${true} onClick=${() => setLinkFor(r.uid)}>Sign-in link<//>` : null}
                 ${window.M360_STANDALONE && M.parts.MemberDevices ? html`<${M.parts.MemberDevices} uid=${r.uid}/>` : null}
@@ -146,7 +149,7 @@
         </table></div>
       <//>
       ${linkFor && M.parts.LinkDrawer ? html`<${M.parts.LinkDrawer} uid=${linkFor} onClose=${() => setLinkFor(null)}/>` : null}
-      ${add ? html`<${AddDrawer} person=${add.person} member=${add.member} title=${add.title}
+      ${add ? html`<${AddDrawer} person=${add.person} member=${add.member} title=${add.title} join=${!!add.join}
         onSaved=${add.join ? (id => M.team.clear(ctx, id)) : null} onClose=${() => setAdd(null)}/>` : null}
     </div>`;
   }
@@ -187,18 +190,47 @@
     </div>`;
   }
 
+  /* the settings form's fields, read from the saved settings */
+  const formOf = s => ({
+    lat: s.office ? String(s.office.lat) : '', lng: s.office ? String(s.office.lng) : '',
+    label: s.office ? s.office.label : '', radius: s.office ? String(s.office.radius || 200) : '200',
+    start: s.start, grace: String(s.grace), eodCut: s.eodCut, mondayCut: s.mondayCut,
+    wfhCap: String(s.wfhCap), revCap: String(s.revCap), ackHours: String(s.ackHours), blockerDays: String(s.blockerDays),
+    holidays: (s.holidays || []).slice(), rules: {...s.rules}, points: {...s.points},
+    leaderboardIncludesFounder: !!s.leaderboardIncludesFounder, signoff: s.signoff === false ? 'no' : 'yes',
+    quietMins: String(Number(s.quietMins) || 120), lunchFrom: s.lunchFrom || '', lunchTo: s.lunchTo || ''
+  });
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  /* v39: a newer save by someone else lands in every field this person has not touched (rules and points key by
+     key, holidays as their adds and removes), so the open form always shows what is saved underneath */
+  function rebase(cur, was, now) {
+    const out = {...cur};
+    for (const k of Object.keys(now)) {
+      if (k === 'rules' || k === 'points') {
+        const m = {...now[k]};
+        for (const id of Object.keys(cur[k] || {})) if (!same(cur[k][id], (was[k] || {})[id])) m[id] = cur[k][id];
+        out[k] = m;
+      } else if (k === 'holidays') {
+        const added = cur.holidays.filter(d => was.holidays.indexOf(d) < 0), gone = was.holidays.filter(d => cur.holidays.indexOf(d) < 0);
+        out.holidays = now.holidays.filter(d => gone.indexOf(d) < 0).concat(added.filter(d => now.holidays.indexOf(d) < 0)).sort();
+      } else if (same(cur[k], was[k])) out[k] = now[k];
+    }
+    return out;
+  }
+
   function Settings() {
     const ctx = M.useCtx();
     const s = ctx.settings;
-    const [f, setF] = useState(() => ({
-      lat: s.office ? String(s.office.lat) : '', lng: s.office ? String(s.office.lng) : '',
-      label: s.office ? s.office.label : '', radius: s.office ? String(s.office.radius || 200) : '200',
-      start: s.start, grace: String(s.grace), eodCut: s.eodCut, mondayCut: s.mondayCut,
-      wfhCap: String(s.wfhCap), revCap: String(s.revCap), ackHours: String(s.ackHours), blockerDays: String(s.blockerDays),
-      holidays: (s.holidays || []).slice(), rules: {...s.rules}, points: {...s.points},
-      leaderboardIncludesFounder: !!s.leaderboardIncludesFounder, signoff: s.signoff === false ? 'no' : 'yes', newHoliday: '',
-      quietMins: String(Number(s.quietMins) || 120), lunchFrom: s.lunchFrom || '', lunchTo: s.lunchTo || ''
-    }));
+    /* base: the saved settings the form last read; save sends only what differs from it */
+    const [base, setBase] = useState(() => formOf(s));
+    const [f, setF] = useState(() => ({...formOf(s), newHoliday: ''}));
+    const savedKey = JSON.stringify(formOf(s));
+    useEffect(() => {
+      const now = formOf(s);
+      if (same(now, base)) return;
+      setF(cur => ({...rebase(cur, base, now), newHoliday: cur.newHoliday}));
+      setBase(now);
+    }, [savedKey]);
     const set = (k, v) => setF(x => ({...x, [k]: v}));
     const names = (M.rules && M.rules.NAMES) || {};
     const quietMins = Math.max(30, Math.min(480, Math.round(Number(f.quietMins) || 120)));
@@ -211,23 +243,38 @@
       setF(x => ({...x, lat: String(loc.lat), lng: String(loc.lng)}));
       M.toast('Office set');
     }
+    /* the document a form saves as */
+    const bodyOf = x => {
+      const office = (x.lat !== '' && x.lng !== '')
+        ? {lat: Number(x.lat), lng: Number(x.lng), radius: Number(x.radius) || 200, label: x.label || 'Office'}
+        : null;
+      const points = {};
+      Object.keys(x.points).forEach(k => { points[k] = Number(x.points[k]) || 0; });
+      return {
+        office, start: String(x.start || '').trim(), grace: Number(x.grace) || 0, eodCut: String(x.eodCut || '').trim(), mondayCut: String(x.mondayCut || '').trim(),
+        wfhCap: Number(x.wfhCap) || 0, revCap: Number(x.revCap) || 0, ackHours: Number(x.ackHours) || 0,
+        blockerDays: Number(x.blockerDays) || 0, holidays: x.holidays, rules: x.rules, points,
+        leaderboardIncludesFounder: x.leaderboardIncludesFounder, signoff: x.signoff !== 'no',
+        quietMins: Math.max(30, Math.min(480, Math.round(Number(x.quietMins) || 120))),
+        lunchFrom: String(x.lunchFrom || '').trim(), lunchTo: String(x.lunchTo || '').trim()
+      };
+    };
     async function save() {
       /* lunch is both times or neither; empty means no lunch hour */
       const lunchFrom = String(f.lunchFrom || '').trim(), lunchTo = String(f.lunchTo || '').trim();
       if (!!lunchFrom !== !!lunchTo || (lunchFrom && !(HHMM.test(lunchFrom) && HHMM.test(lunchTo)))) return M.toast('Set both lunch times, or clear both for no lunch hour', true);
       if (lunchFrom && U.minutes(lunchTo) <= U.minutes(lunchFrom)) return M.toast('Lunch has to end after it starts', true);
-      const office = (f.lat !== '' && f.lng !== '')
-        ? {lat: Number(f.lat), lng: Number(f.lng), radius: Number(f.radius) || 200, label: f.label || 'Office'}
-        : null;
-      const points = {};
-      Object.keys(f.points).forEach(k => { points[k] = Number(f.points[k]) || 0; });
-      await ctx.W.merge('settings/app', {
-        office, start: f.start, grace: Number(f.grace) || 0, eodCut: f.eodCut, mondayCut: f.mondayCut,
-        wfhCap: Number(f.wfhCap) || 0, revCap: Number(f.revCap) || 0, ackHours: Number(f.ackHours) || 0,
-        blockerDays: Number(f.blockerDays) || 0, holidays: f.holidays, rules: f.rules, points,
-        leaderboardIncludesFounder: f.leaderboardIncludesFounder, signoff: f.signoff !== 'no',
-        quietMins, lunchFrom, lunchTo, updated: Date.now()
-      });
+      /* v39: lateness, the EOD cut and Monday's cut are worked out from these times, so each needs one */
+      for (const t of [{k: 'start', label: 'Start time'}, {k: 'eodCut', label: 'EOD cutoff'}, {k: 'mondayCut', label: 'Monday cutoff'}]) {
+        const v = String(f[t.k] || '').trim();
+        if (!HHMM.test(v) || Number(v.split(':')[0]) > 23 || Number(v.split(':')[1]) > 59) return M.toast(t.label + ' needs a time, like 10:30', true);
+      }
+      /* v39: only what this person changed goes out, so a newer save by someone else stays */
+      const was = bodyOf(base), next = bodyOf(f);
+      const patch = U.changes(was, next);
+      for (const k of ['rules', 'points']) if (patch[k]) patch[k] = U.changes(was[k], next[k]);
+      if (!Object.keys(patch).length) return M.toast('Nothing to save');
+      await ctx.W.merge('settings/app', {...patch, updated: Date.now()});
       M.toast('Settings saved');
     }
 
@@ -372,12 +419,18 @@
       try {
         const [y, mm] = month.split('-').map(Number);
         const first = new Date(y, mm - 1, 1), last = new Date(y, mm, 0);
-        const uids = ctx.activeMembers.map(m => m.uid);
+        /* v39: someone who left during or after this month is in it, up to their last day, for their final pay */
+        const firstYmd = U.ymd(first), all = ctx.members || {};
+        const people = Object.keys(all).map(uid => ({uid, ...all[uid]}))
+          .filter(m => m.active !== false || (m.left && m.left >= firstYmd))
+          .sort((a, b) => String(a.empId || '').localeCompare(String(b.empId || '')));
+        const uids = people.map(m => m.uid);
         const profs = (ctx.user && ctx.user.profiles) ? await ctx.user.profiles(uids) : {};
         const lines = [COLS.map(csvCell).join(',')];
         for (let d = new Date(first); d <= last; d = U.addDays(d, 1)) {
           const date = U.ymd(d);
-          for (const m of ctx.activeMembers) {
+          for (const m of people) {
+            if (m.active === false && date > m.left) continue;
             const a = (M.att && M.att.dayStatus) ? M.att.dayStatus(ctx, m.uid, date) : {status: 'none'};
             const prob = m.probationEnd && m.probationEnd >= date;
             lines.push([
@@ -424,17 +477,21 @@
       for (const id of ids) await ctx.W.del(coll + '/' + id);
       M.toast('Deleted ' + ids.length + (ids.length === 1 ? ' document' : ' documents'));
     };
+    /* v39: nothing to delete leaves the button greyed out */
+    const del = (coll, ids) => ids.length
+      ? html`<${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe(coll, ids)}>Delete<//>`
+      : html`<${UI.Btn} kind="sec" sm=${true} disabled=${true}>Delete<//>`;
 
     return html`<${UI.Card} title="Cleanup">
       <p class="small ink62" style=${{marginTop: 0}}>
         <span class="num">${count}</span> of 5,000 documents.</p>
       <div class="stack tight">
         <div class="listrow"><span class="grow">Done tasks older than 60 days <span class="num ink62">${oldTasks.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('tasks', oldTasks)}>Delete<//></div>
+          ${del('tasks', oldTasks)}</div>
         <div class="listrow"><span class="grow">Pulse responses older than 26 weeks <span class="num ink62">${oldPulse.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('pulse', oldPulse)}>Delete<//></div>
+          ${del('pulse', oldPulse)}</div>
         <div class="listrow"><span class="grow">Lost pitches older than 180 days <span class="num ink62">${oldPitches.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('pitches', oldPitches)}>Delete<//></div>
+          ${del('pitches', oldPitches)}</div>
       </div>
     <//>`;
   }

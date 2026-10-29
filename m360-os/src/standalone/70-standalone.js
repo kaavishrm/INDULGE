@@ -98,7 +98,8 @@
       try { await api('accept', {code: invite, email: em, password: pw}); window.M360_INVITE = ''; location.reload(); }
       catch (e) {
         if (e && e.code === 'expired') setInv({dead: true});
-        else setErr(said(e, ['mismatch', 'invalid_argument', 'weak']));
+        /* v39: an email that already has a login gets the server's own line: sign in, or ask for a reset code */
+        else setErr(said(e, ['mismatch', 'invalid_argument', 'weak', 'already_here']));
         setBusy(false);
       }
     }
