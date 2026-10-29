@@ -240,8 +240,10 @@
     const setupSteps = (M.setup && M.setup.steps) ? M.setup.steps(ctx) : [];
     const setupDone = !setupSteps.length || setupSteps.every(x => x.done) || !!(ctx.settings.setup && ctx.settings.setup.dismissed);
     const setupSum = setupSteps.length ? setupSteps.filter(x => x.done).length + ' of ' + setupSteps.length + ' done' : 'your first-run checklist';
+    /* v39: the Office tab opens on the office; the hero, the join banner and the checklist stay on the other tabs */
+    const top = t !== 'office';
     return html`<div class="stack" style=${{gap: '20px'}}>
-      <header class="hero ink">
+      ${top ? html`<header class="hero ink">
         <div style=${{position: 'relative'}}>
           <${UI.Micro}>${U.dateLabel(new Date(ctx.now))}<//>
           <h1 class="hi">HQ</h1>
@@ -257,9 +259,9 @@
           <${Tile} v=${n.lastEn ? n.lastEn.avg.toFixed(1) + '/5' : null} l="team energy" to="#voice" hot=${!!(n.lastEn && n.lastEn.avg < 3)}/>
           <${Tile} v=${n.moodAvg ? n.moodAvg.toFixed(1) + '/5' : null} l="mood at check-in"/>
         </div>
-      </header>
-      ${M.parts.JoinBanner ? html`<${M.parts.JoinBanner}/>` : null}
-      ${M.parts.SetupCard && !setupDone ? html`<${UI.Fold} title="Get m360 ready" summary=${setupSum} open=${false} id="fold-setup"><${M.parts.SetupCard}/><//>` : null}
+      </header>` : null}
+      ${top && M.parts.JoinBanner ? html`<${M.parts.JoinBanner}/>` : null}
+      ${top && M.parts.SetupCard && !setupDone ? html`<${UI.Fold} title="Get m360 ready" summary=${setupSum} open=${false} id="fold-setup"><${M.parts.SetupCard}/><//>` : null}
       <${M.SectionTabs} section="hq" active=${t}/>
       ${M.parts.CooRunner ? html`<${M.parts.CooRunner}/>` : null}
       ${t === 'dashboard' ? html`<${Embed} page="Command"/>` : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>`
