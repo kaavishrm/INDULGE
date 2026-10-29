@@ -45,11 +45,15 @@
   /* v37: a client is a monthly retainer or a one-off project. The kind sits on the client (everyone sees the pill),
      the money in the founder's finance doc: finance.clients[cid] = {kind, monthly, fee, from, to, paid} */
   const KINDS = [{v: 'retainer', label: 'Retainer'}, {v: 'project', label: 'Project'}];
+  /* v39: the shared billing on the client wins, so everyone sees one answer; the owner's private kind only fills in
+     for a client saved before billing existed */
   function kindOf(ctx, id) {
     const fe = financeOf(ctx)[id] || {};
     const c = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map[id]) || {};
-    return (fe.kind || c.billing) === 'project' ? 'project' : 'retainer';
+    return (c.billing || fe.kind) === 'project' ? 'project' : 'retainer';
   }
+  /* v39: the finance doc loads for the owner alone (02-state), so only the owner gets the money fields */
+  const hasMoney = ctx => !!ctx.isOwner;
   /* monthly revenue counts retainers only: a project fee is one payment, so it never inflates the monthly line */
   function shares(ctx) {
     const map = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map) || {};
@@ -453,7 +457,9 @@
     const existing = id ? ctx.coll.clients.map[id] : null;
     const fin = financeOf(ctx);
     const ex = k => (existing && existing[k]) || '';
-    const [f, setF] = useState(() => ({
+    /* v39: the copy the form opened on; save sends only what this person changed against it */
+    const opened = useRef(null);
+    const [f, setF] = useState(() => (opened.current = {
       name: ex('name'), status: ex('status') || 'live', pod: ex('pod'), owner: (existing && existing.owner) || ctx.uid,
       memory: ex('memory'), approvals: ex('approvals'), never: ex('never'), links: ex('links'), org: ex('org'),
       website: ex('website'), industry: ex('industry'), hq: ex('hq'), since: ex('since'), tone: ex('tone'),
@@ -506,28 +512,40 @@
       }
       const org = linked.org;
       const cid = id || U.uid();
-      const doc = {name: f.name.trim(), status: f.status, pod: f.pod, owner: f.owner,
-        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})), billing: f.kind,
-        website, domain: domainFrom(website) || (org ? (org.domain || domainFrom(org.website)) : ''),
-        industry: f.industry.trim(), hq: f.hq.trim(), since: f.since.trim(), tone: f.tone.trim(), socials,
-        logo: f.logo || '', useAutoLogo: !!f.useAutoLogo,
-        updated: Date.now(), by: ctx.uid};
+      const docOf = (x, site, soc) => ({name: x.name.trim(), status: x.status, pod: x.pod, owner: x.owner,
+        memory: x.memory, approvals: x.approvals, never: x.never, links: x.links, org: x.org || '', billing: x.kind,
+        website: site, domain: domainFrom(site) || (org ? (org.domain || domainFrom(org.website)) : ''),
+        industry: x.industry.trim(), hq: x.hq.trim(), since: x.since.trim(), tone: x.tone.trim(), socials: soc,
+        logo: x.logo || '', useAutoLogo: !!x.useAutoLogo});
+      const doc = {...docOf(f, website, socials), updated: Date.now(), by: ctx.uid};
+      if (!id && !f.org) delete doc.org;
+      const base = opened.current || f;
+      const orgMoved = !id || (f.org || '') !== (base.org || '');
       setBusy(true);
       try {
-        const before = id ? (existing && existing.org && linked.org && linked.org.id === existing.org ? linked.org : (M.base && M.base.orgForClientAsync ? await M.base.orgForClientAsync(ctx, id) : null)) : null;
-        if (id) await ctx.W.update('clients/' + id, doc);
-        else await ctx.W.set('clients/' + cid, doc);
-        /* the company row points back at the client, both ways, always */
+        const before = id && orgMoved ? (existing && existing.org && linked.org && linked.org.id === existing.org ? linked.org : (M.base && M.base.orgForClientAsync ? await M.base.orgForClientAsync(ctx, id) : null)) : null;
+        if (id) {
+          /* v39: only the fields this person changed, so what someone else saved meanwhile is kept */
+          const baseSite = cleanSite(base.website), baseSoc = {};
+          for (const so of SOCIALS) { const v = cleanHandle(base[so.k]); baseSoc[so.k] = v === null ? base[so.k] : v; }
+          const ch = U.changes(docOf(base, baseSite === null ? base.website : baseSite, baseSoc), docOf(f, website, socials));
+          if (!(existing && existing.billing)) ch.billing = f.kind;
+          await ctx.W.update('clients/' + id, {...ch, updated: doc.updated, by: ctx.uid});
+        } else await ctx.W.set('clients/' + cid, doc);
+        /* the company row points back at the client, both ways; the new doc rides along, since the page may not hold it yet */
         if (M.base && M.base.linkOrgToClient) {
-          if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
-          if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
+          const orgNow = ((M.lastCtx && M.lastCtx.coll.clients.map[cid]) || existing || {}).org;
+          if (orgMoved) {
+            if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
+            if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid, {...doc, org: f.org}).catch(() => {});
+          } else if (f.org && f.org === orgNow) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
         }
         /* a company typed by hand becomes a company in the database too, linked both ways */
         if (!id && !f.org && seed && seed.newOrg && M.base && M.base.upsertOrg && M.base.linkOrgToClient) {
           const oid = await M.base.upsertOrg(ctx, {name: doc.name, website, industry: doc.industry, city: doc.hq, source: 'manual'}).catch(() => null);
-          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid).catch(() => {}); }
+          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid, {...doc, org: oid}).catch(() => {}); }
         }
-        if (ctx.isFounder) {
+        if (hasMoney(ctx)) {
           const money = f.kind === 'project'
             ? {kind: 'project', fee: Number(f.fee) || 0, from: f.from || '', to: f.to || '', paid: Number(f.paid) || 0}
             : {kind: 'retainer', ...(String(f.monthly).trim() !== '' ? {monthly: Number(f.monthly) || 0} : {})};
@@ -598,9 +616,9 @@
       ${id && M.parts.PeopleAtClient && orgOf(ctx, id) ? html`<${UI.Fold} title="People at this client" id="fold-client-people"><${M.parts.PeopleAtClient} id=${id}/><//>` : null}
       ${id && M.parts.Connections ? html`<${M.parts.Connections} kind="client" id=${id}/>` : null}
       ${id && M.parts.ClientUpdate && M.ai.on(ctx) ? html`<${M.fx.Beam}><${UI.Fold} title="Client update" summary="a client-ready note" id="fold-client-update"><${M.parts.ClientUpdate} id=${id} name=${f.name}/><//><//>` : null}
-      ${ctx.isFounder && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
+      ${hasMoney(ctx) && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
         onChange=${v => set('monthly', v)} hint="Private to you. Counts in monthly revenue."/>` : null}
-      ${ctx.isFounder && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
+      ${hasMoney(ctx) && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
         <div class="grid2">
           <${UI.Input} id="client-fee" label="project fee, ₹" type="number" value=${f.fee} onChange=${v => set('fee', v)} hint="Private to you. One payment, kept out of monthly revenue."/>
           <${UI.Input} id="client-paid" label="paid so far, ₹" type="number" value=${f.paid} onChange=${v => set('paid', v)}/>
@@ -676,7 +694,7 @@
     const map = ctx.coll.clients.map;
     const sh = useMemo(() => {
       const out = {};
-      if (ctx.isFounder) shares(ctx).forEach(r => { out[r.id] = r; });
+      if (hasMoney(ctx)) shares(ctx).forEach(r => { out[r.id] = r; });
       return out;
     }, [ctx]);
     const allIds = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));

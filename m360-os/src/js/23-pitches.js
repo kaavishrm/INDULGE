@@ -26,6 +26,9 @@
 
   /* the founder's private finance entries per pitch: {[id]: {value, prob}}; empty for everyone else */
   const financePath = ctx => 'data/users/' + ctx.uid + '/finance';
+  /* v39: the finance doc loads for the owner alone (02-state), so only the owner gets the money fields; a roster
+     founder's values went to a doc nobody reads */
+  const hasMoney = ctx => !!ctx.isOwner;
   const financeOf = ctx => {
     const d = ctx.priv && ctx.priv.finance && ctx.priv.finance.data;
     return (d && d.pitch) || {};
@@ -98,7 +101,7 @@
     const od = m.overdue.length;
     return html`<${React.Fragment}>
       <div class="kpi-rail">
-        <${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline" metal=${true}/>
+        ${m.money ? html`<${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline" metal=${true}/>` : null}
         <${Tile} id="kpi-open" v=${inPlay} l=${inPlay === 1 ? 'pitch in play' : 'pitches in play'}/>
         <${Tile} id="kpi-win" v=${m.winRate90 == null ? null : m.winRate90 + '%'} l="win rate, 90 days"/>
         <${Tile} id="kpi-overdue" v=${od} l=${od === 1 ? 'next step overdue' : 'next steps overdue'} flame=${od > 0}/>
@@ -170,7 +173,7 @@
         /* an empty stage folds to its heading and count */
         return html`<div class=${'colm' + (list.length ? '' : ' empty')} key=${s.v} data-stage=${s.v}>
           <div class="col-head"><span>${s.label}</span><span class="num">${list.length}</span></div>
-          ${list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${ctx.isFounder} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)}
+          ${list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${hasMoney(ctx)} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)}
         </div>`;
       })}
     </div></div><//>`;
@@ -197,16 +200,27 @@
       stage: stageOf(p).v, owner: p.owner || ctx.uid, next: p.next || '', nextDate: p.nextDate || '', lost: p.lost || '',
       value: valueOf(e) > 0 ? String(valueOf(e)) : '', prob: hasProb(e) ? String(Number(e.prob)) : ''
     });
-    const [f, setF] = useState(() => pitch ? fromDoc(pitch, fe) : blank());
+    /* v39: the copy the form opened on; save sends only what this person changed against it */
+    const base = useRef(null);
+    const [f, setF] = useState(() => { const v = pitch ? fromDoc(pitch, fe) : blank(); base.current = v; return v; });
     const [busy, setBusy] = useState(false);
     /* a deep link can open the drawer before the pitches have loaded, and a picked contact is known only once the
        Base has loaded: the form fills again when either arrives, so "c5" is never read as a typed name */
     const cidKnown = !!(pitch && isCid(pitch.contact));
     useEffect(() => {
       const p = pitchId ? ctx.coll.pitches.map[pitchId] : null;
-      setF(p ? fromDoc(p, pitchId ? financeOf(ctx)[pitchId] : null) : blank());
+      const v = p ? fromDoc(p, pitchId ? financeOf(ctx)[pitchId] : null) : blank();
+      base.current = v;
+      setF(v);
       setBusy(false);
     }, [pitchId, finReady, !!pitch, cidKnown]);
+    /* v39: a change someone else saves while the drawer is open shows in every field this person has not touched */
+    useEffect(() => {
+      if (!pitch || !base.current) return;
+      const ob = base.current, nb = fromDoc(pitch, fe);
+      base.current = nb;
+      setF(x => { const out = {...x}; for (const k of Object.keys(nb)) if (x[k] === ob[k]) out[k] = nb[k]; return out; });
+    }, [pitch, fe]);
     const set = k => v => setF(x => ({...x, [k]: v}));
 
     const memberIds = useMemo(() => {
@@ -246,14 +260,18 @@
       if (isNew) {
         p = W.set('pitches/' + id, {...body, stage: 'lead', stageAt: now, next: f.next.trim(), nextDate: f.nextDate || '', project: '', lost: '', created: now});
       } else {
+        /* v39: only the fields this person changed, so a stage move or an edit saved meanwhile is kept */
+        const docOf = x => ({brand: x.brand.trim(), category: x.category.trim(), contact: x.contactId || x.contact.trim(), source: x.source.trim(),
+          owner: x.owner || ctx.uid, stage: x.stage, next: x.next.trim(), nextDate: x.nextDate || '', lost: x.lost.trim()});
+        const ch = U.changes(docOf(base.current || f), docOf(f));
+        if ('stage' in ch) ch.stageAt = now;
         /* a next step typed or dated by hand is the team's own again: the bridge (M.prospects, nextBy 'fu')
            never overwrites it from then on */
-        const byHand = pitch.nextBy && (f.next.trim() !== (pitch.next || '') || (f.nextDate || '') !== (pitch.nextDate || ''));
-        p = W.update('pitches/' + id, {...body, stage: f.stage,
-          stageAt: f.stage !== stageOf(pitch).v ? now : (pitch.stageAt || now),
-          next: f.next.trim(), nextDate: f.nextDate || '', lost: f.lost.trim(), ...(byHand ? {nextBy: ''} : {})});
+        const byHand = pitch.nextBy && ('next' in ch || 'nextDate' in ch);
+        p = W.update('pitches/' + id, {...ch, updated: now, ...(orgMatch && orgMatch.id !== pitch.org ? {org: orgMatch.id} : {}), ...(byHand ? {nextBy: ''} : {})});
       }
-      if (ctx.isFounder && (fe || f.value !== '' || f.prob !== '')) {
+      const ob = base.current || {};
+      if (hasMoney(ctx) && (isNew ? (f.value !== '' || f.prob !== '') : (f.value !== ob.value || f.prob !== ob.prob))) {
         const probNum = f.prob === '' ? null : Math.max(0, Math.min(100, Number(f.prob) || 0));
         const entry = {value: Math.max(0, Number(f.value) || 0), prob: probNum};
         p = p.then(() => W.merge(financePath(ctx), {pitch: {[id]: entry}}));
@@ -285,7 +303,7 @@
           memory: '', approvals: '', never: '', links: '', updated: now, by: ctx.uid});
       p = p.then(() => W.merge('pitches/' + pitchId, {client: cid, updated: now}));
       /* the founder's private monthly revenue starts from the pitch value */
-      if (ctx.isFounder && valueOf(fe) > 0) p = p.then(() => W.merge(financePath(ctx), {clients: {[cid]: {monthly: valueOf(fe)}}}));
+      if (hasMoney(ctx) && valueOf(fe) > 0) p = p.then(() => W.merge(financePath(ctx), {clients: {[cid]: {monthly: valueOf(fe)}}}));
       p.then(() => { M.toast('Client page created'); onClose(); M.nav('#clients'); }, () => setBusy(false));
     };
 
@@ -343,7 +361,7 @@
         <//>` : null}
         ${M.parts.Connections ? html`<${M.parts.Connections} kind="pitch" id=${pitchId}/>` : null}
       <//>` : null}
-      ${ctx.isFounder ? html`<${React.Fragment}>
+      ${hasMoney(ctx) ? html`<${React.Fragment}>
         <hr class="hair"/>
         <${UI.Micro}>founder only<//>
         <${UI.Input} id="pitch-value" label="monthly value, ₹" type="number" min="0" step="1000" value=${f.value} onChange=${set('value')} placeholder="0"
@@ -374,7 +392,7 @@
     const map = ctx.coll.pitches.map;
     const all = Object.keys(map).map(id => ({id, ...map[id]}));
     const fin = financeOf(ctx);
-    const m = ctx.isFounder ? metrics(ctx) : null;
+    const m = ctx.isFounder ? {...metrics(ctx), money: hasMoney(ctx)} : null;
     const nOpen = all.filter(p => !isClosed(p)).length;
     return html`<${React.Fragment}>
       <${UI.PageHead} micro=${nOpen + ' in play'} title="Pipeline">

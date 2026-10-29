@@ -371,8 +371,11 @@
     }
     return null;
   }
-  async function linkOrgToClient(ctx, orgId, clientId) {
-    const cur = await getRow(ctx, 'orgs', orgId), c = ctx.coll.clients.map[clientId];
+  /* v39: a client saved a moment ago is not in the ctx a drawer captured; the newest ctx, or the doc the caller just
+     wrote (known), stands in for it so the company row still points back */
+  async function linkOrgToClient(ctx, orgId, clientId, known) {
+    const cur = await getRow(ctx, 'orgs', orgId);
+    const c = ctx.coll.clients.map[clientId] || (M.lastCtx && M.lastCtx.coll.clients.map[clientId]) || known || null;
     if (!cur || !c) return false;
     const now = Date.now();
     if (cur.row.client !== clientId) await ctx.W.merge('orgs/' + cur.pid, {rows: {[orgId]: {client: clientId, updated: now, updatedBy: ctx.uid}}});

@@ -28,7 +28,8 @@
   .talk-add-grid{grid-template-columns:1fr 1fr}
   .talk-add-grid .talk-note{grid-column:1 / -1}
   .talk-add-grid .talk-save{padding-top:0; grid-column:1 / -1}
-  .talk-sug{right:0}
+  /* v39: the name sits in the first of two columns; the suggestions span both, and scroll inside a short box */
+  .talk-sug{right:auto; width:calc(200% + 10px); max-height:min(300px, 45vh); overflow-y:auto}
   .prop-add{grid-template-columns:1fr 1fr}
   .prop-add .prop-add-btn{padding-top:0}
   .talk-row{flex-wrap:wrap}
