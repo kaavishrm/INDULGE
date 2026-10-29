@@ -411,6 +411,18 @@ export function createApp({store, env = {}}) {
         refuse('You can remove your own picks. Ask an admin about the rest.');
       }
       for (const id of Object.keys(b)) if (a[id] == null && b[id].by !== uid) refuse('A new pick carries your own id.');
+      /* v39: picks are kept as a map (picks.<id>), so two people adding at once both land; the same rule holds */
+      const pa = isObj(cur && cur.picks) ? cur.picks : {}, pb = isObj(next && next.picks) ? next.picks : {};
+      for (const id of new Set(Object.keys(pa).concat(Object.keys(pb)))) {
+        if (same(pa[id], pb[id])) continue;
+        if (pa[id] == null) {
+          if (!isObj(pb[id]) || pb[id].by !== uid) refuse('A new pick carries your own id.');
+          /* a pick from the older list is put away only by the person who added it */
+          if (pb[id].gone && a[id] && a[id].by !== uid) refuse('You can remove your own picks. Ask an admin about the rest.');
+          continue;
+        }
+        if (!isObj(pa[id]) || pa[id].by !== uid) refuse('You can remove your own picks. Ask an admin about the rest.');
+      }
       return;
     }
     /* kudos: three a week (IST), each stamped when it is given */
