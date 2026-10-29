@@ -135,7 +135,7 @@
           <${UI.Avatar} id=${c.by} size=${22}/>
           <div class="grow"><b class="small"><${UI.Name} id=${c.by} fallback=${names[c.by] || undefined}/></b> <span class="tiny sub num">${U.timeAgo(c.at)}</span>
             <div class="small" style=${{overflowWrap: 'anywhere'}}>${c.t}</div></div>
-          ${c.by === ctx.uid ? html`<button type="button" class="linky tiny" onClick=${() => dropComment(ctx, itKey, c.id)}>Delete</button>` : null}
+          ${c.by === ctx.uid ? html`<${UI.ConfirmBtn} label="Tap again" onConfirm=${() => dropComment(ctx, itKey, c.id).catch(() => {})}>Delete<//>` : null}
         </div>`)}
         <div class="row nowrap" style=${{gap: '8px'}}>
           <input class="input" value=${text} placeholder="Say something nice" aria-label="Comment" onInput=${e => setText(e.target.value)} onKeyDown=${e => { if (e.key === 'Enter') send(e); }}/>
@@ -237,7 +237,7 @@
   /* ---------- composer ---------- */
   function Composer() {
     const ctx = M.useCtx();
-    const {W, uid, isFounder} = ctx;
+    const {W, uid, isFounder, founderUid} = ctx;
     const [text, setText] = useState('');
     const [kind, setKind] = useState('update');
     const [busy, setBusy] = useState(false);
@@ -257,8 +257,11 @@
         const post = {id, kind: k, text: t, at: Date.now()};
         if (k === 'poll') post.options = opts.map(o => o.trim()).filter(Boolean).slice(0, 4);
         const posts = [post, ...U.clone(postsOf(ctx, uid))].slice(0, KEEP_POSTS);
-        const pinned = k === 'announce' ? uid + ':' + id : (mine.pinned || null);
-        await W.merge('feed/' + uid, {posts, pinned});
+        /* v39: only the owner's pinned field is read, so an admin's announcement pins there */
+        const pinKey = uid + ':' + id;
+        const own = k === 'announce' && (!founderUid || founderUid === uid);
+        await W.merge('feed/' + uid, {posts, pinned: own ? pinKey : (mine.pinned || null)});
+        if (k === 'announce' && !own) await W.merge('feed/' + founderUid, {pinned: pinKey});
         setText('');
         setKind('update'); setOpts(['', '']);
         M.sound.play('soft');

@@ -92,7 +92,17 @@ def test(h):
     # the list is the team's
     h.go(p, 'm1', hash='#music', width=1280)
     p.wait_for_selector('.music-card:has-text("Friday closer")')
-    check(p.locator('.music-card:has-text("Friday closer") .iconbtn').count() == 0, 'only the person who added it, or the founder, removes it')
+    check(p.locator('.music-card:has-text("Friday closer") button', has_text='Remove').count() == 0, 'only the person who added it, or the founder, removes it')
+    # v39: two adds at once both land (picks are keyed by id), and a remove asks for a second tap
+    p.evaluate('() => Promise.all([M.lastCtx.W.merge("music/team", {picks: {pa: {id: "pa", title: "Admin pick", url: "https://youtu.be/aaaaaaaaaaa", kind: "youtube", embed: "x", by: "u_m2", at: Date.now()}}}), M.lastCtx.W.merge("music/team", {picks: {pb: {id: "pb", title: "Member pick", url: "https://youtu.be/bbbbbbbbbbb", kind: "youtube", embed: "x", by: "u_m1", at: Date.now()}}})])')
+    p.wait_for_selector('.music-card:has-text("Member pick")')
+    check(p.locator('.music-card:has-text("Admin pick")').count() == 1 and p.locator('.music-card:has-text("Friday closer")').count() == 1, 'both picks made at once are in the list')
+    mine = p.locator('.music-card:has-text("Member pick")')
+    mine.get_by_role('button', name='Remove').click()
+    p.wait_for_timeout(300)
+    check(p.locator('.music-card:has-text("Member pick")').count() == 1, 'one tap on Remove keeps the pick')
+    mine.get_by_role('button', name='Tap again').click()
+    p.wait_for_function('() => !Array.from(document.querySelectorAll(".music-card")).some(e => /Member pick/.test(e.innerText))')
     # youtube goes to the no-cookie embed
     yt = p.evaluate('() => M.music.embedOf("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL123").embed')
     check(yt.startswith('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ') and 'list=PL123' in yt, 'youtube embed, got %r' % yt)
