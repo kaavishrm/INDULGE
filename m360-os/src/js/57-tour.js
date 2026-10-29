@@ -9,7 +9,7 @@
   const STOPS = [
     {go: '#home', sel: '#checkin-card, #home-hero', title: 'Check in',
       say: 'Hi {name}, I am your m360 buddy. Every day starts right here. Check in when you sit down, office or home, and say how you are feeling. It takes two taps.'},
-    {go: '#home', sel: '#fold-eod, #wrap-shipped, #home-hero', title: 'The EOD line',
+    {go: '#home', sel: '#fold-eod, #home-eod, #wrap-shipped, #home-hero', title: 'The EOD line',
       say: 'At seven in the evening, write your EOD line. What shipped, what is next, what is blocked. Three lines, thirty seconds, and Kaavish reads every one.'},
     {go: '#home', sel: '.sidebar .new-trigger, .topbar .new-trigger', title: 'New',
       say: 'New makes anything. A task, a post, kudos for someone, a project.'},
@@ -17,7 +17,7 @@
       say: 'Search finds anything. A client, a contact, a task, a handbook page. Command K opens it from anywhere.'},
     {go: '#home', sel: '.bellbtn', title: 'Inbox',
       say: 'Your inbox. Tasks handed to you, mentions, kudos and decisions land here.'},
-    {go: '#home', sel: '.side-tools .iconbtn[aria-label="Focus timer"], .quick-btn', title: 'Focus',
+    {go: '#home', sel: '.side-tools .iconbtn[aria-label="Focus timer"], .quick-btn[data-k="focus"]', title: 'Focus',
       say: 'Focus runs a timer on one task and banks the deep work. Points come from finished work, streaks and kudos.'},
     {go: '#chat', sel: '#chat-input, #chat-list', title: 'Chat',
       say: 'Chat. Rooms for the team, and direct messages that only the two of you see. At a name to pull someone in, at everyone for the whole team.'},

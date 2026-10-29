@@ -18,10 +18,21 @@
     ['Me', 'me', 'people'], ['Leave', 'leave', 'leave'], ['Handbook', 'handbook', 'handbook'], ['Trophies', 'trophies', 'trophy'],
     ['HQ', 'hq', 'command', true], ['Dashboard', 'command', 'command', true], ['Hiring', 'hiring', 'hiring', true], ['Admin', 'admin', 'desk', true],
     ['The office', 'office', 'desk'], ['The m360 COO', 'coo', 'command'],
-    ['What\'s in m360', 'map', 'map'], ['Break', 'break', 'breath'], ['Five, the word of the day', 'play', 'breath'], ['Reset', 'reset', 'breath'], ['Care reminders', 'care', 'bell'], ['Reflect', 'reflect', 'review']
+    ['What\'s in m360', 'map', 'map'], ['Break', 'break', 'breath'], ['Five, the word of the day', 'play', 'breath'], ['Reset', 'reset', 'breath'], ['Care reminders', 'care', 'bell'], ['Reflect', 'reflect', 'review'],
+    /* v39: every page in the sidebar has a Go to row; the fifth field marks the owner's own pages */
+    ['Chat', 'chat', 'send'], ['Accounts', 'talks', 'clients'], ['Notes', 'notes', 'edit'], ['Music', 'music', 'play'],
+    ['Mail', 'mail', 'mail'], ['Meetings', 'gcal', 'cal'], ['Drive', 'drive', 'drive'], ['Web', 'web', 'link'],
+    ['Books', 'books', 'log', true, 'owner'], ['Invoices', 'invoices', 'log', true, 'owner'], ['Expenses', 'expenses', 'log', true, 'owner'],
+    ['Payroll', 'payroll', 'log', true, 'owner'], ['Bank statement', 'statement', 'log', true, 'owner'], ['Letters', 'letters', 'log', true, 'owner']
   ];
-  /* the order headings appear in: a prospect line typed into the box logs first, with no model call */
-  const ORDER = ['log it', 'people', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log', 'go to', 'actions', 'more', 'ask'];
+  const canGo = (ctx, p) => (!p[3] || ctx.isFounder) && (p[4] !== 'owner' || ctx.isOwner);
+  /* the order headings appear in: a prospect line typed into the box logs first, with no model call.
+     v39: actions come next, so "check in" then Enter checks in; talks sits by people */
+  const ORDER = ['log it', 'actions', 'people', 'talks', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log', 'go to', 'more', 'ask'];
+  /* a heading reads the search module's label, lowercase like every micro label */
+  /* a group the list does not know sits with the other results, never above them */
+  const placeOf = g => { const i = ORDER.indexOf(g); return i < 0 ? ORDER.indexOf('log') : i; };
+  const headOf = g => String((M.search && M.search.GROUP_LABEL && M.search.GROUP_LABEL[g]) || g).toLowerCase();
 
   const norm = s => String(s || '').toLowerCase();
   /* every word of the query has to appear somewhere in the text */
@@ -75,10 +86,10 @@
     }
 
     if (!q.length) {
-      PAGES.filter(p => !p[3] || ctx.isFounder).slice(0, 6).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
+      PAGES.filter(p => canGo(ctx, p)).slice(0, 6).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
       return out;
     }
-    PAGES.filter(p => (!p[3] || ctx.isFounder) && matches(q, p[0])).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
+    PAGES.filter(p => canGo(ctx, p) && matches(q, p[0])).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
     return out;
   }
 
@@ -121,12 +132,15 @@
     const items = useMemo(() => {
       const own = buildItems(ctx, q, closeThen);
       const query = q.trim();
-      const found = (query ? (M.search ? M.search.hits(ctx, query, {names, log}) : localHits(ctx, query, names)) : []).concat(query && remoteHits ? remoteHits : []);
+      const base = query ? (M.search ? M.search.hits(ctx, query, {names, log}) : localHits(ctx, query, names)) : [];
+      const found = base.concat(query && remoteHits ? remoteHits : []);
       const list = own.concat(found.map(h => ({...h, run: h.more ? () => setShowAll({q: query, group: h.more}) : () => closeThen(() => M.nav(h.hash))})));
-      const real = found.filter(h => !h.more).length;
+      /* v39: the count includes what each group held back, so Show all says how many it really has */
+      const held = Object.keys(base.overflow || {}).reduce((n, g) => n + (base.overflow[g] || 0), 0);
+      const real = found.filter(h => !h.more).length + held;
       if (real > 0 && M.parts.SearchAll) list.push({key: 'more', group: 'more', label: 'Show all ' + real + (real === 1 ? ' result' : ' results'), icon: 'search', more: 'all',
         run: () => setShowAll({q: query, group: 'all'})});
-      list.sort((a, b) => ORDER.indexOf(a.group) - ORDER.indexOf(b.group));
+      list.sort((a, b) => placeOf(a.group) - placeOf(b.group));
       /* Ask m360 opens the buddy's pop-up with the words in it; without AI the agent's grammar still runs there */
       const asker = M.assistant && M.assistant.open ? () => M.assistant.open(query) : (M.ai.on(ctx) ? () => onAsk(query) : null);
       if (query && asker) list.push({key: 'ai', group: 'ask', label: 'Ask m360: ' + query, icon: null, ai: true, run: () => closeThen(asker)});
@@ -156,7 +170,7 @@
         </div><//>
         <div class="pal-list" id="pal-list">
           ${items.length ? items.map((it, i) => {
-            const head = it.group !== lastGroup && it.group !== 'more' ? html`<div class="pal-group" key=${'g' + it.group + i}>${it.group}</div>` : null;
+            const head = it.group !== lastGroup && it.group !== 'more' ? html`<div class="pal-group" key=${'g' + it.group + i}>${headOf(it.group)}</div>` : null;
             lastGroup = it.group;
             return html`<${React.Fragment} key=${it.key}>
               ${head}

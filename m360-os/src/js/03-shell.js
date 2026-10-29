@@ -355,6 +355,32 @@
       return () => { window.removeEventListener('keydown', on); window.removeEventListener('m360:ask', open); window.removeEventListener('m360:askwide', wide); window.removeEventListener('m360:inbox', inbox); window.removeEventListener('m360:keys', keys); };
     }, []);
 
+    /* v39: an open inbox or search holds one history entry, so the phone's back button closes it and leaves the page as it is */
+    const ovOpen = palOpen || inboxOpen;
+    const ovRef = React.useRef(false), ovWas = React.useRef(false);
+    ovRef.current = ovOpen;
+    React.useEffect(() => {
+      if (ovOpen) {
+        ovWas.current = true;
+        try { if (!(history.state && history.state.m360ov)) history.pushState({m360ov: 1}, '', location.href); } catch (e) { /* framed: no history */ }
+        return undefined;
+      }
+      if (!ovWas.current) return undefined;
+      ovWas.current = false;
+      /* closed from inside: give the entry back, unless a row opened a page, which then sits after it */
+      const t = setTimeout(() => { try { if (!ovRef.current && history.state && history.state.m360ov) history.back(); } catch (e) { /* fine */ } }, 120);
+      return () => clearTimeout(t);
+    }, [ovOpen]);
+    React.useEffect(() => {
+      const on = e => {
+        const ours = !!(e.state && e.state.m360ov);
+        if (ovRef.current && !ours) { setPalOpen(false); setInboxOpen(false); }
+        else if (!ovRef.current && ours) { try { history.back(); } catch (err) { /* fine */ } }
+      };
+      window.addEventListener('popstate', on);
+      return () => window.removeEventListener('popstate', on);
+    }, []);
+
     const r = resolve(route.page, route.id, ctx.isFounder, ctx.isOwner);
     const sec = SECTIONS[r.s] || SECTIONS.home;
     const Page = M.pages[sec.page];

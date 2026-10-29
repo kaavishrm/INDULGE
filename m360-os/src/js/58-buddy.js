@@ -74,7 +74,12 @@
     return out.join('\n');
   }
   const findEl = id => document.querySelector('[data-ai="' + String(id).replace(/[^a-z0-9]/gi, '') + '"]');
-  const firstVisible = sel => Array.from(document.querySelectorAll(sel)).find(x => { const r = x.getBoundingClientRect(); return r.width > 0 && r.height > 0; }) || null;
+  const shown = x => { const r = x.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  /* v39: the selector list is an order of preference (a tour stop lists its fallbacks last), so each part is tried in turn */
+  const partsOf = sel => { const out = []; let depth = 0, cur = '';
+    for (const ch of String(sel)) { if (ch === '(' || ch === '[') depth++; else if (ch === ')' || ch === ']') depth--; if (ch === ',' && !depth) { out.push(cur); cur = ''; } else cur += ch; }
+    return out.concat(cur).map(x => x.trim()).filter(Boolean); };
+  const firstVisible = sel => { for (const part of partsOf(sel)) { try { const el = Array.from(document.querySelectorAll(part)).find(shown); if (el) return el; } catch (e) { /* a bad part */ } } return null; };
   const labelOf = el => (el.getAttribute('aria-label') || el.innerText || el.value || '').replace(/\s+/g, ' ').trim();
   const risky = el => {
     if (!el) return true;
