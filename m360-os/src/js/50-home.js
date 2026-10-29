@@ -3,7 +3,7 @@
 'use strict';
 (function () {
   const {html, React, U, UI} = M;
-  const {useState, useMemo} = React;
+  const {useState, useMemo, useRef} = React;
 
   const SPARK = '✦';
   const MOODS = [{v: 1, t: 'drained'}, {v: 2, t: 'low'}, {v: 3, t: 'okay'}, {v: 4, t: 'good'}, {v: 5, t: 'on fire'}];
@@ -55,9 +55,13 @@
     const [busy, setBusy] = useState(false);
     const [pick, setPick] = useState(false);
     const phone = M.usePhone();
-    const cap = Number(ctx.settings.wfhCap) || 0;
+    /* v39: the person's own allowance, and a WFH day approved ahead is today's check-in, as on the check-in card */
+    const cap = M.att && M.att.wfhCapFor ? M.att.wfhCapFor(ctx, ctx.uid) : (Number(ctx.settings.wfhCap) || 0);
     const used = (M.att && M.att.wfhUsed) ? M.att.wfhUsed(ctx, ctx.uid, new Date()) : 0;
-    const wfhFull = used >= cap;
+    const planned = !!(M.att && M.att.plannedWfh && M.att.plannedWfh(ctx, ctx.uid, U.todayStr()));
+    const wfhFull = used >= cap && !planned;
+    /* v39: a blank or broken start time in settings leaves the sentence out */
+    const start = String(ctx.startFor(ctx.uid) || '');
 
     async function save(loc, m) {
       const days = U.clone((ctx.coll.checkin.map[ctx.uid] || {}).days || {});
@@ -76,13 +80,16 @@
       setBusy(false);
     }
     async function manual(p) {
+      /* v39: the place decides the day: Home and Travelling are WFH days, counted against the cap */
+      const m = p.mode || mode;
+      if (m === 'wfh' && wfhFull) { M.toast('WFH days used up this week', true); return; }
       setBusy(true);
-      await save({lat: null, lng: null, acc: null, dist: null, verified: false, place: p.v, src: 'self'}, mode).catch(() => {});
+      await save({lat: null, lng: null, acc: null, dist: null, verified: false, place: p.v, src: 'self'}, m).catch(() => {});
       setBusy(false); setPick(false);
     }
     return html`<div class="stack" id="tapin" style=${{gap: '14px'}}>
       <div class="row between">
-        <div style=${{fontWeight: 500}}>Start is ${ctx.startFor(ctx.uid)}. How's today?</div>
+        <div style=${{fontWeight: 500}}>${/^\d{1,2}:\d{2}$/.test(start) ? 'Start is ' + start + '. ' : ''}How's today?</div>
         <${UI.Seg} options=${[{v: 'office', label: 'Office'}, {v: 'wfh', label: 'WFH'}]} value=${mode} ariaLabel="Where"
           onChange=${v => { if (v === 'wfh' && wfhFull) { M.toast('WFH days used up this week', true); return; } setMode(v); }}/>
       </div>
@@ -93,8 +100,16 @@
         <div class="row">${PLACES.map(p => html`<button key=${p.v} type="button" class="btn on-dark sec sm" disabled=${busy} onClick=${() => manual(p)}>${p.v}</button>`)}</div>
       </div>` : html`<div><${M.fx.Metal} kind="paper" block=${phone}><button type="button" class="btn xl on-dark" disabled=${busy} onClick=${tap}>
         ${busy ? html`<${M.fx.Orb} state="searching" size=${20} dark=${false} label="finding your location"/> Checking in` : (mode === 'wfh' ? 'Check in, WFH' : 'Check in, office')}</button><//></div>`}
-      <div class="tiny" style=${{color: 'rgba(255,255,255,.6)'}}>WFH days used this week: ${used} of ${cap}. Checking in records the time and your location at that moment. Kaavish can see both.</div>
+      <div class="tiny" style=${{color: 'rgba(255,255,255,.6)'}}>WFH days used this week: ${used} of ${cap}. Checking in records the time and your location at that moment.${ctx.uid === ctx.founderUid ? '' : ' Kaavish can see both.'}</div>
     </div>`;
+  }
+
+  /* v39: a self reported place reads once ("Office, self reported", "WFH, Home, self reported") */
+  function whereLine(a) {
+    const word = a.status === 'wfh' ? 'WFH' : 'Office';
+    const place = String(a.place || '').replace(/\.$/, '');
+    if (a.loc && a.loc.src === 'self') return (place && place !== word ? word + ', ' + place : word) + ', self reported';
+    return word + ', ' + (place || 'no location') + (a.verified ? ', verified' : '');
   }
 
   function InNow() {
@@ -130,7 +145,7 @@
       <div>
         <div class="display" style=${{fontSize: '26px'}}>${a.out ? 'Done for today' : 'In since ' + U.hhmm(a.in)}</div>
         <div class="small" style=${{color: 'rgba(255,255,255,.7)', marginTop: '6px'}}>
-          ${a.out ? 'In ' + U.hhmm(a.in) + ', out ' + U.hhmm(a.out) + ', ' + U.durText(a.out - a.in) + '. ' : ''}${a.status === 'wfh' ? 'WFH' : 'Office'}, ${(a.place || 'no location').replace(/\.$/, '')}${a.verified ? ', verified' : ''}.
+          ${a.out ? 'In ' + U.hhmm(a.in) + ', out ' + U.hhmm(a.out) + ', ' + U.durText(a.out - a.in) + '. ' : ''}${whereLine(a)}.
           ${a.late ? html` <span class="flame-t">Late.</span>` : null}
         </div>
       </div>
@@ -359,7 +374,7 @@
       M.toast('Posted');
     }
     if (posted && !edit) {
-      return html`<section class="card">
+      return html`<section class="card" id="home-eod">
         <div class="card-head"><h2 class="card-title">EOD line</h2>
           <${UI.Btn} kind="sec" sm=${true} onClick=${() => { setF({shipped: posted.shipped, next: posted.next || '', blocked: posted.blocked || ''}); setEdit(true); }}>Edit<//></div>
         <div class="stack tight">
@@ -372,7 +387,7 @@
     const cutHour = parseInt(String(ctx.settings.eodCut || '19:30'), 10) || 19;
     const late = new Date(ctx.now).getHours() >= cutHour - 1;
     const thinking = r.state === 'thinking' || r.state === 'streaming';
-    return html`<section class=${'card' + (late ? ' flame' : '')}>
+    return html`<section class=${'card' + (late ? ' flame' : '')} id="home-eod">
       <div class="card-head">
         <div class="grow"><h2 class="card-title">EOD line</h2>
           <div class="small ink62">${late ? html`<span class="flame-t">${'Due at ' + ctx.settings.eodCut + '.'}</span>` : 'Three lines before ' + ctx.settings.eodCut + '. Let m360 draft it, then tweak.'}</div></div>
@@ -448,7 +463,14 @@
     const complete = t => { const sp = M.tasks.statusPatch(t, 'done', ctx.uid, ctx); return M.tasks.commit(ctx, t.id, sp).then(() => M.toast(sp.status === 'done' ? 'Done. Nice' : 'Sent for sign-off')).catch(() => {}); };
     const reopen = t => ctx.W.update('tasks/' + t.id, M.tasks.statusPatch(t, 'doing', ctx.uid, ctx).patch).catch(() => {});
 
+    /* v39: one add at a time; Enter pressed again while it runs does nothing */
+    const adding = useRef(false);
     async function add() {
+      if (adding.current) return;
+      adding.current = true;
+      try { await addNow(); } finally { adding.current = false; }
+    }
+    async function addNow() {
       const text = q.trim();
       if (!text) return;
       /* a prospect line ("spoke to Meera at Swisse, talk after the 16th") is private: it goes to Prospects, never a shared task */
@@ -671,7 +693,7 @@
         : {k: 'leave', label: 'Request leave', icon: 'leave', go: () => M.nav('#leave')}
     ];
     return html`<nav class="quick" aria-label="Quick actions">
-      ${items.map(it => html`<button key=${it.k} type="button" class="quick-btn" onClick=${it.go}>
+      ${items.map(it => html`<button key=${it.k} type="button" class="quick-btn" data-k=${it.k} onClick=${it.go}>
         <${M.icons[it.icon]}/><span>${it.label}</span></button>`)}
     </nav>`;
   }

@@ -38,6 +38,10 @@
     leave: {label: 'On leave', kind: 'warm'},
     none: {label: 'Not in yet', kind: undefined}
   };
+  /* v39: the status a person set on Home today ("On a shoot"), shown by their name; '' when none */
+  function said(ctx, uid) {
+    try { const st = M.home && M.home.status ? M.home.status(ctx, uid) : null; return st ? String(st.text) : ''; } catch (e) { return ''; }
+  }
   /* today's status pill. M.att may load later or never, so the checkin document is the fallback. */
   function statusOf(ctx, uid, ymd) {
     let s = null;
@@ -177,6 +181,7 @@
                 <${UI.Avatar} id=${m.uid} size=${40}/>
                 <div class="grow">
                   <div class="row between nowrap"><b class="grow">${nameIn(names, m.uid)}</b><${UI.Pill} kind=${st.kind}>${st.label}<//></div>
+                  ${said(ctx, m.uid) ? html`<div class="small person-status">${said(ctx, m.uid)}</div>` : null}
                   <div class="tiny num sub">${m.empId || ''}</div>
                   ${line ? html`<div class="small sub">${line}</div>` : null}
                   ${city ? html`<div class="tiny sub person-city">${city}</div>` : null}
@@ -662,6 +667,7 @@
               ${inactive ? html`<${UI.Pill} kind="warm">off the roster<//>` : html`<${UI.Pill} kind=${st.kind}>${st.label}<//>`}
               ${!inactive && isNewHire(ctx, uid) ? html`<${M.fx.MetalBadge} className="fit">new hire<//>` : null}
             </div>
+            ${!inactive && said(ctx, uid) ? html`<div class="small person-status" id="person-status">${said(ctx, uid)}</div>` : null}
             <div class="small sub"><span class="num">${m.empId || ''}</span>${line ? (m.empId ? ' · ' : '') + line : ''}</div>
             <div class="small sub">${okDate(m.joined) ? 'Joined ' + U.fmtDate(m.joined) : 'Joined date missing'}${city ? html`<span> · <span id="person-city">${city}</span></span>` : null}</div>
             ${mgr || reps.length ? html`<div class="small sub" id="person-reports">${mgr ? html`reports to <${UI.Name} id=${mgr}/>` : null}${mgr && reps.length ? ' · ' : ''}${reps.length ? html`${reps.length === 1 ? 'one report: ' : reps.length + ' reports: '}${reps.map((r, i) => html`<${React.Fragment} key=${r}><${UI.Name} id=${r}/>${i < reps.length - 1 ? ', ' : ''}<//>`)}` : null}</div>` : null}
