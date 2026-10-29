@@ -83,8 +83,23 @@ def mock_part(h):
     k.fill('#chat-input', 'Just us: rate card goes up 12 percent.'); k.keyboard.press('Enter')
     k.wait_for_selector('.chat-msg:has-text("12 percent")')
     check(k.locator('.chat-msg:has-text("(edited)")').count() == 1, 'edited mark')
-    k.locator('.chat-msg:has-text("12 percent") .linky', has_text='Delete').click()
+    # v39: delete asks for a second tap
+    k.locator('.chat-msg:has-text("12 percent") .chat-tools button', has_text='Delete').click()
+    k.wait_for_timeout(400)
+    check(k.locator('.chat-msg:has-text("12 percent")').count() == 1, 'one tap on Delete keeps the line')
+    k.locator('.chat-msg:has-text("12 percent") .chat-tools button', has_text='Tap again').click()
     k.wait_for_function('() => !document.querySelector(".chat-msg")')
+    # v39: two lines sent back to back both stay
+    k.fill('#chat-input', 'rapid one alpha'); k.keyboard.press('Enter')
+    k.fill('#chat-input', 'rapid two bravo'); k.keyboard.press('Enter')
+    k.wait_for_selector('.chat-msg:has-text("rapid two bravo")')
+    k.wait_for_timeout(600)
+    both = k.evaluate('() => M.rooms.messagesOf(M.lastCtx, M.prefs.get("chatRoom." + M.lastCtx.uid, "")).map(m => m.text)')
+    check('rapid one alpha' in both and 'rapid two bravo' in both, 'two quick lines both saved: %r' % both)
+    # v39: a line over 4000 characters is held back with a count
+    k.fill('#chat-input', 'START ' + 'x' * 4100 + ' END')
+    check(k.locator('#chat-send').is_disabled() and 'Cut' in k.inner_text('#chat-count'), 'a long line shows a count and waits')
+    k.fill('#chat-input', '')
     # attachments: a picture shows inline, a document becomes a card with a download; Durvesh sees both
     check(k.locator('#chat-attach-btn').count() == 1, 'an attach button')
     k.set_input_files('#chat-file', [{'name': 'brief.png', 'mimeType': 'image/png', 'buffer': PNG}, {'name': 'rate-card.pdf', 'mimeType': 'application/pdf', 'buffer': b'%PDF-1.4 rate card'}])
@@ -144,6 +159,16 @@ def mock_part(h):
     k.wait_for_function('() => location.hash === "#chat/swisse-squad"')
     check('#Swisse squad' in k.inner_text('#chat-title'), 'room title')
     d.wait_for_selector('#chat-list .chat-room:has-text("Swisse squad")', timeout=8000)
+    # v39: making a room that is there already opens it and leaves its name and maker alone
+    d.locator('#chat-new-room').click(); d.fill('#chat-room-name', 'SWISSE squad'); d.keyboard.press('Enter')
+    d.wait_for_function('() => location.hash === "#chat/swisse-squad"')
+    d.wait_for_timeout(600)
+    rec = d.evaluate('() => (window.__db.get("chatrooms/team").rooms || {})["swisse-squad"]')
+    check(rec and rec['name'] == 'Swisse squad' and rec['by'] == 'u_founder', 'a room made again keeps its name and maker: %r' % rec)
+    # v39: a dm between two other people does not open from its link
+    h.go(d, 'm1', hash='#chat/dm.u_founder.u_m2', width=1280)
+    d.wait_for_function('() => location.hash === "#chat/general"')
+    check('#general' in d.inner_text('#chat-title'), 'a foreign dm link lands on general')
     # phone: list then pane
     h.go(d, 'm1', hash='#chat', width=390)
     d.wait_for_selector('#chat-list')
