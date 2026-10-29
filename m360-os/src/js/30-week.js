@@ -96,9 +96,11 @@
   function ReviewCard({uid, weekId, ghost}) {
     const ctx = M.useCtx();
     const plan = ((ctx.coll.plan.map[uid] || {}).weeks || {})[weekId];
-    const rev = ((ctx.coll.review.map[uid] || {}).weeks || {})[weekId];
     const items = (plan && plan.items) || [];
     const mine = uid === ctx.uid;
+    /* v39 (BRIEF 7.10): a teammate's card shows their outcomes only. Marks, quality and the note are for the
+       person and the founder, and this page reads a review only for a card it may show it on */
+    const rev = ctx.isFounder || mine ? ((ctx.coll.review.map[uid] || {}).weeks || {})[weekId] : null;
     const isOwnFounderCard = ctx.isFounder && uid === ctx.uid;
     const [marks, setMarks] = useState(() => ({...((rev && rev.marks) || {})}));
     const [quality, setQuality] = useState(() => (rev && rev.quality != null ? String(rev.quality) : ''));
@@ -126,6 +128,7 @@
           ${ctx.isFounder
             ? html`<${UI.Seg} sm=${true} options=${MARKS} value=${marks[it.id] || ''}
                 onChange=${v => setMarks(m => ({...m, [it.id]: v}))} ariaLabel="Mark"/>`
+            : !mine ? null
             : ((rev && rev.marks && rev.marks[it.id])
               ? html`<${UI.Pill} kind=${MARK_PILL[rev.marks[it.id]]}>${rev.marks[it.id]}<//>`
               : html`<${UI.Pill}>open<//>`)}

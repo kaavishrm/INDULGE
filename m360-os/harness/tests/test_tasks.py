@@ -189,7 +189,10 @@ def test(h):
     page.locator('.drawer button[aria-label="Delete subtask"]').nth(0).click()
     page.wait_for_timeout(300)
     doc = get_doc(page, path)
-    assert len(doc['subtasks']) == 1 and list(doc['subtasks'].values())[0]['t'] == 'Send to Omar', doc['subtasks']
+    # v39: the delete writes {subtasks: {id: null}}; the server drops a null key, the mock keeps it as null
+    live = [v for v in doc['subtasks'].values() if v]
+    assert len(live) == 1 and live[0]['t'] == 'Send to Omar', doc['subtasks']
+    assert page.locator('.drawer button[aria-label="Delete subtask"]').count() == 1
     assert len(doc['comments']) == 1 and doc['revisions'] == 1, 'the rest of the task survives a subtask delete'
     close_drawer(page)
     assert page.locator('.tcard .pill:has-text("0 of 1")').count() == 1

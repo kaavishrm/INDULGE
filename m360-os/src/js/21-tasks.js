@@ -50,7 +50,7 @@
 
   const subCount = task => {
     const s = (task && task.subtasks) || {};
-    const keys = Object.keys(s);
+    const keys = Object.keys(s).filter(k => s[k]);
     return {total: keys.length, done: keys.filter(k => s[k] && s[k].done).length};
   };
 
@@ -83,10 +83,12 @@
      approvedBy field alone proves nothing */
   const sign = (ctx, id) => ctx.W.merge('approvals/' + ctx.uid, {ok: {[id]: Date.now()}}).catch(() => {});
   const signedBy = (ctx, who, id) => !!(ctx.coll.approvals && ctx.coll.approvals.map[who] && (ctx.coll.approvals.map[who].ok || {})[id]);
-  const mayHaveSigned = (ctx, who, t) => who === ctx.founderUid || (!!t.project && !!ctx.coll.projects.map[t.project] && (ctx.coll.projects.map[t.project].owner === who || (ctx.coll.projects.map[t.project].members || []).indexOf(who) >= 0));
+  /* v39: any active founder on the roster, so every viewer reads the same answer whichever founder ctx.founderUid names */
+  const isFounderId = (ctx, who) => !!who && (who === ctx.founderUid || !!(ctx.members && ctx.members[who] && ctx.members[who].role === 'founder' && ctx.members[who].active !== false));
+  const mayHaveSigned = (ctx, who, t) => isFounderId(ctx, who) || (!!t.project && !!ctx.coll.projects.map[t.project] && (ctx.coll.projects.map[t.project].owner === who || (ctx.coll.projects.map[t.project].members || []).indexOf(who) >= 0));
   /* a done task that counts for points: signed off by someone allowed to, or the founder's own, or from before
      sign-off began, or sign-off is off */
-  const counted = (ctx, t) => !!t && t.status === 'done' && (!signoffOn(ctx) || t.owner === ctx.founderUid || (Number(t.doneAt) || 0) < SIGNOFF_SINCE
+  const counted = (ctx, t) => !!t && t.status === 'done' && (!signoffOn(ctx) || isFounderId(ctx, t.owner) || (Number(t.doneAt) || 0) < SIGNOFF_SINCE
     || (!!t.approvedBy && t.approvedBy !== t.owner && signedBy(ctx, t.approvedBy, t.id) && mayHaveSigned(ctx, t.approvedBy, t)));
   /* one status write with its sign-off recorded */
   const commit = (ctx, id, sp) => ctx.W.update('tasks/' + id, sp.patch).then(r => { if (sp.patch.approvedBy) return sign(ctx, id).then(() => r); return r; });
@@ -150,23 +152,32 @@
     const now = Date.now();
     const p = patch || {};
     if (M.coo && uid === M.coo.UID) return botSave(ctx, id, task, p, o, now);
-    const pick = k => p[k] !== undefined ? p[k] : (task[k] === undefined || task[k] === null ? '' : task[k]);
-    const f = {title: String(pick('title')).trim(), status: p.status || task.status || 'todo', owner: pick('owner'), due: pick('due'), priority: pick('priority') || 'normal',
-      project: pick('project'), client: pick('client'), section: pick('section'), link: String(pick('link')).trim(), shown20: p.shown20 !== undefined ? !!p.shown20 : !!task.shown20};
-    if (!f.title) throw new Error('a task needs a title');
+    /* v39: only the fields in the patch are written, so whatever a teammate saved meanwhile in the others stays;
+       the status moves (with a revision on a send back) only when the patch asks for a different one */
+    const has = k => p[k] !== undefined;
+    const str = v => (v === undefined || v === null ? '' : String(v));
+    if (has('title') && !str(p.title).trim()) throw new Error('a task needs a title');
     const prev = task.status || 'todo';
-    const sp = prev === f.status ? {patch: {doneAt: task.doneAt || null}, msg: 'Saved', status: prev} : statusPatch(task, f.status, uid, ctx);
+    const want = has('status') && p.status ? p.status : prev;
+    const sp = want === prev ? {patch: {}, msg: 'Saved', status: prev} : statusPatch(task, want, uid, ctx);
     const locked = task.status === 'done' && !ctx.isFounder;
-    const fx = locked ? {owner: task.owner || '', due: task.due || '', project: task.project || '', client: task.client || '', section: task.section || ''} : {owner: f.owner, due: f.due, project: f.project, client: f.client, section: f.section};
-    const kept = locked && (fx.owner !== f.owner || fx.due !== f.due || fx.project !== f.project);
-    const shown20 = canSign(ctx, task) ? f.shown20 : !!task.shown20;
-    const logs = {};
-    if ((task.due || '') !== (fx.due || '')) logs.dueLog = (Array.isArray(task.dueLog) ? task.dueLog : []).slice(-9).concat([logEntry(task.due || '', fx.due || '', uid, now, o.why)]);
-    if ((task.owner || '') !== (fx.owner || '')) logs.ownerLog = (Array.isArray(task.ownerLog) ? task.ownerLog : []).slice(-9).concat([logEntry(task.owner || '', fx.owner || '', uid, now, o.why)]);
-    const kind = p.dueKind !== undefined && canSetDueKind(ctx, fx.project || task.project) && ['', 'client', 'internal'].indexOf(p.dueKind) >= 0 ? {dueKind: p.dueKind} : {};
-    await ctx.W.update('tasks/' + id, {
-      title: f.title, ...fx, priority: f.priority, link: f.link, shown20, ...kind, ...logs, ...sp.patch, status: sp.status, updated: now, updatedBy: uid
-    });
+    const out = {};
+    if (has('title')) out.title = str(p.title).trim();
+    if (has('priority')) out.priority = p.priority || 'normal';
+    if (has('link')) out.link = str(p.link).trim();
+    let kept = false;
+    for (const k of ['owner', 'due', 'project', 'client', 'section']) {
+      if (!has(k) || str(p[k]) === str(task[k])) continue;
+      if (!locked) out[k] = str(p[k]);
+      else if (k === 'owner' || k === 'due' || k === 'project') kept = true;
+    }
+    if (has('shown20') && canSign(ctx, task)) out.shown20 = !!p.shown20;
+    if (out.due !== undefined) out.dueLog = (Array.isArray(task.dueLog) ? task.dueLog : []).slice(-9).concat([logEntry(task.due || '', out.due, uid, now, o.why)]);
+    if (out.owner !== undefined) out.ownerLog = (Array.isArray(task.ownerLog) ? task.ownerLog : []).slice(-9).concat([logEntry(task.owner || '', out.owner, uid, now, o.why)]);
+    if (has('dueKind') && canSetDueKind(ctx, out.project || task.project) && ['', 'client', 'internal'].indexOf(p.dueKind) >= 0) out.dueKind = p.dueKind;
+    const statusOut = want === prev ? {} : {...sp.patch, status: sp.status};
+    if (!Object.keys(out).length && !Object.keys(statusOut).length) return {status: prev, prev, msg: 'Saved', locked: kept};
+    await ctx.W.update('tasks/' + id, {...out, ...statusOut, updated: now, updatedBy: uid});
     if (sp.patch.approvedBy) await sign(ctx, id);
     return {status: sp.status, prev, msg: sp.msg, locked: kept};
   }
@@ -281,7 +292,10 @@
       shown20: task ? !!task.shown20 : false,
       dueKind: task ? (task.dueKind || '') : ''
     });
-    const [f, setF] = useState(init);
+    /* v39: base is the copy of the task the form last took in. Save sends U.changes(base, form) only, and a
+       change synced from someone else refreshes every field this person has not touched */
+    const base = useRef(null);
+    const [f, setF] = useState(() => (base.current = init()));
     const [localSubs, setLocalSubs] = useState({});
     const [subText, setSubText] = useState('');
     const [comment, setComment] = useState('');
@@ -292,10 +306,22 @@
     const hasTask = !!task;
     useEffect(() => {
       if (!mounted.current) { mounted.current = true; return; }
-      setF(init());
+      const b = init();
+      base.current = b;
+      setF(b);
       setLocalSubs({});
       setSubText('');
     }, [taskId, hasTask]);
+    useEffect(() => {
+      if (!task) return;
+      const fresh = init(), old = base.current || fresh;
+      base.current = fresh;
+      setF(x => {
+        const y = {...x};
+        for (const k of Object.keys(fresh)) if (!Object.keys(U.changes({v: old[k]}, {v: x[k]})).length) y[k] = fresh[k];
+        return y;
+      });
+    }, [task]);
 
     const set = k => v => setF(x => ({...x, [k]: v}));
 
@@ -338,13 +364,8 @@
     };
     const delSub = id => {
       if (isNew) { setLocalSubs(x => { const y = {...x}; delete y[id]; return y; }); return; }
-      const cur = tasksMap[taskId];
-      if (!cur) return;
-      const doc = U.clone(cur);
-      doc.subtasks = doc.subtasks || {};
-      delete doc.subtasks[id];
-      doc.updated = Date.now();
-      W.set(path, doc).catch(() => {});
+      /* v39: a null key deletes that one subtask on the server; writing the whole cached task wiped newer comments */
+      W.update(path, {subtasks: {[id]: null}, updated: Date.now()}).catch(() => {});
     };
 
     /* comments, oldest first */
@@ -374,10 +395,11 @@
           const id = U.uid();
           const draft = {owner: f.owner, project: f.project};
           const st = gate(ctx, draft, f.status);
+          const may20 = canSign(ctx, draft);
           await W.set('tasks/' + id, {
             title, owner: f.owner, client: f.client, project: f.project, section: f.section, due: f.due,
             ...(f.dueKind && canSetDueKind(ctx, f.project) ? {dueKind: f.dueKind} : {}),
-            status: st, priority: f.priority, link: f.link.trim(), revisions: 0, shown20: !!f.shown20,
+            status: st, priority: f.priority, link: f.link.trim(), revisions: 0, shown20: may20 && !!f.shown20,
             subtasks: localSubs, comments: {}, by: uid, created: now, updated: now,
             doneAt: st === 'done' ? now : null, ...(st === 'done' && canSign(ctx, draft) ? {approvedBy: uid, approvedAt: now} : {}), ...(st === 'review' ? {reviewAt: now} : {})
           });
@@ -385,7 +407,7 @@
           M.toast(st === 'review' && f.status === 'done' ? 'Task created, sent for sign-off' : 'Task created');
         } else {
           /* a shipped task keeps its owner, dates and project unless the founder changes them; the 20% mark is a reviewer's call */
-          const r = await saveTask(ctx, taskId, {...f, title});
+          const r = await saveTask(ctx, taskId, U.changes(base.current, {...f, title}));
           if (r.locked) M.toast('A shipped task keeps its owner, due date and project. Ask the founder to change those.');
           if (r.status === 'done' && r.prev !== 'done') M.burst(document.querySelector('.drawer-foot'));
           M.toast(r.msg);
@@ -441,7 +463,9 @@
         <div class="sub tiny" style=${{marginTop: '4px'}}>A client deadline never moves without Kaavish. The COO only moves internal dates.</div>
       </div>` : null}
       <${UI.Input} id="task-link" label="link to the output" value=${f.link} onChange=${set('link')} placeholder="https://"/>
-      <${UI.Check} label="Rough direction shown at the 20% check" checked=${f.shown20} onChange=${set('shown20')}/>
+      ${canSign(ctx, isNew ? {owner: f.owner, project: f.project} : task)
+        ? html`<${UI.Check} label="Rough direction shown at the 20% check" checked=${f.shown20} onChange=${set('shown20')}/>`
+        : (f.shown20 ? html`<span class="small sub">Rough direction shown at the 20% check</span>` : null)}
       <div class="row between small">
         <span class="sub">${revNote(rev)}</span>
         ${!isNew && M.focus && f.owner === uid && f.status !== 'done' ? html`<button type="button" class="linky" onClick=${() => { onClose(); M.focus.open(taskId); }}>Start focus</button>` : null}
@@ -572,7 +596,12 @@
     const micro = boardOpen.length + ' open' + (openOverdue ? ', ' + openOverdue + ' overdue' : '');
     const title = who === 'mine' ? 'My tasks' : 'Everyone\'s tasks';
 
-    const closeDrawer = () => { setDrawer(null); setDueDefault(''); if (id) M.nav('#tasks'); };
+    /* v39: replace the #tasks/<id> entry so Back goes to where the person was before the task */
+    const closeDrawer = () => {
+      setDrawer(null); setDueDefault('');
+      if (!id) return;
+      try { history.replaceState(null, '', location.pathname + location.search + '#tasks'); window.dispatchEvent(new HashChangeEvent('hashchange')); } catch (e) { M.nav('#tasks'); }
+    };
     const openTask = tid => { if (Date.now() - suppressClick.current < 300) return; setDrawer({id: tid}); };
 
     return html`<${React.Fragment}>

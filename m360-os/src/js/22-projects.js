@@ -108,7 +108,7 @@
   }
   function ProjectCardBody({p, ctx, prog, late}) {
     return html`<div class="card stack tight">
-        <div class="row between nowrap"><b class="grow">${p.name}</b><${StatusPill} status=${p.status}/></div>
+        <div class="row between nowrap"><b class="grow">${p.name}</b>${p.archived ? html`<${UI.Pill} kind="ink">archived<//>` : html`<${StatusPill} status=${p.status}/>`}</div>
         <div class="sub small">${linkName(ctx, p)}</div>
         <div class="row">
           <${UI.Avatar} id=${p.owner} size=${24}/>
@@ -275,16 +275,18 @@
     const today = U.todayStr();
     const isOd = overdueFn();
     const secs = project.sections || [];
-    if (!secs.length) return html`<${UI.Card}><${UI.Empty} text="Add a section under Overview to start the board."/><//>`;
+    /* v39: tasks with no section (or one since removed) get their own first column, as on the List tab */
+    const known = new Set(secs.map(s => s.id));
+    const orphans = tasks.filter(t => !known.has(t.section));
+    if (!secs.length && !orphans.length) return html`<${UI.Card}><${UI.Empty} text="Add a section under Overview to start the board."/><//>`;
+    const cols = (orphans.length ? [{id: 'none', name: 'no section', ts: orphans, next: secs[0]}] : [])
+      .concat(secs.map((s, i) => ({id: s.id, name: s.name, ts: tasks.filter(t => t.section === s.id), next: secs[i + 1]})));
     return html`<${UI.Card}><div class="board-wrap"><div class="board">
-      ${secs.map((s, i) => {
-        const ts = tasks.filter(t => t.section === s.id);
-        return html`<div class="colm" key=${s.id} data-section=${s.id}>
-          <div class="col-head"><span>${s.name}</span><span class="num">${ts.length}</span></div>
-          ${ts.length ? ts.map(t => html`<${TaskCard} key=${t.id} t=${t} ctx=${ctx} today=${today} isOd=${isOd} next=${secs[i + 1]} onOpen=${onOpen}/>`)
+      ${cols.map(c => html`<div class="colm" key=${c.id} data-section=${c.id}>
+          <div class="col-head"><span>${c.name}</span><span class="num">${c.ts.length}</span></div>
+          ${c.ts.length ? c.ts.map(t => html`<${TaskCard} key=${t.id} t=${t} ctx=${ctx} today=${today} isOd=${isOd} next=${c.next} onOpen=${onOpen}/>`)
             : html`<div style=${{padding: '2px 6px'}}><${UI.Empty} text="No tasks"/></div>`}
-        </div>`;
-      })}
+        </div>`)}
     </div></div><//>`;
   }
 
@@ -305,18 +307,23 @@
     const [status, setStatus] = useState(project.status || 'on');
     const [text, setText] = useState('');
     useEffect(() => { setStatus(project.status || 'on'); }, [project.status]);
-    const can = !!text.trim() || status !== project.status;
+    /* v39: the owner or the founder sets the status (BRIEF 7.8); anyone else posts an update under the status as it is */
+    const mayStatus = ctx.isFounder || project.owner === ctx.uid;
+    const st = mayStatus ? status : (project.status || 'on');
+    const can = !!text.trim() || (mayStatus && status !== project.status);
     const post = () => {
       if (!can) return;
       const now = Date.now(), id = U.uid();
-      after(ctx.W.update('projects/' + project.id, {status, updates: {[id]: {by: ctx.uid, status, text: text.trim(), at: now}}}), 'Posted');
+      const entry = {updates: {[id]: {by: ctx.uid, status: st, text: text.trim(), at: now}}};
+      after(ctx.W.update('projects/' + project.id, mayStatus ? {status: st, ...entry} : entry), 'Posted');
       setText('');
     };
     const ups = Object.keys(project.updates || {}).map(k => ({id: k, ...project.updates[k]})).sort((a, b) => (b.at || 0) - (a.at || 0));
     void ctx.now;
     return html`<${UI.Card} title="Status update">
       <div class="stack">
-        <${UI.Seg} options=${STATUS_OPTS} value=${status} onChange=${setStatus} ariaLabel="Project status"/>
+        ${mayStatus ? html`<${UI.Seg} options=${STATUS_OPTS} value=${status} onChange=${setStatus} ariaLabel="Project status"/>`
+          : html`<div class="row"><${StatusPill} status=${project.status}/><span class="small sub">The owner sets the status.</span></div>`}
         <${UI.TextArea} id="proj-update" value=${text} onChange=${setText} rows=${3} placeholder="What moved, what is stuck, what you need."/>
         <div class="row"><${UI.Btn} disabled=${!can} onClick=${post}>Post update<//></div>
       </div>
