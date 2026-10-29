@@ -793,10 +793,13 @@ button.chipline.on-dark:hover{background:rgba(255,255,255,.08)}
 .chat-empty{padding:40px 0}
 @media (max-width:700px){
   .chat{grid-template-columns:minmax(0,1fr); min-height:0}
-  .chat-list,.chat-pane{position:static; max-height:none}
+  .chat-list{position:static; max-height:none}
   .chat.show-pane .chat-list{display:none}
   .chat.show-list .chat-pane{display:none}
-  .chat-pane{min-height:calc(100vh - 220px)}
+  /* v39: the room fits between the top bar and the tab bar; its lines scroll inside it, the box stays in view */
+  .chat-pane{position:static; min-height:320px; height:calc(100vh - 152px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); height:calc(100dvh - 152px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); max-height:none}
+  .chat-scroll{min-height:0}
+  .app:has(.chat.show-pane), .main:has(.chat.show-pane){padding-bottom:0}
   .chat-tools{opacity:1}
 }
 /* ---------- workspace ---------- */
@@ -1536,6 +1539,8 @@ a.pill.cl-social .k{color:var(--micro); letter-spacing:.1em}
 .doc-table td.n,.doc-table th.n{text-align:right; white-space:nowrap}
 .doc-table .doc-line{font-weight:700; font-size:12.5px}
 .doc-table .doc-note{color:rgba(14,14,14,.66); font-size:11px; margin-top:2px}
+/* v39: a long unbroken word in a line wraps, so Rate and Amount stay on the page at 390 */
+.doc-table .doc-line,.doc-table .doc-note{overflow-wrap:anywhere}
 .doc-words{padding:16px 44px; border-top:1.5px solid #EFEDE7; border-bottom:1.5px solid #EFEDE7; font-size:11px}
 .doc-words b{display:block; font-size:12px; margin-top:3px}
 .doc-lower{display:grid; grid-template-columns:1.2fr 1fr; gap:24px; padding:20px 44px}
@@ -1749,7 +1754,8 @@ label.btn.disabled{opacity:.62; pointer-events:none}
   .talk-add-grid{grid-template-columns:1fr 1fr}
   .talk-add-grid .talk-note{grid-column:1 / -1}
   .talk-add-grid .talk-save{padding-top:0; grid-column:1 / -1}
-  .talk-sug{right:0}
+  /* v39: the name sits in the first of two columns; the suggestions span both, and scroll inside a short box */
+  .talk-sug{right:auto; width:calc(200% + 10px); max-height:min(300px, 45vh); overflow-y:auto}
   .prop-add{grid-template-columns:1fr 1fr}
   .prop-add .prop-add-btn{padding-top:0}
   .talk-row{flex-wrap:wrap}
@@ -3853,7 +3859,8 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 
 /* stations: quiet labels on the furniture, a button each */
 .office.o3 .office-station{all:unset; box-sizing:border-box; position:absolute; left:0; top:0; pointer-events:auto; cursor:pointer; white-space:nowrap; font-size:11px; line-height:1; font-weight:400;
-  letter-spacing:.01em; color:var(--ink62); padding:4px 7px; border-radius:7px; transition:opacity .25s ease}
+  letter-spacing:.01em; color:var(--ink62); padding:4px 7px; border-radius:7px; transition:opacity .25s ease;
+  background:color-mix(in srgb, var(--paper) 72%, transparent)}
 .office.o3 .office-station:hover,.office.o3 .office-station:focus-visible{color:var(--ink); background:var(--paper); box-shadow:0 0 0 1px var(--line)}
 .office.o3 .office-station:focus-visible{outline:2px solid var(--flame); outline-offset:2px}
 .office.o3 .office-station.is-faded:not(:focus-visible):not(:hover){opacity:0}
@@ -3922,7 +3929,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 @media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
 @keyframes o3-emote-in{from{scale:.7} to{scale:1}}
 </style>
-<script>window.M360_BUILD = "e9d056e+.261029-1325"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "02ec7d1+.261029-1551"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -7076,16 +7083,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const isFounder = !viewAs && (!!me.isOwner || !!(member0 && member0.role === 'founder' && member0.active !== false && (window.M360_STANDALONE || me.canEdit !== false)));
     const locked = !!(settingsDoc.data && settingsDoc.data.locked);
 
-    /* writes: refused client side while the workspace is locked (members) or a preview is on (everyone) */
+    /* writes: refused client side while the workspace is locked (everyone but the owner, v39: admins too, the
+       way the server refuses them) or a preview is on (everyone). A founder can still save settings, so they can lift the lock */
+    const owns = !viewAs && !!me.isOwner;
     const W = React.useMemo(() => {
-      if (!viewAs && !(locked && !isFounder)) return baseW;
+      if (!viewAs && !(locked && !owns)) return baseW;
       const msg = viewAs ? PREVIEW_MSG : LOCK_MSG;
-      const allowed = p => !viewAs && (p === 'me/' + uid || p === 'join/' + uid);
+      const allowed = p => !viewAs && (p === 'me/' + uid || p === 'join/' + uid || (isFounder && p === 'settings/app'));
       const refuse = () => { M.toast(msg, true); return Promise.reject({code: 'locked', message: msg}); };
       const wrap = fn => (p, d) => allowed(p) ? fn(p, d) : refuse();
       const as = (who, o) => { const b = baseW.as(who, o); return {set: wrap(b.set), update: wrap(b.update), merge: wrap(b.merge)}; };
       return {set: wrap(baseW.set), update: wrap(baseW.update), merge: wrap(baseW.merge), del: wrap(baseW.del), as};
-    }, [baseW, locked, isFounder, uid, viewAs]);
+    }, [baseW, locked, isFounder, owns, uid, viewAs]);
 
     /* profile photos ride in me/<uid>.photo; avatars everywhere read M.photos */
     React.useEffect(() => {
@@ -7504,10 +7513,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- banners above the page: lock, alert, preview ---------- */
-  /* everyone but the founder sees the lock line while settings.locked is on */
+  /* everyone but the owner sees the lock line while settings.locked is on (v39: admins are locked too) */
   function LockBanner() {
     const ctx = M.useCtx();
-    if (!ctx.locked || ctx.isFounder) return null;
+    if (!ctx.locked || ctx.isOwner) return null;
     const note = String(ctx.settings.lockNote || '').trim();
     return html`<div class="lockbar" id="lock-banner" role="status">
       <span>m360 is locked for changes right now.${note ? ' ' + note : ''}</span>
@@ -7604,6 +7613,32 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const keys = () => setKeysOpen(true);
       window.addEventListener('m360:ask', open); window.addEventListener('m360:askwide', wide); window.addEventListener('m360:inbox', inbox); window.addEventListener('m360:keys', keys);
       return () => { window.removeEventListener('keydown', on); window.removeEventListener('m360:ask', open); window.removeEventListener('m360:askwide', wide); window.removeEventListener('m360:inbox', inbox); window.removeEventListener('m360:keys', keys); };
+    }, []);
+
+    /* v39: an open inbox or search holds one history entry, so the phone's back button closes it and leaves the page as it is */
+    const ovOpen = palOpen || inboxOpen;
+    const ovRef = React.useRef(false), ovWas = React.useRef(false);
+    ovRef.current = ovOpen;
+    React.useEffect(() => {
+      if (ovOpen) {
+        ovWas.current = true;
+        try { if (!(history.state && history.state.m360ov)) history.pushState({m360ov: 1}, '', location.href); } catch (e) { /* framed: no history */ }
+        return undefined;
+      }
+      if (!ovWas.current) return undefined;
+      ovWas.current = false;
+      /* closed from inside: give the entry back, unless a row opened a page, which then sits after it */
+      const t = setTimeout(() => { try { if (!ovRef.current && history.state && history.state.m360ov) history.back(); } catch (e) { /* fine */ } }, 120);
+      return () => clearTimeout(t);
+    }, [ovOpen]);
+    React.useEffect(() => {
+      const on = e => {
+        const ours = !!(e.state && e.state.m360ov);
+        if (ovRef.current && !ours) { setPalOpen(false); setInboxOpen(false); }
+        else if (!ovRef.current && ours) { try { history.back(); } catch (err) { /* fine */ } }
+      };
+      window.addEventListener('popstate', on);
+      return () => window.removeEventListener('popstate', on);
     }, []);
 
     const r = resolve(route.page, route.id, ctx.isFounder, ctx.isOwner);
@@ -11818,7 +11853,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     eod: {f: x => x.n + ' of ' + x.of + ' EOD lines in.'},
     close: {f: x => 'Day closed. ' + x.eod + ' of ' + x.of + ' EOD lines in. ' + (x.moves ? 'I made ' + plural(x.moves, 'move', 'moves') + ', still undoable till ' + x.untilT + '. ' : '') + waits(x.wait)},
     memo: {f: x => 'The memo for ' + String(x.week || 'the week').replace('-W', ' week ') + ' is ready.'},
-    leave_ok: {f: x => 'I approved ' + x.name + "'s " + (x.typeTxt ? x.typeTxt + ' ' : '') + 'leave on ' + x.when + '. ' + plural(x.left, 'day', 'days') + ' left, ' + outTxt(x.out) + ', no client dates. Undo until ' + x.untilT + '.',
+    /* v39: a type with no balance (a WFH swap) leaves the days-left clause out */
+    leave_ok: {f: x => 'I approved ' + x.name + "'s " + (x.typeTxt ? x.typeTxt + ' ' : '') + 'leave on ' + x.when + '. ' + capFirst((x.left == null ? '' : plural(x.left, 'day', 'days') + ' left, ') + outTxt(x.out)) + ', no client dates. Undo until ' + x.untilT + '.',
       dm: x => 'Your leave for ' + x.when + ' is approved.'},
     leave_card: {f: x => x.name + ' asked for leave on ' + x.when + '. It needs you.'},
     leave_wait: {f: x => x.name + "'s leave from " + x.when + ' is still waiting on you. Pending leave holds every nudge for ' + x.name + ' that day.'},
@@ -11883,7 +11919,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       dm: x => 'Hi ' + x.name + ', I am ' + x.bot + '. I help Kaavish run the day, and Kaavish reads what you send me.'},
     waiting: {f: x => plural(x.n, 'thing needs', 'things need') + ' you.'},
     paused: {f: x => 'Paused by you until ' + x.untilT + '.'},
-    off: {f: () => 'The COO is off. Admin, COO to switch it on.'},
+    off: {f: () => 'The COO is off. Switch it on in Admin, m360 COO.'},
     late_beat: {f: x => 'No heartbeat since ' + (x.atTxt || 'this morning') + '. I will catch up on the next round.'},
     page_runner: {f: x => 'I work while m360 is open. Last round ' + (x.atTxt || 'not yet') + '.'},
     mail_off: {f: () => 'Mail is not set up, so the drafts wait. Admin, Mail.'}
@@ -11897,10 +11933,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     pileup: 'J35', offday: 'J35', pileup_client: 'J35', client_risk: 'J36', due_tomorrow: 'J37', project_risk: 'J38', pitch_ask: 'J40', pitch_late: 'J40',
     client_mail: 'J41', meeting_mail: 'J42', invoice: 'J43', audit: 'J51', undone: 'J31', undone_due: 'J33', undone_leave: 'J10', hello: 'J50'};
   const stationOf = code => { const j = JOBS[code] ? code : CODE_JOB[code]; return (JOBS[j] || JOBS.J01).station; };
-  /* a practice line: "I would have moved ..." */
+  /* a practice line: "I would have moved ...". v39: only the bot's own verb, at the start or after "I", so
+     "Member asked for leave" stays the member's */
   const wouldOf = line => {
     const s = String(line).replace(/\s*(Undo for 24 hours|Undo until [^.]*)\./g, '');
-    const m = /\b(?:I )?(approved|moved|gave|asked|raised|drafted|reminded|sent|told)\b/i.exec(s);
+    const m = /(?:^|\bI )(approved|moved|gave|asked|raised|drafted|reminded|sent|told)\b/i.exec(s);
     if (!m) return 'Practice. ' + s;
     return s.slice(0, m.index) + 'I would have ' + m[1].toLowerCase() + s.slice(m.index + m[0].length);
   };
@@ -14960,7 +14997,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <${UI.Avatar} id=${c.by} size=${22}/>
           <div class="grow"><b class="small"><${UI.Name} id=${c.by} fallback=${names[c.by] || undefined}/></b> <span class="tiny sub num">${U.timeAgo(c.at)}</span>
             <div class="small" style=${{overflowWrap: 'anywhere'}}>${c.t}</div></div>
-          ${c.by === ctx.uid ? html`<button type="button" class="linky tiny" onClick=${() => dropComment(ctx, itKey, c.id)}>Delete</button>` : null}
+          ${c.by === ctx.uid ? html`<${UI.ConfirmBtn} label="Tap again" onConfirm=${() => dropComment(ctx, itKey, c.id).catch(() => {})}>Delete<//>` : null}
         </div>`)}
         <div class="row nowrap" style=${{gap: '8px'}}>
           <input class="input" value=${text} placeholder="Say something nice" aria-label="Comment" onInput=${e => setText(e.target.value)} onKeyDown=${e => { if (e.key === 'Enter') send(e); }}/>
@@ -15062,7 +15099,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   /* ---------- composer ---------- */
   function Composer() {
     const ctx = M.useCtx();
-    const {W, uid, isFounder} = ctx;
+    const {W, uid, isFounder, founderUid} = ctx;
     const [text, setText] = useState('');
     const [kind, setKind] = useState('update');
     const [busy, setBusy] = useState(false);
@@ -15082,8 +15119,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         const post = {id, kind: k, text: t, at: Date.now()};
         if (k === 'poll') post.options = opts.map(o => o.trim()).filter(Boolean).slice(0, 4);
         const posts = [post, ...U.clone(postsOf(ctx, uid))].slice(0, KEEP_POSTS);
-        const pinned = k === 'announce' ? uid + ':' + id : (mine.pinned || null);
-        await W.merge('feed/' + uid, {posts, pinned});
+        /* v39: only the owner's pinned field is read, so an admin's announcement pins there */
+        const pinKey = uid + ':' + id;
+        const own = k === 'announce' && (!founderUid || founderUid === uid);
+        await W.merge('feed/' + uid, {posts, pinned: own ? pinKey : (mine.pinned || null)});
+        if (k === 'announce' && !own) await W.merge('feed/' + founderUid, {pinned: pinKey});
         setText('');
         setKind('update'); setOpts(['', '']);
         M.sound.play('soft');
@@ -15313,7 +15353,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   M.pages.Feed = Feed;
-  M.feed = {stream, reactCounts, commentsOf, commentCounts, addComment};
+  M.feed = {stream, reactCounts, commentsOf, commentCounts, addComment, kudosLeft: (ctx, uid) => Math.max(0, KUDOS_CAP - kudosThisWeek(ctx, uid, ctx.now))};
 })();
 
 /* ==== 21-tasks.js ==== */
@@ -15369,7 +15409,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   const subCount = task => {
     const s = (task && task.subtasks) || {};
-    const keys = Object.keys(s);
+    const keys = Object.keys(s).filter(k => s[k]);
     return {total: keys.length, done: keys.filter(k => s[k] && s[k].done).length};
   };
 
@@ -15402,10 +15442,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
      approvedBy field alone proves nothing */
   const sign = (ctx, id) => ctx.W.merge('approvals/' + ctx.uid, {ok: {[id]: Date.now()}}).catch(() => {});
   const signedBy = (ctx, who, id) => !!(ctx.coll.approvals && ctx.coll.approvals.map[who] && (ctx.coll.approvals.map[who].ok || {})[id]);
-  const mayHaveSigned = (ctx, who, t) => who === ctx.founderUid || (!!t.project && !!ctx.coll.projects.map[t.project] && (ctx.coll.projects.map[t.project].owner === who || (ctx.coll.projects.map[t.project].members || []).indexOf(who) >= 0));
+  /* v39: any active founder on the roster, so every viewer reads the same answer whichever founder ctx.founderUid names */
+  const isFounderId = (ctx, who) => !!who && (who === ctx.founderUid || !!(ctx.members && ctx.members[who] && ctx.members[who].role === 'founder' && ctx.members[who].active !== false));
+  const mayHaveSigned = (ctx, who, t) => isFounderId(ctx, who) || (!!t.project && !!ctx.coll.projects.map[t.project] && (ctx.coll.projects.map[t.project].owner === who || (ctx.coll.projects.map[t.project].members || []).indexOf(who) >= 0));
   /* a done task that counts for points: signed off by someone allowed to, or the founder's own, or from before
      sign-off began, or sign-off is off */
-  const counted = (ctx, t) => !!t && t.status === 'done' && (!signoffOn(ctx) || t.owner === ctx.founderUid || (Number(t.doneAt) || 0) < SIGNOFF_SINCE
+  const counted = (ctx, t) => !!t && t.status === 'done' && (!signoffOn(ctx) || isFounderId(ctx, t.owner) || (Number(t.doneAt) || 0) < SIGNOFF_SINCE
     || (!!t.approvedBy && t.approvedBy !== t.owner && signedBy(ctx, t.approvedBy, t.id) && mayHaveSigned(ctx, t.approvedBy, t)));
   /* one status write with its sign-off recorded */
   const commit = (ctx, id, sp) => ctx.W.update('tasks/' + id, sp.patch).then(r => { if (sp.patch.approvedBy) return sign(ctx, id).then(() => r); return r; });
@@ -15469,23 +15511,32 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const now = Date.now();
     const p = patch || {};
     if (M.coo && uid === M.coo.UID) return botSave(ctx, id, task, p, o, now);
-    const pick = k => p[k] !== undefined ? p[k] : (task[k] === undefined || task[k] === null ? '' : task[k]);
-    const f = {title: String(pick('title')).trim(), status: p.status || task.status || 'todo', owner: pick('owner'), due: pick('due'), priority: pick('priority') || 'normal',
-      project: pick('project'), client: pick('client'), section: pick('section'), link: String(pick('link')).trim(), shown20: p.shown20 !== undefined ? !!p.shown20 : !!task.shown20};
-    if (!f.title) throw new Error('a task needs a title');
+    /* v39: only the fields in the patch are written, so whatever a teammate saved meanwhile in the others stays;
+       the status moves (with a revision on a send back) only when the patch asks for a different one */
+    const has = k => p[k] !== undefined;
+    const str = v => (v === undefined || v === null ? '' : String(v));
+    if (has('title') && !str(p.title).trim()) throw new Error('a task needs a title');
     const prev = task.status || 'todo';
-    const sp = prev === f.status ? {patch: {doneAt: task.doneAt || null}, msg: 'Saved', status: prev} : statusPatch(task, f.status, uid, ctx);
+    const want = has('status') && p.status ? p.status : prev;
+    const sp = want === prev ? {patch: {}, msg: 'Saved', status: prev} : statusPatch(task, want, uid, ctx);
     const locked = task.status === 'done' && !ctx.isFounder;
-    const fx = locked ? {owner: task.owner || '', due: task.due || '', project: task.project || '', client: task.client || '', section: task.section || ''} : {owner: f.owner, due: f.due, project: f.project, client: f.client, section: f.section};
-    const kept = locked && (fx.owner !== f.owner || fx.due !== f.due || fx.project !== f.project);
-    const shown20 = canSign(ctx, task) ? f.shown20 : !!task.shown20;
-    const logs = {};
-    if ((task.due || '') !== (fx.due || '')) logs.dueLog = (Array.isArray(task.dueLog) ? task.dueLog : []).slice(-9).concat([logEntry(task.due || '', fx.due || '', uid, now, o.why)]);
-    if ((task.owner || '') !== (fx.owner || '')) logs.ownerLog = (Array.isArray(task.ownerLog) ? task.ownerLog : []).slice(-9).concat([logEntry(task.owner || '', fx.owner || '', uid, now, o.why)]);
-    const kind = p.dueKind !== undefined && canSetDueKind(ctx, fx.project || task.project) && ['', 'client', 'internal'].indexOf(p.dueKind) >= 0 ? {dueKind: p.dueKind} : {};
-    await ctx.W.update('tasks/' + id, {
-      title: f.title, ...fx, priority: f.priority, link: f.link, shown20, ...kind, ...logs, ...sp.patch, status: sp.status, updated: now, updatedBy: uid
-    });
+    const out = {};
+    if (has('title')) out.title = str(p.title).trim();
+    if (has('priority')) out.priority = p.priority || 'normal';
+    if (has('link')) out.link = str(p.link).trim();
+    let kept = false;
+    for (const k of ['owner', 'due', 'project', 'client', 'section']) {
+      if (!has(k) || str(p[k]) === str(task[k])) continue;
+      if (!locked) out[k] = str(p[k]);
+      else if (k === 'owner' || k === 'due' || k === 'project') kept = true;
+    }
+    if (has('shown20') && canSign(ctx, task)) out.shown20 = !!p.shown20;
+    if (out.due !== undefined) out.dueLog = (Array.isArray(task.dueLog) ? task.dueLog : []).slice(-9).concat([logEntry(task.due || '', out.due, uid, now, o.why)]);
+    if (out.owner !== undefined) out.ownerLog = (Array.isArray(task.ownerLog) ? task.ownerLog : []).slice(-9).concat([logEntry(task.owner || '', out.owner, uid, now, o.why)]);
+    if (has('dueKind') && canSetDueKind(ctx, out.project || task.project) && ['', 'client', 'internal'].indexOf(p.dueKind) >= 0) out.dueKind = p.dueKind;
+    const statusOut = want === prev ? {} : {...sp.patch, status: sp.status};
+    if (!Object.keys(out).length && !Object.keys(statusOut).length) return {status: prev, prev, msg: 'Saved', locked: kept};
+    await ctx.W.update('tasks/' + id, {...out, ...statusOut, updated: now, updatedBy: uid});
     if (sp.patch.approvedBy) await sign(ctx, id);
     return {status: sp.status, prev, msg: sp.msg, locked: kept};
   }
@@ -15600,7 +15651,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       shown20: task ? !!task.shown20 : false,
       dueKind: task ? (task.dueKind || '') : ''
     });
-    const [f, setF] = useState(init);
+    /* v39: base is the copy of the task the form last took in. Save sends U.changes(base, form) only, and a
+       change synced from someone else refreshes every field this person has not touched */
+    const base = useRef(null);
+    const [f, setF] = useState(() => (base.current = init()));
     const [localSubs, setLocalSubs] = useState({});
     const [subText, setSubText] = useState('');
     const [comment, setComment] = useState('');
@@ -15611,10 +15665,22 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const hasTask = !!task;
     useEffect(() => {
       if (!mounted.current) { mounted.current = true; return; }
-      setF(init());
+      const b = init();
+      base.current = b;
+      setF(b);
       setLocalSubs({});
       setSubText('');
     }, [taskId, hasTask]);
+    useEffect(() => {
+      if (!task) return;
+      const fresh = init(), old = base.current || fresh;
+      base.current = fresh;
+      setF(x => {
+        const y = {...x};
+        for (const k of Object.keys(fresh)) if (!Object.keys(U.changes({v: old[k]}, {v: x[k]})).length) y[k] = fresh[k];
+        return y;
+      });
+    }, [task]);
 
     const set = k => v => setF(x => ({...x, [k]: v}));
 
@@ -15657,13 +15723,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     };
     const delSub = id => {
       if (isNew) { setLocalSubs(x => { const y = {...x}; delete y[id]; return y; }); return; }
-      const cur = tasksMap[taskId];
-      if (!cur) return;
-      const doc = U.clone(cur);
-      doc.subtasks = doc.subtasks || {};
-      delete doc.subtasks[id];
-      doc.updated = Date.now();
-      W.set(path, doc).catch(() => {});
+      /* v39: a null key deletes that one subtask on the server; writing the whole cached task wiped newer comments */
+      W.update(path, {subtasks: {[id]: null}, updated: Date.now()}).catch(() => {});
     };
 
     /* comments, oldest first */
@@ -15693,10 +15754,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           const id = U.uid();
           const draft = {owner: f.owner, project: f.project};
           const st = gate(ctx, draft, f.status);
+          const may20 = canSign(ctx, draft);
           await W.set('tasks/' + id, {
             title, owner: f.owner, client: f.client, project: f.project, section: f.section, due: f.due,
             ...(f.dueKind && canSetDueKind(ctx, f.project) ? {dueKind: f.dueKind} : {}),
-            status: st, priority: f.priority, link: f.link.trim(), revisions: 0, shown20: !!f.shown20,
+            status: st, priority: f.priority, link: f.link.trim(), revisions: 0, shown20: may20 && !!f.shown20,
             subtasks: localSubs, comments: {}, by: uid, created: now, updated: now,
             doneAt: st === 'done' ? now : null, ...(st === 'done' && canSign(ctx, draft) ? {approvedBy: uid, approvedAt: now} : {}), ...(st === 'review' ? {reviewAt: now} : {})
           });
@@ -15704,7 +15766,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           M.toast(st === 'review' && f.status === 'done' ? 'Task created, sent for sign-off' : 'Task created');
         } else {
           /* a shipped task keeps its owner, dates and project unless the founder changes them; the 20% mark is a reviewer's call */
-          const r = await saveTask(ctx, taskId, {...f, title});
+          const r = await saveTask(ctx, taskId, U.changes(base.current, {...f, title}));
           if (r.locked) M.toast('A shipped task keeps its owner, due date and project. Ask the founder to change those.');
           if (r.status === 'done' && r.prev !== 'done') M.burst(document.querySelector('.drawer-foot'));
           M.toast(r.msg);
@@ -15760,7 +15822,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <div class="sub tiny" style=${{marginTop: '4px'}}>A client deadline never moves without Kaavish. The COO only moves internal dates.</div>
       </div>` : null}
       <${UI.Input} id="task-link" label="link to the output" value=${f.link} onChange=${set('link')} placeholder="https://"/>
-      <${UI.Check} label="Rough direction shown at the 20% check" checked=${f.shown20} onChange=${set('shown20')}/>
+      ${canSign(ctx, isNew ? {owner: f.owner, project: f.project} : task)
+        ? html`<${UI.Check} label="Rough direction shown at the 20% check" checked=${f.shown20} onChange=${set('shown20')}/>`
+        : (f.shown20 ? html`<span class="small sub">Rough direction shown at the 20% check</span>` : null)}
       <div class="row between small">
         <span class="sub">${revNote(rev)}</span>
         ${!isNew && M.focus && f.owner === uid && f.status !== 'done' ? html`<button type="button" class="linky" onClick=${() => { onClose(); M.focus.open(taskId); }}>Start focus</button>` : null}
@@ -15891,7 +15955,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const micro = boardOpen.length + ' open' + (openOverdue ? ', ' + openOverdue + ' overdue' : '');
     const title = who === 'mine' ? 'My tasks' : 'Everyone\'s tasks';
 
-    const closeDrawer = () => { setDrawer(null); setDueDefault(''); if (id) M.nav('#tasks'); };
+    /* v39: replace the #tasks/<id> entry so Back goes to where the person was before the task */
+    const closeDrawer = () => {
+      setDrawer(null); setDueDefault('');
+      if (!id) return;
+      try { history.replaceState(null, '', location.pathname + location.search + '#tasks'); window.dispatchEvent(new HashChangeEvent('hashchange')); } catch (e) { M.nav('#tasks'); }
+    };
     const openTask = tid => { if (Date.now() - suppressClick.current < 300) return; setDrawer({id: tid}); };
 
     return html`<${React.Fragment}>
@@ -16036,7 +16105,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
   function ProjectCardBody({p, ctx, prog, late}) {
     return html`<div class="card stack tight">
-        <div class="row between nowrap"><b class="grow">${p.name}</b><${StatusPill} status=${p.status}/></div>
+        <div class="row between nowrap"><b class="grow">${p.name}</b>${p.archived ? html`<${UI.Pill} kind="ink">archived<//>` : html`<${StatusPill} status=${p.status}/>`}</div>
         <div class="sub small">${linkName(ctx, p)}</div>
         <div class="row">
           <${UI.Avatar} id=${p.owner} size=${24}/>
@@ -16203,16 +16272,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const today = U.todayStr();
     const isOd = overdueFn();
     const secs = project.sections || [];
-    if (!secs.length) return html`<${UI.Card}><${UI.Empty} text="Add a section under Overview to start the board."/><//>`;
+    /* v39: tasks with no section (or one since removed) get their own first column, as on the List tab */
+    const known = new Set(secs.map(s => s.id));
+    const orphans = tasks.filter(t => !known.has(t.section));
+    if (!secs.length && !orphans.length) return html`<${UI.Card}><${UI.Empty} text="Add a section under Overview to start the board."/><//>`;
+    const cols = (orphans.length ? [{id: 'none', name: 'no section', ts: orphans, next: secs[0]}] : [])
+      .concat(secs.map((s, i) => ({id: s.id, name: s.name, ts: tasks.filter(t => t.section === s.id), next: secs[i + 1]})));
     return html`<${UI.Card}><div class="board-wrap"><div class="board">
-      ${secs.map((s, i) => {
-        const ts = tasks.filter(t => t.section === s.id);
-        return html`<div class="colm" key=${s.id} data-section=${s.id}>
-          <div class="col-head"><span>${s.name}</span><span class="num">${ts.length}</span></div>
-          ${ts.length ? ts.map(t => html`<${TaskCard} key=${t.id} t=${t} ctx=${ctx} today=${today} isOd=${isOd} next=${secs[i + 1]} onOpen=${onOpen}/>`)
+      ${cols.map(c => html`<div class="colm" key=${c.id} data-section=${c.id}>
+          <div class="col-head"><span>${c.name}</span><span class="num">${c.ts.length}</span></div>
+          ${c.ts.length ? c.ts.map(t => html`<${TaskCard} key=${t.id} t=${t} ctx=${ctx} today=${today} isOd=${isOd} next=${c.next} onOpen=${onOpen}/>`)
             : html`<div style=${{padding: '2px 6px'}}><${UI.Empty} text="No tasks"/></div>`}
-        </div>`;
-      })}
+        </div>`)}
     </div></div><//>`;
   }
 
@@ -16233,18 +16304,23 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [status, setStatus] = useState(project.status || 'on');
     const [text, setText] = useState('');
     useEffect(() => { setStatus(project.status || 'on'); }, [project.status]);
-    const can = !!text.trim() || status !== project.status;
+    /* v39: the owner or the founder sets the status (BRIEF 7.8); anyone else posts an update under the status as it is */
+    const mayStatus = ctx.isFounder || project.owner === ctx.uid;
+    const st = mayStatus ? status : (project.status || 'on');
+    const can = !!text.trim() || (mayStatus && status !== project.status);
     const post = () => {
       if (!can) return;
       const now = Date.now(), id = U.uid();
-      after(ctx.W.update('projects/' + project.id, {status, updates: {[id]: {by: ctx.uid, status, text: text.trim(), at: now}}}), 'Posted');
+      const entry = {updates: {[id]: {by: ctx.uid, status: st, text: text.trim(), at: now}}};
+      after(ctx.W.update('projects/' + project.id, mayStatus ? {status: st, ...entry} : entry), 'Posted');
       setText('');
     };
     const ups = Object.keys(project.updates || {}).map(k => ({id: k, ...project.updates[k]})).sort((a, b) => (b.at || 0) - (a.at || 0));
     void ctx.now;
     return html`<${UI.Card} title="Status update">
       <div class="stack">
-        <${UI.Seg} options=${STATUS_OPTS} value=${status} onChange=${setStatus} ariaLabel="Project status"/>
+        ${mayStatus ? html`<${UI.Seg} options=${STATUS_OPTS} value=${status} onChange=${setStatus} ariaLabel="Project status"/>`
+          : html`<div class="row"><${StatusPill} status=${project.status}/><span class="small sub">The owner sets the status.</span></div>`}
         <${UI.TextArea} id="proj-update" value=${text} onChange=${setText} rows=${3} placeholder="What moved, what is stuck, what you need."/>
         <div class="row"><${UI.Btn} disabled=${!can} onClick=${post}>Post update<//></div>
       </div>
@@ -16446,6 +16522,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   /* the founder's private finance entries per pitch: {[id]: {value, prob}}; empty for everyone else */
   const financePath = ctx => 'data/users/' + ctx.uid + '/finance';
+  /* v39: the finance doc loads for the owner alone (02-state), so only the owner gets the money fields; a roster
+     founder's values went to a doc nobody reads */
+  const hasMoney = ctx => !!ctx.isOwner;
   const financeOf = ctx => {
     const d = ctx.priv && ctx.priv.finance && ctx.priv.finance.data;
     return (d && d.pitch) || {};
@@ -16518,7 +16597,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const od = m.overdue.length;
     return html`<${React.Fragment}>
       <div class="kpi-rail">
-        <${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline" metal=${true}/>
+        ${m.money ? html`<${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline" metal=${true}/>` : null}
         <${Tile} id="kpi-open" v=${inPlay} l=${inPlay === 1 ? 'pitch in play' : 'pitches in play'}/>
         <${Tile} id="kpi-win" v=${m.winRate90 == null ? null : m.winRate90 + '%'} l="win rate, 90 days"/>
         <${Tile} id="kpi-overdue" v=${od} l=${od === 1 ? 'next step overdue' : 'next steps overdue'} flame=${od > 0}/>
@@ -16590,7 +16669,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         /* an empty stage folds to its heading and count */
         return html`<div class=${'colm' + (list.length ? '' : ' empty')} key=${s.v} data-stage=${s.v}>
           <div class="col-head"><span>${s.label}</span><span class="num">${list.length}</span></div>
-          ${list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${ctx.isFounder} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)}
+          ${list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${hasMoney(ctx)} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)}
         </div>`;
       })}
     </div></div><//>`;
@@ -16617,16 +16696,27 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       stage: stageOf(p).v, owner: p.owner || ctx.uid, next: p.next || '', nextDate: p.nextDate || '', lost: p.lost || '',
       value: valueOf(e) > 0 ? String(valueOf(e)) : '', prob: hasProb(e) ? String(Number(e.prob)) : ''
     });
-    const [f, setF] = useState(() => pitch ? fromDoc(pitch, fe) : blank());
+    /* v39: the copy the form opened on; save sends only what this person changed against it */
+    const base = useRef(null);
+    const [f, setF] = useState(() => { const v = pitch ? fromDoc(pitch, fe) : blank(); base.current = v; return v; });
     const [busy, setBusy] = useState(false);
     /* a deep link can open the drawer before the pitches have loaded, and a picked contact is known only once the
        Base has loaded: the form fills again when either arrives, so "c5" is never read as a typed name */
     const cidKnown = !!(pitch && isCid(pitch.contact));
     useEffect(() => {
       const p = pitchId ? ctx.coll.pitches.map[pitchId] : null;
-      setF(p ? fromDoc(p, pitchId ? financeOf(ctx)[pitchId] : null) : blank());
+      const v = p ? fromDoc(p, pitchId ? financeOf(ctx)[pitchId] : null) : blank();
+      base.current = v;
+      setF(v);
       setBusy(false);
     }, [pitchId, finReady, !!pitch, cidKnown]);
+    /* v39: a change someone else saves while the drawer is open shows in every field this person has not touched */
+    useEffect(() => {
+      if (!pitch || !base.current) return;
+      const ob = base.current, nb = fromDoc(pitch, fe);
+      base.current = nb;
+      setF(x => { const out = {...x}; for (const k of Object.keys(nb)) if (x[k] === ob[k]) out[k] = nb[k]; return out; });
+    }, [pitch, fe]);
     const set = k => v => setF(x => ({...x, [k]: v}));
 
     const memberIds = useMemo(() => {
@@ -16666,14 +16756,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (isNew) {
         p = W.set('pitches/' + id, {...body, stage: 'lead', stageAt: now, next: f.next.trim(), nextDate: f.nextDate || '', project: '', lost: '', created: now});
       } else {
+        /* v39: only the fields this person changed, so a stage move or an edit saved meanwhile is kept */
+        const docOf = x => ({brand: x.brand.trim(), category: x.category.trim(), contact: x.contactId || x.contact.trim(), source: x.source.trim(),
+          owner: x.owner || ctx.uid, stage: x.stage, next: x.next.trim(), nextDate: x.nextDate || '', lost: x.lost.trim()});
+        const ch = U.changes(docOf(base.current || f), docOf(f));
+        if ('stage' in ch) ch.stageAt = now;
         /* a next step typed or dated by hand is the team's own again: the bridge (M.prospects, nextBy 'fu')
            never overwrites it from then on */
-        const byHand = pitch.nextBy && (f.next.trim() !== (pitch.next || '') || (f.nextDate || '') !== (pitch.nextDate || ''));
-        p = W.update('pitches/' + id, {...body, stage: f.stage,
-          stageAt: f.stage !== stageOf(pitch).v ? now : (pitch.stageAt || now),
-          next: f.next.trim(), nextDate: f.nextDate || '', lost: f.lost.trim(), ...(byHand ? {nextBy: ''} : {})});
+        const byHand = pitch.nextBy && ('next' in ch || 'nextDate' in ch);
+        p = W.update('pitches/' + id, {...ch, updated: now, ...(orgMatch && orgMatch.id !== pitch.org ? {org: orgMatch.id} : {}), ...(byHand ? {nextBy: ''} : {})});
       }
-      if (ctx.isFounder && (fe || f.value !== '' || f.prob !== '')) {
+      const ob = base.current || {};
+      if (hasMoney(ctx) && (isNew ? (f.value !== '' || f.prob !== '') : (f.value !== ob.value || f.prob !== ob.prob))) {
         const probNum = f.prob === '' ? null : Math.max(0, Math.min(100, Number(f.prob) || 0));
         const entry = {value: Math.max(0, Number(f.value) || 0), prob: probNum};
         p = p.then(() => W.merge(financePath(ctx), {pitch: {[id]: entry}}));
@@ -16705,7 +16799,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           memory: '', approvals: '', never: '', links: '', updated: now, by: ctx.uid});
       p = p.then(() => W.merge('pitches/' + pitchId, {client: cid, updated: now}));
       /* the founder's private monthly revenue starts from the pitch value */
-      if (ctx.isFounder && valueOf(fe) > 0) p = p.then(() => W.merge(financePath(ctx), {clients: {[cid]: {monthly: valueOf(fe)}}}));
+      if (hasMoney(ctx) && valueOf(fe) > 0) p = p.then(() => W.merge(financePath(ctx), {clients: {[cid]: {monthly: valueOf(fe)}}}));
       p.then(() => { M.toast('Client page created'); onClose(); M.nav('#clients'); }, () => setBusy(false));
     };
 
@@ -16763,7 +16857,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <//>` : null}
         ${M.parts.Connections ? html`<${M.parts.Connections} kind="pitch" id=${pitchId}/>` : null}
       <//>` : null}
-      ${ctx.isFounder ? html`<${React.Fragment}>
+      ${hasMoney(ctx) ? html`<${React.Fragment}>
         <hr class="hair"/>
         <${UI.Micro}>founder only<//>
         <${UI.Input} id="pitch-value" label="monthly value, ₹" type="number" min="0" step="1000" value=${f.value} onChange=${set('value')} placeholder="0"
@@ -16794,7 +16888,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const map = ctx.coll.pitches.map;
     const all = Object.keys(map).map(id => ({id, ...map[id]}));
     const fin = financeOf(ctx);
-    const m = ctx.isFounder ? metrics(ctx) : null;
+    const m = ctx.isFounder ? {...metrics(ctx), money: hasMoney(ctx)} : null;
     const nOpen = all.filter(p => !isClosed(p)).length;
     return html`<${React.Fragment}>
       <${UI.PageHead} micro=${nOpen + ' in play'} title="Pipeline">
@@ -16860,11 +16954,15 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   /* v37: a client is a monthly retainer or a one-off project. The kind sits on the client (everyone sees the pill),
      the money in the founder's finance doc: finance.clients[cid] = {kind, monthly, fee, from, to, paid} */
   const KINDS = [{v: 'retainer', label: 'Retainer'}, {v: 'project', label: 'Project'}];
+  /* v39: the shared billing on the client wins, so everyone sees one answer; the owner's private kind only fills in
+     for a client saved before billing existed */
   function kindOf(ctx, id) {
     const fe = financeOf(ctx)[id] || {};
     const c = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map[id]) || {};
-    return (fe.kind || c.billing) === 'project' ? 'project' : 'retainer';
+    return (c.billing || fe.kind) === 'project' ? 'project' : 'retainer';
   }
+  /* v39: the finance doc loads for the owner alone (02-state), so only the owner gets the money fields */
+  const hasMoney = ctx => !!ctx.isOwner;
   /* monthly revenue counts retainers only: a project fee is one payment, so it never inflates the monthly line */
   function shares(ctx) {
     const map = (ctx.coll && ctx.coll.clients && ctx.coll.clients.map) || {};
@@ -17268,7 +17366,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const existing = id ? ctx.coll.clients.map[id] : null;
     const fin = financeOf(ctx);
     const ex = k => (existing && existing[k]) || '';
-    const [f, setF] = useState(() => ({
+    /* v39: the copy the form opened on; save sends only what this person changed against it */
+    const opened = useRef(null);
+    const [f, setF] = useState(() => (opened.current = {
       name: ex('name'), status: ex('status') || 'live', pod: ex('pod'), owner: (existing && existing.owner) || ctx.uid,
       memory: ex('memory'), approvals: ex('approvals'), never: ex('never'), links: ex('links'), org: ex('org'),
       website: ex('website'), industry: ex('industry'), hq: ex('hq'), since: ex('since'), tone: ex('tone'),
@@ -17321,28 +17421,40 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       }
       const org = linked.org;
       const cid = id || U.uid();
-      const doc = {name: f.name.trim(), status: f.status, pod: f.pod, owner: f.owner,
-        memory: f.memory, approvals: f.approvals, never: f.never, links: f.links, ...(f.org ? {org: f.org} : (id ? {org: ''} : {})), billing: f.kind,
-        website, domain: domainFrom(website) || (org ? (org.domain || domainFrom(org.website)) : ''),
-        industry: f.industry.trim(), hq: f.hq.trim(), since: f.since.trim(), tone: f.tone.trim(), socials,
-        logo: f.logo || '', useAutoLogo: !!f.useAutoLogo,
-        updated: Date.now(), by: ctx.uid};
+      const docOf = (x, site, soc) => ({name: x.name.trim(), status: x.status, pod: x.pod, owner: x.owner,
+        memory: x.memory, approvals: x.approvals, never: x.never, links: x.links, org: x.org || '', billing: x.kind,
+        website: site, domain: domainFrom(site) || (org ? (org.domain || domainFrom(org.website)) : ''),
+        industry: x.industry.trim(), hq: x.hq.trim(), since: x.since.trim(), tone: x.tone.trim(), socials: soc,
+        logo: x.logo || '', useAutoLogo: !!x.useAutoLogo});
+      const doc = {...docOf(f, website, socials), updated: Date.now(), by: ctx.uid};
+      if (!id && !f.org) delete doc.org;
+      const base = opened.current || f;
+      const orgMoved = !id || (f.org || '') !== (base.org || '');
       setBusy(true);
       try {
-        const before = id ? (existing && existing.org && linked.org && linked.org.id === existing.org ? linked.org : (M.base && M.base.orgForClientAsync ? await M.base.orgForClientAsync(ctx, id) : null)) : null;
-        if (id) await ctx.W.update('clients/' + id, doc);
-        else await ctx.W.set('clients/' + cid, doc);
-        /* the company row points back at the client, both ways, always */
+        const before = id && orgMoved ? (existing && existing.org && linked.org && linked.org.id === existing.org ? linked.org : (M.base && M.base.orgForClientAsync ? await M.base.orgForClientAsync(ctx, id) : null)) : null;
+        if (id) {
+          /* v39: only the fields this person changed, so what someone else saved meanwhile is kept */
+          const baseSite = cleanSite(base.website), baseSoc = {};
+          for (const so of SOCIALS) { const v = cleanHandle(base[so.k]); baseSoc[so.k] = v === null ? base[so.k] : v; }
+          const ch = U.changes(docOf(base, baseSite === null ? base.website : baseSite, baseSoc), docOf(f, website, socials));
+          if (!(existing && existing.billing)) ch.billing = f.kind;
+          await ctx.W.update('clients/' + id, {...ch, updated: doc.updated, by: ctx.uid});
+        } else await ctx.W.set('clients/' + cid, doc);
+        /* the company row points back at the client, both ways; the new doc rides along, since the page may not hold it yet */
         if (M.base && M.base.linkOrgToClient) {
-          if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
-          if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
+          const orgNow = ((M.lastCtx && M.lastCtx.coll.clients.map[cid]) || existing || {}).org;
+          if (orgMoved) {
+            if (before && before.id && before.id !== f.org && M.base.unlinkOrg) await M.base.unlinkOrg(ctx, before.id).catch(() => {});
+            if (f.org) await M.base.linkOrgToClient(ctx, f.org, cid, {...doc, org: f.org}).catch(() => {});
+          } else if (f.org && f.org === orgNow) await M.base.linkOrgToClient(ctx, f.org, cid).catch(() => {});
         }
         /* a company typed by hand becomes a company in the database too, linked both ways */
         if (!id && !f.org && seed && seed.newOrg && M.base && M.base.upsertOrg && M.base.linkOrgToClient) {
           const oid = await M.base.upsertOrg(ctx, {name: doc.name, website, industry: doc.industry, city: doc.hq, source: 'manual'}).catch(() => null);
-          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid).catch(() => {}); }
+          if (oid) { await ctx.W.update('clients/' + cid, {org: oid}); await M.base.linkOrgToClient(ctx, oid, cid, {...doc, org: oid}).catch(() => {}); }
         }
-        if (ctx.isFounder) {
+        if (hasMoney(ctx)) {
           const money = f.kind === 'project'
             ? {kind: 'project', fee: Number(f.fee) || 0, from: f.from || '', to: f.to || '', paid: Number(f.paid) || 0}
             : {kind: 'retainer', ...(String(f.monthly).trim() !== '' ? {monthly: Number(f.monthly) || 0} : {})};
@@ -17413,9 +17525,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ${id && M.parts.PeopleAtClient && orgOf(ctx, id) ? html`<${UI.Fold} title="People at this client" id="fold-client-people"><${M.parts.PeopleAtClient} id=${id}/><//>` : null}
       ${id && M.parts.Connections ? html`<${M.parts.Connections} kind="client" id=${id}/>` : null}
       ${id && M.parts.ClientUpdate && M.ai.on(ctx) ? html`<${M.fx.Beam}><${UI.Fold} title="Client update" summary="a client-ready note" id="fold-client-update"><${M.parts.ClientUpdate} id=${id} name=${f.name}/><//><//>` : null}
-      ${ctx.isFounder && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
+      ${hasMoney(ctx) && f.kind === 'retainer' ? html`<${UI.Input} id="client-monthly" label="monthly retainer, ₹" type="number" value=${f.monthly}
         onChange=${v => set('monthly', v)} hint="Private to you. Counts in monthly revenue."/>` : null}
-      ${ctx.isFounder && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
+      ${hasMoney(ctx) && f.kind === 'project' ? html`<div class="stack tight" id="client-project-money">
         <div class="grid2">
           <${UI.Input} id="client-fee" label="project fee, ₹" type="number" value=${f.fee} onChange=${v => set('fee', v)} hint="Private to you. One payment, kept out of monthly revenue."/>
           <${UI.Input} id="client-paid" label="paid so far, ₹" type="number" value=${f.paid} onChange=${v => set('paid', v)}/>
@@ -17491,7 +17603,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const map = ctx.coll.clients.map;
     const sh = useMemo(() => {
       const out = {};
-      if (ctx.isFounder) shares(ctx).forEach(r => { out[r.id] = r; });
+      if (hasMoney(ctx)) shares(ctx).forEach(r => { out[r.id] = r; });
       return out;
     }, [ctx]);
     const allIds = Object.keys(map).sort((a, b) => String(map[a].name || '').localeCompare(String(map[b].name || '')));
@@ -19773,35 +19885,54 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   const patch = (ctx, id, p) => ctx.W.update('talks/' + id, {...p, updated: Date.now()});
   function logTalk(ctx, t, x, d, next) {
     const lid = U.uid();
-    const log = {...(t.log || {}), [lid]: {d: YMD.test(d || '') ? d : U.todayStr(), x: cut(x, NOTE_MAX), by: ctx.uid, at: Date.now()}};
-    const keep = Object.keys(log).sort((a, b) => (log[b].at || 0) - (log[a].at || 0)).slice(0, LOG_MAX);
-    const trimmed = {};
-    keep.forEach(k => { trimmed[k] = log[k]; });
-    return ctx.W.update('talks/' + t.id, {log: trimmed, next: next === undefined ? (t.next || '') : next, done: false, updated: Date.now()});
+    const entry = {d: YMD.test(d || '') ? d : U.todayStr(), x: cut(x, NOTE_MAX), by: ctx.uid, at: Date.now()};
+    const log = {...(t.log || {}), [lid]: entry};
+    /* v39: the update merges, so only the new entry is sent and every entry past the newest 40 goes as null,
+       which the store removes */
+    const out = {[lid]: entry};
+    Object.keys(log).sort((a, b) => (log[b].at || 0) - (log[a].at || 0)).slice(LOG_MAX).forEach(k => { out[k] = null; });
+    return ctx.W.update('talks/' + t.id, {log: out, next: next === undefined ? (t.next || '') : next, done: false, updated: Date.now()});
   }
-  /* a pitch on the shared pipeline, in Building, linked both ways */
+  /* a pitch on the shared pipeline, in Building, linked both ways. v39: its id comes from the person, so two people
+     tapping at once write the one pitch */
   function toPipeline(ctx, t, what) {
-    if (t.pitch && ctx.coll.pitches.map[t.pitch]) { M.nav('#pitches/' + t.pitch); return Promise.resolve(t.pitch); }
-    const pid = U.uid(), now = Date.now();
+    const pid = 'tk' + t.id;
+    const pm = ctx.coll.pitches.map, lm = (M.lastCtx && M.lastCtx.coll.pitches.map) || {};
+    const have = (t.pitch && (pm[t.pitch] || lm[t.pitch])) ? t.pitch : (pm[pid] || lm[pid]) ? pid : '';
+    if (have) { if (t.pitch !== have) patch(ctx, t.id, {pitch: have}).catch(() => {}); M.nav('#pitches/' + have); return Promise.resolve(have); }
+    const now = Date.now();
     const brand = t.org || t.who || 'New pitch';
     return ctx.W.set('pitches/' + pid, {brand, category: '', contact: t.cid || t.who || '', source: 'talk', owner: t.owner || ctx.uid,
       stage: 'lead', stageAt: now, next: cut(what || t.nextWhat || 'Build the proposal', 120), nextDate: t.next || '', project: '', lost: '', created: now, updated: now, talk: t.id})
       .then(() => patch(ctx, t.id, {pitch: pid}))
       .then(() => { M.toast(brand + ' is in the pipeline'); return pid; });
   }
-  /* the viewer's private prospects, copied once into the shared list; the same name at the same company is skipped */
-  function bringProspects(ctx) {
+  /* the viewer's private prospects not yet in the shared list: the same name at the same company counts once.
+     v39: the line under the list counts these, so a dropped prospect or one already here is never counted */
+  function prospectsToBring(ctx) {
     const P = M.prospects;
-    if (!P || !P.data) return Promise.resolve(0);
-    const d = P.data(ctx);
+    if (!P || !P.data) return [];
+    const d = P.data(ctx) || {};
     const have = new Set(all(ctx).map(t => norm(t.who) + '|' + norm(t.org)));
-    const jobs = [];
+    const out = [];
     for (const pid of Object.keys(d.people || {})) {
       const p = d.people[pid];
       if (!p || p.gone || !p.who) continue;
       const k = norm(p.who) + '|' + norm(p.org);
       if (have.has(k)) continue;
       have.add(k);
+      out.push(pid);
+    }
+    return out;
+  }
+  /* the viewer's private prospects, copied once into the shared list */
+  function bringProspects(ctx) {
+    const P = M.prospects;
+    if (!P || !P.data) return Promise.resolve(0);
+    const d = P.data(ctx);
+    const jobs = [];
+    for (const pid of prospectsToBring(ctx)) {
+      const p = d.people[pid];
       const fid = Object.keys(d.fu || {}).filter(id => d.fu[id] && !d.fu[id].done && d.fu[id].p === pid).sort((a, b) => String(d.fu[a].d).localeCompare(String(d.fu[b].d)))[0];
       const f = fid ? d.fu[fid] : null;
       const met = p.last && p.last.at ? U.ymd(new Date(p.last.at)) : (p.at ? U.ymd(new Date(p.at)) : U.todayStr());
@@ -19848,8 +19979,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const set = k => v => setF(x => ({...x, [k]: v}));
     const pick = s => {
       if (s.talk) { onOpen(s.talk); setF(blank()); return; }
-      setF(x => ({...x, who: s.who || x.who, org: s.org || x.org, cid: s.cid || '', client: s.client || (s.org ? clientFor(ctx, s.org) : '') || x.client}));
+      /* v39: a client pick fills the company and empties the name, so the typed letters never become a person */
+      const isClient = !!s.client && !s.who;
+      setF(x => ({...x, who: isClient ? '' : (s.who || x.who), org: s.org || x.org, cid: s.cid || '', client: s.client || (s.org ? clientFor(ctx, s.org) : '') || x.client}));
       setFocus(false);
+      if (isClient && whoRef.current) setTimeout(() => { if (whoRef.current) whoRef.current.focus(); }, 0);
     };
     const save = () => {
       if (busy || !f.who.trim()) { if (!f.who.trim()) M.toast('Add a name first', true); return; }
@@ -19881,7 +20015,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${focus && sug.length ? html`<div class="talk-sug" role="listbox" id="talk-sug">
             ${sug.map((s, i) => html`<button key=${s.k} type="button" role="option" aria-selected=${i === hi} class=${'talk-sug-row' + (i === hi ? ' on' : '')}
               onMouseDown=${e => { e.preventDefault(); pick(s); }}>
-              <span class="grow"><b>${s.who || s.org}</b>${s.who && s.org ? html`<span class="sub"> at ${s.org}</span>` : null}${s.title ? html`<span class="sub">, ${s.title}</span>` : null}</span>
+              <span class="grow"><b><bdi>${s.who || s.org}</bdi></b>${s.who && s.org ? html`<span class="sub"> at <bdi>${s.org}</bdi></span>` : null}${s.title ? html`<span class="sub">, ${s.title}</span>` : null}</span>
               <span class="tiny sub">${s.kind}</span>
             </button>`)}
           </div>` : null}
@@ -19911,7 +20045,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return html`<div class=${'talk-row' + (st === 'due' ? ' due' : '') + (t.done ? ' done' : '')} data-talk=${t.id}>
       <button type="button" class="talk-main rowbtn" onClick=${() => onOpen(t.id)} aria-label=${'Open ' + (t.who || 'person')}>
         <div class="row between nowrap">
-          <span class="talk-name"><b>${t.who || 'Someone'}</b>${t.org ? html`<span class="sub"> ${t.org}</span>` : null}</span>
+          <span class="talk-name"><b><bdi>${t.who || 'Someone'}</bdi></b>${t.org ? html`<span class="sub"> <bdi>${t.org}</bdi></span>` : null}</span>
           ${st === 'due' ? html`<span class="pill flame">follow up ${t.next === today ? 'today' : U.fmtDay(t.next)}</span>`
             : st === 'soon' ? html`<span class="pill">follow up ${U.fmtDay(t.next)}</span>`
             : st === 'done' ? html`<span class="pill ink">done</span>` : null}
@@ -19937,10 +20071,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   function LogDrawer({ctx, t, onClose}) {
     const [x, setX] = useState('');
     const [d, setD] = useState(U.todayStr());
-    const [next, setNext] = useState(t.next || '');
+    const [next, setNextS] = useState(t.next || '');
     const [busy, setBusy] = useState(false);
+    /* v39: a date read from what was said moves the follow-up, until the person picks one by hand */
+    const byHand = useRef(false);
+    const setNext = v => { byHand.current = true; setNextS(v); };
     const read = readDate(ctx, x, d);
-    useEffect(() => { if (read && (!next || next <= U.todayStr())) setNext(read.ymd); }, [read && read.ymd]);
+    useEffect(() => { if (!byHand.current) setNextS(read ? read.ymd : (t.next || '')); }, [read && read.ymd]);
     const save = () => {
       if (busy || !x.trim()) return;
       setBusy(true);
@@ -19959,18 +20096,25 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   /* ---------- the person drawer ---------- */
   function TalkDrawer({ctx, id, onClose}) {
     const t0 = ctx.coll.talks.map[id];
-    const [f, setF] = useState(() => t0 ? {who: t0.who || '', org: t0.org || '', note: t0.note || '', met: t0.met || '', next: t0.next || '', nextWhat: t0.nextWhat || '', owner: t0.owner || ctx.uid} : null);
+    /* v39: the copy the form opened on; save sends only what this person changed against it */
+    const opened = useRef(null);
+    const [f, setF] = useState(() => (opened.current = t0 ? {who: t0.who || '', org: t0.org || '', note: t0.note || '', met: t0.met || '', next: t0.next || '', nextWhat: t0.nextWhat || '', owner: t0.owner || ctx.uid} : null));
     const [busy, setBusy] = useState(false);
     const owners = ctx.activeMembers.map(m => m.uid);
     if (owners.indexOf(ctx.uid) < 0) owners.unshift(ctx.uid);
+    /* v39: whoever owns the conversation is always an option, the owner off the active list included */
+    if (t0 && t0.owner && owners.indexOf(t0.owner) < 0) owners.push(t0.owner);
     const profs = M.useProfiles(owners);
     if (!t0 || !f) return html`<${UI.Drawer} open=${true} onClose=${onClose} title="Person"><${UI.Empty} text="This person is not on the list any more."/><//>`;
     const t = {id, ...t0};
     const set = k => v => setF(x => ({...x, [k]: v}));
+    const clean = x => ({who: cut(x.who, NAME_MAX), org: cut(x.org, NAME_MAX), note: cut(x.note, NOTE_MAX), met: x.met, next: x.next, nextWhat: cut(x.nextWhat, 160), owner: x.owner});
     const save = () => {
       setBusy(true);
-      patch(ctx, id, {who: cut(f.who, NAME_MAX), org: cut(f.org, NAME_MAX), note: cut(f.note, NOTE_MAX), met: f.met, next: f.next, nextWhat: cut(f.nextWhat, 160), owner: f.owner,
-        client: t.client || clientFor(ctx, f.org)})
+      const ch = U.changes(clean(opened.current || f), clean(f));
+      const client = t.client || clientFor(ctx, f.org);
+      if (client && client !== t.client) ch.client = client;
+      patch(ctx, id, ch)
         .then(() => { M.toast('Saved'); onClose(); }, () => setBusy(false));
     };
     const toBase = () => {
@@ -20044,7 +20188,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const ka = a.next || '9999', kb = b.next || '9999';
       return f === 'done' ? (b.updated || 0) - (a.updated || 0) : ka.localeCompare(kb) || (b.updated || 0) - (a.updated || 0);
     });
-    const pros = M.prospects && M.prospects.data ? Object.keys(M.prospects.data(ctx).people || {}).length : 0;
+    const pros = prospectsToBring(ctx).length;
     const bring = () => { setBusy(true); bringProspects(ctx).then(k => { M.toast(k ? k + ' brought in' : 'Everyone is already here'); setBusy(false); }, () => setBusy(false)); };
     const close = () => { setOpen(null); if (routeId) M.nav('#talks'); };
     const logT = logFor ? {id: logFor, ...ctx.coll.talks.map[logFor]} : null;
@@ -20063,7 +20207,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         : shown.length ? html`<div class="talk-list">${shown.map(t => html`<${Row} key=${t.id} ctx=${ctx} t=${t} today=${today} onOpen=${setOpen} onLog=${setLogFor}/>`)}</div>`
         : html`<${UI.Card}><${UI.Empty} text=${q.trim() ? 'Nobody matches "' + q.trim() + '".' : f === 'due' ? 'No follow-ups due. Add the next person above.' : 'Nobody here yet. Add the first person above.'}/><//>`}
       ${pros && !ctx.viewAs ? html`<div class="row tiny sub" style=${{gap: '10px'}}>
-        <span>You have ${pros} people in your private prospects.</span>
+        <span>${pros === 1 ? '1 person in your private prospects is' : pros + ' people in your private prospects are'} not on this list yet.</span>
         <button type="button" class="linky tiny" id="talk-bring" disabled=${busy} onClick=${bring}>Bring them into this list</button>
       </div>` : null}
       ${open ? html`<${TalkDrawer} key=${open} ctx=${ctx} id=${open} onClose=${close}/>` : null}
@@ -20481,12 +20625,26 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
      typed answer to a bot. Only short codes and ids */
   const EXTRA = ['ask', 'k', 'via', 'pm', 'pmHow'];
   const sentIds = new Set();
+  const LINE_MAX = 4000;
+  /* v39: the lines this tab wrote that the room has not echoed back yet, per sender doc. The next send,
+     edit or delete builds on these, so a second line sent quickly keeps the first */
+  const local = {};
+  const mineNow = (ctx, key) => {
+    const doc = ctx.coll.chat.map[key] || {};
+    const l = local[key];
+    return ((l && l.updated > (Number(doc.updated) || 0)) ? l.msgs : (doc.msgs || [])).slice();
+  };
+  const writeMine = (ctx, key, msgs, extra) => {
+    const updated = Math.max(Date.now(), ((local[key] || {}).updated || 0) + 1);
+    local[key] = {msgs, updated};
+    return ctx.W.merge('chat/' + key, {...(extra || {}), msgs, updated}).catch(e => { if (local[key] && local[key].updated === updated) delete local[key]; throw e; });
+  };
   async function send(ctx, room, text, mentions, files, extra) {
-    const t = String(text || '').trim().slice(0, 4000);
+    const t = String(text || '').trim().slice(0, LINE_MAX);
     const fs = (files || []).filter(f => f && f.url).slice(0, 10).map(f => ({id: String(f.id || ''), name: String(f.name || 'file').slice(0, 160), type: String(f.type || ''), size: Number(f.size) || 0, url: String(f.url)}));
     if (!t && !fs.length) return;
     const key = docId(room, ctx.uid);
-    const cur = ((ctx.coll.chat.map[key] || {}).msgs || []).slice();
+    const cur = mineNow(ctx, key);
     const xid = extra && extra.id ? String(extra.id).slice(0, 80) : '';
     if (xid) {
       const had = cur.find(x => x && x.id === xid);
@@ -20499,24 +20657,31 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     if (xid) sentIds.add(key + '|' + xid);
     let msgs = cur.concat([m]);
     if (msgs.length > CAP) msgs = msgs.slice(msgs.length - KEEP);
-    try { await ctx.W.merge('chat/' + key, {msgs, room, by: ctx.uid, updated: Date.now()}); } catch (e) { if (xid) sentIds.delete(key + '|' + xid); throw e; }
+    try { await writeMine(ctx, key, msgs, {room, by: ctx.uid}); } catch (e) { if (xid) sentIds.delete(key + '|' + xid); throw e; }
     return m;
   }
   const edit = (ctx, room, id, text) => {
     const key = docId(room, ctx.uid);
-    const msgs = ((ctx.coll.chat.map[key] || {}).msgs || []).map(m => m.id === id ? {...m, text: String(text || '').trim().slice(0, 4000), edited: Date.now()} : m);
-    return ctx.W.merge('chat/' + key, {msgs, updated: Date.now()});
+    const msgs = mineNow(ctx, key).map(m => m.id === id ? {...m, text: String(text || '').trim().slice(0, LINE_MAX), edited: Date.now()} : m);
+    return writeMine(ctx, key, msgs);
   };
   const remove = (ctx, room, id) => {
     const key = docId(room, ctx.uid);
-    const msgs = ((ctx.coll.chat.map[key] || {}).msgs || []).map(m => m.id === id ? {...m, del: true, text: ''} : m);
-    return ctx.W.merge('chat/' + key, {msgs, updated: Date.now()});
+    const msgs = mineNow(ctx, key).map(m => m.id === id ? {...m, del: true, text: ''} : m);
+    return writeMine(ctx, key, msgs);
   };
   const markRead = (ctx, room, at) => ctx.W.merge('data/users/' + ctx.uid + '/state', {chatRead: {[room]: at || Date.now()}}).catch(() => {});
+  const roomSlug = name => norm(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  /* v39: a room that is there already is the answer; making it again never renames it or changes its maker */
+  const roomTaken = (ctx, id) => { const r = ((ctx.coll.chatrooms.map.team || {}).rooms || {})[id]; return !!(r && !r.gone); };
   const makeRoom = async (ctx, name, topic) => {
-    const id = norm(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+    const id = roomSlug(name);
     if (!id || id === 'general' || id.startsWith('dm')) throw new Error('bad name');
-    await ctx.W.merge(ROOMS_DOC, {rooms: {[id]: {name: String(name).trim().slice(0, 40), topic: String(topic || '').slice(0, 140), by: ctx.uid, at: Date.now()}}, updated: Date.now()});
+    if (roomTaken(ctx, id)) return id;
+    const rec = {name: String(name).trim().slice(0, 40), topic: String(topic || '').slice(0, 140), by: ctx.uid, at: Date.now()};
+    /* a room made again after it was removed comes back */
+    if (((ctx.coll.chatrooms.map.team || {}).rooms || {})[id]) rec.gone = null;
+    await ctx.W.merge(ROOMS_DOC, {rooms: {[id]: rec}, updated: Date.now()});
     return id;
   };
 
@@ -20602,7 +20767,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const fileRef = useRef(null);
     const phone = M.usePhone();
     /* the route decides: a room in it opens that room; none means the list (the Chat tab on a phone) */
-    useEffect(() => { if (roomFromRoute) { if (roomFromRoute !== room) setRoom(roomFromRoute); setListOpen(false); } else setListOpen(true); }, [roomFromRoute]);
+    useEffect(() => {
+      if (!roomFromRoute) { setListOpen(true); return; }
+      /* v39: a direct message between two other people never opens from a link either */
+      if (isDm(roomFromRoute) && !roomFromRoute.split('.').includes(uid)) { M.toast('Only the two people in that conversation can open it'); setRoom('general'); M.nav('#chat/general'); return; }
+      if (roomFromRoute !== room) setRoom(roomFromRoute);
+      setListOpen(false);
+    }, [roomFromRoute]);
     useEffect(() => { M.prefs.set('chatRoom.' + uid, room); }, [room]);
     const people = ctx.activeMembers.filter(m => m.uid !== uid);
     const ids = useMemo(() => Array.from(new Set(ctx.activeMembers.map(m => m.uid).concat(dms.map(d => dmOther(d, uid)).filter(u => !isBot(u))))), [ctx.activeMembers, dms]);
@@ -20612,8 +20783,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const botDm = dms.find(d => isBot(dmOther(d, uid)));
     const msgs = useMemo(() => messagesOf(ctx, room), [ctx.coll.chat, room]);
     const latest = msgs.length ? msgs[msgs.length - 1].at : 0;
-    const online = ctx.online || new Set();
-    const isOn = id => online.has ? online.has(id) : (Array.isArray(online) ? online.includes(id) : false);
+    /* v39: presence is a map {uid: {page, at}} */
+    const online = ctx.online || {};
+    const isOn = id => !!(id && online[id]);
 
     /* this room is read up to its latest line while it is open */
     useEffect(() => {
@@ -20621,7 +20793,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const t = setTimeout(() => markRead(ctx, room, latest), 600);
       return () => clearTimeout(t);
     }, [room, latest]);
-    useEffect(() => { if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({block: 'end'}); }, [msgs.length, room]);
+    /* v39: the lines scroll inside their own box; scrolling the page would push the box under the tab bar */
+    useEffect(() => { const el = endRef.current && endRef.current.parentNode; if (el) el.scrollTop = el.scrollHeight; }, [msgs.length, room]);
 
     const mentionIds = t => ctx.activeMembers.filter(m => String(t).includes('@' + nameOf(m.uid)) || String(t).includes('@' + String(nameOf(m.uid)).split(' ')[0] + ' ')).map(m => m.uid);
     const pick = list => {
@@ -20635,6 +20808,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const t = text.trim();
       if (!t && !pending.length) return;
       if (busy) return;
+      if (t.length > LINE_MAX) { M.toast('A line holds ' + LINE_MAX + ' characters. Cut ' + (t.length - LINE_MAX) + ' to send it.', true); return; }
       if (editing) { if (!t) return; setText(''); await edit(ctx, room, editing, t).catch(() => {}); setEditing(null); return; }
       const files = [];
       try {
@@ -20656,7 +20830,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const openDm = other => { setRoom(dmId(uid, other)); setListOpen(false); M.nav('#chat/' + dmId(uid, other)); };
     const openRoom = id => { setRoom(id); setListOpen(false); M.nav('#chat/' + id); };
     const create = async () => {
-      try { const id = await makeRoom(ctx, newName); setNaming(false); setNewName(''); openRoom(id); M.toast('Room made'); } catch (e) { M.toast('Pick a simple name', true); }
+      const had = roomTaken(ctx, roomSlug(newName));
+      try { const id = await makeRoom(ctx, newName); setNaming(false); setNewName(''); openRoom(id); M.toast(had ? 'That room is there already. Opening it.' : 'Room made'); } catch (e) { M.toast('Pick a simple name', true); }
     };
     const askNotify = () => { try { if (window.Notification) Notification.requestPermission().then(p => M.toast(p === 'granted' ? 'You will hear about messages for you' : 'Notices stay off')); } catch (e) { /* none */ } };
     const title = isDm(room) ? nameOf(dmOther(room, uid)) : '#' + ((rooms.find(r => r.id === room) || {}).name || room);
@@ -20681,7 +20856,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </div>
         ${m.by === uid ? html`<span class="chat-tools row nowrap">
           ${m.text ? html`<button type="button" class="linky tiny" onClick=${() => { setEditing(m.id); setText(m.text); if (boxRef.current) boxRef.current.focus(); }}>Edit</button>` : null}
-          <button type="button" class="linky tiny" onClick=${() => remove(ctx, room, m.id)}>Delete</button>
+          <${UI.ConfirmBtn} label="Tap again" onConfirm=${() => remove(ctx, room, m.id).catch(() => {})}>Delete<//>
         </span>` : null}
       </div>`);
     });
@@ -20730,8 +20905,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <button type="button" class="iconbtn line" id="chat-attach-btn" aria-label="Attach a file" title="Attach any file, up to 25 MB" disabled=${!!busy || !!editing} onClick=${() => fileRef.current && fileRef.current.click()}><${icons.plus}/></button>
           <div class="grow chat-input-wrap"><${M.fx.Beam} radius=${12}><textarea ref=${boxRef} id="chat-input" class="input grow" rows=${1} placeholder=${phone ? 'Message ' + title : 'Message ' + title + '. @ a name, or @everyone. Drop or paste files here'} value=${text}
             onInput=${e => setText(e.target.value)} onKeyDown=${onKey} onPaste=${onPaste} aria-label="Message"/><//></div>
-          <${UI.Btn} id="chat-send" disabled=${(!text.trim() && !pending.length) || !!busy} onClick=${go}>${editing ? 'Save' : 'Send'}<//>
+          <${UI.Btn} id="chat-send" disabled=${(!text.trim() && !pending.length) || !!busy || text.trim().length > LINE_MAX} onClick=${go}>${editing ? 'Save' : 'Send'}<//>
         </div>
+        ${text.length > LINE_MAX - 400 ? html`<div class=${'tiny num ' + (text.trim().length > LINE_MAX ? 'flame-t' : 'ink62')} id="chat-count" style=${{marginTop: '4px'}}>${text.trim().length} of ${LINE_MAX} characters${text.trim().length > LINE_MAX ? '. Cut ' + (text.trim().length - LINE_MAX) + ' to send it.' : ''}</div>` : null}
       </div>
     </section>`;
 
@@ -20895,9 +21071,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   function ReviewCard({uid, weekId, ghost}) {
     const ctx = M.useCtx();
     const plan = ((ctx.coll.plan.map[uid] || {}).weeks || {})[weekId];
-    const rev = ((ctx.coll.review.map[uid] || {}).weeks || {})[weekId];
     const items = (plan && plan.items) || [];
     const mine = uid === ctx.uid;
+    /* v39 (BRIEF 7.10): a teammate's card shows their outcomes only. Marks, quality and the note are for the
+       person and the founder, and this page reads a review only for a card it may show it on */
+    const rev = ctx.isFounder || mine ? ((ctx.coll.review.map[uid] || {}).weeks || {})[weekId] : null;
     const isOwnFounderCard = ctx.isFounder && uid === ctx.uid;
     const [marks, setMarks] = useState(() => ({...((rev && rev.marks) || {})}));
     const [quality, setQuality] = useState(() => (rev && rev.quality != null ? String(rev.quality) : ''));
@@ -20925,6 +21103,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${ctx.isFounder
             ? html`<${UI.Seg} sm=${true} options=${MARKS} value=${marks[it.id] || ''}
                 onChange=${v => setMarks(m => ({...m, [it.id]: v}))} ariaLabel="Mark"/>`
+            : !mine ? null
             : ((rev && rev.marks && rev.marks[it.id])
               ? html`<${UI.Pill} kind=${MARK_PILL[rev.marks[it.id]]}>${rev.marks[it.id]}<//>`
               : html`<${UI.Pill}>open<//>`)}
@@ -21261,6 +21440,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   M.music = {
     embedOf,
+    listOf: d => listOf(d),
     play(item) { if (now && now.kind === 'sdk' && item && item.kind !== 'sdk' && M.spotify) M.spotify.ctl.stop(); now = item; open = true; emit(); },
     stop() { if (now && now.kind === 'sdk' && M.spotify) M.spotify.ctl.stop(); now = null; emit(); },
     toggle() { open = !open; emit(); },
@@ -21268,11 +21448,28 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     on: f => { subs.add(f); return () => subs.delete(f); }
   };
 
+  /* v39: picks live in a map keyed by id (picks.<id>), so two people adding at once both land; a removed
+     pick keeps its id with gone set. The older items list is still read, oldest first */
+  const KEEP = 200;
+  function listOf(data) {
+    const d = data || {};
+    const legacy = Array.isArray(d.items) ? d.items.filter(x => x && x.id) : [];
+    const picks = d.picks && typeof d.picks === 'object' ? Object.keys(d.picks).map(id => ({...d.picks[id], id})) : [];
+    const gone = new Set(picks.filter(p => p.gone).map(p => p.id));
+    const seen = new Set();
+    const out = [];
+    for (const it of legacy.concat(picks.filter(p => !p.gone && p.url).sort((a, b) => (a.at || 0) - (b.at || 0)))) {
+      if (gone.has(it.id) || seen.has(it.id)) continue;
+      seen.add(it.id); out.push(it);
+    }
+    return out.slice(-KEEP);
+  }
+
   /* ---------- the page: the team's list ---------- */
   function Music() {
     const ctx = M.useCtx();
     const doc = M.useDoc(ctx.db, DOC);
-    const items = (doc.data && Array.isArray(doc.data.items)) ? doc.data.items : [];
+    const items = listOf(doc.data);
     const [link, setLink] = useState('');
     const [title, setTitle] = useState('');
     const [st, setSt] = useState(M.music.state());
@@ -21284,10 +21481,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const e = embedOf(link);
       if (!e) { M.toast('Paste a Spotify, Apple Music, YouTube or SoundCloud link', true); return; }
       const item = {id: U.uid(), title: (title.trim() || (e.kind + ' ' + e.label)).slice(0, 80), url: link.trim(), kind: e.kind, embed: e.embed, by: ctx.uid, at: Date.now()};
-      try { await ctx.W.merge(DOC, {items: items.concat([item]).slice(-200), updated: Date.now()}); } catch (e) { return; }
+      try { await ctx.W.merge(DOC, {picks: {[item.id]: item}, updated: Date.now()}); } catch (e) { return; }
       setLink(''); setTitle(''); M.toast('Added to the team list');
     };
-    const remove = async it => { await ctx.W.merge(DOC, {items: items.filter(x => x.id !== it.id), updated: Date.now()}).catch(() => {}); };
+    const remove = async it => { await ctx.W.merge(DOC, {picks: {[it.id]: {gone: Date.now(), by: it.by}}, updated: Date.now()}).catch(() => {}); };
     const kindPill = k => html`<${UI.Pill} kind=${k === 'spotify' ? 'ink' : 'warm'}>${k}<//>`;
     return html`<div class="stack" style=${{gap: '14px'}}>
       ${M.parts.SpotifyCard ? html`<${M.parts.SpotifyCard}/>` : null}
@@ -21306,7 +21503,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
               <div style=${{minWidth: 0}}><div class="music-title">${it.title}</div><div class="tiny ink62">${kindPill(it.kind)} <${UI.Name} id=${it.by}/> · ${U.timeAgo(it.at)}</div></div>
               <span class="row nowrap" style=${{gap: '4px'}}>
                 <${UI.Btn} sm=${true} onClick=${() => { if (!(M.spotify && M.spotify.tryPlay(ctx, it))) M.music.play(it); }}>${st.now && (st.now.id === it.id || (st.now.kind === 'sdk' && M.spotify && st.now.id === 'sdk:' + M.spotify.uriOf(it.url))) ? 'Playing' : 'Play'}<//>
-                ${it.by === ctx.uid || ctx.isFounder ? html`<button type="button" class="iconbtn" aria-label="Remove" onClick=${() => remove(it)}><${icons.x}/></button>` : null}
+                ${it.by === ctx.uid || ctx.isFounder ? html`<${UI.ConfirmBtn} label="Tap again" onConfirm=${() => remove(it)}>Remove<//>` : null}
               </span>
             </div>
           </div>`)}
@@ -21384,6 +21581,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     leave: {label: 'On leave', kind: 'warm'},
     none: {label: 'Not in yet', kind: undefined}
   };
+  /* v39: the status a person set on Home today ("On a shoot"), shown by their name; '' when none */
+  function said(ctx, uid) {
+    try { const st = M.home && M.home.status ? M.home.status(ctx, uid) : null; return st ? String(st.text) : ''; } catch (e) { return ''; }
+  }
   /* today's status pill. M.att may load later or never, so the checkin document is the fallback. */
   function statusOf(ctx, uid, ymd) {
     let s = null;
@@ -21523,6 +21724,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
                 <${UI.Avatar} id=${m.uid} size=${40}/>
                 <div class="grow">
                   <div class="row between nowrap"><b class="grow">${nameIn(names, m.uid)}</b><${UI.Pill} kind=${st.kind}>${st.label}<//></div>
+                  ${said(ctx, m.uid) ? html`<div class="small person-status">${said(ctx, m.uid)}</div>` : null}
                   <div class="tiny num sub">${m.empId || ''}</div>
                   ${line ? html`<div class="small sub">${line}</div>` : null}
                   ${city ? html`<div class="tiny sub person-city">${city}</div>` : null}
@@ -22008,6 +22210,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
               ${inactive ? html`<${UI.Pill} kind="warm">off the roster<//>` : html`<${UI.Pill} kind=${st.kind}>${st.label}<//>`}
               ${!inactive && isNewHire(ctx, uid) ? html`<${M.fx.MetalBadge} className="fit">new hire<//>` : null}
             </div>
+            ${!inactive && said(ctx, uid) ? html`<div class="small person-status" id="person-status">${said(ctx, uid)}</div>` : null}
             <div class="small sub"><span class="num">${m.empId || ''}</span>${line ? (m.empId ? ' · ' : '') + line : ''}</div>
             <div class="small sub">${okDate(m.joined) ? 'Joined ' + U.fmtDate(m.joined) : 'Joined date missing'}${city ? html`<span> · <span id="person-city">${city}</span></span>` : null}</div>
             ${mgr || reps.length ? html`<div class="small sub" id="person-reports">${mgr ? html`reports to <${UI.Name} id=${mgr}/>` : null}${mgr && reps.length ? ' · ' : ''}${reps.length ? html`${reps.length === 1 ? 'one report: ' : reps.length + ' reports: '}${reps.map((r, i) => html`<${React.Fragment} key=${r}><${UI.Name} id=${r}/>${i < reps.length - 1 ? ', ' : ''}<//>`)}` : null}</div>` : null}
@@ -24042,6 +24245,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     for (let i = 0; i < 5; i++) { if (out[i] !== 2 && left[guess[i]]) { out[i] = 1; left[guess[i]]--; } }
     return out.join('');
   }
+  /* v39: a guess has to read like a word: one from the list, or one with a vowel, no letter three times
+     running and no four consonants running (angst and schwa excepted). A mashed key never costs a try */
+  const ODD_OK = ['angst', 'schwa'];
+  const wordish = g => WORDS.includes(g) || ODD_OK.includes(g) || (/[aeiouy]/.test(g) && !/(.)\1\1/.test(g) && !/[bcdfghjklmnpqrstvwxz]{4}/.test(g));
   const myResult = (ctx, uid, ymd) => (((M.play.docOf(ctx, uid) || {}).days || {})[ymd || today()] || {}).five || null;
   /* who has played today: tries per person, for the distribution */
   const teamToday = ctx => ctx.activeMembers.map(m => ({uid: m.uid, r: myResult(ctx, m.uid)})).filter(x => x.r);
@@ -24076,6 +24283,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const submit = () => {
       if (over || busy) return;
       if (cur.length !== 5) { setShake(true); setTimeout(() => setShake(false), 400); M.sound.play('tick'); return; }
+      if (!wordish(cur)) { setShake(true); setTimeout(() => setShake(false), 400); M.sound.play('tick'); M.toast('Not a word. That try is still yours.'); return; }
       const start = Number(M.prefs.get('five:start:' + td, '0')) || Date.now();
       if (!guesses.length) M.prefs.set('five:start:' + td, String(start));
       const next = guesses.concat(cur);
@@ -24158,7 +24366,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   M.parts.Daily = Five;
-  M.play.five = {WORDS, TRIES, wordFor, score, myResult, teamToday};
+  M.play.five = {WORDS, TRIES, wordFor, score, myResult, teamToday, wordish};
   M.play.puzzleFor = ymd => ({kind: 'five', word: wordFor(ymd)});
   M.play.kindFor = () => 'five';
 })();
@@ -24421,6 +24629,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return null;
   }
 
+  /* v39: the name box keeps its own draft while you type and saves once, on blur or Enter; a save per
+     keystroke from an old copy used to land out of order and snap the box back mid word */
+  function NameBox({value, onSave}) {
+    const [draft, setDraft] = useState(value);
+    const [focus, setFocus] = useState(false);
+    useEffect(() => { if (!focus) setDraft(value); }, [value, focus]);
+    const commit = () => { const v = String(draft || '').trim(); if (v && v !== value) onSave(v); else setDraft(value); };
+    return html`<input class="input" style=${{width: '150px', minHeight: '34px'}} value=${draft} aria-label="Reminder name" maxLength=${40}
+      onFocus=${() => setFocus(true)} onInput=${e => setDraft(e.target.value)} onBlur=${() => { setFocus(false); commit(); }}
+      onKeyDown=${e => { if (e.key === 'Enter') e.target.blur(); }}/>`;
+  }
+
   function Care() {
     const ctx = M.useCtx();
     const doc = M.useDoc(ctx.db, path(ctx));
@@ -24457,7 +24677,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return html`<div class="stack" style=${{gap: '16px'}} id="break-care">
       <${UI.Card} id="care-today" title=${title} action=${html`<span class="tiny ink62 num" data-tick=${tick}>${on ? done + ' of ' + on + ' done' : ''}</span>`}>
         ${!list.length ? html`<div class="stack tight">
-          <div class="small">Nothing set yet. The usual five take one tap, then change the times to yours.</div>
+          <div class="small">Nothing set yet. The usual six take one tap, then change the times to yours.</div>
           <div><${UI.Btn} sm=${true} id="care-usual" onClick=${usual}>Add the usual<//></div>
         </div>` : html`<div class="stack tight">
           ${live.map(r => fx && r.it.id === firstDue ? html`<${fx.Beam} key=${r.it.id} radius=${14}><div class="fx-care-due">${row(r)}</div><//>` : row(r))}
@@ -24467,7 +24687,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       <${UI.Card} id="care-setup" title="The reminders">
         <div class="stack tight">
           ${list.map(it => html`<div key=${it.id} class="row between">
-            <span class="row nowrap"><input class="input" style=${{width: '150px', minHeight: '34px'}} value=${it.label} aria-label="Reminder name" onChange=${e => save(ctx, doc.data, list.map(x => x.id === it.id ? {...x, label: e.target.value} : x))}/>
+            <span class="row nowrap"><${NameBox} value=${it.label} onSave=${v => save(ctx, doc.data, items(doc.data).map(x => x.id === it.id ? {...x, label: v} : x))}/>
               <input class="input num" type="time" style=${{width: '110px', minHeight: '34px'}} value=${it.time} aria-label="Reminder time" onChange=${e => { if (okTime(e.target.value)) save(ctx, doc.data, list.map(x => x.id === it.id ? {...x, time: e.target.value} : x)); }}/></span>
             <span class="row nowrap" style=${{gap: '8px'}}>
               ${fx ? html`<${fx.Bell} size="sm" badge=${false} label=${it.label + ' on or off'} offLabel="Silent" onLabel="Rings" pressed=${it.on !== false} onChange=${v => save(ctx, doc.data, list.map(x => x.id === it.id ? {...x, on: !!v} : x))}/>`
@@ -24480,7 +24700,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
             <input class="input num" id="care-time" type="time" style=${{width: '120px'}} value=${time} aria-label="New reminder time" onInput=${e => setTime(e.target.value)}/>
             <${UI.Btn} sm=${true} id="care-add" onClick=${add}>Add<//>
           </div>
-          ${list.length && USUAL.some(([l, t]) => !list.some(x => x.label === l && x.time === t)) ? html`<button type="button" class="linky tiny" style=${{alignSelf: 'flex-start'}} onClick=${usual}>Add the usual five</button>` : null}
+          ${list.length && USUAL.some(([l, t]) => !list.some(x => x.label === l && x.time === t)) ? html`<button type="button" class="linky tiny" style=${{alignSelf: 'flex-start'}} onClick=${usual}>Add the usual six</button>` : null}
         </div>
       <//>
       <div class="hint">Yours alone: nobody else sees the list. A day with every reminder done earns five sparks.</div>
@@ -24791,7 +25011,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   function stats(ctx, period) {
     const p = PERIODS.find(x => x.k === period) || PERIODS[0];
-    const to = U.todayStr(), from = U.ymd(U.addDays(new Date(), -(p.days - 1)));
+    const to = U.todayStr(), start = U.ymd(U.addDays(new Date(), -(p.days - 1)));
+    /* v39: the period starts on the day you joined when that is later */
+    const joined = String(((ctx.members || {})[ctx.uid] || {}).joined || '');
+    const from = /^\d{4}-\d{2}-\d{2}$/.test(joined) && joined > start && joined <= to ? joined : start;
     const inRange = ts => { const d = U.ymd(new Date(ts)); return d >= from && d <= to; };
     const uid = ctx.uid;
     const tasks = Object.keys(ctx.coll.tasks.map).map(id => ({id, ...ctx.coll.tasks.map[id]})).filter(t => t && t.owner === uid);
@@ -24811,7 +25034,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const eods = Object.keys((ctx.coll.eod.map[uid] || {}).days || {}).filter(d => d >= from && d <= to).length;
     let working = 0; for (let d = U.parseYmd(from); U.ymd(d) <= to; d = U.addDays(d, 1)) if (ctx.isWorkingDay ? ctx.isWorkingDay(U.ymd(d), uid) : d.getDay() !== 0) working++;
     const weeks = (ctx.coll.review.map[uid] || {}).weeks || {};
-    let hit = 0, miss = 0; Object.keys(weeks).forEach(w => { const mk = (weeks[w] || {}).marks || {}; Object.values(mk).forEach(v => { if (v === 'hit') hit++; else if (v === 'miss') miss++; }); });
+    /* v39: outcomes from the weeks in the period only */
+    const firstWeek = U.ymd(U.mondayOf(U.parseYmd(from)));
+    const inWeeks = w => { try { const d = U.ymd(U.mondayOfWeekId(w)); return d >= firstWeek && d <= to; } catch (e) { return false; } };
+    let hit = 0, miss = 0; Object.keys(weeks).filter(inWeeks).forEach(w => { const mk = (weeks[w] || {}).marks || {}; Object.values(mk).forEach(v => { if (v === 'hit') hit++; else if (v === 'miss') miss++; }); });
     const pts = M.points && M.points.pointsFor ? M.points.pointsFor(ctx, uid, from, to) : null;
     const checkins = Object.keys((ctx.coll.checkin.map[uid] || {}).days || {}).filter(d => d >= from && d <= to).length;
     const play = (M.play ? M.play.docOf(ctx) : {}) || {};
@@ -24866,11 +25092,19 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     useEffect(() => { M.ai.names(ctx).then(nm => setFirst(String(nm[ctx.uid] || '').split(' ')[0] || 'you')).catch(() => setFirst('you')); }, [ctx.uid]);
     const write = () => r.run(o => M.ai.text(ctx, narrativePrompt(s, first || 'this person'), {signal: o.signal, onText: o.onText, tier: 'quick', cache: false}).then(t => { const text = String(t || '').replace(/\u2014|\u2013/g, ', ').replace(/!/g, '.'); M.ai.saveCache(ctx, 'reflect', {...((cache.data || {}).reflect || {}), [period]: {text, date: U.todayStr()}}); return text; }));
     const text = r.text || fresh || '';
+    /* v39: one post per line: the button holds while it posts and stays done for a line already shared */
+    const [sharing, setSharing] = useState(false);
+    const [sharedLine, setSharedLine] = useState('');
+    const sharingRef = React.useRef(false);
+    const line = (text || fallback(s, first)).split(/(?<=\.)\s/)[0];
+    const shareKey = period + '|' + line;
     const share = () => {
-      const line = (text || fallback(s, first)).split(/(?<=\.)\s/)[0];
+      if (sharingRef.current || sharedLine === shareKey) return;
+      sharingRef.current = true; setSharing(true);
       const id = U.uid();
       const mine = ctx.coll.feed.map[ctx.uid] || {};
-      ctx.W.merge('feed/' + ctx.uid, {posts: [{id, kind: 'win', text: s.era.title + ': ' + line, at: Date.now()}].concat(U.clone(mine.posts || [])).slice(0, 80), pinned: mine.pinned || null}).then(() => M.toast('Posted to Vibe')).catch(() => {});
+      ctx.W.merge('feed/' + ctx.uid, {posts: [{id, kind: 'win', text: s.era.title + ': ' + line, at: Date.now()}].concat(U.clone(mine.posts || [])).slice(0, 80), pinned: mine.pinned || null}).then(() => { M.toast('Posted to Vibe'); setSharedLine(shareKey); })
+        .catch(() => {}).then(() => { sharingRef.current = false; setSharing(false); });
     };
     const tile = (v, l) => html`<div class="brk-tile-stat"><b class="num">${v}</b><span class="tiny ink62">${l}</span></div>`;
     return html`<div class="stack" style=${{gap: '16px'}} id="break-reflect">
@@ -24887,7 +25121,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         ${text ? html`<${M.AIText} text=${text}/>` : html`<div class="small">${fallback(s, first || 'Hey')}</div>`}
         <div class="row" style=${{gap: '10px', marginTop: '12px', flexWrap: 'wrap'}}>
           ${M.ai.on(ctx) ? html`<${UI.Btn} sm=${true} id="reflect-write" disabled=${r.state === 'thinking' || r.state === 'streaming'} onClick=${write}>${r.state === 'thinking' || r.state === 'streaming' ? 'Writing' : text ? 'Write it again' : 'Write it for me'}<//>` : null}
-          <${UI.Btn} sm=${true} kind="sec" id="reflect-share" onClick=${share}>Share one line to Vibe<//>
+          <${UI.Btn} sm=${true} kind="sec" id="reflect-share" disabled=${sharing || sharedLine === shareKey} onClick=${share}>${sharing ? 'Posting' : sharedLine === shareKey ? 'Shared to Vibe' : 'Share one line to Vibe'}<//>
           ${r.state === 'error' ? html`<span class="tiny flame-t">${M.ai.errLine(r.err, r.why)}</span>` : null}
         </div>
       <//>
@@ -25230,6 +25464,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     {v: 'keeper', label: 'Keeper test'}, {v: 'leave', label: 'Leave'},
     {v: 'export', label: 'Export'}, {v: 'cleanup', label: 'Cleanup'}];
   const ROLES = [{v: 'member', label: 'Member'}, {v: 'lead', label: 'Pod lead'}, {v: 'founder', label: 'Full access'}];
+  /* v39: the roster pill uses the drawer's words, so 'founder' reads full access */
+  const roleWord = v => ((ROLES.find(x => x.v === v) || {label: v || 'member'}).label).toLowerCase();
   const YN = [{v: 'yes', label: 'Yes'}, {v: 'no', label: 'No'}];
   const KEEPER_LINE = 'A no ends it quickly. Documented, paid in full, neutral relieving letter.';
   const THRESHOLDS = [
@@ -25254,7 +25490,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   };
 
   /* ---------- roster ---------- */
-  function AddDrawer({person, member, onClose, title, onSaved}) {
+  function AddDrawer({person, member, onClose, title, onSaved, join}) {
     const ctx = M.useCtx();
     const [f, setF] = useState(() => ({
       title: (member && member.title) || title || '', pod: (member && member.pod) || '',
@@ -25277,13 +25513,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const patch = {members: {[person.id]: body}, updated: Date.now()};
       if (!existing) patch.nextEmp = (roster.nextEmp || 2) + 1;
       await ctx.W.merge('roster/team', patch);
-      M.toast(existing ? 'Saved' : 'Added, ' + empId);
+      M.toast(existing ? (join ? 'Back on the team' : 'Saved') : 'Added, ' + empId);
       if (onSaved) await onSaved(person.id);
       onClose();
     }
     const self = person.id === ctx.uid;
-    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${member ? 'Edit person' : 'Let them in'}
-      footer=${html`<${UI.Btn} onClick=${save}>${member ? 'Save' : 'Add to the team'}<//>`}>
+    return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${member && !join ? 'Edit person' : 'Let them in'}
+      footer=${html`<${UI.Btn} onClick=${save}>${member && !join ? 'Save' : 'Add to the team'}<//>`}>
       <div class="row"><${UI.Avatar} id=${person.id} size=${34}/>
         <span style=${{fontWeight: 500}}>${person.name || html`<${UI.Name} id=${person.id}/>`}</span></div>
       <${UI.Input} id="desk-title" label="title" value=${f.title} onChange=${v => set('title', v)}/>
@@ -25326,8 +25562,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const setActive = (uid, active) => ctx.W.merge('roster/team', {members: {[uid]: {active}}, updated: Date.now()})
       .then(() => M.toast(active ? 'Restored' : 'Removed'));
 
+    /* v39: someone removed who asks back opens on their old record, so title, pod, role and joined stay */
     return html`<div class="stack" style=${{gap: '18px'}}>
-      ${M.parts.JoinRequests ? html`<${M.parts.JoinRequests} onApprove=${r => setAdd({person: {id: r.uid, name: ''}, member: null, title: r.title, join: true})}/>` : null}
+      ${M.parts.JoinRequests ? html`<${M.parts.JoinRequests} onApprove=${r => setAdd({person: {id: r.uid, name: ''}, member: members[r.uid] ? {uid: r.uid, ...members[r.uid]} : null, title: r.title, join: true})}/>` : null}
       ${M.parts.InviteByEmail ? html`<${M.parts.InviteByEmail}/>` : null}
       ${M.parts.InviteCard ? html`<${M.parts.InviteCard} open=${onlyFounder && !M.parts.InviteByEmail}/>` : null}
 
@@ -25353,9 +25590,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
             ${rows.map(r => html`<tr key=${r.uid}>
               <td class="lead"><span class="row nowrap"><${UI.Avatar} id=${r.uid} size=${24}/><${UI.Name} id=${r.uid}/><span class="num tiny ink62">${r.empId}</span>${isNew(r) && M.fx ? html`<${M.fx.MetalBadge}>new hire<//>` : null}</span></td>
               <td>${r.title || ''}</td><td>${r.pod || ''}</td>
-              <td><${UI.Pill}>${r.role}<//></td>
+              <td><${UI.Pill}>${roleWord(r.role)}<//></td>
               <td>${r.active === false ? html`<${UI.Pill} kind="warm">inactive<//>` : html`<${UI.Pill} kind="ink">active<//>`}</td>
-              <td><span class="row nowrap">
+              <td><span class="row" style=${{gap: '6px'}}>
                 <${UI.Btn} kind="ghost" sm=${true} onClick=${() => setAdd({person: {id: r.uid, name: ''}, member: r})}>Edit<//>
                 ${M.parts.LinkDrawer ? html`<${UI.Btn} kind="ghost" sm=${true} onClick=${() => setLinkFor(r.uid)}>Sign-in link<//>` : null}
                 ${window.M360_STANDALONE && M.parts.MemberDevices ? html`<${M.parts.MemberDevices} uid=${r.uid}/>` : null}
@@ -25368,7 +25605,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </table></div>
       <//>
       ${linkFor && M.parts.LinkDrawer ? html`<${M.parts.LinkDrawer} uid=${linkFor} onClose=${() => setLinkFor(null)}/>` : null}
-      ${add ? html`<${AddDrawer} person=${add.person} member=${add.member} title=${add.title}
+      ${add ? html`<${AddDrawer} person=${add.person} member=${add.member} title=${add.title} join=${!!add.join}
         onSaved=${add.join ? (id => M.team.clear(ctx, id)) : null} onClose=${() => setAdd(null)}/>` : null}
     </div>`;
   }
@@ -25409,18 +25646,47 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     </div>`;
   }
 
+  /* the settings form's fields, read from the saved settings */
+  const formOf = s => ({
+    lat: s.office ? String(s.office.lat) : '', lng: s.office ? String(s.office.lng) : '',
+    label: s.office ? s.office.label : '', radius: s.office ? String(s.office.radius || 200) : '200',
+    start: s.start, grace: String(s.grace), eodCut: s.eodCut, mondayCut: s.mondayCut,
+    wfhCap: String(s.wfhCap), revCap: String(s.revCap), ackHours: String(s.ackHours), blockerDays: String(s.blockerDays),
+    holidays: (s.holidays || []).slice(), rules: {...s.rules}, points: {...s.points},
+    leaderboardIncludesFounder: !!s.leaderboardIncludesFounder, signoff: s.signoff === false ? 'no' : 'yes',
+    quietMins: String(Number(s.quietMins) || 120), lunchFrom: s.lunchFrom || '', lunchTo: s.lunchTo || ''
+  });
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  /* v39: a newer save by someone else lands in every field this person has not touched (rules and points key by
+     key, holidays as their adds and removes), so the open form always shows what is saved underneath */
+  function rebase(cur, was, now) {
+    const out = {...cur};
+    for (const k of Object.keys(now)) {
+      if (k === 'rules' || k === 'points') {
+        const m = {...now[k]};
+        for (const id of Object.keys(cur[k] || {})) if (!same(cur[k][id], (was[k] || {})[id])) m[id] = cur[k][id];
+        out[k] = m;
+      } else if (k === 'holidays') {
+        const added = cur.holidays.filter(d => was.holidays.indexOf(d) < 0), gone = was.holidays.filter(d => cur.holidays.indexOf(d) < 0);
+        out.holidays = now.holidays.filter(d => gone.indexOf(d) < 0).concat(added.filter(d => now.holidays.indexOf(d) < 0)).sort();
+      } else if (same(cur[k], was[k])) out[k] = now[k];
+    }
+    return out;
+  }
+
   function Settings() {
     const ctx = M.useCtx();
     const s = ctx.settings;
-    const [f, setF] = useState(() => ({
-      lat: s.office ? String(s.office.lat) : '', lng: s.office ? String(s.office.lng) : '',
-      label: s.office ? s.office.label : '', radius: s.office ? String(s.office.radius || 200) : '200',
-      start: s.start, grace: String(s.grace), eodCut: s.eodCut, mondayCut: s.mondayCut,
-      wfhCap: String(s.wfhCap), revCap: String(s.revCap), ackHours: String(s.ackHours), blockerDays: String(s.blockerDays),
-      holidays: (s.holidays || []).slice(), rules: {...s.rules}, points: {...s.points},
-      leaderboardIncludesFounder: !!s.leaderboardIncludesFounder, signoff: s.signoff === false ? 'no' : 'yes', newHoliday: '',
-      quietMins: String(Number(s.quietMins) || 120), lunchFrom: s.lunchFrom || '', lunchTo: s.lunchTo || ''
-    }));
+    /* base: the saved settings the form last read; save sends only what differs from it */
+    const [base, setBase] = useState(() => formOf(s));
+    const [f, setF] = useState(() => ({...formOf(s), newHoliday: ''}));
+    const savedKey = JSON.stringify(formOf(s));
+    useEffect(() => {
+      const now = formOf(s);
+      if (same(now, base)) return;
+      setF(cur => ({...rebase(cur, base, now), newHoliday: cur.newHoliday}));
+      setBase(now);
+    }, [savedKey]);
     const set = (k, v) => setF(x => ({...x, [k]: v}));
     const names = (M.rules && M.rules.NAMES) || {};
     const quietMins = Math.max(30, Math.min(480, Math.round(Number(f.quietMins) || 120)));
@@ -25433,23 +25699,38 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setF(x => ({...x, lat: String(loc.lat), lng: String(loc.lng)}));
       M.toast('Office set');
     }
+    /* the document a form saves as */
+    const bodyOf = x => {
+      const office = (x.lat !== '' && x.lng !== '')
+        ? {lat: Number(x.lat), lng: Number(x.lng), radius: Number(x.radius) || 200, label: x.label || 'Office'}
+        : null;
+      const points = {};
+      Object.keys(x.points).forEach(k => { points[k] = Number(x.points[k]) || 0; });
+      return {
+        office, start: String(x.start || '').trim(), grace: Number(x.grace) || 0, eodCut: String(x.eodCut || '').trim(), mondayCut: String(x.mondayCut || '').trim(),
+        wfhCap: Number(x.wfhCap) || 0, revCap: Number(x.revCap) || 0, ackHours: Number(x.ackHours) || 0,
+        blockerDays: Number(x.blockerDays) || 0, holidays: x.holidays, rules: x.rules, points,
+        leaderboardIncludesFounder: x.leaderboardIncludesFounder, signoff: x.signoff !== 'no',
+        quietMins: Math.max(30, Math.min(480, Math.round(Number(x.quietMins) || 120))),
+        lunchFrom: String(x.lunchFrom || '').trim(), lunchTo: String(x.lunchTo || '').trim()
+      };
+    };
     async function save() {
       /* lunch is both times or neither; empty means no lunch hour */
       const lunchFrom = String(f.lunchFrom || '').trim(), lunchTo = String(f.lunchTo || '').trim();
       if (!!lunchFrom !== !!lunchTo || (lunchFrom && !(HHMM.test(lunchFrom) && HHMM.test(lunchTo)))) return M.toast('Set both lunch times, or clear both for no lunch hour', true);
       if (lunchFrom && U.minutes(lunchTo) <= U.minutes(lunchFrom)) return M.toast('Lunch has to end after it starts', true);
-      const office = (f.lat !== '' && f.lng !== '')
-        ? {lat: Number(f.lat), lng: Number(f.lng), radius: Number(f.radius) || 200, label: f.label || 'Office'}
-        : null;
-      const points = {};
-      Object.keys(f.points).forEach(k => { points[k] = Number(f.points[k]) || 0; });
-      await ctx.W.merge('settings/app', {
-        office, start: f.start, grace: Number(f.grace) || 0, eodCut: f.eodCut, mondayCut: f.mondayCut,
-        wfhCap: Number(f.wfhCap) || 0, revCap: Number(f.revCap) || 0, ackHours: Number(f.ackHours) || 0,
-        blockerDays: Number(f.blockerDays) || 0, holidays: f.holidays, rules: f.rules, points,
-        leaderboardIncludesFounder: f.leaderboardIncludesFounder, signoff: f.signoff !== 'no',
-        quietMins, lunchFrom, lunchTo, updated: Date.now()
-      });
+      /* v39: lateness, the EOD cut and Monday's cut are worked out from these times, so each needs one */
+      for (const t of [{k: 'start', label: 'Start time'}, {k: 'eodCut', label: 'EOD cutoff'}, {k: 'mondayCut', label: 'Monday cutoff'}]) {
+        const v = String(f[t.k] || '').trim();
+        if (!HHMM.test(v) || Number(v.split(':')[0]) > 23 || Number(v.split(':')[1]) > 59) return M.toast(t.label + ' needs a time, like 10:30', true);
+      }
+      /* v39: only what this person changed goes out, so a newer save by someone else stays */
+      const was = bodyOf(base), next = bodyOf(f);
+      const patch = U.changes(was, next);
+      for (const k of ['rules', 'points']) if (patch[k]) patch[k] = U.changes(was[k], next[k]);
+      if (!Object.keys(patch).length) return M.toast('Nothing to save');
+      await ctx.W.merge('settings/app', {...patch, updated: Date.now()});
       M.toast('Settings saved');
     }
 
@@ -25529,7 +25810,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       <//>
 
       <${UI.Card} title="Characters" id="settings-characters">
-        <div class="small ink62">Everyone styles their own character under Me, Character. You can restyle or lock anyone's look under Admin, Characters.</div>
+        <div class="small ink62">Everyone styles their own character under Me, Character. ${ctx.isOwner ? 'You can restyle or lock anyone\'s look under Admin, Characters.' : 'Kaavish can restyle or lock a look under Admin, Characters.'}</div>
         <div class="row" style=${{marginTop: '10px', gap: '8px'}}>
           <${UI.Btn} kind="sec" sm=${true} onClick=${() => M.nav('#character')}>Style your character<//>
           <${UI.Btn} kind="ghost" sm=${true} onClick=${() => M.nav('#office')}>Open the office<//>
@@ -25594,12 +25875,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       try {
         const [y, mm] = month.split('-').map(Number);
         const first = new Date(y, mm - 1, 1), last = new Date(y, mm, 0);
-        const uids = ctx.activeMembers.map(m => m.uid);
+        /* v39: someone who left during or after this month is in it, up to their last day, for their final pay */
+        const firstYmd = U.ymd(first), all = ctx.members || {};
+        const people = Object.keys(all).map(uid => ({uid, ...all[uid]}))
+          .filter(m => m.active !== false || (m.left && m.left >= firstYmd))
+          .sort((a, b) => String(a.empId || '').localeCompare(String(b.empId || '')));
+        const uids = people.map(m => m.uid);
         const profs = (ctx.user && ctx.user.profiles) ? await ctx.user.profiles(uids) : {};
         const lines = [COLS.map(csvCell).join(',')];
         for (let d = new Date(first); d <= last; d = U.addDays(d, 1)) {
           const date = U.ymd(d);
-          for (const m of ctx.activeMembers) {
+          for (const m of people) {
+            if (m.active === false && date > m.left) continue;
             const a = (M.att && M.att.dayStatus) ? M.att.dayStatus(ctx, m.uid, date) : {status: 'none'};
             const prob = m.probationEnd && m.probationEnd >= date;
             lines.push([
@@ -25646,17 +25933,21 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       for (const id of ids) await ctx.W.del(coll + '/' + id);
       M.toast('Deleted ' + ids.length + (ids.length === 1 ? ' document' : ' documents'));
     };
+    /* v39: nothing to delete leaves the button greyed out */
+    const del = (coll, ids) => ids.length
+      ? html`<${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe(coll, ids)}>Delete<//>`
+      : html`<${UI.Btn} kind="sec" sm=${true} disabled=${true}>Delete<//>`;
 
     return html`<${UI.Card} title="Cleanup">
       <p class="small ink62" style=${{marginTop: 0}}>
         <span class="num">${count}</span> of 5,000 documents.</p>
       <div class="stack tight">
         <div class="listrow"><span class="grow">Done tasks older than 60 days <span class="num ink62">${oldTasks.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('tasks', oldTasks)}>Delete<//></div>
+          ${del('tasks', oldTasks)}</div>
         <div class="listrow"><span class="grow">Pulse responses older than 26 weeks <span class="num ink62">${oldPulse.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('pulse', oldPulse)}>Delete<//></div>
+          ${del('pulse', oldPulse)}</div>
         <div class="listrow"><span class="grow">Lost pitches older than 180 days <span class="num ink62">${oldPitches.length}</span></span>
-          <${UI.ConfirmBtn} kind="sec" onConfirm=${() => wipe('pitches', oldPitches)}>Delete<//></div>
+          ${del('pitches', oldPitches)}</div>
       </div>
     <//>`;
   }
@@ -25833,8 +26124,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const s = settings(ctx);
     const head = s.numbering.prefix + '/' + fy + '/' + code + '-';
     let max = 0;
+    /* v39: every invoice with this head counts, wherever it is filed, so one moved to another year keeps its number taken */
     for (const inv of invoices(ctx)) {
-      if (inv.fy !== fy || !String(inv.no || '').startsWith(head)) continue;
+      if (!String(inv.no || '').startsWith(head)) continue;
       const n = Number(String(inv.no).slice(head.length)) || 0;
       if (n > max) max = n;
     }
@@ -25850,6 +26142,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     out.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || (b.at || 0) - (a.at || 0));
     return out;
   };
+  /* v39: the article for a letter kind, "An offer letter", "A relieving letter" */
+  const aOr = w => /^[aeiou]/i.test(String(w || 'letter')) ? 'An' : 'A';
   /* days past due, for aging */
   const ageOf = (inv, today) => inv.due ? U.daysBetween(inv.due, today || U.todayStr()) : 0;
 
@@ -26022,7 +26316,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     for (const i of overdue.slice(0, 6)) calls.push({key: 'inv' + i.id, text: i.no + ', ' + (i.clientName || 'client') + ', ' + money(totals(i).balance, i.currency) + ' due ' + U.fmtDate(i.due) + ', ' + ageOf(i, today) + ' days late', to: '#invoices/' + i.id, hot: true});
     for (const i of list.filter(x => x.auto === 'retainer' && status(x, today) === 'draft').slice(0, 4)) calls.push({key: 'draft' + i.id, text: 'Retainer draft ready: ' + i.no + ', ' + (i.clientName || ''), to: '#invoices/' + i.id});
     const hrMap = (ctx.coll.hr && ctx.coll.hr.map) || {};
-    for (const uid of Object.keys(hrMap)) for (const lid of Object.keys((hrMap[uid] || {}).letters || {})) { const l = hrMap[uid].letters[lid]; if (l && l.status === 'draft') calls.push({key: 'let' + lid, text: 'A ' + (l.kind || 'letter') + ' letter is drafted and not issued', to: '#letters/' + uid}); }
+    for (const uid of Object.keys(hrMap)) for (const lid of Object.keys((hrMap[uid] || {}).letters || {})) { const l = hrMap[uid].letters[lid]; if (l && l.status === 'draft') calls.push({key: 'let' + lid, text: aOr(l.kind) + ' ' + (l.kind || 'letter') + ' letter is drafted and not issued', to: '#letters/' + uid}); }
     const dates = nextDates(ctx, today);
     const fx = list.some(i => i.currency && i.currency !== 'INR' && !num(i.fx));
     return html`<div class="stack" style=${{gap: '18px'}}>
@@ -26176,7 +26470,6 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <//>
         </div>
       </div>
-      <${ClientBilling} id=${id}/>
     </div>`;
   }
 
@@ -26347,7 +26640,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     </div>`;
   }
 
-  M.books = {CUR, CUR_OPTS, num, fmt, money, words, fyOf, fyRange, settings, clientBook, totals, status, STATUS_PILL, STATUS_TEXT, invoices, expenses, nextNumber, codeOf, ageOf, nextDates, print, shrinkImage, deep, blankBilling, draftBilling, cleanBilling};
+  M.books = {CUR, CUR_OPTS, num, fmt, money, words, fyOf, fyRange, settings, clientBook, totals, status, STATUS_PILL, STATUS_TEXT, invoices, expenses, nextNumber, codeOf, aOr, ageOf, nextDates, print, shrinkImage, deep, blankBilling, draftBilling, cleanBilling};
   M.parts.DocFrame = DocFrame;
   M.parts.DocHead = DocHead;
   M.parts.DocSign = DocSign;
@@ -26408,7 +26701,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const s = b.settings(ctx);
     const t = b.totals(inv);
     const who = inv.billTo && inv.billTo.contactName ? inv.billTo.contactName.split(' ')[0] : 'there';
-    const amt = b.money(kind === 'remind' ? t.balance : t.total, inv.currency);
+    /* v39: what the client pays is the total less the TDS they deduct */
+    const amt = b.money(kind === 'remind' ? t.balance : t.total - t.tds, inv.currency);
     const late = inv.due ? b.ageOf(inv, U.todayStr()) : 0;
     const subject = kind === 'remind'
       ? 'Reminder: invoice ' + inv.no + ', ' + amt + (late > 0 ? ', ' + late + ' days past due' : '')
@@ -26419,7 +26713,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       ? ['Hi ' + who + ',', '', 'A gentle reminder that invoice ' + inv.no + ' for ' + amt + ' was due on ' + U.fmtDate(inv.due) + (late > 0 ? ' and is ' + late + ' days past due.' : '.'), 'Could you let us know when it is scheduled for payment? If it has already gone out, please share the reference and we will close it on our side.', '', 'Bank details for the transfer:', ...bank, '', 'Thank you,', s.signatory.who, s.signatory.title, s.company.mail].join('\n')
       : ['Hi ' + who + ',', '', 'Please find invoice ' + inv.no + ' for ' + amt + ', due on ' + U.fmtDate(inv.due) + '.', '', ...lines, '', 'Bank details for the transfer:', ...bank, '', 'The invoice is attached as a page below. Reply here with any question.', '', 'Thank you,', s.signatory.who, s.signatory.title, s.company.mail].join('\n');
     const rows = (inv.lines || []).filter(l => l.desc).map(l => '<tr><td style="padding:6px 8px;border-bottom:1px solid #EFEDE7">' + esc(l.desc) + (l.note ? '<div style="color:#BBBBBB;font-size:12px">' + esc(l.note) + '</div>' : '') + '</td><td style="padding:6px 8px;border-bottom:1px solid #EFEDE7;text-align:right;white-space:nowrap">' + esc(b.money(b.num(l.qty) * b.num(l.rate), inv.currency)) + '</td></tr>').join('');
-    const tot = [['Subtotal', t.sub]].concat(inv.gst === 'intra' ? [['CGST', t.cgst], ['SGST', t.sgst]] : inv.gst === 'inter' ? [['IGST', t.igst]] : []).concat(t.tds ? [['TDS deductible', -t.tds]] : []).concat([['Total due', t.total]]).concat(t.paid ? [['Paid', -t.paid], ['Balance', t.balance]] : []);
+    const tot = [['Subtotal', t.sub]].concat(inv.gst === 'intra' ? [['CGST', t.cgst], ['SGST', t.sgst]] : inv.gst === 'inter' ? [['IGST', t.igst]] : []).concat(t.tds ? [['Invoice total', t.total], ['TDS deductible', -t.tds]] : []).concat([['Total due', t.total - t.tds]]).concat(t.paid ? [['Paid', -t.paid], ['Balance', t.balance]] : []);
     const totHtml = tot.map(([l, v], i) => '<tr><td style="padding:5px 8px;color:' + (i === tot.length - 1 || l === 'Total due' ? '#0E0E0E;font-weight:700' : '#0E0E0E') + '">' + esc(l) + '</td><td style="padding:5px 8px;text-align:right;white-space:nowrap' + (l === 'Total due' ? ';font-weight:700' : '') + '">' + esc(b.money(v, inv.currency)) + '</td></tr>').join('');
     const htmlBody = '<p>' + esc(text.split('\n\n')[0]) + '</p><p>' + esc(text.split('\n\n')[1]) + '</p>' +
       '<table style="width:100%;border-collapse:collapse;font-size:14px;margin:12px 0"><tr><th style="text-align:left;padding:6px 8px;border-bottom:2px solid #0E0E0E">Invoice ' + esc(inv.no) + '</th><th style="text-align:right;padding:6px 8px;border-bottom:2px solid #0E0E0E">' + esc(inv.currency) + '</th></tr>' + rows + '</table>' +
@@ -26485,7 +26779,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <td class="n num">${b.fmt(b.num(l.qty) * b.num(l.rate), inv.currency)}</td>
         </tr>`)}</tbody>
       </table>
-      <div class="doc-words"><span class="doc-micro">Amount in words</span><b>${b.words(t.total, inv.currency)}</b></div>
+      <div class="doc-words"><span class="doc-micro">${t.tds ? 'Invoice total in words' : 'Amount in words'}</span><b>${b.words(t.total, inv.currency)}</b></div>
       <div class="doc-lower">
         <div>
           <div class="doc-block"><div class="doc-micro">Payment terms</div><div class="small">${inv.terms || s.defaults.terms}</div></div>
@@ -26512,8 +26806,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
             ${inv.gst === 'intra' ? html`<div class="doc-total-row"><span>CGST @ ${b.num(inv.gstRate) / 2}%</span><span class="num">${b.money(t.cgst, inv.currency)}</span></div>
               <div class="doc-total-row"><span>SGST @ ${b.num(inv.gstRate) / 2}%</span><span class="num">${b.money(t.sgst, inv.currency)}</span></div>` : null}
             ${inv.gst === 'inter' ? html`<div class="doc-total-row"><span>IGST @ ${b.num(inv.gstRate)}%</span><span class="num">${b.money(t.igst, inv.currency)}</span></div>` : null}
-            ${t.tds ? html`<div class="doc-total-row"><span>TDS deductible${inv.tdsNote ? ' (' + inv.tdsNote + ')' : ''}</span><span class="num">${b.money(t.tds, inv.currency)}</span></div>` : null}
-            <div class="doc-total-row grand"><span>Total due</span><span class="num">${b.money(t.total, inv.currency)}</span></div>
+            ${t.tds ? html`<div class="doc-total-row"><span>Invoice total</span><span class="num">${b.money(t.total, inv.currency)}</span></div>
+              <div class="doc-total-row"><span>Less TDS deductible${inv.tdsNote ? ' (' + inv.tdsNote + ')' : ''}</span><span class="num">${b.money(t.tds, inv.currency)}</span></div>` : null}
+            <div class="doc-total-row grand"><span>Total due</span><span class="num">${b.money(t.total - t.tds, inv.currency)}</span></div>
             ${t.paid ? html`<div class="doc-total-row"><span>Received</span><span class="num">${b.money(t.paid, inv.currency)}</span></div>
               <div class="doc-total-row"><span>Balance</span><span class="num">${b.money(t.balance, inv.currency)}</span></div>` : null}
           </div>
@@ -26530,6 +26825,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const ctx = M.useCtx();
     const b = B();
     const [f, setF] = useState(() => U.clone(inv));
+    const [base] = useState(() => U.clone(inv));   /* the copy the drawer opened on; inv itself follows the store */
     const [busy, setBusy] = useState(false);
     const clients = Object.keys(ctx.coll.clients.map).map(k => ({v: k, label: ctx.coll.clients.map[k].name || k})).sort((x, y) => x.label.localeCompare(y.label));
     const set = (k, v) => setF(x => ({...x, [k]: v}));
@@ -26549,9 +26845,17 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const row = {...f, tds: b.num(f.tds), gstRate: b.num(f.gstRate), fx: f.currency === 'INR' ? '' : (b.num(f.fx) || ''), updatedAt: Date.now()};
       delete row.id; delete row.fy;
       if (andSend && !row.sentAt) { row.sentAt = Date.now(); row.status = 'sent'; }
+      /* v39: an edit saves only the fields this drawer changed, on top of the latest row, so a payment or a
+         reminder recorded elsewhere while the drawer was open stays */
+      const latest = inv.id && inv.fy ? (((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || null) : null;
+      const patch = inv.id ? U.changes(base, row) : row;
       try {
-        if (inv.fy && inv.fy !== fy) await ctx.W.merge('invoices/' + inv.fy, {rows: {[id]: null}, updated: Date.now()});
-        await ctx.W.merge('invoices/' + fy, {rows: {[id]: row}, updated: Date.now()});
+        if (inv.fy && inv.fy !== fy) {
+          const whole = {...U.clone(latest || inv), ...patch};
+          delete whole.id; delete whole.fy;
+          await ctx.W.merge('invoices/' + fy, {rows: {[id]: whole}, updated: Date.now()});
+          await ctx.W.merge('invoices/' + inv.fy, {rows: {[id]: null}, updated: Date.now()});
+        } else await ctx.W.merge('invoices/' + fy, {rows: {[id]: patch}, updated: Date.now()});
         M.toast(andSend ? 'Saved and marked sent' : 'Saved');
         onSaved(id);
       } catch (e) { M.toast('Could not save', true); setBusy(false); }
@@ -26626,7 +26930,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const save = async () => {
       if (!b.num(f.amount) || busy) return;
       setBusy(true);
-      const payments = (inv.payments || []).concat([{at: U.parseYmd(f.date).getTime() + 43200000, amount: b.num(f.amount), ref: f.ref.trim(), note: f.note.trim()}]);
+      /* v39: the payments as they stand now, so one recorded on another device a moment ago stays */
+      const now = ((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || inv;
+      const payments = (now.payments || []).concat([{at: U.parseYmd(f.date).getTime() + 43200000, amount: b.num(f.amount), ref: f.ref.trim(), note: f.note.trim()}]);
       try { await ctx.W.merge('invoices/' + inv.fy, {rows: {[inv.id]: {payments, updatedAt: Date.now()}}, updated: Date.now()}); M.toast('Payment recorded'); onClose(); }
       catch (e) { M.toast('Could not save', true); setBusy(false); }
     };
@@ -26655,7 +26961,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const site = typeof window.M360_API === 'function';
     const mark = async (via) => {
       const patch = {updatedAt: Date.now()};
-      if (kind === 'remind') patch.chased = (inv.chased || []).concat([{at: Date.now(), step: 'hand', via}]);
+      if (kind === 'remind') patch.chased = ((((ctx.coll.invoices.map[inv.fy] || {}).rows || {})[inv.id] || inv).chased || []).concat([{at: Date.now(), step: 'hand', via}]);
       else { patch.sentAt = inv.sentAt || Date.now(); patch.status = 'sent'; patch.sentTo = to; }
       await ctx.W.merge('invoices/' + inv.fy, {rows: {[inv.id]: patch}, updated: Date.now()}).catch(() => {});
     };
@@ -26921,6 +27227,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return best || s.slice(0, 48);
   }
   const vendorKey = v => cleanVendor(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+  /* v39: one bank line, whoever filed it: the narration as the Bank tab keeps it (80 characters), letters and digits only */
+  const narrKey = d => String(d || '').replace(/\s+/g, ' ').slice(0, 80).toLowerCase().replace(/[^a-z0-9]/g, '');
 
   const KEYWORDS = [
     [/google ads|meta ads|facebook ads|adwords|instagram ads|linkedin ads|sponsor|advert|promot/, 'Marketing'],
@@ -27332,6 +27640,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       return m;
     }, [all]);
     const savedKeys = useMemo(() => new Set(all.map(e => e.date + '|' + num(e.amount) + '|' + vendorKey(e.vendor))), [all]);
+    /* v39: lines the Bank tab filed under a party name match here by their narration */
+    const savedNarr = useMemo(() => new Set(all.filter(e => narrKey(e.desc)).map(e => e.date + '|' + num(e.amount) + '|' + narrKey(e.desc))), [all]);
 
     const prepare = async rows => {
       const debits = rows.filter(r => num(r.amount) > 0);
@@ -27339,7 +27649,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       let unknown = [];
       const out = debits.map((r, i) => {
         const vendor = r.vendor || cleanVendor(r.desc) || 'Unknown';
-        const dup = savedKeys.has(r.date + '|' + num(r.amount) + '|' + vendorKey(vendor));
+        const dup = savedKeys.has(r.date + '|' + num(r.amount) + '|' + vendorKey(vendor)) || (!!narrKey(r.desc) && savedNarr.has(r.date + '|' + num(r.amount) + '|' + narrKey(r.desc)));
         let category = known[vendorKey(vendor)] || keywordCat(vendor, r.desc);
         if (!category) { unknown.push(i); category = 'Other'; }
         return {i, date: r.date, vendor, desc: r.desc || '', amount: num(r.amount), method: r.method || guessMethod(r.desc), ref: r.ref || '', category, on: !dup, dup};
@@ -27476,7 +27786,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <${UI.Btn} id="exp-new" onClick=${() => setOpen({})}><${icons.plus}/>New expense<//>
       <//>
       <div class="row between">
-        <${UI.Seg} sm=${true} options=${months.slice(0, 8).map(m => ({v: m, label: monthLabel(m)}))} value=${month} onChange=${setMonth} ariaLabel="Month"/>
+        <div class="row" style=${{gap: '8px'}}>
+          <${UI.Seg} sm=${true} options=${months.slice(0, 8).concat(months.slice(0, 8).includes(month) ? [] : [month]).map(m => ({v: m, label: monthLabel(m)}))} value=${month} onChange=${setMonth} ariaLabel="Month"/>
+          ${months.length > 8 ? html`<select class="input" id="exp-month" style=${{maxWidth: '180px', minHeight: '34px'}} aria-label="Any month" value=${month} onChange=${e => setMonth(e.target.value)}>
+            ${months.map(m => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+          </select>` : null}
+        </div>
         ${ctx.downloads && list.length ? html`<${UI.Btn} kind="sec" sm=${true} id="exp-csv" onClick=${csv}>Download the month<//>` : null}
       </div>
       <${UI.Card} id="exp-list" title=${phone ? undefined : 'The sheet'} action=${phone ? undefined : html`<div class="row" style=${{gap: '8px'}}><span class="tiny ink62">Tab, Enter and the arrows move. Paste rows from Excel or Sheets.</span>${dirtyN ? html`<${UI.Pill} kind="flame-o">${dirtyN} unsaved<//>` : null}</div>`}>
@@ -27500,7 +27815,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   M.expenses = {CATS, METHODS, blank, monthLabel, parseDate, cleanVendor, snapCat, linesFromTable, parseDelimited, sniffDelim, gridOf,
     /* v37: the Bank tab (48-statement.js) reads statements with the same helpers */
-    parseXlsx, amt, vendorKey, keywordCat, guessMethod, toBase64};
+    parseXlsx, amt, vendorKey, narrKey, keywordCat, guessMethod, toBase64};
   M.pages.Expenses = Expenses;
 })();
 
@@ -27601,6 +27916,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (k === 'pf' && p.pf && row.pf === pfOf(s.basic, p)) row.pf = pfOf(row.basic, p);
       if (k === 'esi' && p.esi && row.esi === esiOf(EARN.reduce((t, [e]) => t + num(s[e]), 0), p)) row.esi = esiOf(gross, p);
       if (k === 'pt' && row.pt === PT && isFeb(month)) row.pt = PT_FEB;
+      /* v39: professional tax only on a gross over the limit, and no deduction takes the net below zero */
+      if (k === 'pt' && gross <= PT_LIMIT) row.pt = 0;
+      row[k] = Math.max(0, Math.min(row[k], gross - ded));
       ded += row[k];
     }
     row.gross = gross;
@@ -27824,7 +28142,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const undo = async (uid) => {
       if (busy) return;
       setBusy(true);
-      try { await ctx.W.merge('payroll/' + month, {run: {closed: false, rows: {[uid]: null}}, updated: Date.now()}); M.toast('Undone'); }
+      try {
+        await ctx.W.merge('payroll/' + month, {run: {closed: false, rows: {[uid]: null}}, updated: Date.now()});
+        /* v39: the Salaries expense stands for a closed month; it goes with the reopen and comes back when everyone is paid again */
+        const ex = (((ctx.coll.expenses && ctx.coll.expenses.map[month]) || {}).rows) || {};
+        if (ex['payroll-' + month]) await ctx.W.merge('expenses/' + month, {rows: {['payroll-' + month]: null}, updated: Date.now()});
+        M.toast('Undone');
+      }
       catch (e) { M.toast('Could not save', true); }
       setBusy(false);
     };
@@ -28636,7 +28960,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const hrMap = (ctx.coll.hr && ctx.coll.hr.map) || {};
     for (const uid of Object.keys(hrMap)) for (const lid of Object.keys((hrMap[uid] || {}).letters || {})) {
       const l = hrMap[uid].letters[lid];
-      if (l && l.status === 'draft' && Date.now() - (l.at || 0) > 86400000) push('bklet:' + lid, 'books', l.at || 0, 'A ' + (l.kind || 'letter') + ' letter for ' + ((l.vars && l.vars.who) || 'someone') + ' has waited a day unsigned', '#letters/' + uid.replace(/^cand:/, ''));
+      if (l && l.status === 'draft' && Date.now() - (l.at || 0) > 86400000) push('bklet:' + lid, 'books', l.at || 0, (b.aOr ? b.aOr(l.kind) : 'A') + ' ' + (l.kind || 'letter') + ' letter for ' + ((l.vars && l.vars.who) || 'someone') + ' has waited a day unsigned', '#letters/' + uid.replace(/^cand:/, ''));
     }
     if (today.slice(8) === '01' || today.slice(8) === '02') {
       const d = U.parseYmd(today); d.setDate(0);
@@ -29010,16 +29334,20 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (adding) return;
       setAdding(true);
       const x = X(), b = M.books;
-      const have = new Set(b.expenses(ctx).map(e => e.date + '|' + num(e.amount) + '|' + x.vendorKey(e.vendor)));
+      /* v39: a line from a statement is known by its date, amount and narration, so a renamed party is still the same
+         line; anything typed by hand by its date, amount and payee. Each saved expense stands for one line, so two real
+         lines alike both land */
+      const have = {};
+      const bump = k => { have[k] = (have[k] || 0) + 1; };
+      const take = k => { if (have[k] > 0) { have[k]--; return true; } return false; };
+      for (const e of b.expenses(ctx)) bump(e.source === 'statement' && x.narrKey(e.desc) ? e.date + '|' + num(e.amount) + '|n' + x.narrKey(e.desc) : e.date + '|' + num(e.amount) + '|v' + x.vendorKey(e.vendor));
       const now = Date.now();
       const byMonth = {};
       let n = 0;
       for (const g of outs) {
         if (!counted(g)) continue;
         for (const r of g.rows) {
-          const k = r.date + '|' + r.out + '|' + x.vendorKey(g.label);
-          if (have.has(k)) continue;
-          have.add(k);
+          if ((x.narrKey(r.desc) && take(r.date + '|' + r.out + '|n' + x.narrKey(r.desc))) || take(r.date + '|' + r.out + '|v' + x.vendorKey(g.label))) continue;
           const mid = r.date.slice(0, 7);
           (byMonth[mid] = byMonth[mid] || {})[U.uid()] = {date: r.date, vendor: g.label, category: OUT_CATS.includes(g.cat) ? g.cat : (g.kind === 'salary' ? 'Salaries' : g.kind === 'tax' ? 'Bank and taxes' : 'Other'),
             desc: r.desc, amount: r.out, gstInput: 0, method: x.guessMethod(r.desc), paid: true, recurring: '', receipt: null, source: 'statement', ref: '', at: now, updatedAt: now};
@@ -29512,7 +29840,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 'use strict';
 (function () {
   const {html, React, U, UI} = M;
-  const {useState, useMemo} = React;
+  const {useState, useMemo, useRef} = React;
 
   const SPARK = '✦';
   const MOODS = [{v: 1, t: 'drained'}, {v: 2, t: 'low'}, {v: 3, t: 'okay'}, {v: 4, t: 'good'}, {v: 5, t: 'on fire'}];
@@ -29564,9 +29892,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [busy, setBusy] = useState(false);
     const [pick, setPick] = useState(false);
     const phone = M.usePhone();
-    const cap = Number(ctx.settings.wfhCap) || 0;
+    /* v39: the person's own allowance, and a WFH day approved ahead is today's check-in, as on the check-in card */
+    const cap = M.att && M.att.wfhCapFor ? M.att.wfhCapFor(ctx, ctx.uid) : (Number(ctx.settings.wfhCap) || 0);
     const used = (M.att && M.att.wfhUsed) ? M.att.wfhUsed(ctx, ctx.uid, new Date()) : 0;
-    const wfhFull = used >= cap;
+    const planned = !!(M.att && M.att.plannedWfh && M.att.plannedWfh(ctx, ctx.uid, U.todayStr()));
+    const wfhFull = used >= cap && !planned;
+    /* v39: a blank or broken start time in settings leaves the sentence out */
+    const start = String(ctx.startFor(ctx.uid) || '');
 
     async function save(loc, m) {
       const days = U.clone((ctx.coll.checkin.map[ctx.uid] || {}).days || {});
@@ -29585,13 +29917,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setBusy(false);
     }
     async function manual(p) {
+      /* v39: the place decides the day: Home and Travelling are WFH days, counted against the cap */
+      const m = p.mode || mode;
+      if (m === 'wfh' && wfhFull) { M.toast('WFH days used up this week', true); return; }
       setBusy(true);
-      await save({lat: null, lng: null, acc: null, dist: null, verified: false, place: p.v, src: 'self'}, mode).catch(() => {});
+      await save({lat: null, lng: null, acc: null, dist: null, verified: false, place: p.v, src: 'self'}, m).catch(() => {});
       setBusy(false); setPick(false);
     }
     return html`<div class="stack" id="tapin" style=${{gap: '14px'}}>
       <div class="row between">
-        <div style=${{fontWeight: 500}}>Start is ${ctx.startFor(ctx.uid)}. How's today?</div>
+        <div style=${{fontWeight: 500}}>${/^\d{1,2}:\d{2}$/.test(start) ? 'Start is ' + start + '. ' : ''}How's today?</div>
         <${UI.Seg} options=${[{v: 'office', label: 'Office'}, {v: 'wfh', label: 'WFH'}]} value=${mode} ariaLabel="Where"
           onChange=${v => { if (v === 'wfh' && wfhFull) { M.toast('WFH days used up this week', true); return; } setMode(v); }}/>
       </div>
@@ -29602,8 +29937,16 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <div class="row">${PLACES.map(p => html`<button key=${p.v} type="button" class="btn on-dark sec sm" disabled=${busy} onClick=${() => manual(p)}>${p.v}</button>`)}</div>
       </div>` : html`<div><${M.fx.Metal} kind="paper" block=${phone}><button type="button" class="btn xl on-dark" disabled=${busy} onClick=${tap}>
         ${busy ? html`<${M.fx.Orb} state="searching" size=${20} dark=${false} label="finding your location"/> Checking in` : (mode === 'wfh' ? 'Check in, WFH' : 'Check in, office')}</button><//></div>`}
-      <div class="tiny" style=${{color: 'rgba(255,255,255,.6)'}}>WFH days used this week: ${used} of ${cap}. Checking in records the time and your location at that moment. Kaavish can see both.</div>
+      <div class="tiny" style=${{color: 'rgba(255,255,255,.6)'}}>WFH days used this week: ${used} of ${cap}. Checking in records the time and your location at that moment.${ctx.uid === ctx.founderUid ? '' : ' Kaavish can see both.'}</div>
     </div>`;
+  }
+
+  /* v39: a self reported place reads once ("Office, self reported", "WFH, Home, self reported") */
+  function whereLine(a) {
+    const word = a.status === 'wfh' ? 'WFH' : 'Office';
+    const place = String(a.place || '').replace(/\.$/, '');
+    if (a.loc && a.loc.src === 'self') return (place && place !== word ? word + ', ' + place : word) + ', self reported';
+    return word + ', ' + (place || 'no location') + (a.verified ? ', verified' : '');
   }
 
   function InNow() {
@@ -29639,7 +29982,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       <div>
         <div class="display" style=${{fontSize: '26px'}}>${a.out ? 'Done for today' : 'In since ' + U.hhmm(a.in)}</div>
         <div class="small" style=${{color: 'rgba(255,255,255,.7)', marginTop: '6px'}}>
-          ${a.out ? 'In ' + U.hhmm(a.in) + ', out ' + U.hhmm(a.out) + ', ' + U.durText(a.out - a.in) + '. ' : ''}${a.status === 'wfh' ? 'WFH' : 'Office'}, ${(a.place || 'no location').replace(/\.$/, '')}${a.verified ? ', verified' : ''}.
+          ${a.out ? 'In ' + U.hhmm(a.in) + ', out ' + U.hhmm(a.out) + ', ' + U.durText(a.out - a.in) + '. ' : ''}${whereLine(a)}.
           ${a.late ? html` <span class="flame-t">Late.</span>` : null}
         </div>
       </div>
@@ -29868,7 +30211,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       M.toast('Posted');
     }
     if (posted && !edit) {
-      return html`<section class="card">
+      return html`<section class="card" id="home-eod">
         <div class="card-head"><h2 class="card-title">EOD line</h2>
           <${UI.Btn} kind="sec" sm=${true} onClick=${() => { setF({shipped: posted.shipped, next: posted.next || '', blocked: posted.blocked || ''}); setEdit(true); }}>Edit<//></div>
         <div class="stack tight">
@@ -29881,7 +30224,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const cutHour = parseInt(String(ctx.settings.eodCut || '19:30'), 10) || 19;
     const late = new Date(ctx.now).getHours() >= cutHour - 1;
     const thinking = r.state === 'thinking' || r.state === 'streaming';
-    return html`<section class=${'card' + (late ? ' flame' : '')}>
+    return html`<section class=${'card' + (late ? ' flame' : '')} id="home-eod">
       <div class="card-head">
         <div class="grow"><h2 class="card-title">EOD line</h2>
           <div class="small ink62">${late ? html`<span class="flame-t">${'Due at ' + ctx.settings.eodCut + '.'}</span>` : 'Three lines before ' + ctx.settings.eodCut + '. Let m360 draft it, then tweak.'}</div></div>
@@ -29957,7 +30300,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const complete = t => { const sp = M.tasks.statusPatch(t, 'done', ctx.uid, ctx); return M.tasks.commit(ctx, t.id, sp).then(() => M.toast(sp.status === 'done' ? 'Done. Nice' : 'Sent for sign-off')).catch(() => {}); };
     const reopen = t => ctx.W.update('tasks/' + t.id, M.tasks.statusPatch(t, 'doing', ctx.uid, ctx).patch).catch(() => {});
 
+    /* v39: one add at a time; Enter pressed again while it runs does nothing */
+    const adding = useRef(false);
     async function add() {
+      if (adding.current) return;
+      adding.current = true;
+      try { await addNow(); } finally { adding.current = false; }
+    }
+    async function addNow() {
       const text = q.trim();
       if (!text) return;
       /* a prospect line ("spoke to Meera at Swisse, talk after the 16th") is private: it goes to Prospects, never a shared task */
@@ -30180,7 +30530,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         : {k: 'leave', label: 'Request leave', icon: 'leave', go: () => M.nav('#leave')}
     ];
     return html`<nav class="quick" aria-label="Quick actions">
-      ${items.map(it => html`<button key=${it.k} type="button" class="quick-btn" onClick=${it.go}>
+      ${items.map(it => html`<button key=${it.k} type="button" class="quick-btn" data-k=${it.k} onClick=${it.go}>
         <${M.icons[it.icon]}/><span>${it.label}</span></button>`)}
     </nav>`;
   }
@@ -30388,12 +30738,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [project, setProject] = useState('');
     const [rows, setRows] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [unread, setUnread] = useState('');
     const r = M.ai.useRun();
     const projects = Object.keys(ctx.coll.projects.map).map(id => ({id, ...ctx.coll.projects.map[id]})).filter(p => !p.archived && p.status !== 'done');
     const people = ctx.activeMembers;
     const profs = M.useProfiles(people.map(m => m.uid));
 
     async function breakDown() {
+      setUnread('');
       const nm = await M.ai.names(ctx);
       const tasks = ctx.coll.tasks.map;
       const load = people.map(m => {
@@ -30407,8 +30759,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         'working days are Monday to Saturday. ' + (p ? 'Use these project sections where they fit: ' + (p.sections || []).map(s => s.name).join(', ') + '. ' : '') +
         'Reply with only a JSON array of {"title": "starts with a verb", "owner": "first name", "due": "YYYY-MM-DD", "section": "section name or empty", "why": "under 12 words"}.\n\n' +
         'TEAM AND LOAD:\n' + load + '\n\nBRIEF:\n' + brief.slice(0, 6000), {signal: o.signal, cache: false}));
-      if (Array.isArray(out)) {
-        setRows(out.slice(0, 12).map((t, i) => {
+      /* v39: a list wrapped in an object ({"tasks": [...]}) is read too; an answer with no tasks in it says so */
+      const list = Array.isArray(out) ? out : (out && typeof out === 'object' ? (Object.values(out).find(Array.isArray) || null) : null);
+      const usable = (list || []).filter(t => t && typeof t === 'object' && String(t.title || '').trim());
+      if (out != null && !usable.length) setUnread('The answer held no tasks m360 could read. Tap Break it down to try again.');
+      if (usable.length) {
+        setRows(usable.slice(0, 12).map((t, i) => {
           const owner = M.ai.findMember(ctx, nm, t.owner) || ctx.uid;
           const sec = p ? ((p.sections || []).find(s => String(s.name).toLowerCase() === String(t.section || '').toLowerCase()) || (p.sections || [])[0] || {}).id || '' : '';
           return {k: i, on: true, title: String(t.title || '').slice(0, 140), owner, due: /^\d{4}-\d{2}-\d{2}$/.test(String(t.due || '')) ? t.due : '', section: sec, why: String(t.why || '')};
@@ -30442,7 +30798,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           options=${[{v: '', label: 'No project'}].concat(projects.map(p => ({v: p.id, label: p.name})))}/>
         <${Metal} kind="ink" block=${true}><button type="button" class="btn" disabled=${thinking || brief.trim().length < 12} onClick=${breakDown}>
           ${thinking ? html`<${M.Thinking} label="Breaking it down" state="composing"/>` : html`<span class="spark">${SPARK}</span> Break it down`}</button><//>
-        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : null}
+        ${r.state === 'error' ? html`<div class="small flame-t">${M.ai.errLine(r.err, r.why)}</div>` : unread ? html`<div class="small flame-t" id="b2t-unread">${unread}</div>` : null}
       </div>` : html`<div class="stack tight">
         <div class="small" style=${{fontWeight: 500}}>Untick anything you don't want. Change owners or dates, then send.</div>
         ${rows.map(t => html`<div class="focus" key=${t.k} style=${{alignItems: 'flex-start', flexWrap: 'wrap'}}>
@@ -30501,8 +30857,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const live = clients.filter(c => c.status === 'live').length;
     const pitches = Object.keys(ctx.coll.pitches.map).map(k => ctx.coll.pitches.map[k]);
     const inPlay = pitches.filter(p => p.stage !== 'won' && p.stage !== 'lost').length;
-    const pm = ctx.isFounder && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
-    const sh = ctx.isFounder && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
+    /* v39: money is the owner's alone (their finance doc is the only one loaded), so a second founder sees no money tiles */
+    const pm = ctx.isOwner && M.pitches && M.pitches.metrics ? M.pitches.metrics(ctx) : null;
+    const sh = ctx.isOwner && M.clients && M.clients.shares ? M.clients.shares(ctx) : [];
     const mrr = sh.reduce((n, r) => n + (r.monthly || 0), 0);
     const t = tab || 'talks';
     /* the older views still open by their hash; they sit behind one quiet line under the tabs */
@@ -30513,7 +30870,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <${Mini} v=${live} l=${live === 1 ? 'live client' : 'live clients'}/>
           <${Mini} v=${inPlay} l=${inPlay === 1 ? 'pitch in play' : 'pitches in play'}/>
           ${pm ? html`<${Mini} v=${U.inr(pm.weighted)} l="weighted pipeline" metal=${true}/>` : null}
-          ${ctx.isFounder ? html`<${Mini} v=${U.inr(mrr)} l="monthly revenue" metal=${true}/>` : null}
+          ${ctx.isOwner ? html`<${Mini} v=${U.inr(mrr)} l="monthly revenue" metal=${true}/>` : null}
         </div>
       <//>
       <${M.SectionTabs} section="accounts" active=${t}/>
@@ -30980,8 +31337,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const setupSteps = (M.setup && M.setup.steps) ? M.setup.steps(ctx) : [];
     const setupDone = !setupSteps.length || setupSteps.every(x => x.done) || !!(ctx.settings.setup && ctx.settings.setup.dismissed);
     const setupSum = setupSteps.length ? setupSteps.filter(x => x.done).length + ' of ' + setupSteps.length + ' done' : 'your first-run checklist';
+    /* v39: the Office tab opens on the office; the hero, the join banner and the checklist stay on the other tabs */
+    const top = t !== 'office';
     return html`<div class="stack" style=${{gap: '20px'}}>
-      <header class="hero ink">
+      ${top ? html`<header class="hero ink">
         <div style=${{position: 'relative'}}>
           <${UI.Micro}>${U.dateLabel(new Date(ctx.now))}<//>
           <h1 class="hi">HQ</h1>
@@ -30997,9 +31356,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <${Tile} v=${n.lastEn ? n.lastEn.avg.toFixed(1) + '/5' : null} l="team energy" to="#voice" hot=${!!(n.lastEn && n.lastEn.avg < 3)}/>
           <${Tile} v=${n.moodAvg ? n.moodAvg.toFixed(1) + '/5' : null} l="mood at check-in"/>
         </div>
-      </header>
-      ${M.parts.JoinBanner ? html`<${M.parts.JoinBanner}/>` : null}
-      ${M.parts.SetupCard && !setupDone ? html`<${UI.Fold} title="Get m360 ready" summary=${setupSum} open=${false} id="fold-setup"><${M.parts.SetupCard}/><//>` : null}
+      </header>` : null}
+      ${top && M.parts.JoinBanner ? html`<${M.parts.JoinBanner}/>` : null}
+      ${top && M.parts.SetupCard && !setupDone ? html`<${UI.Fold} title="Get m360 ready" summary=${setupSum} open=${false} id="fold-setup"><${M.parts.SetupCard}/><//>` : null}
       <${M.SectionTabs} section="hq" active=${t}/>
       ${M.parts.CooRunner ? html`<${M.parts.CooRunner}/>` : null}
       ${t === 'dashboard' ? html`<${Embed} page="Command"/>` : t === 'hiring' ? html`<${Embed} page="Hiring" id=${id}/>`
@@ -35041,7 +35400,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   const STOPS = [
     {go: '#home', sel: '#checkin-card, #home-hero', title: 'Check in',
       say: 'Hi {name}, I am your m360 buddy. Every day starts right here. Check in when you sit down, office or home, and say how you are feeling. It takes two taps.'},
-    {go: '#home', sel: '#fold-eod, #wrap-shipped, #home-hero', title: 'The EOD line',
+    {go: '#home', sel: '#fold-eod, #home-eod, #wrap-shipped, #home-hero', title: 'The EOD line',
       say: 'At seven in the evening, write your EOD line. What shipped, what is next, what is blocked. Three lines, thirty seconds, and Kaavish reads every one.'},
     {go: '#home', sel: '.sidebar .new-trigger, .topbar .new-trigger', title: 'New',
       say: 'New makes anything. A task, a post, kudos for someone, a project.'},
@@ -35049,7 +35408,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       say: 'Search finds anything. A client, a contact, a task, a handbook page. Command K opens it from anywhere.'},
     {go: '#home', sel: '.bellbtn', title: 'Inbox',
       say: 'Your inbox. Tasks handed to you, mentions, kudos and decisions land here.'},
-    {go: '#home', sel: '.side-tools .iconbtn[aria-label="Focus timer"], .quick-btn', title: 'Focus',
+    {go: '#home', sel: '.side-tools .iconbtn[aria-label="Focus timer"], .quick-btn[data-k="focus"]', title: 'Focus',
       say: 'Focus runs a timer on one task and banks the deep work. Points come from finished work, streaks and kudos.'},
     {go: '#chat', sel: '#chat-input, #chat-list', title: 'Chat',
       say: 'Chat. Rooms for the team, and direct messages that only the two of you see. At a name to pull someone in, at everyone for the whole team.'},
@@ -35193,7 +35552,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     return out.join('\n');
   }
   const findEl = id => document.querySelector('[data-ai="' + String(id).replace(/[^a-z0-9]/gi, '') + '"]');
-  const firstVisible = sel => Array.from(document.querySelectorAll(sel)).find(x => { const r = x.getBoundingClientRect(); return r.width > 0 && r.height > 0; }) || null;
+  const shown = x => { const r = x.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  /* v39: the selector list is an order of preference (a tour stop lists its fallbacks last), so each part is tried in turn */
+  const partsOf = sel => { const out = []; let depth = 0, cur = '';
+    for (const ch of String(sel)) { if (ch === '(' || ch === '[') depth++; else if (ch === ')' || ch === ']') depth--; if (ch === ',' && !depth) { out.push(cur); cur = ''; } else cur += ch; }
+    return out.concat(cur).map(x => x.trim()).filter(Boolean); };
+  const firstVisible = sel => { for (const part of partsOf(sel)) { try { const el = Array.from(document.querySelectorAll(part)).find(shown); if (el) return el; } catch (e) { /* a bad part */ } } return null; };
   const labelOf = el => (el.getAttribute('aria-label') || el.innerText || el.value || '').replace(/\s+/g, ' ').trim();
   const risky = el => {
     if (!el) return true;
@@ -37093,10 +37457,21 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     ['Me', 'me', 'people'], ['Leave', 'leave', 'leave'], ['Handbook', 'handbook', 'handbook'], ['Trophies', 'trophies', 'trophy'],
     ['HQ', 'hq', 'command', true], ['Dashboard', 'command', 'command', true], ['Hiring', 'hiring', 'hiring', true], ['Admin', 'admin', 'desk', true],
     ['The office', 'office', 'desk'], ['The m360 COO', 'coo', 'command'],
-    ['What\'s in m360', 'map', 'map'], ['Break', 'break', 'breath'], ['Five, the word of the day', 'play', 'breath'], ['Reset', 'reset', 'breath'], ['Care reminders', 'care', 'bell'], ['Reflect', 'reflect', 'review']
+    ['What\'s in m360', 'map', 'map'], ['Break', 'break', 'breath'], ['Five, the word of the day', 'play', 'breath'], ['Reset', 'reset', 'breath'], ['Care reminders', 'care', 'bell'], ['Reflect', 'reflect', 'review'],
+    /* v39: every page in the sidebar has a Go to row; the fifth field marks the owner's own pages */
+    ['Chat', 'chat', 'send'], ['Accounts', 'talks', 'clients'], ['Notes', 'notes', 'edit'], ['Music', 'music', 'play'],
+    ['Mail', 'mail', 'mail'], ['Meetings', 'gcal', 'cal'], ['Drive', 'drive', 'drive'], ['Web', 'web', 'link'],
+    ['Books', 'books', 'log', true, 'owner'], ['Invoices', 'invoices', 'log', true, 'owner'], ['Expenses', 'expenses', 'log', true, 'owner'],
+    ['Payroll', 'payroll', 'log', true, 'owner'], ['Bank statement', 'statement', 'log', true, 'owner'], ['Letters', 'letters', 'log', true, 'owner']
   ];
-  /* the order headings appear in: a prospect line typed into the box logs first, with no model call */
-  const ORDER = ['log it', 'people', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log', 'go to', 'actions', 'more', 'ask'];
+  const canGo = (ctx, p) => (!p[3] || ctx.isFounder) && (p[4] !== 'owner' || ctx.isOwner);
+  /* the order headings appear in: a prospect line typed into the box logs first, with no model call.
+     v39: actions come next, so "check in" then Enter checks in; talks sits by people */
+  const ORDER = ['log it', 'actions', 'people', 'talks', 'prospects', 'companies', 'tasks', 'projects', 'clients', 'pitches', 'posts', 'handbook', 'inbox', 'leave', 'radar', 'log', 'go to', 'more', 'ask'];
+  /* a heading reads the search module's label, lowercase like every micro label */
+  /* a group the list does not know sits with the other results, never above them */
+  const placeOf = g => { const i = ORDER.indexOf(g); return i < 0 ? ORDER.indexOf('log') : i; };
+  const headOf = g => String((M.search && M.search.GROUP_LABEL && M.search.GROUP_LABEL[g]) || g).toLowerCase();
 
   const norm = s => String(s || '').toLowerCase();
   /* every word of the query has to appear somewhere in the text */
@@ -37150,10 +37525,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     }
 
     if (!q.length) {
-      PAGES.filter(p => !p[3] || ctx.isFounder).slice(0, 6).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
+      PAGES.filter(p => canGo(ctx, p)).slice(0, 6).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
       return out;
     }
-    PAGES.filter(p => (!p[3] || ctx.isFounder) && matches(q, p[0])).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
+    PAGES.filter(p => canGo(ctx, p) && matches(q, p[0])).forEach(p => go(() => M.nav('#' + p[1]), 'go to', p[0], p[2], '', 'p' + p[1]));
     return out;
   }
 
@@ -37196,12 +37571,15 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const items = useMemo(() => {
       const own = buildItems(ctx, q, closeThen);
       const query = q.trim();
-      const found = (query ? (M.search ? M.search.hits(ctx, query, {names, log}) : localHits(ctx, query, names)) : []).concat(query && remoteHits ? remoteHits : []);
+      const base = query ? (M.search ? M.search.hits(ctx, query, {names, log}) : localHits(ctx, query, names)) : [];
+      const found = base.concat(query && remoteHits ? remoteHits : []);
       const list = own.concat(found.map(h => ({...h, run: h.more ? () => setShowAll({q: query, group: h.more}) : () => closeThen(() => M.nav(h.hash))})));
-      const real = found.filter(h => !h.more).length;
+      /* v39: the count includes what each group held back, so Show all says how many it really has */
+      const held = Object.keys(base.overflow || {}).reduce((n, g) => n + (base.overflow[g] || 0), 0);
+      const real = found.filter(h => !h.more).length + held;
       if (real > 0 && M.parts.SearchAll) list.push({key: 'more', group: 'more', label: 'Show all ' + real + (real === 1 ? ' result' : ' results'), icon: 'search', more: 'all',
         run: () => setShowAll({q: query, group: 'all'})});
-      list.sort((a, b) => ORDER.indexOf(a.group) - ORDER.indexOf(b.group));
+      list.sort((a, b) => placeOf(a.group) - placeOf(b.group));
       /* Ask m360 opens the buddy's pop-up with the words in it; without AI the agent's grammar still runs there */
       const asker = M.assistant && M.assistant.open ? () => M.assistant.open(query) : (M.ai.on(ctx) ? () => onAsk(query) : null);
       if (query && asker) list.push({key: 'ai', group: 'ask', label: 'Ask m360: ' + query, icon: null, ai: true, run: () => closeThen(asker)});
@@ -37231,7 +37609,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         </div><//>
         <div class="pal-list" id="pal-list">
           ${items.length ? items.map((it, i) => {
-            const head = it.group !== lastGroup && it.group !== 'more' ? html`<div class="pal-group" key=${'g' + it.group + i}>${it.group}</div>` : null;
+            const head = it.group !== lastGroup && it.group !== 'more' ? html`<div class="pal-group" key=${'g' + it.group + i}>${headOf(it.group)}</div>` : null;
             lastGroup = it.group;
             return html`<${React.Fragment} key=${it.key}>
               ${head}
@@ -37687,7 +38065,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 'use strict';
 (function () {
   const {html, React, U, UI, icons} = M;
-  const {useState} = React;
+  const {useState, useRef} = React;
 
   /* the founder, or anyone on the task's project (its owner or a member) who does not own the task */
   const canReview = (ctx, t) => {
@@ -37696,6 +38074,15 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const p = ctx.coll.projects.map[t.project];
     return !!p && (p.owner === ctx.uid || (Array.isArray(p.members) && p.members.indexOf(ctx.uid) >= 0));
   };
+
+  /* the newest copy of a task this page can get: a fresh read where the store gives one, else the synced copy */
+  const latest = (ctx, id) => Promise.resolve()
+    .then(() => ctx.db.doc('tasks/' + id).get())
+    .then(s => (s && s.exists ? U.dropNulls(s.data()) : null), () => null)
+    .then(d => d || ctx.coll.tasks.map[id] || null);
+  const stateLine = cur => !cur || cur.deleted ? 'This task is gone.'
+    : cur.status === 'done' ? 'Already approved. It stays shipped.'
+    : 'Already sent back. It is with the owner.';
 
   function queue(ctx) {
     const map = ctx.coll.tasks.map;
@@ -37708,22 +38095,36 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [note, setNote] = useState('');
     const [back, setBack] = useState(false);
     const mine = canReview(ctx, t);
+    const [busy, setBusy] = useState(false);
+    const busyRef = useRef(false);
     const href = t.link && /^https?:/i.test(t.link) ? t.link : (t.link ? 'https://' + t.link : null);
-    const approve = async () => {
+    /* v39: one decision per task. A double tap writes once, and a task another reviewer already moved out of
+       review is left as it is, with a line saying so */
+    const decide = async fn => {
+      if (busyRef.current) return;
+      busyRef.current = true; setBusy(true);
+      try {
+        const cur = await latest(ctx, t.id);
+        if (!cur || cur.status !== 'review') { M.toast(stateLine(cur), true); return; }
+        await fn(cur);
+      } catch (e) { /* the write layer toasts the failure */ } finally { busyRef.current = false; setBusy(false); }
+    };
+    const approve = () => decide(async () => {
       const now = Date.now();
-      await ctx.W.update('tasks/' + t.id, {status: 'done', doneAt: now, approvedBy: ctx.uid, approvedAt: now, updated: now}).then(() => M.tasks.sign(ctx, t.id)).catch(() => {});
+      await ctx.W.update('tasks/' + t.id, {status: 'done', doneAt: now, approvedBy: ctx.uid, approvedAt: now, updated: now});
+      await M.tasks.sign(ctx, t.id);
       M.burst(document.getElementById('rev-' + t.id));
       M.toast('Approved. Shipped.');
-    };
-    const sendBack = async () => {
-      const now = Date.now();
-      const revisions = (Number(t.revisions) || 0) + 1;
-      const patch = {status: 'doing', revisions, sentBackAt: now, sentBackBy: ctx.uid, sentBackNote: note.trim().slice(0, 240), updated: now};
+    });
+    const sendBack = () => decide(async cur => {
+      const sp = M.tasks.statusPatch(cur, 'doing', ctx.uid);
+      const now = sp.patch.updated;
+      const patch = {...sp.patch, sentBackNote: note.trim().slice(0, 240)};
       if (note.trim()) patch.comments = {[U.uid()]: {by: ctx.uid, t: 'Sent back: ' + note.trim(), at: now}};
-      await ctx.W.update('tasks/' + t.id, patch).catch(() => {});
+      await ctx.W.update('tasks/' + t.id, patch);
       M.sound.play('soft');
-      M.toast('Sent back, revision ' + revisions);
-    };
+      M.toast('Sent back, revision ' + sp.patch.revisions);
+    });
     const pName = t.project && ctx.coll.projects.map[t.project] ? ctx.coll.projects.map[t.project].name : '';
     return html`<div class="rev-row" id=${'rev-' + t.id}>
       <${UI.Avatar} id=${t.owner} size=${34}/>
@@ -37736,12 +38137,12 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         <div class="tiny ink62"><${UI.Name} id=${t.owner}/>${pName ? ' · ' + pName : ''} · waiting ${U.timeAgo(t.reviewAt || t.updated || ctx.now)}${href ? html` · <a class="linky" href=${href} target="_blank" rel="noopener noreferrer">open the output</a>` : ''}</div>
         ${mine && back ? html`<div class="row" style=${{marginTop: '8px'}}>
           <input class="input" style=${{maxWidth: '360px', minHeight: '38px'}} placeholder="What to change, one line" value=${note} onInput=${e => setNote(e.target.value)} aria-label="Send back note"/>
-          <${UI.Btn} kind="flame" sm=${true} onClick=${sendBack}>Send back<//>
+          <${UI.Btn} kind="flame" sm=${true} disabled=${busy} onClick=${sendBack}>Send back<//>
           <${UI.Btn} kind="ghost" sm=${true} onClick=${() => setBack(false)}>Cancel<//>
         </div>` : null}
       </div>
       ${mine && !back ? html`<span class="row nowrap">
-        <button type="button" class="btn sm" onClick=${approve}><${icons.check}/>Approve</button>
+        <button type="button" class="btn sm" disabled=${busy} onClick=${approve}><${icons.check}/>Approve</button>
         <${UI.Btn} kind="sec" sm=${true} onClick=${() => setBack(true)}>Send back<//>
       </span>` : null}
     </div>`;
@@ -37806,13 +38207,19 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       if (mineOnly && uid !== ctx.uid) continue;
       ctx.leaveMap[uid].forEach(d => add(d, {kind: 'leave', text: '', uid, ref: '#leave'}));
     }
+    /* v39: an approved WFH day booked ahead (ctx.wfhMap) shows before anyone checks in on it */
+    const wfhAhead = ctx.wfhMap || {};
+    for (const uid of Object.keys(wfhAhead)) {
+      if (mineOnly && uid !== ctx.uid) continue;
+      wfhAhead[uid].forEach(d => add(d, {kind: 'wfh', text: '', uid, ref: '#leave'}));
+    }
     const cmap = (ctx.coll.checkin && ctx.coll.checkin.map) || {};
     for (const uid of Object.keys(cmap)) {
       if (mineOnly && uid !== ctx.uid) continue;
       const days = (cmap[uid] || {}).days || {};
       for (const d of Object.keys(days)) {
         if (d < first || d > last || !days[d]) continue;
-        if (days[d].mode === 'wfh') add(d, {kind: 'wfh', text: '', uid, ref: '#people/' + uid});
+        if (days[d].mode === 'wfh') { if (!(wfhAhead[uid] && wfhAhead[uid].has(d))) add(d, {kind: 'wfh', text: '', uid, ref: '#people/' + uid}); }
         else if (days[d].mode === 'leave' && !(ctx.leaveMap && ctx.leaveMap[uid] && ctx.leaveMap[uid].has(d))) add(d, {kind: 'leave', text: '', uid, ref: '#leave'});
       }
     }
@@ -37981,6 +38388,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const list = today(ctx);
     if (!list.length) return null;
     const wish = async c => {
+      /* v39: a wish is a kudos, and the server holds everyone to three a week */
+      if (M.feed && M.feed.kudosLeft && !M.feed.kudosLeft(ctx, ctx.uid)) { M.toast('You have given your three kudos this week. Say it in chat instead.'); return; }
       const given = [{id: U.uid(), to: c.uid, why: c.kind === 'birthday' ? 'Happy birthday. Have the best one.' : 'Happy work anniversary. Thank you for everything.', at: Date.now()}]
         .concat(((ctx.coll.kudos.map[ctx.uid] || {}).given) || []).slice(0, 60);
       try { await ctx.W.merge('kudos/' + ctx.uid, {given}); } catch (e) { return; }
@@ -38881,19 +39290,43 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         onClick=${() => send(x.e)}><span class="emote-ch" aria-hidden="true">${x.ch}</span>${compact ? null : html`<span class="tiny">${x.label}</span>`}</button>`)}
     </div>`;
   }
+  /* v39: when an emote happened, on this device's clock. at comes from the sender's phone, and two phones'
+     clocks are never compared: an emote that changes while this page watches is timed from when it arrived here.
+     The sender's at only places the ones already there when the page first sees the me docs. One clock per
+     reader: see(coll, now) returns [{uid, e, at, seen}] with seen in this device's time */
+  function emoteClock() {
+    let primed = false;
+    const last = {};
+    return function see(coll, now) {
+      const map = (coll && coll.map) || {};
+      if (!primed && !(coll && coll.ready)) return [];
+      const out = [];
+      for (const uid of Object.keys(map)) {
+        const m = map[uid] && map[uid].emote;
+        if (!m || !EMOTE_OF[m.e]) continue;
+        const at = Number(m.at) || 0;
+        let r = last[uid];
+        if (!r || r.at !== at) r = last[uid] = {at, seen: primed ? now : Math.min(now, at)};
+        out.push({uid, e: m.e, at, seen: r.seen});
+      }
+      primed = true;
+      return out;
+    };
+  }
   /* the last few emotes, as a line: for the flat office, and anyone who looks away for a second */
   function EmoteFeed() {
     const ctx = M.useCtx();
     const [, tick] = useState(0);
-    const map = (ctx && ctx.coll && ctx.coll.me && ctx.coll.me.map) || {};
+    const clock = useRef(null);
+    if (!clock.current) clock.current = emoteClock();
     const now = Date.now();
-    const recent = Object.keys(map).map(uid => ({uid, m: map[uid] && map[uid].emote})).filter(x => x.m && EMOTE_OF[x.m.e] && Number(x.m.at) > now - 15000)
-      .sort((a, b) => b.m.at - a.m.at).slice(0, 4);
-    const soonest = recent.length ? Math.min(...recent.map(x => x.m.at + 15000 - now)) : 0;
+    const recent = clock.current(ctx && ctx.coll && ctx.coll.me, now).filter(x => x.seen > now - 15000)
+      .sort((a, b) => b.seen - a.seen).slice(0, 4);
+    const soonest = recent.length ? Math.min(...recent.map(x => x.seen + 15000 - now)) : 0;
     useEffect(() => { if (!soonest) return undefined; const t = setTimeout(() => tick(n => n + 1), Math.max(500, soonest + 50)); return () => clearTimeout(t); }, [soonest]);
     if (!recent.length) return null;
     return html`<div class="emote-feed small" id="emote-feed" aria-live="polite">${recent.map(x => html`<span key=${x.uid} class="emote-chip">
-      <span aria-hidden="true">${EMOTE_OF[x.m.e].ch}</span> <${UI.Name} id=${x.uid} fallback="Someone"/></span>`)}</div>`;
+      <span aria-hidden="true">${EMOTE_OF[x.e].ch}</span> <${UI.Name} id=${x.uid} fallback="Someone"/></span>`)}</div>`;
   }
 
   /* office life on this device: people get up, go for coffee and wave (91-office3d.js reads office.life) */
@@ -39005,7 +39438,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   M.parts.EmoteBar = EmoteBar;
   M.parts.EmoteFeed = EmoteFeed;
   M.pages.Character = Character;
-  M.character = {EMOTES};
+  M.character = {EMOTES, emoteClock};
   M.parts.CharacterSheet = CharacterSheet;
   M.meCards.push(CharacterCard);
   M.adminCards.push(AdminCharacters);
@@ -39302,8 +39735,22 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   const PRUNE_DAYS = 90;
   const RANGES = [{v: '1', label: 'Today'}, {v: '7', label: '7 days'}, {v: '30', label: '30 days'}];
   const KINDS = [{v: 'writes', label: 'Writes'}, {v: 'signins', label: 'Sign-ins'}, {v: 'all', label: 'All'}];
-  const SIGNIN = {login: 'signed in', logout: 'signed out', signup: 'asked to join', accept: 'joined by invite', setup: 'set the workspace up', link: 'made a sign-in link'};
-  const VERB = {set: 'added', update: 'changed', delete: 'removed', merge: 'changed', prune: 'pruned', ...SIGNIN};
+  const SIGNIN = {login: 'signed in', logout: 'signed out', signup: 'asked to join', accept: 'joined by invite', setup: 'set the workspace up', link: 'made a sign-in link',
+    mklink: 'made a sign-in link', signout: 'signed a device out', signoutall: 'signed out every device', pw: 'chose a sign-in', setpw: 'set a new sign-in',
+    resetpw: 'reset a sign-in', resetcode: 'made a reset code', recovery: 'used a recovery code', totp: 'changed two-step sign-in'};
+  /* v39: every action the server logs reads as a plain verb */
+  const VERB = {set: 'added', update: 'changed', delete: 'removed', merge: 'changed', prune: 'pruned', ...SIGNIN,
+    backup: 'backed up', restore: 'restored', revert: 'went back to an older version of', emptytrash: 'emptied the trash',
+    sitebackup: 'downloaded the site backup', siteidentity: 'downloaded the people list', prunelogs: 'cleared old logs',
+    invite: 'sent an invite', uninvite: 'took an invite back', rename: 'changed a name', setemail: 'changed an email',
+    aikey: 'changed the AI key', aicheck: 'checked the AI key', mailkey: 'changed the mail key', googlekey: 'changed the Google key',
+    google: 'changed the Google link', gmail: 'sent an email', gcal: 'added a meeting', file: 'added a file',
+    voicebox: 'changed the voice box', voicekey: 'changed the voice key'};
+  /* a person's id inside a server summary ("u_5r6d...: 0 devices") */
+  const UID_RE = /\b(u_[a-z0-9]{6,})\b/g;
+  const named = (text, profs) => String(text || '').replace(UID_RE, m => (profs[m] && profs[m].name) || 'someone');
+  /* the summary with every id shown as that person's name */
+  const Said = ({text}) => String(text || '').split(UID_RE).map((part, i) => i % 2 ? html`<${UI.Name} key=${i} id=${part} fallback="someone"/>` : part);
   const TARGET = {
     tasks: 'task', projects: 'project', clients: 'client', pitches: 'pitch', candidates: 'candidate', handbook: 'handbook section',
     checkin: 'check-in', eod: 'EOD line', plan: 'monday outcomes', review: 'weekly review', rocks: 'rocks', feed: 'feed post',
@@ -39319,7 +39766,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   M.logs.read = M.logs.read || function read(ctx, range) {
     const from = (range && range.from) || '0000-00-00', to = (range && range.to) || '9999-12-31';
     /* one subscription per person on the roster (plus the viewer), each read once and released */
-    const people = Array.from(new Set(Object.keys(ctx.members || {}).concat([ctx.uid]).filter(Boolean)));
+    const people = Array.from(new Set(Object.keys(ctx.members || {}).concat([ctx.uid, ctx.founderUid]).filter(Boolean)));
     const one = uid => new Promise(res => {
       let un = null, done = false;
       const stop = () => setTimeout(() => { try { if (un) un(); } catch (e) { /* gone */ } }, 0);
@@ -39388,7 +39835,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [tick, setTick] = useState(0);
     const [busy, setBusy] = useState(false);
     const [hist, setHist] = useState('');
-    const uids = (ctx.activeMembers || []).map(m => m.uid);
+    /* v39: everyone with entries is in the filter and the CSV, Kaavish and people who left included */
+    const all = useMemo(() => rows(docs), [docs]);
+    const uids = useMemo(() => {
+      const seen = new Set([ctx.founderUid, ...(ctx.activeMembers || []).map(m => m.uid)].filter(Boolean));
+      all.forEach(r => { seen.add(r.uid); (r.s.match(UID_RE) || []).forEach(u => seen.add(u)); });
+      return Array.from(seen);
+    }, [all, ctx.founderUid, ctx.activeMembers]);
     const profs = M.useProfiles(uids);
     const today = U.todayStr();
     const from = U.ymd(U.addDays(new Date(), -(Number(range) - 1)));
@@ -39400,7 +39853,6 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       return () => { live = false; };
     }, [from, today, tick]);
 
-    const all = useMemo(() => rows(docs), [docs]);
     const list = useMemo(() => {
       const needle = q.trim().toLowerCase();
       return all.filter(r => (!who || r.uid === who)
@@ -39422,7 +39874,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const lines = [['date', 'time', 'person', 'action', 'target', 'summary'].map(csvCell).join(',')];
       for (const r of list) {
         const d = new Date(r.at);
-        lines.push([U.ymd(d), U.hhmm(r.at), (profs[r.uid] && profs[r.uid].name) || r.uid, r.a, r.p, r.s].map(csvCell).join(','));
+        lines.push([U.ymd(d), U.hhmm(r.at), (profs[r.uid] && profs[r.uid].name) || 'someone', r.a, r.p, named(r.s, profs)].map(csvCell).join(','));
       }
       const data = lines.join('\n'), filename = 'log-' + from + '-to-' + today + '.csv';
       try {
@@ -39472,7 +39924,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setTick(t => t + 1);
     }
 
-    const people = [{v: '', label: 'Everyone'}].concat(uids.map(u => ({v: u, label: (profs[u] && profs[u].name) || u})));
+    const people = [{v: '', label: 'Everyone'}].concat(uids.filter(u => u === ctx.founderUid || (ctx.members && ctx.members[u]) || all.some(r => r.uid === u))
+      .map(u => ({v: u, label: (profs[u] && profs[u].name) || 'Someone'})));
     return html`<${UI.Card} id="log-tab" title="Log"
       action=${html`<span class="row nowrap">
         <${UI.Btn} kind="sec" sm=${true} id="log-export" disabled=${!list.length} onClick=${exportCsv}>Export CSV<//>
@@ -39498,7 +39951,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
               <${UI.Avatar} id=${r.uid} size=${24}/>
               <div class="tx">
                 <div><${UI.Name} id=${r.uid}/> ${verbOf(r)} ${target(ctx, r) || ''}</div>
-                ${r.s ? html`<div class="s">${r.s}</div>` : null}
+                ${r.s ? html`<div class="s"><${Said} text=${r.s}/></div>` : null}
                 <div class="p">${r.p}${window.M360_STANDALONE && M.parts.HistoryDrawer && r.p && (r.a === 'set' || r.a === 'update' || r.a === 'delete' || r.a === 'revert') ? html` <button type="button" class="linky tiny log-versions" onClick=${() => setHist(r.p)}>Versions</button>` : null}</div>
               </div>
             </div>`)}
@@ -39558,9 +40011,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     useEffect(() => { setNote(String(ctx.settings.lockNote || '')); }, [ctx.settings.lockNote]);
     const setLock = v => after(ctx.W.merge('settings/app', {locked: v === 'locked', ...stamp()}), v === 'locked' ? 'Locked' : 'Unlocked');
     const saveNote = () => after(ctx.W.merge('settings/app', {lockNote: note.trim().slice(0, ALERT_MAX), ...stamp()}), 'Note saved');
+    /* v39: the lock holds full access admins too, so the card speaks for the whole team */
     return html`<${UI.Card} id="super-lock" title="Lock the workspace"
       action=${locked ? html`<${UI.Pill} kind="flame">locked<//>` : html`<${UI.Pill} kind="ink">open<//>`}>
-      <p class="small ink62" style=${{marginTop: 0}}>While locked, everyone can look and only you can change anything. Members see a line at the top of every page.</p>
+      <p class="small ink62" style=${{marginTop: 0}}>While locked, the whole team can only look, full access admins included. Everyone but you sees a line at the top of every page.</p>
       <div class="stack tight">
         <${UI.Field} label="workspace">
           <${UI.Seg} options=${LOCK_OPTS} value=${locked ? 'locked' : 'open'} onChange=${setLock} ariaLabel="Workspace lock"/>
@@ -40894,8 +41348,11 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     }
     return null;
   }
-  async function linkOrgToClient(ctx, orgId, clientId) {
-    const cur = await getRow(ctx, 'orgs', orgId), c = ctx.coll.clients.map[clientId];
+  /* v39: a client saved a moment ago is not in the ctx a drawer captured; the newest ctx, or the doc the caller just
+     wrote (known), stands in for it so the company row still points back */
+  async function linkOrgToClient(ctx, orgId, clientId, known) {
+    const cur = await getRow(ctx, 'orgs', orgId);
+    const c = ctx.coll.clients.map[clientId] || (M.lastCtx && M.lastCtx.coll.clients.map[clientId]) || known || null;
     if (!cur || !c) return false;
     const now = Date.now();
     if (cur.row.client !== clientId) await ctx.W.merge('orgs/' + cur.pid, {rows: {[orgId]: {client: clientId, updated: now, updatedBy: ctx.uid}}});
@@ -42235,17 +42692,20 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const rk = text => rankOf(qs, ws, text);
 
     if (want('people')) {
-      const team = ctx.activeMembers.map((m, i) => {
+      /* v39: three teammates in the palette, every one in Show all (which asks with a cap of its own) */
+      const teamAll = ctx.activeMembers.map((m, i) => {
         const nm = (names[m.uid] && names[m.uid].name) || '';
         return {key: 'u' + m.uid, label: nm || 'Someone', sub: m.title || '', uid: m.uid, hash: '#people/' + m.uid, rank: nm ? rk(nm + ' ' + (m.title || '')) : 0, order: i};
-      }).filter(x => x.rank > 0).slice(0, 3);
+      }).filter(x => x.rank > 0);
+      const team = teamAll.slice(0, opts.cap ? cap : 3);
       const cs = contacts(ctx).map((c, i) => ({key: 'c' + c.id, label: nameOf(c), sub: contactSub(ctx, c), hash: '#base/' + c.id, cid: c.id, order: 1000 - Math.min(999, Math.floor(stampOf(c) / DAY)) + i * 0.001,
         rank: Math.max(rk(nameOf(c)), Math.min(2, rk(nameOf(c) + ' ' + (c.title || '') + ' ' + orgNameOf(ctx, c) + ' ' + pick(c, 'email') + ' ' + (c.city || ''))))}));
       const ranked = cs.filter(x => x.rank > 0).sort((a, b) => b.rank - a.rank || a.order - b.order);
       const slots = Math.max(0, cap - team.length);
       team.forEach(x => out.push({...x, group: 'people', icon: 'people'}));
       ranked.slice(0, slots).forEach(x => out.push({...x, group: 'people', icon: 'people'}));
-      if (ranked.length > slots) { overflow.people = ranked.length - slots; out.push({key: 'people:more', group: 'people', label: 'Show all in Base', sub: (ranked.length - slots) + ' more', icon: 'search', more: 'people', rank: 0}); }
+      const extra = (teamAll.length - team.length) + Math.max(0, ranked.length - slots);
+      if (extra > 0) { overflow.people = extra; out.push({key: 'people:more', group: 'people', label: teamAll.length > team.length ? 'Show all people' : 'Show all in Base', sub: extra + ' more', icon: 'search', more: 'people', rank: 0}); }
     }
     /* v37: the shared list of people we are talking to, by name, company and what was said */
     if (want('talks') && ctx.coll.talks) {
@@ -45154,6 +45614,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   }
 
   /* ---------- Admin: the mandate and the policy ---------- */
+  /* v39: "MM-DD" for a day that exists in a leap year (02-29 included) */
+  const realMonthDay = t => { const m = /^(\d{2})-(\d{2})$/.exec(t || ''); if (!m) return false; const mo = Number(m[1]), d = Number(m[2]); return mo >= 1 && mo <= 12 && d >= 1 && d <= new Date(2024, mo, 0).getDate(); };
   /* a number field that saves when it loses focus; empty means not set */
   function Num({value, onSave, label, step, id}) {
     const [v, setV] = useState(value == null ? '' : String(value));
@@ -45161,7 +45623,13 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const commit = () => {
       const t = String(v).trim();
       const n = t === '' ? null : Number(t);
-      if (n !== null && !isFinite(n)) { setV(value == null ? '' : String(value)); return; }
+      /* v39: 0 or more, and whole unless the field steps in fractions */
+      const whole = !step || Number(step) >= 1;
+      if (n !== null && (!isFinite(n) || n < 0 || (whole && n !== Math.floor(n)))) {
+        setV(value == null ? '' : String(value));
+        M.toast(whole ? 'Use a whole number, 0 or more' : 'Use a number, 0 or more', true);
+        return;
+      }
       if (n !== (value == null ? null : Number(value))) onSave(n);
     };
     return html`<input class="input coo-num num" type="number" min="0" step=${step || 1} id=${id} aria-label=${label} placeholder="not set" value=${v}
@@ -45252,7 +45720,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           <label class="coo-field"><span class="small">Most people out a day</span><${Num} label="Most people out a day" value=${L.maxOutPerDay} onSave=${n => save({leave: {maxOutPerDay: n}})}/></label>
           <label class="coo-field"><span class="small">Most out per pod</span><${Num} label="Most out per pod" value=${L.maxOutPerPod} onSave=${n => save({leave: {maxOutPerPod: n}})}/></label>
           <label class="coo-field"><span class="small">The leave year starts</span><input class="input coo-num" aria-label="The leave year starts" placeholder="04-01" key=${'y' + (L.yearStart || '')} defaultValue=${L.yearStart || ''}
-            onBlur=${e => /^\d{2}-\d{2}$/.test(e.target.value.trim()) && e.target.value.trim() !== L.yearStart && save({leave: {yearStart: e.target.value.trim()}})}/></label>
+            onBlur=${e => { const t = e.target.value.trim(); if (t === (L.yearStart || '')) return; if (!realMonthDay(t)) { e.target.value = L.yearStart || ''; if (t) M.toast('Use month and day, like 04-01', true); return; } save({leave: {yearStart: t}}); }}/></label>
         </div>
         <div class="row between"><span class="small">Sick leave in probation, unpaid</span>
           <${UI.Seg} sm=${true} ariaLabel="Sick leave in probation" options=${[{v: 'no', label: 'To you'}, {v: 'yes', label: 'Allowed'}]} value=${L.probationLop ? 'yes' : 'no'} onChange=${v => save({leave: {probationLop: v === 'yes'}})}/></div>
@@ -46059,9 +46527,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     };
 
     useEffect(() => () => { alive.current = false; anims.current.forEach(a => { try { a.cancel(); } catch (e) { /* gone */ } }); }, []);
-    /* a hidden tab holds the walk where it is; back again, it jumps to where it was going */
+    /* v39: a hidden tab ends a walk at once where it was going, so nothing walks or bobs unseen (the office
+       sits at the top of HQ > Office now, so a walk is often under way when the tab goes) */
     useEffect(() => {
-      const f = () => anims.current.forEach(a => { try { if (document.visibilityState === 'hidden') a.pause(); else a.finish(); } catch (e) { /* gone */ } });
+      const f = () => anims.current.forEach(a => { try { a.finish(); } catch (e) { /* gone */ } });
       document.addEventListener('visibilitychange', f);
       return () => document.removeEventListener('visibilitychange', f);
     }, []);
@@ -46803,6 +47272,19 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   const NAV = {attendance: ['#people', 'Open Crew'], calendar: ['#leave', 'Open Leave'], board: ['#tasks', 'Open tasks'], review: ['#reviews', 'Open Reviews'],
     desk: ['#coo', 'Open the COO'], meeting: ['#week', 'Open the week'], clients: ['#pitches', 'Open the pipeline'], mail: ['#coo', 'Open the COO'],
     tray: ['#coo', 'Open Needs you'], books: ['#invoices', 'Open invoices'], reception: ['#admin', 'Open Admin'], clock: ['#coo', 'Open the COO']};
+  /* v39: what the COO does at each station, for a drawer opened while it is somewhere else */
+  const STATION_JOB = {attendance: 'The COO takes the morning roll call here.', board: 'The COO tidies the task board here.',
+    calendar: 'The COO checks the calendar here.', desk: 'The COO writes at its desk.', review: 'The COO walks work to reviewers from here.',
+    mail: 'The COO sorts the mail here.', meeting: 'The COO joins meetings here.', reception: 'The COO greets new people here.',
+    tray: 'Cards wait here for Kaavish.', books: 'Reminders wait here for Kaavish.', clients: 'The COO keeps the client wall here.',
+    clock: 'The COO keeps the day on time from here.'};
+  /* the member's line for a station: the live words only while the COO works there, asleep while it sleeps */
+  function stationLine(ctx, data, k) {
+    const cur = data.nowDoc || data.pub || {};
+    if (data.rest.working && cur.station === k) return teamLine(ctx, k, false);
+    if (data.rest.asleep) return 'The COO is asleep at its desk. ' + (STATION_JOB[k] || '');
+    return STATION_JOB[k] || '';
+  }
   function StationDrawer({k, data, onClose}) {
     const {ctx, founder, rows, D, profs, scope} = data;
     const nm = u => ((profs[u] || {}).name) || 'Someone';
@@ -46827,7 +47309,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       const open = {};
       Object.keys(ctx.coll.tasks.map).forEach(id => { const t = ctx.coll.tasks.map[id]; if (t && !t.deleted && t.status !== 'done' && t.owner) { const o = open[t.owner] = open[t.owner] || [0, 0]; o[0]++; if (t.due && t.due < data.day.ymd) o[1]++; } });
       const mine = D.filter(x => (founder || (see(x.uid) && x.uid !== ctx.uid)) && open[x.uid]);
-      body = mine.length ? html`<ul class="office-list">${mine.map(x => html`<li key=${x.uid}><b>${nm(x.uid)}</b> <span class="sub">${open[x.uid][0]} open${open[x.uid][1] ? ', ' + open[x.uid][1] + ' overdue' : ''}</span></li>`)}</ul>` : null;
+      /* v39: an empty board says so; a member who sees nobody else's work gets their own count */
+      const own = !founder && open[ctx.uid];
+      body = mine.length ? html`<ul class="office-list">${mine.map(x => html`<li key=${x.uid}><b>${nm(x.uid)}</b> <span class="sub">${open[x.uid][0]} open${open[x.uid][1] ? ', ' + open[x.uid][1] + ' overdue' : ''}</span></li>`)}</ul>`
+        : html`<p class="sub small">${own ? 'You have ' + own[0] + ' open' + (own[1] ? ', ' + own[1] + ' overdue.' : '.') : founder ? 'No open tasks on the floor.' : 'Nothing open for you.'}</p>`;
     } else if (k === 'review') {
       const qd = M.reviews ? M.reviews.queue(ctx) : [];
       body = qd.length ? html`<ul class="office-list">${qd.slice(0, 8).map(t => html`<li key=${t.id || t.title}>${t.title || 'A task'}</li>`)}</ul>` : html`<p class="sub small">Nothing waits for review.</p>`;
@@ -46846,7 +47331,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           ${h.ai ? html`<li><b>AI used</b> <span class="sub">${h.ai.used} of ${h.ai.cap}</span></li>` : null}
           ${h.stale ? html`<li><b>Late</b> <span class="sub">No round for a while. The next one catches up.</span></li>` : null}</ul>` : null}</div>`;
     } else if (k === 'books') body = html`<p class="sub small">Reminders wait here as drafts for your tap. Nothing pays from the office.</p>`;
-    const team = !founder ? teamLine(ctx, k, false) : '';
+    const team = !founder ? stationLine(ctx, data, k) : '';
     return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${labelOf(ctx, k)}
       footer=${nav2 ? html`<${UI.Btn} kind="sec" onClick=${() => { onClose(); M.nav(nav2[0]); }}>${nav2[1]}<//>` : null}>
       <div class="stack office-drawer" data-station=${k}>
@@ -48501,6 +48986,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const CHAT = [['Coffee?', 'coffee'], ['High five', 'five'], ['Nice work', 'clap'], ['Lunch?', 'party'], ['Quick sync?', 'wave'], ['You got this', 'fire']];
     const SPEED = 1.15;
     const seenEmote = {};
+    /* v39: emotes are timed from when they arrive here (M.character.emoteClock); the sender's clock alone when it is missing */
+    const emoteSee = M.character && M.character.emoteClock ? M.character.emoteClock()
+      : (c, now) => Object.keys((c && c.map) || {}).map(uid => { const m = c.map[uid] && c.map[uid].emote; return m ? {uid, e: m.e, at: m.at, seen: Number(m.at) || 0} : null; }).filter(Boolean);
+    const meColl = d => (d && d.ctx && d.ctx.coll ? d.ctx.coll.me : null);
     let nextVisit = performance.now() + 9000 + Math.random() * 9000;
     const planSeat = uid => (data && data.L && data.L.seats ? data.L.seats[uid] : null);
     function inOffice(uid) {
@@ -48642,11 +49131,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const lifeTimer = setInterval(() => { try { ambient(); } catch (e) { fail(e); } }, 1500);
     /* the emotes people send from the emote bar, read off their me doc */
     function emotes(d) {
-      const map = d && d.ctx && d.ctx.coll && d.ctx.coll.me ? d.ctx.coll.me.map || {} : {};
       const now = Date.now();
-      for (const uid of Object.keys(map)) {
-        const m = map[uid] && map[uid].emote;
-        if (!m || !EMOJI[m.e] || !(Number(m.at) > now - 9000) || seenEmote[uid] === m.at) continue;
+      for (const m of emoteSee(meColl(d), now)) {
+        const uid = m.uid;
+        if (!EMOJI[m.e] || !(m.seen > now - 9000) || seenEmote[uid] === m.at) continue;
         seenEmote[uid] = m.at;
         if (!st.ready || !world) continue;
         if (free(uid)) { standWave(uid, EMOJI[m.e], null, 4200, true); continue; }
@@ -48990,7 +49478,14 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         }
         const fold = collide || (phone && k.indexOf('desk:') === 0);
         el.classList.toggle('is-folded', fold);
-        if (fold) { put(el, s.x - 4, s.y - 8); continue; }
+        if (fold) {
+          /* v39: the dot keeps off every tag already placed (it showed through a quiet tag's words), and later tags keep off it */
+          const dots = [[0, 0], [0, -12], [-12, 0], [12, 0], [0, 12]].map(([dx, dy]) => ({x0: s.x - 4 + dx, x1: s.x + 4 + dx, y0: s.y - 8 + dy, y1: s.y + dy}));
+          const spot = dots.find(q => !placed.some(p => rectHit(q, p, 1))) || dots[0];
+          put(el, spot.x0, spot.y0);
+          placed.push(spot);
+          continue;
+        }
         put(el, r.x0, r.y0);
         placed.push(r);
       }
@@ -49115,7 +49610,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     /* ---------- start: lights, the world, the actors, the first frame ---------- */
     function start(d0) {
       data = d0;
-      try { const mm = d0 && d0.ctx && d0.ctx.coll && d0.ctx.coll.me ? d0.ctx.coll.me.map || {} : {}; for (const u of Object.keys(mm)) if (mm[u] && mm[u].emote && !(Number(mm[u].emote.at) > Date.now() - 4000)) seenEmote[u] = mm[u].emote.at; } catch (e) { /* none yet */ }
+      try { const t0 = Date.now(); for (const m of emoteSee(meColl(d0), t0)) if (!(m.seen > t0 - 4000)) seenEmote[m.uid] = m.at; } catch (e) { /* none yet */ }
       tok = null;
       makeCoo();
       makeKaavish();
@@ -49274,6 +49769,18 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     if (d.state === 'notin') return d.hot ? 'not in yet' : '';
     if (d.quiet) return lower(d.quiet);
     return '';
+  }
+  /* v39: a tag's name. The first name, with the next word's initial where two people share it, and the
+     whole name where even that matches */
+  function tagNames(uids, nm) {
+    const words = u => String(nm(u) || '').trim().split(/\s+/);
+    const count = (key) => { const n = {}; for (const u of uids) { const k = key(u); n[k] = (n[k] || 0) + 1; } return n; };
+    const first = u => words(u)[0] || '';
+    const initial = u => { const w = words(u); return !w[1] ? w[0] || '' : /^\d/.test(w[1]) ? w[0] + ' ' + w[1] : w[0] + ' ' + w[1].charAt(0).toUpperCase() + '.'; };
+    const byFirst = count(first), byInitial = count(initial);
+    const out = {};
+    for (const u of uids) out[u] = byFirst[first(u)] < 2 ? first(u) : byInitial[initial(u)] < 2 ? initial(u) : words(u).join(' ');
+    return out;
   }
   const viewStyle = (mode, phone) => (mode === 'page' ? {aspectRatio: phone ? '3 / 4' : '16 / 10', maxHeight: phone ? '78vh' : '80vh'} : {aspectRatio: '16 / 9'});
 
@@ -49434,7 +49941,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     };
     const names = data.profs;
     const nm = u => ((names[u] || {}).name) || 'Someone';
-    const first = u => String(nm(u)).split(' ')[0];
+    const tags = tagNames(D.map(d => d.uid), nm);
+    const first = u => tags[u] || String(nm(u)).split(' ')[0];
     const asked = (view.fx.asked && Date.now() - (Number(view.fx.asked.at) || 0) < 10 * MIN) ? view.fx.asked : null;
     const counts = {};
     data.rows.forEach(x => { const s = x.station || 'desk'; counts[s] = (counts[s] || 0) + 1; });
@@ -49524,7 +50032,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
   /* life(): the next visit now, for the checks */
   const life = () => (cur && cur.life ? cur.life() : undefined);
-  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry, life});
+  M.office3d = Object.assign(M.office3d || {}, {can, useMode, load, acquire, release, tokens, Scene3D, Placeholder, stage3d, state, api: apiNow, setMode, retry, life, tagNames});
 })();
 
 /* ==== 92-figure.js ==== */
@@ -51438,7 +51946,8 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       try { await api('accept', {code: invite, email: em, password: pw}); window.M360_INVITE = ''; location.reload(); }
       catch (e) {
         if (e && e.code === 'expired') setInv({dead: true});
-        else setErr(said(e, ['mismatch', 'invalid_argument', 'weak']));
+        /* v39: an email that already has a login gets the server's own line: sign in, or ask for a reset code */
+        else setErr(said(e, ['mismatch', 'invalid_argument', 'weak', 'already_here']));
         setBusy(false);
       }
     }
@@ -52283,7 +52792,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     const [restore, setRestore] = useState(null);
     const [busy, setBusy] = useState('');
     const dl = async d => { setBusy(d.ymd); try { await downloadDay(ctx, d.ymd); } catch (e) { oops(e); } setBusy(''); };
+    /* v39: restoring a collection is Kaavish's alone on the server, so only he sees Restore */
+    const owns = !!(ctx.me && ctx.me.isOwner);
     return html`<${UI.Card} title="Days">
+      ${owns ? null : html`<p class="small ink62" id="bk-owner-only" style=${{marginTop: 0}}>Only Kaavish restores from a backup.</p>`}
       ${info == null ? html`<${UI.Empty} text="Loading the list."/>`
         : !info.days.length ? html`<${UI.Empty} text="No backups yet. The first one runs on its own today, or tap Back up now."/>`
         : html`<div class="stack tight" id="bk-list">${info.days.map(d => html`<div class="listrow bk-row" key=${d.ymd} id=${'bk-row-' + d.ymd}>
@@ -52293,7 +52805,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
           </span>
           <span class="row nowrap">
             <${UI.Btn} kind="sec" sm=${true} disabled=${busy === d.ymd} onClick=${() => dl(d)}>Download<//>
-            <${UI.Btn} kind="ghost" sm=${true} onClick=${() => setRestore(d)}>Restore<//>
+            ${owns ? html`<${UI.Btn} kind="ghost" sm=${true} onClick=${() => setRestore(d)}>Restore<//>` : null}
           </span>
         </div>`)}</div>`}
       ${restore ? html`<${RestoreDrawer} day=${restore} onClose=${() => setRestore(null)} onDone=${onChanged}/>` : null}
@@ -52491,7 +53003,9 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       </ol>
       ${site && site.lastError ? html`<div class="small flame-t" id="site-latest">The daily site copy was skipped ${U.timeAgo(site.lastError.at)}: ${site.lastError.message}</div>`
         : site && site.at ? html`<div class="tiny ink62 num" id="site-latest">Daily site copy ${U.timeAgo(site.at)} · ${fmtBytes(site.bytes)}</div>` : null}
-      <div class="row" style=${{marginTop: '12px'}}><${UI.Btn} id="site-backup-dl" sm=${true} disabled=${busy} onClick=${dl}>${busy ? 'Preparing' : 'Download the site backup'}<//></div>
+      ${/* v39: the site backup holds everyone's password hashes, and the server hands it to Kaavish alone */ ctx.me && ctx.me.isOwner
+        ? html`<div class="row" style=${{marginTop: '12px'}}><${UI.Btn} id="site-backup-dl" sm=${true} disabled=${busy} onClick=${dl}>${busy ? 'Preparing' : 'Download the site backup'}<//></div>`
+        : html`<p class="small ink62" id="site-owner-only" style=${{margin: '12px 0 0'}}>Only Kaavish downloads the site backup.</p>`}
       ${ctx.me && ctx.me.isOwner ? html`<div class="site-restore stack tight" id="site-restore-here">
         <${UI.Micro} plain>restore a site backup here<//>
         <p class="small ink62" style=${{margin: 0}}>For merging an older copy into this site. Adding what is missing touches nothing that exists now. Replace puts every document in the file over the current one, each going to the trash first, and sets people and their passwords back to the file's copy.</p>

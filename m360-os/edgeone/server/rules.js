@@ -22,8 +22,12 @@ export const RULES = [
  },
  {
   "path": "review",
-  "read": "interact",
+  "read": "admin",
   "write": "admin"
+ },
+ {
+  "path": "review/{self}",
+  "read": "interact"
  },
  {
   "path": "leavedec",
