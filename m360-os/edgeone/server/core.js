@@ -680,7 +680,7 @@ export function createApp({store, env = {}}) {
       const docs = {};
       for (const id of Object.keys(all)) if (access(coll + '/' + id, uid, level).read) docs[id] = all[id];
       /* someone not on the team yet learns that a roster exists, never who is on it */
-      if (level < LEVEL.interact && coll === 'roster' && docs.team && isObj(docs.team)) docs.team = {members: {}, nextEmp: docs.team.nextEmp, updated: docs.team.updated, redacted: true};
+      if (level < LEVEL.interact && coll === 'roster' && docs.team && isObj(docs.team)) docs.team = {members: ownRow(docs.team, uid), nextEmp: docs.team.nextEmp, updated: docs.team.updated, redacted: true};
       out[coll] = {v: inv[coll] ? v : EMPTY_V, docs};
     }));
     return out;
@@ -691,6 +691,9 @@ export function createApp({store, env = {}}) {
      stay under SYNC_BUDGET bytes: a big collection (26,000 contacts in 130 pages) arrives over a few
      rounds, more: true asking for the next one, and an import that touches one page costs one page. */
   const SYNC_BUDGET = 2500000;
+  /* v39: below the team, the roster is hidden except the viewer's own row, so a removed person's page can say
+     their access is paused (active: false) instead of greeting them as new */
+  const ownRow = (team, uid) => { const m = isObj(team.members) && team.members[uid]; return m ? {[uid]: m} : {}; };
   async function deltaFor(uid, level, mine, lazy) {
     const inv = await inventory();
     const out = {};
@@ -725,7 +728,7 @@ export function createApp({store, env = {}}) {
         let d = source[id];
         if (d == null) continue;
         if (!access(coll + '/' + id, uid, level).read) { sent[id] = tags[id]; continue; }
-        if (level < LEVEL.interact && coll === 'roster' && id === 'team' && isObj(d)) d = {members: {}, nextEmp: d.nextEmp, updated: d.updated, redacted: true};
+        if (level < LEVEL.interact && coll === 'roster' && id === 'team' && isObj(d)) d = {members: ownRow(d, uid), nextEmp: d.nextEmp, updated: d.updated, redacted: true};
         const size = JSON.stringify(d).length;
         if (bytes && bytes + size > SYNC_BUDGET) { more = true; break; }
         docs[id] = d; sent[id] = tags[id]; bytes += size;
