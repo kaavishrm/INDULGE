@@ -6,7 +6,7 @@
   /* ---------- gates ---------- */
   M.Gate = function Gate({title, line, children}) {
     return html`<div class="gate"><div>
-      <${M.Mark} width="110px"/>
+      <${M.Mark} width="150px"/>
       <h1>${title}</h1>
       ${line ? html`<p>${line}</p>` : null}
       ${children ? html`<div class="g-act">${children}</div>` : null}

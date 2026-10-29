@@ -82,7 +82,7 @@ img{max-width:100%}
 
 /* ---------- gate ---------- */
 .gate{min-height:100vh; min-height:100dvh; background:var(--paper); display:flex; align-items:center; justify-content:center; padding:24px 16px; text-align:center}
-.gate .mark{width:110px; color:var(--mark); margin:0 auto 26px; display:block}
+.gate .mark{width:150px; color:var(--mark); margin:0 auto 26px; display:block}
 .gate h1{font-weight:600; font-size:32px; letter-spacing:-0.03em; line-height:1.1; margin:0 0 10px}
 .gate p{margin:0; color:var(--ink62)}
 .gate .g-act{margin-top:22px}
@@ -3427,12 +3427,10 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
   @keyframes gate-drift-a{to{transform:translate(8vmax, 6vmax) scale(1.08)}}
   @keyframes gate-drift-b{to{transform:translate(-6vmax, -8vmax) scale(1.12)}}
 
-  /* the mark writes itself in, left to right, behind a soft pen edge */
-  .gate .mark svg{-webkit-mask-image:linear-gradient(90deg, #000 0 42%, transparent 58% 100%); mask-image:linear-gradient(90deg, #000 0 42%, transparent 58% 100%);
-    -webkit-mask-size:260% 100%; mask-size:260% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-    -webkit-mask-position:0% 0; mask-position:0% 0;
-    animation:gate-write 1.6s cubic-bezier(.45,.05,.25,1) .12s both}
-  @keyframes gate-write{from{-webkit-mask-position:100% 0; mask-position:100% 0} to{-webkit-mask-position:0% 0; mask-position:0% 0}}
+  /* v39: the mark waits for its pen (03-z-gate.js draws it the way the Subject 360 film closes). If the
+     script is late, the mark fades in by itself so the screen never sits without it */
+  .gate .mark svg{overflow:visible; animation:gate-mark-in .5s ease 1.4s both}
+  @keyframes gate-mark-in{from{opacity:0} to{opacity:1}}
 
   /* the title, the line and the form rise into focus one after another */
   .gate > div > h1{animation:gate-rise .76s cubic-bezier(.22,1,.36,1) .52s both}
@@ -3924,7 +3922,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 @media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
 @keyframes o3-emote-in{from{scale:.7} to{scale:1}}
 </style>
-<script>window.M360_BUILD = "15df08b+.261029-1134"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "e9d056e+.261029-1325"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -4481,7 +4479,7 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
   });
 })();
 
-</script></head><body><div id="root"><div class="gate"><div><span class="mark" style="width:110px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 422" fill="currentColor" fill-rule="evenodd"><path d="M1112 416.6C1103.1 414.6 1099.9 413.2 1092.7 408.7C1072.8 396.1 1058.1 373.5 1054 349.1C1051.7 335.5 1047.5 335.2 1038.9 347.9C1031.1 359.3 1008.6 381.2 996.5 389.3C981.6 399.1 967.8 405.3 951.7 409.5C939.9 412.5 936.3 413 926.5 413C916.8 413 913.2 412.5 901.8 409.6C886 405.5 866.8 398.2 858.5 393.2C845.7 385.5 837.1 375.9 833.6 365.3C830.6 356.3 825.9 317.8 825.3 297.5C825 285.8 824.3 278.2 823.7 277.8C821.5 276.4 817 280.2 810.6 289C798.3 305.8 775.8 327.5 752.9 344.5C719.8 369.2 672.1 391.4 632.5 400.5C601.9 407.5 593.9 408.5 563.5 408.5C533.1 408.5 532.1 408.2 522.5 398.6C503.9 379.8 502.6 359.1 519.2 347.7C526.3 342.8 532.7 341.6 547 342.3C555.3 342.7 561.8 343.8 570.5 346.1C587.9 350.8 595.2 350.6 609 345.2C627 338.2 652.1 325.7 673 313.2C686.9 305 717.4 284.2 729.5 274.8C749.5 259.2 768.1 239.5 773 228.8C775.7 222.9 775.5 220.3 772.1 216.9C769.5 214.3 768.5 214 763.2 214C755.9 214 745.7 215.9 730.8 220C720.3 222.9 712.1 225.3 681.5 234.4C663.8 239.7 643.8 243.9 633 244.6C617.4 245.7 605.1 241.4 596.7 232C590.5 225.1 588.6 219.2 589.2 208.1C589.8 194.9 590.6 193.7 622.9 158.3C642.4 136.9 657.9 118.4 658.6 115.4C659 114 658.7 112.3 657.9 111.4C656.4 109.6 657.8 109.6 628.6 111.9C615 113 602.9 111.9 596.3 109C590.3 106.4 583.4 99.6 581.4 94.4C577.9 85.3 580.8 73.6 588.8 64.8C604.7 47 683.4 12 716.5 7.9C727.2 6.5 742.7 7.3 749 9.5C759.6 13.1 769.9 24.5 772.1 34.8C772.8 38.2 773 44 772.7 49C771.5 66.6 758.9 94.3 739.2 122.5C728.5 137.7 727 140.2 727 142.6C727 146.6 730.4 147.7 744.5 148.4C786.1 150.4 816.9 165 830.5 189.4C835.6 198.5 837 203.3 838 214.9C839 226.2 840.5 229.4 843.8 227.4C845.5 226.4 847.4 223.4 863 197.8C872.8 181.6 892.2 152.8 904.5 136C932.4 97.8 953 75.5 973.8 60.8C995.1 45.8 1016.4 49.5 1027.2 70.1C1029.3 74 1029.5 75.9 1029.5 87.5C1029.5 98.3 1029.2 101.2 1027.6 104.5C1026.4 106.9 1019.3 114.6 1009.6 123.9C951.8 179.4 922.6 214 907.9 244.4C903.4 253.6 903.2 255 906 257.5C908 259.3 908.3 259.3 919.8 254.5C956.8 239.3 979.1 233.8 1004 233.8C1016.3 233.8 1019.6 234.1 1025.5 236C1035 239 1039 241.2 1045 246.5C1052.3 252.9 1054.6 254.3 1057.4 253.6C1060 253 1060 253 1066 234C1083.6 178.5 1112.8 124.5 1149.3 80C1159.9 67.1 1183.2 44.4 1194.7 35.8C1214.3 21.1 1234.6 10.9 1252 6.9C1256.7 5.8 1266.2 4.7 1273.5 4.4C1290.6 3.6 1303 6 1316.2 12.6C1342.3 25.4 1355.1 41.7 1360.6 69C1363 80.4 1363.2 83 1362.7 98.5C1362.1 118.8 1359 137.6 1352.8 158.5C1326.9 245.8 1258.4 348.1 1196.5 391.9C1180.7 403.1 1163.9 411.6 1150.5 415.2C1141.5 417.7 1119.9 418.5 1112 416.6ZM1378.5 414.8C1367.5 410.7 1356.6 397.7 1352.6 384.1C1347.9 367.9 1354 347.7 1367.9 334C1376 326 1384.2 321.5 1393.5 320C1416 316.3 1433.5 327.1 1441.6 349.6C1449.7 371.8 1435.9 399 1410.2 411.7C1403.4 415.1 1402.2 415.4 1392.2 415.7C1385.9 415.8 1380.3 415.5 1378.5 414.8ZM397.9 413.6C392.9 411.9 389.5 409.2 382.8 402.3C376 395.1 369.9 385.9 366.8 378.1C364.9 373.3 364.6 370.5 364.6 358.5C364.5 333.6 368.4 322.5 403.2 250.8C410.3 236.1 413 229.5 412.5 228.1C411.1 223.7 407.1 225.7 390.2 239.2C350 271.3 281.1 332.2 236.5 375.1C226.6 384.7 219.7 390.4 216.5 391.9C199.6 399.9 179.6 391.1 174 373.3C167.8 353.4 172.4 316 187.5 264.7C191.2 251.8 191.7 248.1 189.8 246.2C187.8 244.2 186.2 244.8 181.4 249.2C174.3 255.8 160.3 273.6 133.5 310.5C97 360.5 91.7 367.3 79 380.1C61.3 397.9 52.9 402.4 37.5 402.5C26.6 402.5 21.7 400.6 13.9 393.3C6.1 386 4.5 382.3 4.5 371.5L4.5 362.5L16.9 337C43.2 282.5 91.8 187.6 101.5 171.5C118.9 142.9 125.6 133.8 132.2 130.4C136.4 128.1 151.7 127.3 158 129C163.7 130.5 171.3 137.9 173 143.5C173.6 145.7 174.4 152.7 174.7 159C175 165.3 175.7 171.1 176.2 171.8C178.2 174.2 181.1 172.9 190.7 165.2C213.5 146.9 230.6 136.1 241.8 133.1C251.2 130.6 253.1 130.5 259.8 132.5C265.5 134.2 270.8 138.3 274 143.5C278.8 151.3 278.6 169 273.6 192.1C269.4 211.2 263 244.9 263 248C263 251.3 265.3 254 268 254C269 254 272.3 252.1 275.3 249.8C278.4 247.4 285.3 242.1 290.7 238C296.1 233.9 309.3 223.7 320 215.4C330.7 207.2 346.7 195 355.5 188.4C393.8 159.6 448.2 123.1 459.3 118.7C465.5 116.3 481 115.8 487.7 117.8C498.6 121.1 508.5 131.5 512.4 144C515.6 153.9 515.7 161.8 513 172.6C510.8 181.2 507.1 188.8 489.8 220.5C447.6 297.4 432.4 339.3 429.5 386C429.1 391.8 428.4 398.2 427.9 400.3C426.7 404.9 420.7 411.8 416.3 413.7C412.3 415.3 402.7 415.3 397.9 413.6ZM1132.1 359.8C1140.7 356.9 1157.6 342.9 1171 327.5C1203.7 290 1238.5 234.2 1267.2 173.6C1289.4 126.5 1296.9 101.4 1294 83.8C1291.9 70.2 1286.8 68.9 1271.3 77.8C1227.2 103.1 1161.1 187.3 1131.2 256.5C1120.1 282.2 1114.1 305.4 1113.3 325.6C1112.9 336.1 1113.1 339.8 1114.5 344.6C1116.9 352.9 1120 358.1 1123.5 359.6C1127.2 361.3 1127.9 361.3 1132.1 359.8ZM933.3 346C946.5 341.8 958.2 334.5 970.7 322.5C981.6 312.2 984.6 307.9 982.9 304.8C981.4 302 976.7 302.6 967.6 306.6C947.9 315.2 931.9 324.1 921 332.5C912.7 338.9 911.2 344.9 917.3 347.5C921.8 349.5 922.8 349.4 933.3 346Z"/></svg></span><h1>Booting up</h1><p>Signing you in. One sec.</p></div></div></div>
+</script></head><body><div id="root"><div class="gate"><div><span class="mark" style="width:150px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 422" fill="currentColor" fill-rule="evenodd"><path d="M1112 416.6C1103.1 414.6 1099.9 413.2 1092.7 408.7C1072.8 396.1 1058.1 373.5 1054 349.1C1051.7 335.5 1047.5 335.2 1038.9 347.9C1031.1 359.3 1008.6 381.2 996.5 389.3C981.6 399.1 967.8 405.3 951.7 409.5C939.9 412.5 936.3 413 926.5 413C916.8 413 913.2 412.5 901.8 409.6C886 405.5 866.8 398.2 858.5 393.2C845.7 385.5 837.1 375.9 833.6 365.3C830.6 356.3 825.9 317.8 825.3 297.5C825 285.8 824.3 278.2 823.7 277.8C821.5 276.4 817 280.2 810.6 289C798.3 305.8 775.8 327.5 752.9 344.5C719.8 369.2 672.1 391.4 632.5 400.5C601.9 407.5 593.9 408.5 563.5 408.5C533.1 408.5 532.1 408.2 522.5 398.6C503.9 379.8 502.6 359.1 519.2 347.7C526.3 342.8 532.7 341.6 547 342.3C555.3 342.7 561.8 343.8 570.5 346.1C587.9 350.8 595.2 350.6 609 345.2C627 338.2 652.1 325.7 673 313.2C686.9 305 717.4 284.2 729.5 274.8C749.5 259.2 768.1 239.5 773 228.8C775.7 222.9 775.5 220.3 772.1 216.9C769.5 214.3 768.5 214 763.2 214C755.9 214 745.7 215.9 730.8 220C720.3 222.9 712.1 225.3 681.5 234.4C663.8 239.7 643.8 243.9 633 244.6C617.4 245.7 605.1 241.4 596.7 232C590.5 225.1 588.6 219.2 589.2 208.1C589.8 194.9 590.6 193.7 622.9 158.3C642.4 136.9 657.9 118.4 658.6 115.4C659 114 658.7 112.3 657.9 111.4C656.4 109.6 657.8 109.6 628.6 111.9C615 113 602.9 111.9 596.3 109C590.3 106.4 583.4 99.6 581.4 94.4C577.9 85.3 580.8 73.6 588.8 64.8C604.7 47 683.4 12 716.5 7.9C727.2 6.5 742.7 7.3 749 9.5C759.6 13.1 769.9 24.5 772.1 34.8C772.8 38.2 773 44 772.7 49C771.5 66.6 758.9 94.3 739.2 122.5C728.5 137.7 727 140.2 727 142.6C727 146.6 730.4 147.7 744.5 148.4C786.1 150.4 816.9 165 830.5 189.4C835.6 198.5 837 203.3 838 214.9C839 226.2 840.5 229.4 843.8 227.4C845.5 226.4 847.4 223.4 863 197.8C872.8 181.6 892.2 152.8 904.5 136C932.4 97.8 953 75.5 973.8 60.8C995.1 45.8 1016.4 49.5 1027.2 70.1C1029.3 74 1029.5 75.9 1029.5 87.5C1029.5 98.3 1029.2 101.2 1027.6 104.5C1026.4 106.9 1019.3 114.6 1009.6 123.9C951.8 179.4 922.6 214 907.9 244.4C903.4 253.6 903.2 255 906 257.5C908 259.3 908.3 259.3 919.8 254.5C956.8 239.3 979.1 233.8 1004 233.8C1016.3 233.8 1019.6 234.1 1025.5 236C1035 239 1039 241.2 1045 246.5C1052.3 252.9 1054.6 254.3 1057.4 253.6C1060 253 1060 253 1066 234C1083.6 178.5 1112.8 124.5 1149.3 80C1159.9 67.1 1183.2 44.4 1194.7 35.8C1214.3 21.1 1234.6 10.9 1252 6.9C1256.7 5.8 1266.2 4.7 1273.5 4.4C1290.6 3.6 1303 6 1316.2 12.6C1342.3 25.4 1355.1 41.7 1360.6 69C1363 80.4 1363.2 83 1362.7 98.5C1362.1 118.8 1359 137.6 1352.8 158.5C1326.9 245.8 1258.4 348.1 1196.5 391.9C1180.7 403.1 1163.9 411.6 1150.5 415.2C1141.5 417.7 1119.9 418.5 1112 416.6ZM1378.5 414.8C1367.5 410.7 1356.6 397.7 1352.6 384.1C1347.9 367.9 1354 347.7 1367.9 334C1376 326 1384.2 321.5 1393.5 320C1416 316.3 1433.5 327.1 1441.6 349.6C1449.7 371.8 1435.9 399 1410.2 411.7C1403.4 415.1 1402.2 415.4 1392.2 415.7C1385.9 415.8 1380.3 415.5 1378.5 414.8ZM397.9 413.6C392.9 411.9 389.5 409.2 382.8 402.3C376 395.1 369.9 385.9 366.8 378.1C364.9 373.3 364.6 370.5 364.6 358.5C364.5 333.6 368.4 322.5 403.2 250.8C410.3 236.1 413 229.5 412.5 228.1C411.1 223.7 407.1 225.7 390.2 239.2C350 271.3 281.1 332.2 236.5 375.1C226.6 384.7 219.7 390.4 216.5 391.9C199.6 399.9 179.6 391.1 174 373.3C167.8 353.4 172.4 316 187.5 264.7C191.2 251.8 191.7 248.1 189.8 246.2C187.8 244.2 186.2 244.8 181.4 249.2C174.3 255.8 160.3 273.6 133.5 310.5C97 360.5 91.7 367.3 79 380.1C61.3 397.9 52.9 402.4 37.5 402.5C26.6 402.5 21.7 400.6 13.9 393.3C6.1 386 4.5 382.3 4.5 371.5L4.5 362.5L16.9 337C43.2 282.5 91.8 187.6 101.5 171.5C118.9 142.9 125.6 133.8 132.2 130.4C136.4 128.1 151.7 127.3 158 129C163.7 130.5 171.3 137.9 173 143.5C173.6 145.7 174.4 152.7 174.7 159C175 165.3 175.7 171.1 176.2 171.8C178.2 174.2 181.1 172.9 190.7 165.2C213.5 146.9 230.6 136.1 241.8 133.1C251.2 130.6 253.1 130.5 259.8 132.5C265.5 134.2 270.8 138.3 274 143.5C278.8 151.3 278.6 169 273.6 192.1C269.4 211.2 263 244.9 263 248C263 251.3 265.3 254 268 254C269 254 272.3 252.1 275.3 249.8C278.4 247.4 285.3 242.1 290.7 238C296.1 233.9 309.3 223.7 320 215.4C330.7 207.2 346.7 195 355.5 188.4C393.8 159.6 448.2 123.1 459.3 118.7C465.5 116.3 481 115.8 487.7 117.8C498.6 121.1 508.5 131.5 512.4 144C515.6 153.9 515.7 161.8 513 172.6C510.8 181.2 507.1 188.8 489.8 220.5C447.6 297.4 432.4 339.3 429.5 386C429.1 391.8 428.4 398.2 427.9 400.3C426.7 404.9 420.7 411.8 416.3 413.7C412.3 415.3 402.7 415.3 397.9 413.6ZM1132.1 359.8C1140.7 356.9 1157.6 342.9 1171 327.5C1203.7 290 1238.5 234.2 1267.2 173.6C1289.4 126.5 1296.9 101.4 1294 83.8C1291.9 70.2 1286.8 68.9 1271.3 77.8C1227.2 103.1 1161.1 187.3 1131.2 256.5C1120.1 282.2 1114.1 305.4 1113.3 325.6C1112.9 336.1 1113.1 339.8 1114.5 344.6C1116.9 352.9 1120 358.1 1123.5 359.6C1127.2 361.3 1127.9 361.3 1132.1 359.8ZM933.3 346C946.5 341.8 958.2 334.5 970.7 322.5C981.6 312.2 984.6 307.9 982.9 304.8C981.4 302 976.7 302.6 967.6 306.6C947.9 315.2 931.9 324.1 921 332.5C912.7 338.9 911.2 344.9 917.3 347.5C921.8 349.5 922.8 349.4 933.3 346Z"/></svg></span><h1>Booting up</h1><p>Signing you in. One sec.</p></div></div></div>
 <script src="vendor/react.js"></script>
 <script src="vendor/react-dom.js"></script>
 <script src="vendor/htm.js"></script>
@@ -5791,7 +5789,16 @@ const U = M.U = (() => {
   /* "tuesday 22 september, week 39" */
   const dateLabel = d => { d = d || new Date(); return DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ', week ' + Number(isoWeek(d).split('-W')[1]); };
   const firstName = n => String(n || '').trim().split(/\s+/)[0] || '';
-  return {pad, ymd, parseYmd, mondayOf, addDays, isoWeek, mondayOfWeekId, quarterId, monthId, isoLocal,
+  /* v39: what a form changed, as a patch. A drawer opened on a copy of a document saves only the fields its
+     person touched (compared with that copy), so what someone else saved meanwhile is kept. A field set back
+     to empty is sent as its empty value; a field the form does not know about is never sent */
+  const same = (a, b) => JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b);
+  const changes = (base, next) => {
+    const out = {};
+    for (const k of Object.keys(next || {})) if (!same((base || {})[k], next[k])) out[k] = next[k] === undefined ? null : next[k];
+    return out;
+  };
+  return {changes, pad, ymd, parseYmd, mondayOf, addDays, isoWeek, mondayOfWeekId, quarterId, monthId, isoLocal,
     haversine, hhmm, minutes, durText, fmtDate, fmtDay, timeAgo, inr, uid, clone, cap, daysBetween, todayStr, pct,
     weekDays, pruneDays, pruneWeeks, prunePatch, dropNulls, periodRange, greeting, dateLabel, firstName, MONTHS, DAYS, DAYS_S};
 })();
@@ -7250,7 +7257,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
   /* ---------- gates ---------- */
   M.Gate = function Gate({title, line, children}) {
     return html`<div class="gate"><div>
-      <${M.Mark} width="110px"/>
+      <${M.Mark} width="150px"/>
       <h1>${title}</h1>
       ${line ? html`<p>${line}</p>` : null}
       ${children ? html`<div class="g-act">${children}</div>` : null}
@@ -7787,13 +7794,25 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 (function () {
   const still = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
   const EASE = 'cubic-bezier(.22,1,.36,1)';      /* the curve Apple's sheets settle on */
-  const WRITE = {delay: 120, duration: 1600};
-  const PEN = 'cubic-bezier(.45,.05,.25,1)';    /* a hand writing: a steady start, an even line, a gentle stop */
+  /* v39: the pen. The mark is drawn the way the Subject 360 film closes: an orange line runs in waving, its tip
+     becomes a pen, and m, 3, 6 and 0 are written in brush strokes behind a thin orange tracer and its nib,
+     then the full stop lands. The filled mark is shown through a mask of wide strokes that follow each
+     letter's centre line in writing order (viewBox 0 0 1448 422, src/mark.svg) */
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const LEAD = 'M -380 384 C -350 362 -320 406 -290 384 C -260 362 -230 406 -200 384 C -170 362 -140 406 -110 384 C -80 362 -50 404 -20 386 C 0 378 20 382 40 380';
+  const INK = [
+    'M 40 380 L 145 150 Q 205 122 252 150 L 205 372 Q 214 400 242 372 L 470 140 Q 508 138 492 190 L 405 395',
+    'M 595 85 C 640 45 725 20 760 38 C 778 60 700 140 640 190 L 615 222 C 690 235 750 205 805 200 C 835 215 790 280 720 315 C 650 360 590 375 530 370',
+    'M 1005 80 C 940 140 880 220 850 300 C 835 360 870 395 920 395 C 990 395 1045 340 1045 290 C 1040 250 990 240 950 255 C 920 265 890 285 870 300',
+    'M 1320 60 C 1270 30 1200 70 1150 150 C 1090 250 1060 360 1110 395 C 1170 420 1250 340 1300 250 C 1350 160 1370 80 1320 55'];
+  const DOT = {x: 1397, y: 366, r: 52};
+  /* hold: a beat before the line runs in, so the screen has painted when the pen starts */
+  const PEN = {hold: 280, lead: 420, write: 1500, lift: 70, dot: 300, fade: 320, brush: 118};
+  const PEN_MS = PEN.lead + PEN.write + PEN.lift * (INK.length - 1) + PEN.dot;
   const RISE = [['h1', 520], ['p', 620], ['.g-act', 720]];
   const RISE_MS = 760;
   const FRESH_MS = 460;
   const ENTERED = 'm360.entered';
-  const WRITE_KF = [{WebkitMaskPosition: '100% 0', maskPosition: '100% 0'}, {WebkitMaskPosition: '0% 0', maskPosition: '0% 0'}];
   const RISE_KF = [{opacity: 0, transform: 'translateY(12px)', filter: 'blur(8px)'}, {opacity: 1, transform: 'none', filter: 'blur(0px)'}];
   const SHAKE_KF = [{transform: 'translateX(0)'}, {transform: 'translateX(-11px)'}, {transform: 'translateX(9px)'}, {transform: 'translateX(-6px)'},
     {transform: 'translateX(4px)'}, {transform: 'translateX(-2px)'}, {transform: 'translateX(0)'}];
@@ -7834,15 +7853,97 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
     el.animate(kf, {duration, easing: EASE});
   }
 
+  /* the pen's own clock: it starts when the first mark is taken over, and a mark React mounts later (the boot
+     gate swapped for the sign-in gate) picks the drawing up where it is */
+  /* the pen's time only moves while frames are drawn (at most 40 ms a frame), so a page busy starting up
+     pauses the writing and never skips the opening strokes */
+  let P0 = null, penSeq = 0, penT = 0, penLast = 0;
+  const pens = [];
+  const easeInOut = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  /* colours go on style: a CSS variable does not work in an SVG presentation attribute */
+  const el = (tag, attrs, parent, css) => { const n = document.createElementNS(SVGNS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (css) Object.assign(n.style, css); if (parent) parent.appendChild(n); return n; };
+  function pen(svg) {
+    const logo = svg.querySelector('path');
+    if (!logo || !svg.getBoundingClientRect || !logo.getTotalLength) return false;
+    const px = 1448 / Math.max(40, svg.getBoundingClientRect().width || 110);
+    const id = 'm360pen' + (++penSeq);
+    const defs = el('defs', {}, svg);
+    const mask = el('mask', {id, maskUnits: 'userSpaceOnUse', x: -60, y: -60, width: 1568, height: 542}, defs);
+    const line = {fill: 'none', 'stroke-width': (1.7 * px).toFixed(1), 'stroke-linecap': 'round', 'stroke-linejoin': 'round'};
+    const FLAME = {stroke: 'var(--flame)'}, WHITE = {stroke: 'white', fill: 'none'};
+    const ink = INK.map(d => { const m = el('path', {d, 'stroke-width': PEN.brush, 'stroke-linecap': 'round', 'stroke-linejoin': 'round'}, mask, WHITE); const len = m.getTotalLength(); m.style.strokeDasharray = len; m.style.strokeDashoffset = len; return {m, len}; });
+    const dot = el('circle', {cx: DOT.x, cy: DOT.y, r: 0}, mask, {fill: 'white'});
+    logo.setAttribute('mask', 'url(#' + id + ')');
+    const lead = el('path', {d: LEAD, ...line}, svg, FLAME);
+    const leadLen = lead.getTotalLength();
+    lead.style.strokeDasharray = leadLen; lead.style.strokeDashoffset = leadLen;
+    const traces = INK.map(d => { const t = el('path', {d, ...line}, svg, FLAME); const len = t.getTotalLength(); t.style.strokeDasharray = len; t.style.strokeDashoffset = len; return {t, len}; });
+    const nib = el('circle', {r: (2.6 * px).toFixed(1), opacity: 0}, svg, {fill: 'var(--flame)'});
+    const total = ink.reduce((n, x) => n + x.len, 0);
+    let at = PEN.lead;
+    const spans = ink.map(x => { const d = PEN.write * x.len / total; const s = {from: at, to: at + d}; at += d + PEN.lift; return s; });
+    const dotAt = at - PEN.lift;
+    svg.style.animation = 'none'; svg.style.opacity = '1'; svg.style.overflow = 'visible';
+    svg.classList.add('pen');
+    pens.push({svg, ink, dot, lead, leadLen, traces, nib, spans, dotAt, parts: [defs, lead, nib, ...traces.map(x => x.t)], logo});
+    return true;
+  }
+  function drawPens(ts) {
+    const c = typeof ts === 'number' ? ts : clock();
+    penT += Math.min(40, Math.max(0, c - (penLast || c)));
+    penLast = c;
+    const t = penT - PEN.hold;
+    for (let i = pens.length - 1; i >= 0; i--) {
+      const P = pens[i];
+      if (!P.svg.isConnected) { pens.splice(i, 1); continue; }
+      let head = null;
+      /* the line runs in waving, then pulls back as the writing starts */
+      const lp = Math.max(0, Math.min(1, t / PEN.lead));
+      P.lead.style.strokeDashoffset = P.leadLen * (1 - easeInOut(lp));
+      P.lead.style.opacity = t < PEN.lead ? 1 : Math.max(0, 1 - (t - PEN.lead) / 500);
+      if (t > 0 && t < PEN.lead) head = P.lead.getPointAtLength(P.leadLen * easeInOut(lp));
+      P.spans.forEach((sp, k) => {
+        const p = Math.max(0, Math.min(1, (t - sp.from) / (sp.to - sp.from)));
+        const e = easeInOut(p);
+        const {m, len} = P.ink[k], tr = P.traces[k];
+        /* the tracer runs a touch ahead of the ink, and fades once its letter is written */
+        const te = Math.min(1, e + 0.06 * (p > 0 ? 1 : 0));
+        tr.t.style.strokeDashoffset = tr.len * (1 - te);
+        tr.t.style.opacity = t <= sp.to ? (p > 0 ? 1 : 0) : Math.max(0, 1 - (t - sp.to) / PEN.fade);
+        m.style.strokeDashoffset = len * (1 - e);
+        if (p > 0 && p < 1) head = tr.t.getPointAtLength(tr.len * te);
+      });
+      /* the full stop lands with a small overshoot */
+      const dp = Math.max(0, Math.min(1, (t - P.dotAt) / PEN.dot));
+      const pop = dp < 0.7 ? dp / 0.7 * 1.12 : 1.12 - 0.12 * (dp - 0.7) / 0.3;
+      P.dot.setAttribute('r', (DOT.r * 1.25 * pop).toFixed(1));
+      if (head) { P.nib.setAttribute('cx', head.x); P.nib.setAttribute('cy', head.y); P.nib.setAttribute('opacity', 1); }
+      else P.nib.setAttribute('opacity', 0);
+      if (t >= PEN_MS + PEN.fade) {
+        /* done: the plain mark stays, the pen's parts go */
+        P.logo.removeAttribute('mask');
+        P.parts.forEach(n => n.remove());
+        P.svg.classList.remove('pen');
+        pens.splice(i, 1);
+      }
+    }
+    if (pens.length) requestAnimationFrame(drawPens);
+  }
+
   function settle(gate) {
     if (still()) return;
     begin(gate);
     const t = now();
     gate.querySelectorAll('.mark svg').forEach(svg => {
-      if (seen.has(svg)) return;
+      if (seen.has(svg) && svg.dataset.pen) return;
       seen.add(svg);
-      if (t < WRITE.delay + WRITE.duration) synced(svg, WRITE_KF, WRITE.delay, WRITE.duration, PEN);
-      else svg.style.animation = 'none';
+      svg.dataset.pen = '1';
+      /* the pen draws once per page load; a mark that arrives after it finished simply shows */
+      const fresh = P0 == null;
+      if (fresh && t > 1400) { svg.style.animation = 'none'; svg.style.opacity = '1'; return; }
+      if (!fresh && penT >= PEN.hold + PEN_MS) { svg.style.animation = 'none'; svg.style.opacity = '1'; return; }
+      if (fresh) { P0 = clock(); penT = 0; penLast = 0; }
+      try { if (pen(svg) && pens.length === 1) requestAnimationFrame(drawPens); } catch (e) { svg.style.animation = 'none'; svg.style.opacity = '1'; }
     });
     RISE.forEach(([sel, delay]) => gate.querySelectorAll(':scope > div > ' + sel).forEach(el => {
       if (seen.has(el)) return;
@@ -28556,7 +28657,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
    year) comes in as CSV, XLSX, PDF or a photo. Every line is read: money in is the business's income, money out is
    spent. Lines are grouped by party (every Starbucks line under Starbucks, Soho House and Junco Hospitality under one
    name), each party is named once by AI with a kind, a category and one line on what it is, and the owner's own
-   edits to a party always win. Statements live in statements/<id> (rows as short arrays, split into <id>~2 and on
+   edits to a party always win. Statements live in statements/<id> (rows as short arrays, split into <id>.p2 and on
    when a document grows past 200 KB); what each party is lives in statements/_parties. Owner only. */
 'use strict';
 (function () {
@@ -28788,7 +28889,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
         const now = Date.now();
         setLine('Saving ' + fresh.length + ' lines');
         if (Object.keys(patch).length) await ctx.W.merge(PARTIES, {map: patch, updated: now});
-        for (let i = 1; i < parts.length; i++) await ctx.W.set('statements/' + id + '~' + (i + 1), {of: id, part: i + 1, rows: parts[i], at: now});
+        for (let i = 1; i < parts.length; i++) await ctx.W.set('statements/' + id + '.p' + (i + 1), {of: id, part: i + 1, rows: parts[i], at: now});
         await ctx.W.set('statements/' + id, {name: file.name.slice(0, 80), bank: bank.trim().slice(0, 40), from: dates[0], to: dates[dates.length - 1], n: fresh.length, parts: parts.length, rows: parts[0], at: now});
         setLine('Read ' + fresh.length + (fresh.length === 1 ? ' line' : ' lines') + ' from ' + U.fmtDate(dates[0]) + ' to ' + U.fmtDate(dates[dates.length - 1]) + '.' + (skipped ? ' ' + skipped + ' already here stayed out.' : '') + note);
         M.toast('Statement read');
@@ -28932,7 +29033,7 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       setAdding(false);
     };
     const remove = async s => {
-      for (let i = 2; i <= (s.parts || 1); i++) await ctx.W.del('statements/' + s.id + '~' + i);
+      for (let i = 2; i <= (s.parts || 1); i++) await ctx.W.del('statements/' + s.id + '.p' + i);
       await ctx.W.del('statements/' + s.id);
       if (pick === s.id) setPick('all');
       M.toast('Statement removed');

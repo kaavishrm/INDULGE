@@ -263,5 +263,10 @@ export const RULES = [
   "path": "hr",
   "read": "owner",
   "write": "owner"
+ },
+ {
+  "path": "statements",
+  "read": "owner",
+  "write": "owner"
  }
 ];

@@ -10,12 +10,10 @@
   @keyframes gate-drift-a{to{transform:translate(8vmax, 6vmax) scale(1.08)}}
   @keyframes gate-drift-b{to{transform:translate(-6vmax, -8vmax) scale(1.12)}}
 
-  /* the mark writes itself in, left to right, behind a soft pen edge */
-  .gate .mark svg{-webkit-mask-image:linear-gradient(90deg, #000 0 42%, transparent 58% 100%); mask-image:linear-gradient(90deg, #000 0 42%, transparent 58% 100%);
-    -webkit-mask-size:260% 100%; mask-size:260% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-    -webkit-mask-position:0% 0; mask-position:0% 0;
-    animation:gate-write 1.6s cubic-bezier(.45,.05,.25,1) .12s both}
-  @keyframes gate-write{from{-webkit-mask-position:100% 0; mask-position:100% 0} to{-webkit-mask-position:0% 0; mask-position:0% 0}}
+  /* v39: the mark waits for its pen (03-z-gate.js draws it the way the Subject 360 film closes). If the
+     script is late, the mark fades in by itself so the screen never sits without it */
+  .gate .mark svg{overflow:visible; animation:gate-mark-in .5s ease 1.4s both}
+  @keyframes gate-mark-in{from{opacity:0} to{opacity:1}}
 
   /* the title, the line and the form rise into focus one after another */
   .gate > div > h1{animation:gate-rise .76s cubic-bezier(.22,1,.36,1) .52s both}

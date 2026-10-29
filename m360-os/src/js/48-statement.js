@@ -2,7 +2,7 @@
    year) comes in as CSV, XLSX, PDF or a photo. Every line is read: money in is the business's income, money out is
    spent. Lines are grouped by party (every Starbucks line under Starbucks, Soho House and Junco Hospitality under one
    name), each party is named once by AI with a kind, a category and one line on what it is, and the owner's own
-   edits to a party always win. Statements live in statements/<id> (rows as short arrays, split into <id>~2 and on
+   edits to a party always win. Statements live in statements/<id> (rows as short arrays, split into <id>.p2 and on
    when a document grows past 200 KB); what each party is lives in statements/_parties. Owner only. */
 'use strict';
 (function () {
@@ -234,7 +234,7 @@
         const now = Date.now();
         setLine('Saving ' + fresh.length + ' lines');
         if (Object.keys(patch).length) await ctx.W.merge(PARTIES, {map: patch, updated: now});
-        for (let i = 1; i < parts.length; i++) await ctx.W.set('statements/' + id + '~' + (i + 1), {of: id, part: i + 1, rows: parts[i], at: now});
+        for (let i = 1; i < parts.length; i++) await ctx.W.set('statements/' + id + '.p' + (i + 1), {of: id, part: i + 1, rows: parts[i], at: now});
         await ctx.W.set('statements/' + id, {name: file.name.slice(0, 80), bank: bank.trim().slice(0, 40), from: dates[0], to: dates[dates.length - 1], n: fresh.length, parts: parts.length, rows: parts[0], at: now});
         setLine('Read ' + fresh.length + (fresh.length === 1 ? ' line' : ' lines') + ' from ' + U.fmtDate(dates[0]) + ' to ' + U.fmtDate(dates[dates.length - 1]) + '.' + (skipped ? ' ' + skipped + ' already here stayed out.' : '') + note);
         M.toast('Statement read');
@@ -378,7 +378,7 @@
       setAdding(false);
     };
     const remove = async s => {
-      for (let i = 2; i <= (s.parts || 1); i++) await ctx.W.del('statements/' + s.id + '~' + i);
+      for (let i = 2; i <= (s.parts || 1); i++) await ctx.W.del('statements/' + s.id + '.p' + i);
       await ctx.W.del('statements/' + s.id);
       if (pick === s.id) setPick('all');
       M.toast('Statement removed');

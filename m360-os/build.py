@@ -106,7 +106,7 @@ def build(extra=(), out_path=None, three='inline'):
     fonts = font_face(os.path.join(ROOT, 'assets', 'sg-latin.woff2'), LATIN_RANGE) + \
         font_face(os.path.join(ROOT, 'assets', 'sg-rupee.woff2'), 'U+20B9')
 
-    gate = ('<div class="gate"><div><span class="mark" style="width:110px">%s</span>'
+    gate = ('<div class="gate"><div><span class="mark" style="width:150px">%s</span>'
             '<h1>Booting up</h1><p>Signing you in. One sec.</p></div></div>' % mark)
 
     html = '\n'.join([
