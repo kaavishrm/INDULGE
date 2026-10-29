@@ -727,6 +727,8 @@
   }
 
   /* ---------- Admin: the mandate and the policy ---------- */
+  /* v39: "MM-DD" for a day that exists in a leap year (02-29 included) */
+  const realMonthDay = t => { const m = /^(\d{2})-(\d{2})$/.exec(t || ''); if (!m) return false; const mo = Number(m[1]), d = Number(m[2]); return mo >= 1 && mo <= 12 && d >= 1 && d <= new Date(2024, mo, 0).getDate(); };
   /* a number field that saves when it loses focus; empty means not set */
   function Num({value, onSave, label, step, id}) {
     const [v, setV] = useState(value == null ? '' : String(value));
@@ -734,7 +736,13 @@
     const commit = () => {
       const t = String(v).trim();
       const n = t === '' ? null : Number(t);
-      if (n !== null && !isFinite(n)) { setV(value == null ? '' : String(value)); return; }
+      /* v39: 0 or more, and whole unless the field steps in fractions */
+      const whole = !step || Number(step) >= 1;
+      if (n !== null && (!isFinite(n) || n < 0 || (whole && n !== Math.floor(n)))) {
+        setV(value == null ? '' : String(value));
+        M.toast(whole ? 'Use a whole number, 0 or more' : 'Use a number, 0 or more', true);
+        return;
+      }
       if (n !== (value == null ? null : Number(value))) onSave(n);
     };
     return html`<input class="input coo-num num" type="number" min="0" step=${step || 1} id=${id} aria-label=${label} placeholder="not set" value=${v}
@@ -825,7 +833,7 @@
           <label class="coo-field"><span class="small">Most people out a day</span><${Num} label="Most people out a day" value=${L.maxOutPerDay} onSave=${n => save({leave: {maxOutPerDay: n}})}/></label>
           <label class="coo-field"><span class="small">Most out per pod</span><${Num} label="Most out per pod" value=${L.maxOutPerPod} onSave=${n => save({leave: {maxOutPerPod: n}})}/></label>
           <label class="coo-field"><span class="small">The leave year starts</span><input class="input coo-num" aria-label="The leave year starts" placeholder="04-01" key=${'y' + (L.yearStart || '')} defaultValue=${L.yearStart || ''}
-            onBlur=${e => /^\d{2}-\d{2}$/.test(e.target.value.trim()) && e.target.value.trim() !== L.yearStart && save({leave: {yearStart: e.target.value.trim()}})}/></label>
+            onBlur=${e => { const t = e.target.value.trim(); if (t === (L.yearStart || '')) return; if (!realMonthDay(t)) { e.target.value = L.yearStart || ''; if (t) M.toast('Use month and day, like 04-01', true); return; } save({leave: {yearStart: t}}); }}/></label>
         </div>
         <div class="row between"><span class="small">Sick leave in probation, unpaid</span>
           <${UI.Seg} sm=${true} ariaLabel="Sick leave in probation" options=${[{v: 'no', label: 'To you'}, {v: 'yes', label: 'Allowed'}]} value=${L.probationLop ? 'yes' : 'no'} onChange=${v => save({leave: {probationLop: v === 'yes'}})}/></div>
