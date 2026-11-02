@@ -120,7 +120,7 @@ def test(h):
     assert card.locator('.pill:has-text("20% shown")').count() == 1
     assert card.locator('.pill.warm:has-text("Swisse Q4 reels")').count() == 1
     assert card.locator('.pill.warm:has-text("Swisse Wellness UAE")').count() == 1
-    assert card.locator('img.av').count() == 1
+    assert card.locator('.av').count() == 1  # v7: initials on ink (a span) when there is no photo
     assert '1' in page.locator('.col-head').nth(0).inner_text()
     assert '1 open, 1 overdue' in page.inner_text('.page-head')
 

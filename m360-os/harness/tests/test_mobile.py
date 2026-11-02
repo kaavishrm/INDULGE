@@ -111,9 +111,9 @@ def t(h):
     p.wait_for_selector('.tcard[data-task="t1"]')
     p.locator('.tcard[data-task="t1"]').click()
     p.wait_for_selector('.drawer .sheet-handle')
-    p.wait_for_timeout(350)
+    p.wait_for_timeout(900)  # v7: the sheet rises on a .6s spring
     mh = p.evaluate('parseFloat(getComputedStyle(document.querySelector(".drawer")).maxHeight)')
-    check(abs(mh - 844 * 0.92) < 2, 'drawer max-height is %r, expected 92dvh' % mh)
+    check(abs(mh - (844 - 48)) < 2, 'drawer max-height is %r, expected the screen less 48px (v7 glass sheet)' % mh)
     box = p.locator('.drawer').bounding_box()
     check(box and box['x'] == 0 and abs(box['width'] - 390) < 1 and abs(box['y'] + box['height'] - 844) < 1, 'drawer is not docked to the bottom: %r' % box)
     radius = p.evaluate('getComputedStyle(document.querySelector(".drawer")).borderTopLeftRadius')

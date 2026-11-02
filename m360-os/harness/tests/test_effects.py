@@ -4,7 +4,7 @@
 window.FX carries thinking-orbs, border-beam, voice-glow, bot-avatars and React Bits' BellToggle.
 v36.2 retired metal-fx: its chromatic text drew numbers as misaligned coloured ghosts, so the bundle no
 longer carries it and M.fx.Metal, MetalText and MetalBadge draw a plain button, plain text and a flame pill. The thinking line draws the orb on a canvas with a state read from its label; a flame card
-and a hot fold ride the border beam; Ask wraps its input in the voice beam, lit while the mic is live
+and a hot fold carry the v7 flame line on their top edge (the border beam is retired); Ask wraps its input in the voice beam, lit while the mic is live
 and travelling while the answer is on its way, with a bot avatar beside every answer ; the notifications pill is
 the bell, ringing on a press with its label unfurling; reduced motion drops the beam and keeps the plain
 controls; on the phone the orb screen draws the listening orb and the voice beam.
@@ -78,14 +78,11 @@ def test(h):
     lines = p.evaluate('() => [...document.querySelectorAll("#fx-scratch .thinking-line")].map(l => [l.dataset.state, !!l.querySelector("canvas")])')
     check([x[0] for x in lines] == ['searching', 'composing', 'working'] and all(x[1] for x in lines), 'three orbs with states: %r' % lines)
 
-    # ---- the beam on a flame card, none on a plain one ----
-    check(p.evaluate('() => document.getElementById("fx-hot").parentElement.hasAttribute("data-beam")'), 'a flame card sits inside a border beam')
-    p.locator('#fx-hot').scroll_into_view_if_needed()
-    p.wait_for_function('() => document.getElementById("fx-hot").parentElement.hasAttribute("data-active")')
-    check(True, 'the beam plays when the card comes into view')
-    p.wait_for_timeout(4000)
-    check(p.evaluate('() => document.getElementById("fx-hot").parentElement.hasAttribute("data-active")'), 'and keeps running while it is on screen, as the library ships it')
-    check(p.evaluate('() => !document.getElementById("fx-cold").parentElement.hasAttribute("data-beam")'), 'a plain card has no beam')
+    # ---- v7: the border beam is retired. A flame card carries the 2px flame line on its top edge, a plain one none ----
+    LINE = '(id) => { const s = getComputedStyle(document.getElementById(id), "::before"); return [s.content !== "none" && s.content !== "", s.height, s.backgroundColor]; }'
+    check(p.evaluate(LINE, 'fx-hot') == [True, '2px', 'rgb(245, 57, 1)'], 'a flame card carries the flame line: %r' % p.evaluate(LINE, 'fx-hot'))
+    check(not p.evaluate('() => !!document.getElementById("fx-hot").closest("[data-beam]")'), 'and no border beam')
+    check(not p.evaluate(LINE, 'fx-cold')[0], 'a plain card has no line')
 
     # ---- v36.2: the metal is retired; the ink button is the plain button in its layout host ----
     plain = p.evaluate('() => { const b = document.getElementById("fx-btn"); const h = b.parentElement; return [!!b.closest(".metal-fx-root"), h.classList.contains("metal-host"), h.classList.contains("metal-ink"), h.querySelectorAll("canvas").length]; }')

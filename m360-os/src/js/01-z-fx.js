@@ -4,7 +4,8 @@
    bundle is missing or the person asked for reduced motion, so nothing depends on the bundle.
 
      M.fx.Orb       thinking-orbs   ThinkingOrb, any of the nine states, sizes 20 / 32 / 64
-     M.fx.Beam      border-beam     BorderBeam round a card or a control, running while on screen
+     M.fx.Beam      (retired, v7)   the host alone; on=true marks the card inside with the flame line
+     M.fx.BeamFx    border-beam     BorderBeam round a card or a control, running while on screen
      M.fx.Voice     voice-glow      VoiceBeam under an input, a recording pill or a phone screen
      M.fx.VoicePill voice-glow      the recording pill round a Talk button while it listens
      M.fx.Bot       bot-avatars     BotAvatar, one body per AI feature (M.fx.BOTS)
@@ -91,7 +92,16 @@
   const TEXT_FIELD = 'input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea';
   const isField = (kid, el) => (!!kid && (kid.type === 'input' || kid.type === 'textarea')) ||
     (!!el && !!el.querySelector(TEXT_FIELD) && !el.querySelector('.card, .ai-card, section'));
-  function Beam({on, size, radius, strength, duration, dark, children, block}) {
+  /* v7: the border beam is retired. It drew flame as moving tints round a border, and the v7 design keeps
+     flame exact (#F53901, never a tint) and still: a card that needs you carries a 2px flame line on its top
+     edge (css.css). Beam keeps its host, so every layout built round it holds, and a beam a caller switches
+     on by a condition (`on`) marks the card inside as needing you with that line. BeamFx is the old effect,
+     kept for a caller that asks for it by name. */
+  function Beam({on, children, block}) {
+    if (on === false) return children;
+    return html`<span class=${'beam-host' + (block === false ? ' inline' : '') + (on === true ? ' need' : '')}>${children}</span>`;
+  }
+  function BeamFx({on, size, radius, strength, duration, dark, children, block}) {
     useSettled();
     const th = M.useResolvedTheme();
     const hush = useHushed();
@@ -205,5 +215,5 @@
     return html`<${fx.BellToggle} ...${all}/>`;
   }
 
-  M.fx = {...(M.fx || {}), Orb, Beam, Metal, MetalText, MetalBadge, Voice, VoicePill, Bot, Bell, BOTS, FLAME, has: () => !!window.FX, useSettled, useHushed};
+  M.fx = {...(M.fx || {}), Orb, Beam, BeamFx, Metal, MetalText, MetalBadge, Voice, VoicePill, Bot, Bell, BOTS, FLAME, has: () => !!window.FX, useSettled, useHushed};
 })();
