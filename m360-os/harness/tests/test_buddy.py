@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """m360 AI (the buddy): v40 puts no character on the screen. The corner dock is hidden and nothing rides the
-cursor; the sidebar's m360 AI opens the panel, answers and the tour ring what they point at in flame.
+cursor; the Ask bar's m360 AI row opens the glass sheet, answers and the tour ring what they point at in flame.
 The voice module picks a browser voice or the server voice.
 Part one runs on the Claude mock; part two runs the voice actions on the EdgeOne stand-in.
 
@@ -23,11 +23,12 @@ import build_edgeone  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-ASK = '.side-tools .iconbtn[aria-label="Ask m360"]'
+ASK = '.pal-item[data-k="a-ai"]'
 
 
 def ask(p):
-    """open the m360 AI panel the way a person does on a desk: the sidebar's m360 AI"""
+    """open the m360 AI sheet the way a person does on a desk: Ctrl+K opens the Ask bar, then its m360 AI row"""
+    p.keyboard.press('Control+k')
     p.locator(ASK).click()
     p.wait_for_selector('#buddy-input')
 
@@ -55,7 +56,7 @@ def mock_part(h):
     p.evaluate('() => { localStorage.setItem("m360.buddyRide", "1"); window.dispatchEvent(new CustomEvent("m360:dockprefs")); }')
     p.mouse.move(300, 300); p.wait_for_timeout(500)
     no_character(p, check, 'idle')
-    # the sidebar's m360 AI opens the pop-up for typing
+    # the Ask bar's m360 AI row opens the sheet for typing
     ask(p)
     no_character(p, check, 'while asking')
     # ask, get an answer
@@ -77,12 +78,15 @@ def mock_part(h):
     p.keyboard.press('Escape'); p.wait_for_function('() => !document.querySelector(".buddy-bubble")')
     # the pop-up stays where it opened while the mouse moves around
     ask(p)
-    p.mouse.move(300, 200); p.wait_for_timeout(400)
-    # it hangs from the dock: its right and bottom edges hold while the mouse moves
+    p.mouse.move(300, 200); p.wait_for_timeout(900)   # the sheet slides in on a .6s spring
+    # v40: it is the glass sheet, 520px, 12px from the right, top and bottom edges, and holds while the mouse moves
     b1 = p.evaluate('() => { const r = document.querySelector(".buddy-bubble").getBoundingClientRect(); return [Math.round(r.right), Math.round(r.bottom)]; }')
     p.mouse.move(700, 500); p.wait_for_timeout(600)
     b2 = p.evaluate('() => { const r = document.querySelector(".buddy-bubble").getBoundingClientRect(); return [Math.round(r.right), Math.round(r.bottom)]; }')
     check(b1 == b2, 'bubble must stay put %r %r' % (b1, b2))
+    sh = p.evaluate('''() => { const e = document.querySelector(".buddy-bubble.agent-pop"); const r = e.getBoundingClientRect(); const c = getComputedStyle(e);
+      return [Math.round(r.width), Math.round(innerWidth - r.right), Math.round(r.top), Math.round(innerHeight - r.bottom), c.borderTopLeftRadius, c.backdropFilter.indexOf("blur") >= 0]; }''')
+    check(sh[0] == 520 and sh[1] == 12 and sh[2] == 12 and sh[3] == 12 and sh[4] == '28px' and sh[5], 'the m360 AI sheet is the glass sheet: %r' % sh)
     check(p.locator('.buddy-bubble .panel-head').count() == 1 and p.locator('.buddy-bubble .panel-composer').count() == 1, 'the pop-up has its head and composer')
     p.keyboard.press('Escape')
     p.wait_for_function('() => !document.querySelector(".buddy-bubble")')

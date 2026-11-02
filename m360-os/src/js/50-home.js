@@ -196,7 +196,7 @@
 
   /* the Ask field of the v7 header: the island grows into the Ask bar out of it (02-z-chrome.js, .c-askf) */
   function AskField() {
-    const mod = M.isMac ? '⌘K' : 'Ctrl K';
+    const mod = '⌘K';   /* the design's field reads ⌘K everywhere; Ctrl K still opens it */
     return html`<button type="button" class="c-askf" id="home-ask" aria-label="Ask m360">
       <span class="wv" aria-hidden="true">${[0, 1, 2, 3, 4].map(k => html`<i key=${k} style=${{'--k': k}}/>`)}</span>
       <span class="phd">Ask m360 anything</span><span class="kb">${mod}</span></button>`;

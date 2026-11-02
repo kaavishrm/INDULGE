@@ -134,9 +134,9 @@ def test(h):
 
     be(p, 'founder', '#home', noai=1)
     check(p.evaluate('() => M.pm.P(M.lastCtx).on') is False, 'the personal managers are off (they ship off); asks work regardless')
-    p.wait_for_selector('#buddy-dock .buddy-home')
+    p.wait_for_selector('#buddy-dock', state='attached')
     shot(p, '01-founder-home-dock')
-    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()   # v40: m360 AI opens from the Ask bar
     p.wait_for_selector('.buddy-bubble #buddy-input')
     p.fill('#buddy-input', SENTENCE)
     shot(p, '02-founder-the-sentence')
@@ -219,7 +219,7 @@ def test(h):
     check('Durvesh' in bub['body'], 'Kaavish gets a bubble with the answer: %r' % bub)
     p.wait_for_selector('#island[data-key^="pm:"] .news', timeout=12000)
     shot(p, '09-founder-answer-bubble')
-    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()   # v40: m360 AI opens from the Ask bar
     p.wait_for_selector('.buddy-bubble .agent-receipt-toggle, .buddy-bubble .pm-receipt')
     tg = p.locator('.buddy-bubble .pm-receipt .agent-receipt-toggle')
     if tg.count():

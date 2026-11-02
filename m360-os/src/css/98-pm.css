@@ -102,7 +102,7 @@
 
 /* the bot on a notice and in the inbox */
 .notice-logo.notice-bot{background:rgba(255,255,255,.08)}
-.inbox-kind.inbox-bot{background:transparent; overflow:visible}
+
 
 /* phones: everything wraps, every target is 44px */
 @media (max-width:860px){

@@ -1,8 +1,7 @@
 /* module: map. "What's here": the whole of m360 on one page, in plain words. Every section and every
    tab with one line on what it is for, who it is for, a live number where one is cheap, and an Open
    button; the things that are always around (Ask m360, m360 AI, search, the inbox, focus, New); and
-   a day-one list for whoever just joined. The same lines ride on the section heroes ("What's in Work"),
-   as tooltips on the tab strips and the sidebar, in the palette, and on Home for the first two weeks. */
+   a day-one list for whoever just joined. The same lines ride as tooltips on the tab strips and the sidebar, in the palette, and on Home for the first two weeks. */
 'use strict';
 (function () {
   const {html, React, U, UI, icons} = M;
@@ -63,9 +62,8 @@
       {k: 'handbook', label: 'Handbook', route: 'handbook', blurb: 'How we work, section by section; the founder edits, everyone reads.', signal: ctx => { const n = M.handbook ? M.handbook.unread(ctx, ctx.uid).length : 0; return n ? n + ' unread' : ''; }},
       {k: 'hiring', label: 'Hiring', route: 'hiring', member: true, blurb: 'Candidates you were asked to evaluate, with the scorecard.'},
       {k: 'coo', label: 'COO', route: 'coo', member: true, blurb: 'What the m360 COO does on its own, what it only drafts, what it never does, and how to ask Kaavish to undo.'}]},
-    {k: 'hq', label: 'HQ', icon: 'command', route: 'hq', founder: true, blurb: 'The founder\'s desk: the brief, the numbers and hiring.', tabs: [
-      {k: 'brief', label: 'Intelligence', route: 'hq', blurb: 'The daily brief: risks, wins, people, money, the actions to take, and Ask HQ.'},
-      {k: 'dashboard', label: 'Dashboard', route: 'command', blurb: 'The company in numbers: attendance, output, pipeline, revenue, the ladder.'},
+    {k: 'hq', label: 'HQ', icon: 'command', route: 'hq', founder: true, blurb: 'The founder\'s desk: what needs you, the numbers, the COO, the office and hiring.', tabs: [
+      {k: 'brief', label: 'Command', route: 'hq', blurb: 'What needs you, the numbers, attendance, flags, the business, the team and clients; the brief and Ask HQ under more from HQ.'},
       {k: 'coo', label: 'COO', route: 'coo', blurb: 'The m360 COO: what needs you, what it did today with Undo, what it watches next, and its on, pause and off.'},
       {k: 'office', label: 'Office', route: 'office', blurb: 'The office, live: every desk, the COO at work, and today\'s run with Undo.'},
       {k: 'hiring', label: 'Hiring', route: 'hiring', blurb: 'Candidates by stage, the panel, the scorecards and the decision.', signal: ctx => { const n = M.hiring ? M.hiring.candidatesOf(ctx).filter(c => !c.decision).length : 0; return n ? n + ' open' : ''; }}]},

@@ -369,7 +369,6 @@
     const edit = (k, v) => { setD(x => ({...x, [k]: String(v || '').slice(0, BRAIN_MAX)})); setDirty(true); };
     const body = html`<section class="ai-card" id="client-brain">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="clients" state=${busy ? 'working' : 'default'} size=${36} label="m360, the company brain" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Company brain</div></div>
         ${canAI ? html`<${M.fx.Metal} kind="ink"><button type="button" class="btn sm" id="brain-build" disabled=${busy} onClick=${build}>
           ${busy ? html`<${M.Thinking} label=${step || 'Thinking'} state=${/^Reading/.test(step || '') ? 'searching' : 'weaving'}/>` : html`<span class="spark">\u2726</span> ${saved ? 'Rebuild' : 'Build the brain'}`}</button><//>` : null}
@@ -433,7 +432,6 @@
     const busy = r.state === 'thinking' || r.state === 'streaming';
     const body = html`<div class="ai-card" id="client-prep">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="brief" state=${busy ? 'working' : 'default'} size=${36} label="m360, meeting prep" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Meeting prep</div></div>
         <${M.fx.Metal} kind="ink"><button type="button" class="btn sm" id="prep-go" disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} state="shaping"/>` : html`<span class="spark">\u2726</span> ${r.text ? 'Prep me again' : 'Prep me for a meeting'}`}</button><//>
       </div>
@@ -781,7 +779,6 @@
     const busy = r.state === 'thinking' || r.state === 'streaming';
     return html`<div class="ai-card" id="client-update">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="writer" state=${busy ? 'working' : 'default'} size=${36} label="m360, the update writer" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Client update</div></div>
         <${M.fx.Metal} kind="ink"><button type="button" class="btn sm" disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} state="composing"/>` : html`<span class="spark">\u2726</span> ${r.text ? 'Write it again' : 'Write an update'}`}</button><//>
       </div>

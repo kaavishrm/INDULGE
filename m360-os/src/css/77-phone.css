@@ -27,12 +27,10 @@
   .tabs.section-tabs{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
   .tabs.section-tabs::-webkit-scrollbar{display:none}
   .tabs.section-tabs .tab{flex:none}
-  .hero:not(.section-hero) > div > .row:not(.between):not(.nowrap),.home-hero .hero-chips{flex-wrap:wrap; gap:8px}
+  .hero:not(.section-hero) > div > .row:not(.between):not(.nowrap){flex-wrap:wrap; gap:8px}
   .section-hero > div:last-child > .row{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent)}
   .section-hero > div:last-child > .row::-webkit-scrollbar{display:none}
   .section-hero > div:last-child > .row > *,.section-hero .chipline{flex:none}
-  /* Break's sparks row sets its wrap inline, so its one row needs the weight */
-  .section-hero .brk-sparks{flex-wrap:nowrap !important}
   /* the soft edge shows only while more waits to the right: a row that fits, or one scrolled to its
      end, keeps its last tab, segment or stat crisp */
   @supports (animation-timeline:scroll()){
@@ -70,15 +68,11 @@
   .head-row > .row{justify-content:space-between}
   .hero .stat .v{font-size:22px; letter-spacing:-.03em}
 
-  /* ---------- the board: one column per pane, snap to each, a dot shows where you are ---------- */
+  /* ---------- the board: one column per pane, snap to each (the column widths are Work's, 08-v7-work.css) ---------- */
   .board-wrap{margin:0 calc(-1 * var(--pad-card)); padding:0 var(--pad-card) 6px; scroll-snap-type:x mandatory; scroll-padding:0 var(--pad-card); scrollbar-width:none; -webkit-overflow-scrolling:touch; position:relative}
   .board-wrap::-webkit-scrollbar{display:none}
   .board{gap:10px}
-  .colm{width:min(86vw,calc(100vw - 92px)); scroll-snap-align:start; scroll-snap-stop:always}
-  .board-wrap::before{content:""; position:sticky; left:0; display:block; height:4px; margin:0 0 10px; border-radius:999px; background:radial-gradient(circle,var(--flame) 0 2.5px,transparent 3px) no-repeat 0% 50% / 10px 10px, linear-gradient(var(--line),var(--line)) no-repeat 0 50% / 100% 1px}
-  @supports (animation-timeline:scroll()){
-    .board-wrap::before{animation:boardpos linear both; animation-timeline:scroll(nearest inline)}
-  }
+  .colm{scroll-snap-align:start; scroll-snap-stop:always}
 
   /* ---------- bottom sheets ---------- */
   .drawer{max-height:92vh; max-height:92dvh; border-radius:var(--r-drawer) var(--r-drawer) 0 0; touch-action:pan-y}
@@ -92,15 +86,7 @@
   .pal{max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px)}
   .breathe{min-height:100dvh}
 
-  /* ---------- home: a compact hero, then one column ---------- */
-  .home-hero{padding:20px 20px 18px}
-  .home-hero .hero-in{grid-template-columns:1fr; gap:16px}
-  .home-hero .hero-greet{padding-top:2px}
-  .home-hero .micro{white-space:nowrap; flex-wrap:wrap; letter-spacing:.1em; row-gap:2px}
-  .home-hero .hi{font-size:clamp(32px,9.6vw,40px)}
-  .home-hero .hero-chips{margin-top:16px}
-  .home-hero .hero-panel{padding:16px 16px 14px; border-radius:16px}
-  .home-hero .btn.xl{height:52px}
+  /* ---------- home: the v7 head is 07-v7-home.css's own ---------- */
   /* the five moods share one row; each column keeps its word on one line while the row has room */
   .hero-panel .moods{display:grid; grid-template-columns:repeat(5,minmax(0,auto)); gap:6px}
   .hero-panel .mood{padding:0 4px}
@@ -151,7 +137,6 @@
   from,96%{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - var(--edge,24px)),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - var(--edge,24px)),transparent)}
   to{-webkit-mask-image:none; mask-image:none}
 }
-@keyframes boardpos{from{background-position:0% 50%, 0 50%} to{background-position:100% 50%, 0 50%}}
 
 /* fingers: the keyboard keys and the browser's tab close keep their size on a phone */
 @media (max-width:600px){

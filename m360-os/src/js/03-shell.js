@@ -44,7 +44,8 @@
 
   /* ---------- sections and their tabs ---------- */
   const SECTIONS = {
-    home: {label: 'Home', icon: 'today', page: 'Home'},
+    /* v40: the design's labels where a section matches its place (design/m360-os-v7.html): Home reads Today, HQ reads Command; routes and ids stay */
+    home: {label: 'Today', alias: 'Home', icon: 'today', page: 'Home'},
     work: {label: 'Work', icon: 'tasks', page: 'Work', tabs: [
       {k: 'tasks', label: 'My tasks', route: 'tasks'}, {k: 'projects', label: 'Projects', route: 'projects'},
       {k: 'calendar', label: 'Calendar', route: 'calendar'}, {k: 'reviews', label: 'Reviews', route: 'reviews'},
@@ -74,7 +75,7 @@
       {k: 'handbook', label: 'Handbook', route: 'handbook'}, {k: 'hiring', label: 'Hiring', route: 'hiring'},
       /* what the m360 COO does, read only (the founder runs it from HQ) */
       {k: 'coo', label: 'COO', route: 'coo', member: true}]},
-    hq: {label: 'HQ', icon: 'command', page: 'HQ', founder: true, tabs: [
+    hq: {label: 'Command', alias: 'HQ', icon: 'command', page: 'HQ', founder: true, tabs: [
       /* v40: HQ opens on Command (40-command.js); the brief and the rest sit under its "more from HQ" (55-hq.js) */
       {k: 'brief', label: 'Command', route: 'hq'},
       {k: 'coo', label: 'COO', route: 'coo'}, {k: 'office', label: 'Office', route: 'office'},
@@ -605,11 +606,10 @@
   }
 
   /* shared hero for section pages */
-  /* phones: a short hero (no sub line, no map link; the More sheet carries the map) and one sideways
-     row of stats, so the page starts above the fold */
+  /* phones: a short hero (no sub line) and one sideways row of stats, so the page starts above the fold.
+     v40: the design's header carries no map link; the map opens from the Ask bar and the sidebar's help group */
   M.SectionHero = function SectionHero({color, micro, title, sub, children, right}) {
     const phone = M.usePhone();
-    const mk = M.map && !phone && title !== 'What\'s in m360' ? M.map.keyFor(title) : '';
     /* v40: size and padding come from the CSS (48px title, flame full stop; 36px on a phone) */
     return html`<header class=${'hero section-hero' + (color === 'ink' ? ' ink' : '')}>
       <div class="row between" style=${{alignItems: 'flex-start'}}>
@@ -617,7 +617,6 @@
           ${micro ? html`<${UI.Micro}>${micro}<//>` : null}
           <h1 class="hi">${title}</h1>
           ${sub && !phone ? html`<div class="sub" style=${{marginTop: '10px', maxWidth: '60ch'}}>${sub}</div>` : null}
-          ${mk ? html`<button type="button" class="linky tiny hero-map" onClick=${() => M.nav('#map/' + mk)}>What's in ${title}</button>` : null}
         </div>
         ${right || null}
       </div>

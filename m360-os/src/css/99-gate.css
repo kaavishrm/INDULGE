@@ -2,13 +2,7 @@
    first paint; src/js/03-z-gate.js joins everything React mounts later onto the same clock, shakes the box
    on a wrong sign-in and settles the app in after signing in. Reduced motion: none of it. */
 @media (prefers-reduced-motion: no-preference) {
-  .gate{position:relative; overflow:hidden; isolation:isolate}
-  /* a warm light drifts slowly behind the screen */
-  .gate::before,.gate::after{content:''; position:absolute; z-index:-1; width:70vmax; height:70vmax; border-radius:50%; pointer-events:none; filter:blur(60px)}
-  .gate::before{left:-20vmax; top:-26vmax; background:radial-gradient(closest-side, color-mix(in srgb, var(--flame) 20%, transparent), transparent); animation:gate-drift-a 18s ease-in-out infinite alternate}
-  .gate::after{right:-24vmax; bottom:-30vmax; background:radial-gradient(closest-side, color-mix(in srgb, var(--flame) 11%, transparent), transparent); animation:gate-drift-b 23s ease-in-out infinite alternate}
-  @keyframes gate-drift-a{to{transform:translate(8vmax, 6vmax) scale(1.08)}}
-  @keyframes gate-drift-b{to{transform:translate(-6vmax, -8vmax) scale(1.12)}}
+  /* v40: the sign-in ground is plain white, as in the design; nothing drifts behind it */
 
   /* v39: the mark waits for its pen (03-z-gate.js draws it the way the Subject 360 film closes). If the
      script is late, the mark fades in by itself so the screen never sits without it */

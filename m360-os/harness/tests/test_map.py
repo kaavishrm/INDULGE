@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The map, "What's in m360": every section and tab in one line each with live numbers, reachable from
-the sidebar, the More sheet, the palette and every section hero; the founder sees HQ, Books and
+the sidebar's help group, the phone menu and the Ask bar; the founder sees HQ, Books and
 Handshake on it and a member does not; a member in their first two weeks gets the way in on Home and
 the day-one list on the map; the tab strips carry the same lines as tooltips.
 
@@ -28,6 +28,9 @@ def part(h):
     p.click('#side-map')
     p.wait_for_selector('#map')
     check(p.locator('#map-work').count() == 1 and p.locator('#map-books').count() == 1 and p.locator('#map-hq').count() == 1, 'the founder sees Work, Books and HQ on the map')
+    # v40: HQ opens on Command; the old Intelligence and Dashboard tabs are gone
+    hq = p.inner_text('#map-hq')
+    check('Command' in hq and 'Intelligence' not in hq and 'Dashboard' not in hq, 'HQ lists Command first and no Dashboard: %r' % hq[:200])
     # v37: Accounts is People, Pipeline and Clients
     check(all(w in p.inner_text('#map-accounts') for w in ('People', 'Pipeline', 'Clients')), 'Accounts lists People, Pipeline and Clients')
     check(p.locator('#map-always .map-tab').count() == 8, 'the always-around list: %d' % p.locator('#map-always .map-tab').count())
@@ -38,11 +41,12 @@ def part(h):
     # a line opens the place
     p.locator('#map-work .map-tab').filter(has=p.locator('b', has_text='Projects')).first.click()
     p.wait_for_function('() => location.hash === "#projects"')
-    # the hero link back to the map, opened on that section
-    p.wait_for_selector('.hero-map')
-    check(p.inner_text('.hero-map') == "What's in Work", 'the hero link: %r' % p.inner_text('.hero-map'))
-    check(p.locator('.section-tabs .tab[title*="Every task on you"]').count() == 1, 'the tab strip carries the line as a tooltip')
-    p.click('.hero-map')
+    # v40: the design's section header carries no map link; the map opens on a section by its hash
+    p.wait_for_selector('.section-hero')
+    check(p.locator('.hero-map').count() == 0, 'no map link in the section header')
+    p.wait_for_selector('.section-tabs .tab', state='attached')
+    check(p.locator('.section-tabs .tab[title*="Every task on you"]').count() == 1, 'the tab strip carries the line as a tooltip: %r' % p.evaluate('() => [...document.querySelectorAll(".section-tabs .tab")].map(t => [t.textContent, t.title.slice(0, 20)])'))
+    h.go(p, 'founder', hash='#map/work', width=1280)
     p.wait_for_selector('#map-work.open')
     check(p.locator('.map-card.open').count() == 1, 'the section card is marked open')
     # the palette knows it

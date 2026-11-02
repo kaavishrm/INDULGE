@@ -311,9 +311,7 @@
         ${castOpen && Sheet ? html`<${Sheet} uid=${ctx.uid} onClose=${() => setCastOpen(false)}/>` : null}
         <div class="row between">
           <span>Look</span>
-          <div class="theme-seg" role="group" aria-label="Theme">
-            ${[['auto', 'Auto'], ['light', 'Paper'], ['dark', 'Ink']].map(([v, l]) => html`<button key=${v} type="button" class=${theme === v ? 'on' : ''} aria-pressed=${theme === v} onClick=${() => M.theme.set(v)}>${l}</button>`)}
-          </div>
+          <${UI.Seg} sm=${true} options=${[{v: 'auto', label: 'Auto'}, {v: 'light', label: 'Paper'}, {v: 'dark', label: 'Ink'}]} value=${theme} ariaLabel="Theme" onChange=${v => M.theme.set(v)}/>
         </div>
         <div class="row between">
           <span>Sounds</span>
@@ -322,36 +320,27 @@
         </div>
         <div class="row between"><span>Deep work this week</span><span class="num" style=${{fontWeight: 600}}>${Math.round(deep / 6) / 10}h</span></div>
         <div class="row between">
-          <span>The buddy speaks</span>
+          <span>m360 AI speaks its answers</span>
           <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'On'}, {v: 'off', label: 'Off'}]} value=${voiceOn ? 'on' : 'off'} ariaLabel="Buddy voice"
-            onChange=${v => { M.prefs.set('buddyVoice', v === 'on' ? '1' : '0'); setVoiceOn(v === 'on'); if (v === 'on' && M.speech) M.speech.say('Hi, I am here whenever you need me.'); }}/>
+            onChange=${v => { M.prefs.set('buddyVoice', v === 'on' ? '1' : '0'); setVoiceOn(v === 'on'); if (v === 'on' && M.speech) M.speech.say('Answers will be read out loud.'); }}/>
         </div>
         <div class="row between">
           <span>Nudges on the phone</span>
           <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'On'}, {v: 'off', label: 'Off'}]} value=${haptic ? 'on' : 'off'} ariaLabel="Haptics"
             onChange=${v => { M.haptic.set(v === 'on'); setHaptic(v === 'on'); if (v === 'on') M.haptic.buzz('done'); }}/>
         </div>
-        <div class="row between fx-bell-row">
+        <div class="row between">
           <span>Message previews in notices</span>
-          <span class="row nowrap fx-bell-pair">
-            ${M.fx ? html`<${M.fx.Bell} id="prefs-bell-previews" size="sm" badge=${false} label="Ring with the line" offLabel="Who only" onLabel="Who and what" pressed=${previews}
-              onChange=${on => { if (M.notices) M.notices.setPreviews(on); setPreviews(on); }}/>` : null}
-            <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'Show'}, {v: 'off', label: 'Hide'}]} value=${previews ? 'on' : 'off'} ariaLabel="Message previews"
-              onChange=${v => { if (M.notices) M.notices.setPreviews(v === 'on'); setPreviews(v === 'on'); }}/>
-          </span>
+          <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'Show'}, {v: 'off', label: 'Hide'}]} value=${previews ? 'on' : 'off'} ariaLabel="Message previews"
+            onChange=${v => { if (M.notices) M.notices.setPreviews(v === 'on'); setPreviews(v === 'on'); }}/>
         </div>
-        <div class="row between fx-bell-row">
+        <div class="row between">
           <span>Notices for every room message</span>
-          <span class="row nowrap fx-bell-pair">
-            ${M.fx ? html`<${M.fx.Bell} id="prefs-bell-rooms" size="sm" badge=${false} label="Ring for each room line" offLabel="Mentions only" onLabel="Every line" pressed=${allRooms}
-              onChange=${on => { M.prefs.set('noticeAll', on ? '1' : '0'); setAllRooms(on); }}/>` : null}
-            <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'On'}, {v: 'off', label: 'Off'}]} value=${allRooms ? 'on' : 'off'} ariaLabel="Room notices"
-              onChange=${v => { M.prefs.set('noticeAll', v === 'on' ? '1' : '0'); setAllRooms(v === 'on'); }}/>
-          </span>
+          <${UI.Seg} sm=${true} options=${[{v: 'on', label: 'On'}, {v: 'off', label: 'Off'}]} value=${allRooms ? 'on' : 'off'} ariaLabel="Room notices"
+            onChange=${v => { M.prefs.set('noticeAll', v === 'on' ? '1' : '0'); setAllRooms(v === 'on'); }}/>
         </div>
         <div class="row between"><span>Bubbles while m360 is in another window</span>
-          ${perm === 'default' ? (M.fx ? html`<${M.fx.Bell} id="notify-ask" size="sm" badge=${false} offLabel="Allow" onLabel="Allowed" pressed=${false} onChange=${() => M.notices && M.notices.ask().then(p => setPerm(p || 'denied'))}/>`
-            : html`<button type="button" class="linky small" id="notify-ask" onClick=${() => M.notices && M.notices.ask().then(p => setPerm(p || 'denied'))}>Allow</button>`)
+          ${perm === 'default' ? html`<${UI.Btn} kind="sec" sm=${true} id="notify-ask" onClick=${() => M.notices && M.notices.ask().then(p => setPerm(p || 'denied'))}>Allow<//>`
             : perm === 'granted' ? html`<span class="pill ink" id="notify-state">on</span>`
             : perm === 'denied' ? html`<span class="tiny ink62" id="notify-state">blocked in this browser's site settings</span>`
             : html`<span class="tiny ink62" id="notify-state">not on this browser</span>`}</div>
@@ -375,7 +364,7 @@
             <${M.parts.AiCheck}/>
           <//><//>` : null}
       ${M.parts.MailCard ? html`<${UI.Fold} title="Email sending" summary="Resend key and sender" id="fold-mail"><${M.parts.MailCard}/><//>` : null}
-      ${M.parts.VoiceCard ? html`<${UI.Fold} title="The buddy's voice" summary="a natural voice for the cursor buddy" id="fold-voice"><${M.parts.VoiceCard}/><//>` : null}
+      ${M.parts.VoiceCard ? html`<${UI.Fold} title="m360 AI's voice" summary="a natural voice for m360 AI" id="fold-voice"><${M.parts.VoiceCard}/><//>` : null}
       ${M.parts.GoogleCard ? html`<${UI.Fold} title="Google Workspace" summary="mail, calendar, meetings and drive for everyone" id="fold-google"><${M.parts.GoogleCard}/><//>` : null}
       ${M.parts.BrowserCard ? html`<${UI.Fold} title="The browser" summary="reading mode, m360 Desktop, the frame helper" id="fold-browser"><${M.parts.BrowserCard}/><//>` : null}
       ${(M.adminCards || []).map((C, i) => html`<${UI.Fold} key=${i} title=${C.foldTitle || 'Radar settings'} summary=${C.foldSummary || 'keywords, sources, channels'} id=${'fold-admin-' + i}><${C}/><//>`)}

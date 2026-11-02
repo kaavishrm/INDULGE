@@ -138,34 +138,6 @@
     return html`<span class="c-tick" id="c-tick" ref=${ref} aria-live="polite"></span>`;
   }
 
-  /* the same news the island tells, newest first: check ins and outs, EOD lines, leave and join asks, pulses, posts */
-  function liveLines(ctx, nm) {
-    const out = [], td = U.todayStr(), since = Date.now() - 24 * 3600000;
-    const coll = k => (ctx.coll[k] && ctx.coll[k].map) || {};
-    for (const author of Object.keys(coll('feed'))) {
-      for (const p of ((coll('feed')[author] || {}).posts || [])) {
-        if (!p || !p.id || (p.at || 0) < since) continue;
-        out.push({at: p.at, t: nm(author) + (p.kind === 'win' ? ' shared a win' : p.kind === 'kudos' ? ' gave kudos' : ' posted on the feed')});
-      }
-    }
-    for (const m of ctx.activeMembers || []) {
-      const ci = ((coll('checkin')[m.uid] || {}).days || {})[td];
-      if (ci && ci.in) {
-        out.push({at: ci.in, t: nm(m.uid) + ' checked in, ' + U.hhmm(ci.in)});
-        if (ci.out) out.push({at: ci.out, t: nm(m.uid) + ' checked out, ' + U.hhmm(ci.out)});
-      }
-      const ed = ((coll('eod')[m.uid] || {}).days || {})[td];
-      if (ed && ed.at) out.push({at: ed.at, t: nm(m.uid) + ' posted the EOD line'});
-    }
-    if (M.leave && M.leave.pending) M.leave.pending(ctx).forEach(x => out.push({at: x.req.at || 0, t: nm(x.uid) + ' asked for leave, ' + rangeShort(x.req)}));
-    if (M.team && M.team.requests) M.team.requests(ctx).forEach(j => out.push({at: j.at || 0, t: nm(j.uid) + ' asked to join m360'}));
-    for (const id of Object.keys(coll('pulse'))) {
-      const x = coll('pulse')[id];
-      if (x && (x.at || 0) > since && x.energy) out.push({at: x.at, t: 'A pulse came in, energy ' + x.energy + ' of 5'});
-    }
-    return out.filter(e => (e.at || 0) > since).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 6).map(e => e.t);
-  }
-
   /* ---------- 01 needs you: one tap acts, the card closes up, undo sits in the island ---------- */
   function flip(grid, mut) {
     const els = grid ? Array.from(grid.querySelectorAll('.c-ncw')).filter(w => !w.classList.contains('gone')) : [];
@@ -441,7 +413,9 @@
     const hr = now.getHours();
     const meFirst = first(ctx.uid);
     const greet = (hr < 5 ? 'Up late' : hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (meFirst && meFirst !== 'Someone' ? ', ' + meFirst : '') + '.';
-    const lines = liveLines(ctx, nm);
+    /* the LIVE line reads the island's own news (02-z-chrome.js M.chrome.events), newest first, the last day */
+    const dayAgo = Date.now() - 24 * 3600000;
+    const lines = (M.chrome && M.chrome.events ? M.chrome.events(ctx, id => nm(id) || 'Someone') : []).filter(e => (e.at || 0) > dayAgo).slice(0, 6).map(e => e.text);
 
     /* ---- motion: reveal on scroll, the dark band opens, the rail follows, a soft light follows the pointer ---- */
     const SEC = [['c-need', 'needs you'], ['c-nums', 'numbers'], ['c-att', 'attendance'], ['c-flg', 'flags'], ['c-biz', 'business'], ['c-team', 'team'], ['c-cli', 'clients']];
@@ -613,7 +587,7 @@
             : html`<span class="c-needl ok" id="c-needl">All clear.</span>`}</p>
         </div>
         <div class="c-tr2">
-          <button class="c-askf" id="c-ask" type="button" aria-label="Ask m360 anything"><span class="c-wv" aria-hidden="true"><i style=${{'--k': 0}}></i><i style=${{'--k': 1}}></i><i style=${{'--k': 2}}></i><i style=${{'--k': 3}}></i></span><span class="c-ph">Ask m360 anything</span><kbd class="c-kb">${M.isMac ? CMDK : 'Ctrl '}K</kbd></button>
+          <button class="c-askf" id="c-ask" type="button" aria-label="Ask m360 anything"><span class="c-wv" aria-hidden="true"><i style=${{'--k': 0}}></i><i style=${{'--k': 1}}></i><i style=${{'--k': 2}}></i><i style=${{'--k': 3}}></i></span><span class="c-ph">Ask m360 anything</span><kbd class="c-kb">${CMDK}K</kbd></button>
           <div class="c-live"><span class="c-chip"><i></i>live</span><${Ticker} lines=${lines}/></div>
         </div>
       </header>

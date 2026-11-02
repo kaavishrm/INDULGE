@@ -795,7 +795,6 @@
     const busy = r.state === 'thinking' || r.state === 'streaming';
     return html`<${M.fx.Beam}><div class="ai-card" id="contact-intro">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="base" state=${busy ? 'working' : 'default'} size=${36} label="m360, the intro writer" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Intro note</div></div>
         <${M.fx.Metal} kind="ink"><button type="button" class="btn sm" disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} state="composing"/>` : html`<span class="spark">✦</span> ${r.text ? 'Draft it again' : 'Draft an intro note'}`}</button><//>
       </div>
