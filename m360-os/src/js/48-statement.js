@@ -302,7 +302,7 @@
     const [open, setOpen] = useState({});
     const [more, setMore] = useState(false);
     const shown = more ? list : list.slice(0, 25);
-    return html`<${UI.Card} title=${title} id=${id} action=${html`<span class="num small">${U.inr(total)}</span>`}>
+    return html`<${UI.Card} title=${title} id=${id} action=${html`<span class="pill pl tn">${U.inr(total)}</span>`}>
       ${list.length ? html`<div class="tbl-wrap"><table class="tbl stm-tbl">
         <thead><tr><th>party</th><th class="num">lines</th><th class="num">total</th><th class="num">share</th><th>category</th><th>what it is</th></tr></thead>
         <tbody>${shown.map(g => html`<${React.Fragment} key=${g.gid}>
@@ -388,8 +388,8 @@
       M.toast('Statement removed');
     };
 
-    return html`<div class="stack" style=${{gap: '16px'}} id="stm-page">
-      <${UI.PageHead} micro=${list.length ? list.length + (list.length === 1 ? ' statement' : ' statements') + (span ? ', ' + span : '') : 'your current account'} title="Bank"/>
+    return html`<div class="stack" style=${{gap: '24px'}} id="stm-page">
+      <${UI.SectionHead} label="bank" pill=${list.length ? list.length + (list.length === 1 ? ' statement' : ' statements') + (span ? ', ' + span : '') : 'your current account'}/>
       <${Upload} ctx=${ctx} have=${allRows} book=${book}/>
       ${list.length ? html`<${React.Fragment}>
         <div class="row between" style=${{gap: '10px'}}>
@@ -399,14 +399,16 @@
           </select>
           <input class="input" id="stm-q" type="search" style=${{maxWidth: '280px'}} placeholder="Search party, narration, category" value=${q} onInput=${e => setQ(e.target.value)}/>
         </div>
-        <div class="kpi-rail" id="stm-kpis">
-          <${UI.Card}><div class="kpi"><span class="v num" id="stm-in">${U.inr(Math.round(inTotal))}</span><span class="l">money in</span></div><//>
-          <${UI.Card}><div class="kpi"><span class="v num" id="stm-out">${U.inr(Math.round(outTotal))}</span><span class="l">money out</span></div><//>
-          <${UI.Card}><div class="kpi"><span class=${'v num' + (inTotal - outTotal < 0 ? ' flame-t' : '')} id="stm-net">${U.inr(Math.round(inTotal - outTotal))}</span><span class="l">net</span></div><//>
-          ${moved ? html`<${UI.Card}><div class="kpi"><span class="v num">${U.inr(Math.round(moved))}</span><span class="l">own transfers, left out</span></div><//>` : null}
+        <div class="kpis" id="stm-kpis">
+          <div class="kp" style=${{'--i': 0}}><div class="kl"><span class="cap">money in</span></div><div class="kv"><span class="bignum money" id="stm-in"><b>${U.inr(Math.round(inTotal))}</b></span></div><div class="kn">${ins.length} ${ins.length === 1 ? 'party' : 'parties'}</div></div>
+          <div class="kp" style=${{'--i': 1}}><div class="kl"><span class="cap">money out</span></div><div class="kv"><span class="bignum money" id="stm-out"><b>${U.inr(Math.round(outTotal))}</b></span></div><div class="kn">${outs.length} ${outs.length === 1 ? 'party' : 'parties'}</div></div>
+          <div class=${'kp' + (inTotal - outTotal < 0 ? ' hot' : '')} style=${{'--i': 2}}><div class="kl"><span class="cap">net</span></div><div class="kv"><span class="bignum money" id="stm-net"><b>${U.inr(Math.round(inTotal - outTotal))}</b></span></div><div class="kn">${inTotal - outTotal < 0 ? 'More out than in' : 'In less out'}</div></div>
+          ${moved ? html`<div class="kp" style=${{'--i': 3}}><div class="kl"><span class="cap">own transfers</span></div><div class="kv"><span class="bignum money"><b>${U.inr(Math.round(moved))}</b></span></div><div class="kn">Left out of the totals</div></div>` : null}
         </div>
-        <${PartyTable} id="stm-ins" title="Money in, by party" list=${ins} dir="in" total=${inTotal} onOpen=${(g, d) => setEdit({g, d})}/>
-        <${PartyTable} id="stm-outs" title="Money out, by party" list=${outs} dir="out" total=${outTotal} onOpen=${(g, d) => setEdit({g, d})}/>
+        <${UI.Band} tone="warm"><div class="stack">
+          <${PartyTable} id="stm-ins" title="Money in, by party" list=${ins} dir="in" total=${inTotal} onOpen=${(g, d) => setEdit({g, d})}/>
+          <${PartyTable} id="stm-outs" title="Money out, by party" list=${outs} dir="out" total=${outTotal} onOpen=${(g, d) => setEdit({g, d})}/>
+        </div><//>
         <div class="grid2">
           <${UI.Card} title="Money out, by category" id="stm-cats">
             ${cats.length ? cats.map(c => html`<div class="listrow" key=${c}><span class="grow">${c}</span><span class="tiny ink62" style=${{minWidth: '42px', textAlign: 'right'}}>${U.pct(byCat[c], outTotal)}%</span><span class="num" style=${{fontWeight: 500, minWidth: '110px', textAlign: 'right'}}>${U.inr(Math.round(byCat[c]))}</span></div>`) : html`<${UI.Empty} text="Nothing spent in this view."/>`}

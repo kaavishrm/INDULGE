@@ -509,13 +509,16 @@
       setBusy(false);
     };
     const pend = until(c.practiceUntil);
-    return html`<header class="hero ink coo-hero">
+    const word = {off: 'off', paused: 'paused', stuck: 'stopped', practice: 'practice', on: 'working'}[st] || 'working';
+    /* v40: the dark band (design 05 to 07): the section head, the office on the left, the COO on the right */
+    return html`<section class="band dark coo-hero">
+      <div class="sh"><span class="eb"><span>${'the ' + titleOf(ctx).toLowerCase()}</span></span>
+        <span class=${'pill pl' + (st === 'stuck' ? ' hot' : '')}>${word}</span></div>
       <div class="coo-hero-grid">
         <div class="coo-hero-office"><${OfficeSlot} mode="coo"/></div>
         <div class="coo-hero-side stack">
           <div class="row nowrap coo-hero-name"><${CooFace} size=${40} label=${titleOf(ctx)}/>
-            <div><${UI.Micro}>${'the ' + titleOf(ctx).toLowerCase() + ', ' + ({off: 'off', paused: 'paused', stuck: 'stopped', practice: 'practice', on: 'working'}[st] || 'working')}<//>
-              <h1 class="hi coo-hero-title">${titleOf(ctx)}</h1></div></div>
+            <h2 class="coo-hero-title">${titleOf(ctx)}</h2></div>
           ${cur && cur.line ? html`<div class="coo-bubble" role="status"><b>${cur.line}</b>${cur.why ? html`<span>${cur.why}</span>` : null}</div>` : null}
           <div class=${'small coo-clock' + (stale ? ' late' : '')} id="coo-clock">${stale && last ? 'No heartbeat since ' + hm(last) + '. I will catch up on the next round.' : clock}</div>
           <div class="coo-switch" id="coo-switch" aria-busy=${busy}>
@@ -527,7 +530,7 @@
           </div>` : null}
         </div>
       </div>
-    </header>`;
+    </section>`;
   }
 
   function RowDrawer({row, onClose}) {
@@ -695,18 +698,19 @@
     if (!has()) return html`<div id="coo-tab"><${UI.Card} title="m360 COO"><${UI.Empty} text="The COO is not part of this build."/><//></div>`;
     const cards = openCards(live);
     const done = rowsOf(live).filter(r => r.status === 'done' || r.status === 'would').length;
-    const needs = html`<section class="card coo-needs" id="coo-needs">
-      <div class="card-head"><h2 class="card-title">Needs you</h2>${cards.length ? html`<span class="pill flame-o">${cards.length} waiting</span>` : null}</div>
+    const needs = html`<section class=${'card coo-needs' + (cards.length ? ' need' : '')} id="coo-needs">
+      <div class="card-head"><h2 class="card-title">Needs you</h2><span class=${'pill pl tn' + (cards.length ? ' hot' : '')}>${cards.length ? cards.length + ' waiting' : 'all clear'}</span></div>
       <${CardList} live=${live}/>
     </section>`;
-    return html`<${LiveCtx.Provider} value=${live}><div class="stack coo-page" id="coo-tab">
+    return html`<${LiveCtx.Provider} value=${live}><div class="stack coo-page fo" id="coo-tab">
       <${Hero} live=${live}/>
       <${CooDigest} live=${live}/>
-      ${M.fx && M.fx.Beam ? html`<${M.fx.Beam} on=${cards.length > 0 && cards.length <= 3}>${needs}<//>` : needs}
+      ${needs}
       <div class="split">
         <div class="stack">
           <${UI.Fold} title="Today" summary=${plural(done, 'act', 'acts') + ' so far'} open=${true} id="fold-coo-today"><section class="card" id="coo-today">
-            <div class="card-head"><h2 class="card-title">Today</h2><span class="tiny ink62">tap a line for the checks and who was told</span></div>
+            <div class="card-head"><h2 class="card-title">Today</h2><span class="pill pl tn">${plural(done, 'act', 'acts')}</span></div>
+            <div class="tiny ink62" style=${{marginBottom: '8px'}}>Tap a line for the checks and who was told.</div>
             <${Today} live=${live} onRow=${setRow}/>
           </section><//>
           <${UI.Fold} title="This week" summary="the weekly memo" id="fold-coo-week"><section class="card"><div class="card-head"><h2 class="card-title">This week</h2></div><${Memo}/></section><//>

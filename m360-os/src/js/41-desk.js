@@ -26,6 +26,16 @@
   const QUIET_MINS = [60, 90, 120, 150, 180, 240];
   const minsLabel = n => n % 60 ? (n > 60 ? Math.floor(n / 60) + 'h ' : '') + (n % 60) + 'm' : (n / 60) + (n === 60 ? ' hour' : ' hours');
   const HHMM = /^\d{1,2}:\d{2}$/;
+  const QUIET_KEYS = ['quietMins', 'lunchFrom', 'lunchTo'];
+  const LUNCH_HALF = 'Set both lunch times, or clear both for no lunch hour';
+  const LUNCH_BACKWARDS = 'Lunch has to end after it starts';
+  /* what is wrong with a lunch hour, or nothing: both times or neither, and the end after the start */
+  function lunchProblem(from, to) {
+    const a = String(from || '').trim(), b = String(to || '').trim();
+    if (!a && !b) return '';
+    if (!a || !b || !HHMM.test(a) || !HHMM.test(b)) return LUNCH_HALF;
+    return U.minutes(b) <= U.minutes(a) ? LUNCH_BACKWARDS : '';
+  }
   const POINT_LABELS = {
     checkinOnTime: 'on-time check-in', eod: 'eod line', planOnTime: 'monday outcomes on time',
     planLate: 'monday outcomes late', outcomeHit: 'outcome hit', outcomeMiss: 'outcome miss',
@@ -114,20 +124,19 @@
 
       <${UI.Card} title=${html`<span class="row nowrap fx-title-bot">Add someone directly${looking && M.fx ? html`<${M.fx.Orb} state="searching" size=${20} label="searching"/>` : null}</span>`}>
         <p class="small ink62" style=${{marginTop: 0}}>${window.M360_STANDALONE ? 'For people who already signed in here. New people get an invite by email above.' : 'Works for people in your Claude organisation. Everyone else uses the invite link above.'}</p>
-        ${M.fx ? html`<${M.fx.Beam} radius=${16}><div class="fx-beam-pad"><${UI.Input} id="desk-search" label="search the organisation" value=${q} placeholder="Search the organisation"
-          onChange=${search} onFocus=${() => search('')}/></div><//>` : html`<${UI.Input} id="desk-search" label="search the organisation" value=${q} placeholder="Search the organisation"
-          onChange=${search} onFocus=${() => search('')}/>`}
-        <div class="stack tight" style=${{marginTop: '10px'}}>
-          ${hits.filter(h => !members[h.id]).map(h => html`<div class="listrow" key=${h.id}>
+        <${UI.Input} id="desk-search" label="search the organisation" value=${q} placeholder="Search the organisation"
+          onChange=${search} onFocus=${() => search('')}/>
+        <div class="hits" style=${{marginTop: '12px'}}>
+          ${hits.filter(h => !members[h.id]).map(h => html`<div class="listrow hit" key=${h.id}>
             <${UI.Avatar} id=${h.id} size=${28}/>
             <span class="grow">${h.name || 'Someone'}</span>
             <${UI.Btn} sm=${true} onClick=${() => setAdd({person: h, member: null})}>Add<//>
           </div>`)}
-          ${q && !hits.filter(h => !members[h.id]).length ? html`<${UI.Empty} text="Nobody new found."/>` : null}
         </div>
+        ${q && !hits.filter(h => !members[h.id]).length ? html`<${UI.Empty} text="Nobody new found."/>` : null}
       <//>
 
-      <${UI.Card} title="Roster">
+      <${UI.Band} tone="warm" id="desk-roster"><${UI.Card} title="Roster" action=${html`<span class="pill pl tn">${rows.filter(r => r.active !== false).length} active</span>`}>
         <div class="tbl-wrap"><table class="tbl">
           <thead><tr><th>person</th><th>title</th><th>pod</th><th>role</th><th>status</th><th/></tr></thead>
           <tbody>
@@ -147,7 +156,7 @@
             </tr>`)}
           </tbody>
         </table></div>
-      <//>
+      <//><//>
       ${linkFor && M.parts.LinkDrawer ? html`<${M.parts.LinkDrawer} uid=${linkFor} onClose=${() => setLinkFor(null)}/>` : null}
       ${add ? html`<${AddDrawer} person=${add.person} member=${add.member} title=${add.title} join=${!!add.join}
         onSaved=${add.join ? (id => M.team.clear(ctx, id)) : null} onClose=${() => setAdd(null)}/>` : null}
@@ -232,6 +241,12 @@
       setBase(now);
     }, [savedKey]);
     const set = (k, v) => setF(x => ({...x, [k]: v}));
+    /* the lunch hour is both times or neither, and ends after it starts. A backwards hour shows as you type;
+       half an hour shows once you try to save. The line sits under the fields, never in a dialog */
+    const [lunchTried, setLunchTried] = useState(false);
+    const lunchLine = lunchProblem(f.lunchFrom, f.lunchTo);
+    const lunchShown = lunchLine && (lunchTried || lunchLine === LUNCH_BACKWARDS) ? lunchLine : '';
+    const setLunch = (k, v) => { setLunchTried(false); set(k, v); };
     const names = (M.rules && M.rules.NAMES) || {};
     const quietMins = Math.max(30, Math.min(480, Math.round(Number(f.quietMins) || 120)));
     const quietOpts = (QUIET_MINS.indexOf(quietMins) >= 0 ? QUIET_MINS : QUIET_MINS.concat([quietMins]).sort((a, b) => a - b))
@@ -261,9 +276,7 @@
     };
     async function save() {
       /* lunch is both times or neither; empty means no lunch hour */
-      const lunchFrom = String(f.lunchFrom || '').trim(), lunchTo = String(f.lunchTo || '').trim();
-      if (!!lunchFrom !== !!lunchTo || (lunchFrom && !(HHMM.test(lunchFrom) && HHMM.test(lunchTo)))) return M.toast('Set both lunch times, or clear both for no lunch hour', true);
-      if (lunchFrom && U.minutes(lunchTo) <= U.minutes(lunchFrom)) return M.toast('Lunch has to end after it starts', true);
+      if (lunchLine) { setLunchTried(true); return; }
       /* v39: lateness, the EOD cut and Monday's cut are worked out from these times, so each needs one */
       for (const t of [{k: 'start', label: 'Start time'}, {k: 'eodCut', label: 'EOD cutoff'}, {k: 'mondayCut', label: 'Monday cutoff'}]) {
         const v = String(f[t.k] || '').trim();
@@ -273,6 +286,9 @@
       const was = bodyOf(base), next = bodyOf(f);
       const patch = U.changes(was, next);
       for (const k of ['rules', 'points']) if (patch[k]) patch[k] = U.changes(was[k], next[k]);
+      /* the quiet stretch and its lunch hour are one setting: a change to any of them saves all three, so the
+         saved lunch hour is always the one on screen */
+      if (QUIET_KEYS.some(k => k in patch)) QUIET_KEYS.forEach(k => { patch[k] = next[k]; });
       if (!Object.keys(patch).length) return M.toast('Nothing to save');
       await ctx.W.merge('settings/app', {...patch, updated: Date.now()});
       M.toast('Settings saved');
@@ -304,11 +320,12 @@
         <div class="qr-fields">
           <${UI.Select} id="quiet-mins" label="quiet stretch after" value=${String(quietMins)} options=${quietOpts}
             onChange=${v => set('quietMins', v)}/>
-          <${UI.Input} id="lunch-from" label="lunch from" type="time" value=${f.lunchFrom} onChange=${v => set('lunchFrom', v)}/>
-          <${UI.Input} id="lunch-to" label="lunch to" type="time" value=${f.lunchTo} onChange=${v => set('lunchTo', v)}/>
+          <${UI.Input} id="lunch-from" label="lunch from" type="time" value=${f.lunchFrom} onChange=${v => setLunch('lunchFrom', v)}/>
+          <${UI.Input} id="lunch-to" label="lunch to" type="time" value=${f.lunchTo} onChange=${v => setLunch('lunchTo', v)}/>
         </div>
+        ${lunchShown ? html`<div class="small flame-t" id="lunch-err" role="alert" style=${{marginTop: '8px'}}>${lunchShown}</div>` : null}
         ${f.lunchFrom || f.lunchTo ? html`<button type="button" class="linky small" id="lunch-clear" style=${{marginTop: '8px'}}
-          onClick=${() => setF(x => ({...x, lunchFrom: '', lunchTo: ''}))}>No lunch hour</button>` : null}
+          onClick=${() => { setLunchTried(false); setF(x => ({...x, lunchFrom: '', lunchTo: ''})); }}>No lunch hour</button>` : null}
         <${QuietDay} start=${f.start} cut=${f.eodCut} mins=${quietMins} lunchFrom=${f.lunchFrom} lunchTo=${f.lunchTo}/>
       <//>
 
@@ -377,30 +394,30 @@
     }, [uid, monthId, saved && saved.at]);
     const set = (k, v) => setF(x => ({...x, [k]: v}));
     const aNo = f.fight === 'no' || f.rehire === 'no';
-    return html`<${UI.Card} title=${html`<${UI.Name} id=${uid}/>`}
-      action=${saved ? html`<${UI.Pill} kind="ink">done this month<//>` : null}>
-      <div class="stack tight">
-        <${UI.Field} label="would I fight to keep them?">
-          <${UI.Seg} options=${YN} value=${f.fight} onChange=${v => set('fight', v)} ariaLabel="Fight to keep"/><//>
-        <${UI.Field} label="knowing what I know now, would I hire them again?">
-          <${UI.Seg} options=${YN} value=${f.rehire} onChange=${v => set('rehire', v)} ariaLabel="Hire again"/><//>
-        ${aNo ? html`<div class="small flame-t">${KEEPER_LINE}</div>` : null}
-        <${UI.Input} label="note" value=${f.note} onChange=${v => set('note', v)}/>
-        <div class="row"><${UI.Btn} sm=${true} onClick=${() => ctx.W.merge('data/users/' + ctx.uid + '/keeper',
+    /* B1 keeper rows: the name, the two questions, then the note across the row */
+    return html`<div class="kp-r">
+      <span class="row nowrap" style=${{gap: '10px', minWidth: 0}}><${UI.Avatar} id=${uid} size=${28}/><b class="who-n" style=${{fontWeight: 500}}><${UI.Name} id=${uid}/></b>${saved ? html`<${UI.Pill} kind="ink">done this month<//>` : null}</span>
+      <${UI.Field} label="would I fight to keep them?">
+        <${UI.Seg} sm=${true} options=${YN} value=${f.fight} onChange=${v => set('fight', v)} ariaLabel="Fight to keep"/><//>
+      <${UI.Field} label="knowing what I know now, would I hire them again?">
+        <${UI.Seg} sm=${true} options=${YN} value=${f.rehire} onChange=${v => set('rehire', v)} ariaLabel="Hire again"/><//>
+      <div class="kp-q" style=${{gridColumn: '1 / -1'}}>
+        <div class="grow"><${UI.Input} label="note" value=${f.note} onChange=${v => set('note', v)}/></div>
+        <${UI.Btn} sm=${true} onClick=${() => ctx.W.merge('data/users/' + ctx.uid + '/keeper',
           {notes: {[uid]: {[monthId]: {fight: f.fight, rehire: f.rehire, note: f.note, at: Date.now()}}}})
-          .then(() => M.toast('Saved'))}>Save keeper note<//></div>
+          .then(() => M.toast('Saved'))}>Save keeper note<//>
       </div>
-    <//>`;
+      ${aNo ? html`<div class="small flame-t" style=${{gridColumn: '1 / -1'}}>${KEEPER_LINE}</div>` : null}
+    </div>`;
   }
 
   function Keeper() {
     const ctx = M.useCtx();
     const others = ctx.activeMembers.filter(m => m.uid !== ctx.uid);
-    return html`<div class="stack" style=${{gap: '18px'}}>
-      <${UI.Card}><p style=${{margin: 0}}>Private to you. The month is ${U.monthId(new Date(ctx.now))}.</p><//>
-      ${others.length ? others.map(m => html`<${KeeperCard} key=${m.uid} uid=${m.uid}/>`)
-        : html`<${UI.Card}><${UI.Empty} text="Nobody on the roster yet."/><//>`}
-    </div>`;
+    return html`<${UI.Card} title=${'keeper test, ' + U.monthId(new Date(ctx.now))} action=${html`<span class="pill pl">private to you</span>`}>
+      <div class="kpl">${others.length ? others.map(m => html`<${KeeperCard} key=${m.uid} uid=${m.uid}/>`)
+        : html`<${UI.Empty} text="Nobody on the roster yet."/>`}</div>
+    <//>`;
   }
 
   /* ---------- export ---------- */
@@ -501,10 +518,12 @@
     const [tab, setTab] = useState('roster');
     M.useIntent('settings', () => setTab('settings'));
     const Approvals = M.parts.LeaveApprovals;
-    return html`<div class="stack" style=${{gap: '18px'}}>
-      <${UI.PageHead} micro="founder controls" title="Controls">
-        <${UI.Seg} options=${TABS.concat((M.deskTabs || []).map(x => ({v: x.v, label: x.label})))} value=${tab} onChange=${setTab} ariaLabel="Desk section"/>
-      <//>
+    const all = TABS.concat((M.deskTabs || []).map(x => ({v: x.v, label: x.label})));
+    return html`<div class="stack fo-desk" style=${{gap: '24px'}}>
+      <div class="fo-ctl">
+        <${UI.SectionHead} label="founder controls" pill=${(all.find(x => x.v === tab) || {}).label}/>
+        <${UI.Seg} options=${all} value=${tab} onChange=${setTab} ariaLabel="Desk section"/>
+      </div>
       ${tab === 'roster' ? html`<${Roster}/>` : null}
       ${tab === 'settings' ? html`<${Settings}/>` : null}
       ${tab === 'keeper' ? html`<${Keeper}/>` : null}

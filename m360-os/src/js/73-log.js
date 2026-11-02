@@ -202,7 +202,7 @@
 
     const people = [{v: '', label: 'Everyone'}].concat(uids.filter(u => u === ctx.founderUid || (ctx.members && ctx.members[u]) || all.some(r => r.uid === u))
       .map(u => ({v: u, label: (profs[u] && profs[u].name) || 'Someone'})));
-    return html`<${UI.Card} id="log-tab" title="Log"
+    return html`<${UI.Band} tone="warm"><${UI.Card} id="log-tab" title="Log"
       action=${html`<span class="row nowrap">
         <${UI.Btn} kind="sec" sm=${true} id="log-export" disabled=${!list.length} onClick=${exportCsv}>Export CSV<//>
         <${UI.ConfirmBtn} kind="sec" onConfirm=${prune}>${busy ? 'Clearing' : 'Clear logs older than 90 days'}<//>
@@ -236,7 +236,7 @@
       ${list.length > limit ? html`<div class="row" style=${{marginTop: '10px'}}>
         <${UI.Btn} kind="sec" sm=${true} onClick=${() => setLimit(n => n + PAGE)}>Show more<//>
         <span class="tiny ink62 num">${limit} of ${list.length}</span></div>` : null}
-    <//>`;
+    <//><//>`;
   }
 
   M.deskTabs.push({v: 'log', label: 'Log', render: LogTab});
