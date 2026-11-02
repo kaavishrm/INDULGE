@@ -50,10 +50,12 @@ def t(h):
 
     # ---- the founder sees it on HQ and lets them in from Admin ----
     h.go(p, 'founder', hash='#hq', width=1280)
-    p.wait_for_selector('.join-banner')
-    check('Rohan Verma wants to join the team' in p.inner_text('.join-banner'), 'banner text: ' + p.inner_text('.join-banner'))
+    # v40: the ask is a Command needs card; Add opens Admin
+    card = p.locator('#c-need .c-ncw[data-kind="join"]').filter(has_text='Rohan Verma').first
+    card.wait_for(timeout=8000)
+    check('wants to join' in card.inner_text(), 'needs card text: ' + card.inner_text())
     check(p.locator('.side-item', has_text='Admin').locator('.badge').count() == 1, 'admin badge missing')
-    p.click('.join-banner')
+    card.get_by_role('button', name='Add').click()
     p.wait_for_selector('#join-requests')
     check(p.evaluate('location.hash') == '#admin', 'banner did not open admin')
     card = p.inner_text('#join-requests')

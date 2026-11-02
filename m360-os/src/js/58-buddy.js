@@ -606,8 +606,9 @@
       const t = setTimeout(() => {
         if (openRef.current || stepRef.current >= 0) return;
         const nm = String((ctx.member && ctx.member.name) || (ctx.me && ctx.me.name) || 'there').split(' ')[0];
-        openPanel('', {keepIntro: true});
-        setIntro({kind: 'welcome', text: 'Hi ' + nm + ', I am your m360 buddy. Want a two minute tour of the place? I will show you where everything lives.'});
+        /* v40: the offer is a line in the island (a tap starts the tour), so nothing covers the page */
+        M.tour.mark(ctx, 'asked');
+        if (M.island && M.island.notify) M.island.notify('Hi ' + nm + ', want a two minute tour of the place?', 'tap to start', startTour, null, {key: 'welcome', ms: 9000});
       }, 1800);
       return () => clearTimeout(t);
     }, [ctx.ready, ctx.member, M.tour.ready(ctx), open, step]);

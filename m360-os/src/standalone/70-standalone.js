@@ -150,7 +150,7 @@
         <button type="button" class="linky small" id="site-restore-back" style=${{alignSelf: 'flex-start'}} onClick=${() => { setErr(''); setSiteMode(false); }}>Set up a fresh workspace</button>
       </div>
     <//>`;
-    if (first) return html`<${M.Gate} title="Set up m360 OS" line="You are the first one here, so this workspace is yours. You get HQ, Admin and every number.">
+    if (first) return html`<${M.Gate} title="Set up m360 OS" line="You are the first one here, so this workspace is yours. You get Command, Admin and every number.">
       <div class="join-box stack tight">
         <${UI.Input} id="signin-name" label="your name" value=${name} placeholder="First and last name" onChange=${setName} onEnter=${go}/>
         <${UI.Input} id="signin-email" label="your email" type="email" value=${email} placeholder="you@mask360.agency" onChange=${setEmail} onEnter=${go}

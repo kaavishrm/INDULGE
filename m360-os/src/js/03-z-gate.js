@@ -155,7 +155,7 @@
       svg.dataset.pen = '1';
       /* the pen draws once per page load; a mark that arrives after it finished simply shows */
       const fresh = P0 == null;
-      if (fresh && t > 1400) { svg.style.animation = 'none'; svg.style.opacity = '1'; return; }
+      if (fresh && t > 3000) { svg.style.animation = 'none'; svg.style.opacity = '1'; return; }
       if (!fresh && penT >= PEN.hold + PEN_MS) { svg.style.animation = 'none'; svg.style.opacity = '1'; return; }
       if (fresh) { P0 = clock(); penT = 0; penLast = 0; }
       try { if (pen(svg) && pens.length === 1) requestAnimationFrame(drawPens); } catch (e) { svg.style.animation = 'none'; svg.style.opacity = '1'; }

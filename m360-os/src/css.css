@@ -1134,9 +1134,11 @@ body.web-focus .web-rail{border-right-width:1px; padding-top:calc(12px + env(saf
 }
 
 /* music: the team's list, and a dock that keeps playing */
-.music-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px}
+.music-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr)); gap:10px}
 .music-card{border:1px solid var(--line); border-radius:14px; padding:10px 12px; background:var(--paper)}
-.music-card.playing{border-color:var(--flame); box-shadow:0 0 0 3px rgba(245,57,1,.12)}
+.music-card.playing{border-color:var(--flame); box-shadow:inset 0 0 0 1px var(--flame)}
+.music-card{min-width:0}
+.music-card .row.between.nowrap{flex-wrap:wrap; row-gap:8px}
 .music-title{font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .music-dock{position:fixed; right:16px; bottom:84px; z-index:56; width:min(360px,calc(100vw - 32px)); background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px var(--shadow); overflow:hidden}
 .music-dock-head{padding:6px 6px 6px 10px; gap:6px}

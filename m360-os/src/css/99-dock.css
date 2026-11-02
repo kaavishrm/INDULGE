@@ -250,3 +250,6 @@ body:has(.drawer) .buddy-bubble.agent-pop{z-index:62}
 @media (max-width:860px){
   .buddy-bubble.tour,.buddy-bubble.tour.hang-up,.buddy-bubble.tour.at-dock{bottom:calc(86px + env(safe-area-inset-bottom,0px)); right:12px; width:auto; max-width:none; max-height:46vh}
 }
+
+/* another sheet open: the m360 AI panel steps behind it (and its scrim), so that sheet's buttons stay in reach */
+html.gs-open .buddy-bubble.agent-pop{z-index:59}
