@@ -665,8 +665,9 @@ def test(h):
 
     def r13_dock_still():
         check('R13', p.locator('.dock-char.hop').count() == 0, 'the morning brief makes no dock hop')
+        # v40: the robot is retired, so nothing in the dock is ever drawn, let alone given an idle jump
         jumps = p.evaluate('() => window.__dockJump')
-        check('R13', jumps and all(j == 0 for j in jumps), 'the droid in the dock is never given an idle jump: %r' % sorted(set(jumps)))
+        check('R13', jumps == [], 'no droid is drawn in the dock: %r' % sorted(set(jumps)))
     section('R13', r13_dock_still)
 
     def r9_members():
@@ -781,7 +782,7 @@ def test(h):
         p.evaluate(FRAMES)
         check('R13', p.locator('#buddy-hello').count() == 0 and not p.evaluate('() => M.buddy.state().open') and p.evaluate('() => window.__said') == [],
               'the hello is made and waits: it never opens the pop-up and never speaks (said %r)' % p.evaluate('() => window.__said'))
-        p.locator('#buddy-dock .buddy-home').click()
+        p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.evaluate("() => M.assistant.open('')")   # v40: what the Ask bar's m360 AI row does (the pinned clock holds the island still)
         p.wait_for_selector('#buddy-hello')
         hello = p.inner_text('#buddy-hello')
         parts = [s.strip() for s in re.split(r'(?<=\.) ', hello) if s.strip()]
@@ -792,7 +793,7 @@ def test(h):
         p.wait_for_function('() => !document.querySelector("#buddy-hello")')
         p.keyboard.press('Escape')
         p.wait_for_function('() => !M.buddy.state().open')
-        p.locator('#buddy-dock .buddy-home').click()
+        p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.evaluate("() => M.assistant.open('')")   # v40: what the Ask bar's m360 AI row does (the pinned clock holds the island still)
         p.wait_for_function('() => M.buddy.state().open')
         check('R13', p.locator('#buddy-hello').count() == 0, 'read once: the next open has no hello')
         p.keyboard.press('Escape')
@@ -853,7 +854,7 @@ def test(h):
             go(p, ident)
             p.wait_for_function('() => !!localStorage.getItem("m360.buddyHelloDay")', timeout=15000)
             p.evaluate('async () => { await M.ai.names(M.lastCtx); }')
-            p.locator('#buddy-dock .buddy-home').click()
+            p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.evaluate("() => M.assistant.open('')")   # v40: what the Ask bar's m360 AI row does (the pinned clock holds the island still)
             p.wait_for_selector('#buddy-hello')
             hello = p.inner_text('#buddy-hello')
             check('R13', want in hello and 'asked m360' not in hello and 'm360 COO asked' not in hello, '%s reads "%s...": %r' % (ident, want.strip(), hello))

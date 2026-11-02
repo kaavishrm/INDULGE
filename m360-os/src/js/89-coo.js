@@ -117,19 +117,11 @@
     } catch (e) { M.toast((e && e.message) || 'That did not go through.', true); return {ok: false}; }
   }
 
-  /* ---------- the face: a static droid head with square glasses and a bow tie, for lines and lists ---------- */
+  /* ---------- the face, for lines and lists: v40 retires the robot head, so the COO wears the m360 mark
+     (always black, never recoloured), the design's one character ---------- */
   function CooFace({size, label}) {
     const s = size || 24;
-    return html`<svg class="coo-face" width=${s} height=${s} viewBox="0 0 32 32" role="img" aria-label=${label || 'm360 COO'}>
-      <path class="cf-ant" d="M16 3.6v3.2"/><circle class="cf-tip" cx="16" cy="3.2" r="1.7"/>
-      <rect class="cf-ear" x="2.4" y="12.2" width="2.8" height="5.6" rx="1.4"/><rect class="cf-ear" x="26.8" y="12.2" width="2.8" height="5.6" rx="1.4"/>
-      <rect class="cf-head" x="5" y="6.6" width="22" height="17.4" rx="6.6"/>
-      <rect class="cf-lens" x="7.6" y="10.8" width="7.4" height="6.4" rx="1.3"/><rect class="cf-lens" x="17" y="10.8" width="7.4" height="6.4" rx="1.3"/>
-      <path class="cf-bridge" d="M15 13.4h2"/>
-      <circle class="cf-eye" cx="11.3" cy="14" r="1.25"/><circle class="cf-eye" cx="20.7" cy="14" r="1.25"/>
-      <path class="cf-mouth" d="M13.4 19.9q2.6 1.7 5.2 0"/>
-      <path class="cf-tie" d="M16 27.4 10.6 24.6v5.6Zm0 0 5.4-2.8v5.6Z"/><circle class="cf-knot" cx="16" cy="27.4" r="1.5"/>
-    </svg>`;
+    return html`<span class="coo-face" role="img" aria-label=${label || 'm360 COO'} style=${{width: s + 'px', height: s + 'px'}}><${M.Mark} width=${s + 'px'}/></span>`;
   }
 
   /* ---------- the office: builder five's live window, or the face and the current line where it is absent ---------- */

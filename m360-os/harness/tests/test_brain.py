@@ -36,7 +36,7 @@ def ask_buddy(p, text):
             break
         p.keyboard.press('Escape')
         p.wait_for_timeout(250)
-    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()   # v40: m360 AI opens from the Ask bar
     p.wait_for_selector('#buddy-input')
     n = p.evaluate('() => M.chat.turns.length')
     p.fill('#buddy-input', text)
@@ -54,7 +54,7 @@ def artifact_part(h):
     p = h.session('founder', width=1280, hash='#home', reset=True, seed=True)
     seed(h, p)
     h.go(p, 'founder', hash='#home', width=1280)
-    p.wait_for_selector('.buddy-home')
+    p.wait_for_selector('#buddy-dock', state='attached')
     # remember: the fact lands in the private memory
     out = ask_buddy(p, 'remember that I like short answers')
     check('Noted' in out, 'the buddy should note it: ' + out[:120])
@@ -105,7 +105,7 @@ def artifact_part(h):
         turns.append({'role': 'assistant', 'content': 'answer %d' % i})
     h.seed_doc(p, 'data/users/u_founder/chat', {'turns': turns, 'at': 1})
     h.go(p, 'founder', hash='#home', width=1280)
-    p.wait_for_selector('.buddy-home')
+    p.wait_for_selector('#buddy-dock', state='attached')
     p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.locator('#buddy-expand').click()
     p.wait_for_selector('.drawer:has-text("question 25")')
@@ -123,7 +123,7 @@ def artifact_part(h):
     p.keyboard.press('Escape'); p.wait_for_function('() => !document.querySelector(".drawer")')
     # with images allowed: attach a picture, the call carries it
     h.go(p, 'founder', hash='#home', width=1280, img='1')
-    p.wait_for_selector('.buddy-home')
+    p.wait_for_selector('#buddy-dock', state='attached')
     p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.locator('#buddy-expand').click()
     p.wait_for_selector('.drawer #ask-file', state='attached')
@@ -144,23 +144,23 @@ def artifact_part(h):
     # the day is marked just before the hello reads the names (an immediate promise here): once ours are in, it is set
     p.evaluate('async () => { await M.ai.names(M.lastCtx); }')
     check(p.locator('#buddy-hello').count() == 0 and not p.evaluate('() => M.buddy.state().open'), 'the hello never opens the pop-up by itself')
-    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()   # v40: m360 AI opens from the Ask bar
     p.wait_for_selector('#buddy-hello', timeout=8000)
     line = p.inner_text('#buddy-hello')
     check(line.startswith(('Morning, Kaavish', 'Afternoon, Kaavish', 'Evening, Kaavish')) and 'open' in line, 'the hello with their numbers: ' + line)
     p.locator('#hello-later').click()
     p.wait_for_function('() => !document.querySelector("#buddy-hello")')
     h.go(p, 'founder', hash='#home', width=1280)
-    p.wait_for_selector('.buddy-home'); p.wait_for_timeout(2200)
+    p.wait_for_selector('#buddy-dock', state='attached'); p.wait_for_timeout(2200)
     check(p.locator('#buddy-hello').count() == 0, 'no second hello the same day')
     # RELIEF R13: the hello only shows inside the dock, so open it: still none the same day
-    p.locator('#buddy-dock .buddy-home').click()
+    p.wait_for_function('() => !!(window.M && M.assistant && M.assistant.opener)'); p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()   # v40: m360 AI opens from the Ask bar
     p.wait_for_function('() => M.buddy.state().open')
     check(p.locator('#buddy-hello').count() == 0, 'no second hello the same day, with the dock open')
     p.keyboard.press('Escape'); p.wait_for_function('() => !M.buddy.state().open')
     # a member sees no founder-only area in the catalog, and cannot reassign
     h.go(p, 'm2', hash='#home', width=1280)
-    p.wait_for_selector('.buddy-home')
+    p.wait_for_selector('#buddy-dock', state='attached')
     cat = h.ctx(p, 'M.brain.catalog(ctx)')
     check('hiring' not in cat and 'decide_leave' not in cat and 'reassign_task' in cat and 'create_task' in cat, 'a member catalog: %s' % cat[:80])
     err = p.evaluate('() => M.brain.act(M.lastCtx, {}, null, "decide_leave", {person: "Ishaan", status: "approved"}).then(() => "ok", e => e.message)')
@@ -199,7 +199,7 @@ def standalone_part():
             k.goto(base); k.wait_for_selector('#signin-name')
             k.fill('#signin-name', 'Kaavish Ramchandani'); k.fill('#signin-email', 'kaavish@mask360.agency'); k.fill('#signin-pw', 'brain-test-pw-2026')
             k.get_by_role('button', name='Set up the workspace').click(); k.wait_for_selector('.sidebar'); k.wait_for_timeout(600)
-            k.wait_for_selector('.buddy-home')
+            k.wait_for_selector('#buddy-dock', state='attached')
             # remember through act: the fake model calls the tool, the second round confirms
             out = ask_buddy(k, 'remember that the Swisse invoice goes to Omar')
             check('Done' in out, 'the site buddy should confirm: ' + out[:120])

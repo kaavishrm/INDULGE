@@ -985,7 +985,6 @@
       : (idle || offHours || focusOn) && !open && step < 0 && !hover ? 'sleeping' : 'idle';
     const botState = dockState === 'thinking' ? 'working' : dockState === 'sleeping' ? 'sleeping' : 'default';
     const paused = hiddenTab || (typing && !open) || focusOn;
-    const Bot = M.fx && M.fx.Bot;
     const size = phone ? 48 : 56;
     const stopHere = stops[step];
     const coach = step >= 0 ? coachPlace(ring) : null;
@@ -1045,8 +1044,7 @@
           onKeyDown=${e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapHome(); } }} onContextMenu=${e => e.preventDefault()}>
           <span key=${hop} class=${'dock-char' + (hop ? ' hop' : '') + (talking ? ' bob' : '')} style=${{'--sz': size + 'px'}}>
             ${live && M.fx && M.fx.VoicePill ? html`<${M.fx.VoicePill} live=${true}><span class="dock-glow"/><//>` : null}
-            ${Bot ? html`<${Bot} type="droid" size=${size} state=${botState} headphones=${live || conv} paused=${paused} jumpEvery=${0} interactive=${!reduced()} label="m360" className="dock-bot"/>`
-              : html`<${M.Mark} width="40px"/>`}
+            <${M.Mark} width="40px"/>
           </span>
           <span class="dock-shadow" aria-hidden="true"/>
           ${badge > 0 ? html`<span class="dock-badge">${M.fx && M.fx.MetalBadge ? html`<${M.fx.MetalBadge}>${String(badge)}<//>` : html`<span class="pill flame">${badge}</span>`}</span>` : null}

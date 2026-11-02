@@ -1123,21 +1123,14 @@
     }, [full]);
   }
 
-  /* the COO itself: the plush droid (square glasses, a bow tie), what it carries, its desk cards */
-  const LISTEN = {yaw: .45};   /* turned toward the dock; one object, so the droid is not handed a new pose each render */
+  /* the COO itself: v40, the m360 mark (the design has no robot), what it carries, its desk cards */
   function Mascot({view, rest, size, still, paused, listening, dark, onOpen, label}) {
-    const Bot = M.fx && M.fx.Bot;
     const walking = view.walking;
     const seated = !walking && view.spot === 'desk' && rest.seat !== false;
     const st = walking ? 'default' : rest.asleep && view.spot === rest.station ? 'sleeping' : view.state === 'working' ? 'working' : (view.state === 'sleeping' ? 'sleeping' : 'default');
-    const waiting = !walking && view.spot === 'tray' && rest.station === 'tray';
-    const pose = walking && view.pose ? view.pose : (listening && !walking ? LISTEN : null);
-    const props = {type: 'droid', glasses: 'square', bowTie: true, accessoryColor: dark ? '#F2F1EC' : '#0E0E0E', label: 'm360 COO', size,
-      state: st, paused: (paused || still) && !walking, headphones: !!listening, jumpEvery: still ? 0 : (waiting ? 40 : 0), interactive: !still && !walking,
-      pose: pose || undefined, speed: view.speed || undefined, className: 'office-bot'};
     return html`<div class=${'office-mascot' + (walking ? ' walking' : '') + (seated ? ' seated' : '')} data-state=${walking ? 'walking' : st} data-spot=${view.spot} style=${{'--bot': size + 'px'}}>
       <span class="office-shadow" aria-hidden="true"/>
-      <span class="office-bob">${Bot ? html`<${Bot} ...${props}/>` : html`<${M.Mark} width="40px"/>`}</span>
+      <span class="office-bob" aria-hidden="true"><${M.Mark} width="40px"/></span>
       ${view.carry && ITEM[view.carry] ? html`<span class=${'office-item carry ' + view.carry} aria-hidden="true">${ITEM[view.carry]}</span>` : null}
       ${(rest.orb || (view.fx.orb && Date.now() - view.fx.orb.k < 2400)) && seated && M.fx && M.fx.Orb ? html`<span class="office-orb" aria-hidden="true"><${M.fx.Orb} state="composing" size=${20}/></span>` : null}
       ${(rest.dot || view.failed) && !walking ? html`<i class="office-flamedot" aria-hidden="true"/>` : null}

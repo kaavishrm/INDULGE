@@ -6,10 +6,9 @@ leave (casual), Ekta came in late. The ledger has the morning's rows (open, the 
 
 Checks:
 - #office renders one scene (.office[data-scope]) with the twelve stations as buttons (.office-station
-  [data-key]), a desk per active member (.office-desk[data-uid][data-state]) and exactly one mascot canvas
-  (.office-mascot canvas[aria-label="m360 COO"]); the dock's own droid ('#buddy-dock canvas' labelled
-  'm360') is still there and is not the mascot;
-- 4K: at a device pixel ratio of 2 and 3 the canvas is its CSS size times the ratio, and at 4 it is capped at 3;
+  [data-key]), a desk per active member (.office-desk[data-uid][data-state]) and exactly one mascot: v40
+  retires the robot, so the COO is drawn as the m360 mark (.office-mascot .mark, always black) with its tap
+  target named "m360 COO", and nothing is drawn in the corner dock (the canvas checks for 4K are retired);
 - it pauses: while the page is hidden, and with the office scrolled off screen, nothing in it animates;
 - reduced motion: no animation runs in the office and the mascot is a still frame;
 - no sideways scroll at 390 px; it reads in dark mode;
@@ -105,7 +104,7 @@ def test(h):
         p.wait_for_function('() => !!(window.M && M.lastCtx && M.lastCtx.activeMembers.length > 3)')
         if not p.evaluate('() => !!(M.pages && M.pages.Office && M.office && M.coo)'):
             raise AssertionError('the office is not on the page: this test runs once builders 5 and 1 are merged')
-        p.wait_for_selector('.office[data-scope] .office-mascot canvas[aria-label="m360 COO"]', timeout=20000)
+        p.wait_for_selector('.office[data-scope] .office-mascot .mark svg', timeout=20000)
         p.wait_for_timeout(800)
 
     os.makedirs(SHOTS, exist_ok=True)
@@ -122,9 +121,10 @@ def test(h):
     check(set(desks) >= {M1, M2, M3, M4} and F not in desks and BOT not in [u for u, _, _ in all_desks], 'a desk per member, none for the COO: %r' % all_desks)
     check(cabin in ([], [F]), 'Kaavish sits in the cabin, never at a bench: %r' % cabin)
     check(desks.get(M3) == 'leave' and desks.get(M2) == 'wfh' and desks.get(M1) in ('office', 'in'), 'the desks read the day: %r' % desks)
-    n = p.evaluate('() => document.querySelectorAll(".office-mascot canvas").length')
-    dock = p.evaluate('() => { const c = document.querySelector("#buddy-dock canvas"); return c ? [c.getAttribute("aria-label"), !!c.closest(".office")] : null; }')
-    check(n == 1 and dock and dock[0] == 'm360' and not dock[1], 'one mascot canvas, and the dock keeps its own droid labelled m360: %r' % [n, dock])
+    n = p.evaluate('() => [document.querySelectorAll(".office-mascot").length, document.querySelectorAll(".office-mascot .mark svg").length, document.querySelectorAll(".office canvas.office-bot, .office-mascot canvas").length]')
+    hit = p.evaluate('() => (document.querySelector(".office-mascot-hit") || {}).getAttribute ? document.querySelector(".office-mascot-hit").getAttribute("aria-label") : ""')
+    dock = p.evaluate('() => document.querySelectorAll("#buddy-dock canvas").length')
+    check(n == [1, 1, 0] and 'COO' in (hit or '') and dock == 0, 'one mascot, the m360 mark with no robot, its tap named for the COO, nothing in the dock: %r' % [n, hit, dock])
     check(p.evaluate('() => document.querySelector(".office").getAttribute("role") === "region" || !!document.querySelector(".office [role=region], [role=region] .office")'), 'the scene is a region')
     p.screenshot(path=os.path.join(SHOTS, 'office-1280-light.png'))
     check(p.evaluate('() => !!document.querySelector("#office-run")') or p.locator('button', has_text='List').count() > 0, 'the list view (#office-run) is one tap away')
@@ -162,10 +162,6 @@ def test(h):
     p.wait_for_timeout(500)
     check(p.evaluate(RUNNING) == 0, 'nothing in the office animates while the page is hidden: %r' % p.evaluate('''() => { const o = document.querySelector('.office');
       return document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.target && o.contains(a.effect.target)).map(a => [a.effect.target.className, a.animationName || a.id || '', a.effect.getTiming().duration, a.effect.getTiming().iterations]); }'''))
-    # nor does the mascot's own canvas: its pixels hold while hidden
-    h0 = p.evaluate('() => document.querySelector(".office-mascot canvas").toDataURL()')
-    p.wait_for_timeout(1500)
-    check(p.evaluate('() => document.querySelector(".office-mascot canvas").toDataURL()') == h0, 'the mascot\'s canvas draws nothing while the page is hidden')
     p.evaluate('''() => { Object.defineProperty(document, 'visibilityState', {configurable: true, get: () => 'visible'});
       Object.defineProperty(document, 'hidden', {configurable: true, get: () => false}); document.dispatchEvent(new Event('visibilitychange')); }''')
 
@@ -272,17 +268,13 @@ def test(h):
     steps = [x for x in summary[0][:summary[0].index(summary[1])] if 'review' in x.lower() or 'Asked' in x]
     check(len(steps) <= 6 and 'And 4 more' in summary[1], 'at most six steps play, then "And 4 more": %r' % (summary,))
 
-    # ---- 4K: the canvas at its CSS size times the ratio, capped at 3 ----
-    for dsf in (2, 3, 4):
-        q = ctx_page(dsf=dsf)
-        seed(q)
-        open_office(q)
-        c = q.evaluate('() => { const c = document.querySelector(".office-mascot canvas"); const r = c.getBoundingClientRect(); return [c.width, c.height, r.width, r.height]; }')
-        want = min(dsf, 3)
-        check(abs(c[0] - round(c[2] * want)) <= 2 and abs(c[1] - round(c[3] * want)) <= 2, 'at a ratio of %d the canvas is %d px for %.0f css px (x%d): %r' % (dsf, c[0], c[2], want, c))
-        if dsf == 3:
-            q.screenshot(path=os.path.join(SHOTS, 'office-1280-dpr3.png'))
-        q.context.close()
+    # ---- v40: the 4K canvas checks are retired with the robot; the mark is vector at any ratio ----
+    q = ctx_page(dsf=3)
+    seed(q)
+    open_office(q)
+    check(q.evaluate('() => document.querySelectorAll(".office-mascot canvas").length') == 0, 'at a ratio of 3 the mascot is the vector mark, no canvas')
+    q.screenshot(path=os.path.join(SHOTS, 'office-1280-dpr3.png'))
+    q.context.close()
 
     # ---- reduced motion: a still frame ----
     r = ctx_page(reduced=True)
@@ -296,8 +288,8 @@ def test(h):
     r.evaluate('''() => { window.__spotAt = performance.now(); const m = document.querySelector('.office-mascot');
       new MutationObserver(() => { window.__spotAt = performance.now(); }).observe(m, {attributes: true, attributeFilter: ['data-spot', 'data-state', 'class']}); }''')
     r.wait_for_function('() => performance.now() - window.__spotAt > 4000', timeout=60000, polling=250)
-    # the canvas's own pixels, so a bubble folding nearby is not read as the droid moving
-    frame = '() => document.querySelector(".office-mascot canvas").toDataURL()'
+    # the mark's own place and transform, so a bubble folding nearby is not read as the mascot moving
+    frame = '() => { const m = document.querySelector(".office-mascot .mark"); const r = m.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), getComputedStyle(m).transform]; }'
     a = r.evaluate(frame)
     r.wait_for_timeout(1500)
     r.wait_for_timeout(400)

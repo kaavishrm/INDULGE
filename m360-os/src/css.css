@@ -527,7 +527,6 @@ button.stat{cursor:pointer; font:inherit}
 .section-hero .hi{font-size:48px!important; line-height:52px; margin-top:16px}
 .section-hero .hi::after{content:"."; color:var(--flame)}
 .section-hero .sub{font-size:15px; line-height:22px; color:var(--g64)}
-.section-hero .hero-map{margin-top:12px; display:inline-block}
 
 /* the home hero: a plain paper head (ink at night) with one small mark of the hour in its date
    line: a flame dot by day, a paper ring moon at night. --sx, --sy and --sun still arrive from

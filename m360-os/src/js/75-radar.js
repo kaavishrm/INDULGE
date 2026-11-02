@@ -346,7 +346,6 @@
     const btn = html`<button type="button" class=${'btn sm' + (text ? ' sec' : '')} disabled=${busy || !top.length} onClick=${go}>${busy ? html`<${M.Thinking} state="composing"/>` : html`<span class="spark">${SPARK}</span> ${text ? 'Write it again' : 'What moved this week'}`}</button>`;
     return html`<${M.fx.Beam}><section class="ai-card" id="radar-brief">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="radar" state=${busy ? 'working' : 'default'} size=${36} label="m360, the radar brief" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Radar brief</div></div>
         ${text ? btn : html`<${M.fx.Metal} kind="ink">${btn}<//>`}
       </div>

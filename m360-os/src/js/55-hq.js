@@ -72,7 +72,7 @@
 
     const card = html`<section class="ai-card dark">
       <div class="row between">
-        <div class="row ai-head"><${M.fx.Bot} feature="hq" state=${busy ? 'working' : 'default'} size=${40} label="m360, the intelligence brief" className="ai-bot"/><div>
+        <div class="row ai-head"><div>
           <${UI.Micro}>m360 ai<//><div class="card-title" style=${{color: '#fff', marginTop: '4px'}}>Today's intelligence</div>
           <div class="tiny ink62">${cached && !r.data ? 'generated ' + U.timeAgo(cache.data.hq.at) : 'reads every task, check-in, EOD, pitch and pulse'}</div></div></div>
         ${(() => { const b = html`<button type="button" class=${'btn sm on-dark' + (data ? ' sec' : '')} disabled=${busy} onClick=${go}>${busy ? html`<${M.Thinking} label="Reading the company" state="solving"/>` : html`<span class="spark">${SPARK}</span> ${data ? 'Refresh' : 'Brief me'}`}</button>`;
@@ -234,7 +234,7 @@
           <div class="stack" style=${{gap: '20px'}}>
             <${UI.Fold} title="Workload" summary=${n.open + ' open across ' + ctx.activeMembers.length + ' people'} hot=${n.overdue > 0} id="fold-workload"><${Workload}/><//>
             ${M.parts.MoodHeat ? html`<${UI.Fold} title="Mood, three weeks" summary="every check-in mood, one box a day" id="fold-mood"><${M.parts.MoodHeat}/><//>` : null}
-            ${Panel && M.ai.on(ctx) ? html`<${UI.Fold} title="Ask HQ anything" summary="anyone, any client, any number" id="fold-askhq"><section class="card"><div class="card-head"><h2 class="card-title">Ask HQ anything</h2><${M.fx.Bot} feature="ask" size=${32} label="m360, ask" className="ai-bot"/></div><${Panel} inline=${true}/></section><//>` : null}
+            ${Panel && M.ai.on(ctx) ? html`<${UI.Fold} title="Ask HQ anything" summary="anyone, any client, any number" id="fold-askhq"><section class="card"><div class="card-head"><h2 class="card-title">Ask HQ anything</h2></div><${Panel} inline=${true}/></section><//>` : null}
           </div>
           <div class="stack" style=${{gap: '20px'}}>
             <${UI.Fold} title="Live now" summary=${Object.keys(ctx.online).length + ' online'} id="fold-live"><${LiveNow}/><//>

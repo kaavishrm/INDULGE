@@ -488,7 +488,6 @@
     }
     return html`<${M.fx.Beam}><div class=${'ai-card askbase' + (compact ? ' compact' : '')} id="ask-base">
       <div class="row between ai-head">
-        <${M.fx.Bot} feature="base" state=${busy ? 'working' : 'default'} size=${compact ? 30 : 36} label="m360, ask the base" className="ai-bot"/>
         <div class="grow"><${UI.Micro}>m360 ai<//><div class="card-title" style=${{marginTop: '4px'}}>Ask the base</div></div>
       </div>
       ${!asked ? html`<div class="row" style=${{gap: '8px', marginTop: '10px'}}>${BASE_CHIPS.map(c => html`<button key=${c} type="button" class="chip" onClick=${() => go(c)}>${c}</button>`)}</div>` : null}

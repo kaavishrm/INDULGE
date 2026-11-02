@@ -21,7 +21,6 @@
 .sect > .hero.section-hero > .row > .grow{display:flex; flex-direction:column; align-items:flex-start; gap:16px; min-width:0}
 .sect > .hero.section-hero .micro{margin:0}
 .sect > .hero.section-hero .hi{margin:0}
-.sect > .hero.section-hero .hero-map{margin:0}
 .sect > .hero.section-hero > div[style]{margin-top:0!important}
 .sect > .tabs.section-tabs{margin:24px 0 0}
 .sect > .sect-body{margin-top:40px; display:flex; flex-direction:column; gap:24px; min-width:0}

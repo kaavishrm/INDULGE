@@ -1,5 +1,4 @@
 /* ---------- break: the reset room ---------- */
-.brk-sparks .chipline b{font-size:13px}
 /* v40: B1 list rows, a hairline at 8 percent; your squad on warm */
 .brk-row{min-height:48px; padding:10px 0; box-shadow:0 1px 0 var(--g08)}
 .brk-row:last-child{box-shadow:none}

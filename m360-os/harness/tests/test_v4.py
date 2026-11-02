@@ -39,6 +39,9 @@ def t(h):
     check(p.evaluate('location.hash') == '#tasks/t2', 'palette did not open the task: ' + p.evaluate('location.hash'))
     p.keyboard.press('Escape')
     p.wait_for_function('() => !document.querySelector(".drawer")')
+    # v40: the Ask bar finishes folding back into the island once the sheet has gone; '/' waits for that
+    p.wait_for_function('() => !document.querySelector("#island.closing, #island.cmd")')
+    p.wait_for_timeout(300)
     p.keyboard.press('/')
     p.wait_for_selector('#pal-input')
     p.fill('#pal-input', 'dark mode')
@@ -214,9 +217,9 @@ def t(h):
     p.wait_for_selector('#prefs-card')
     p.locator('#prefs-card').get_by_label('Sounds').get_by_role('tab', name='Off').click()
     check(p.evaluate('localStorage.getItem("m360.sound")') == '0', 'sound pref')
-    p.locator('#prefs-card').get_by_role('button', name='Ink').click()
+    p.locator('#prefs-card').get_by_label('Theme').get_by_role('tab', name='Ink').click()   # v40: the design's ink segment
     p.wait_for_function('() => document.documentElement.getAttribute("data-theme") === "dark"')
-    p.locator('#prefs-card').get_by_role('button', name='Auto').click()
+    p.locator('#prefs-card').get_by_label('Theme').get_by_role('tab', name='Auto').click()
 
     # ---- client update writer ----
     h.go(p, 'founder', hash='#clients', width=1280)

@@ -8,7 +8,7 @@
      M.fx.BeamFx    border-beam     BorderBeam round a card or a control, running while on screen
      M.fx.Voice     voice-glow      VoiceBeam under an input, a recording pill or a phone screen
      M.fx.VoicePill voice-glow      the recording pill round a Talk button while it listens
-     M.fx.Bot       bot-avatars     BotAvatar, one body per AI feature (M.fx.BOTS)
+     M.fx.Bot       (retired, v7)   draws nothing: the design has no robot; the live mark is m360's character
      M.fx.Metal     (retired)       the control itself; the liquid metal is gone (v36.2)
      M.fx.MetalText (retired)       the number or word in plain type at the size asked
      M.fx.MetalBadge (retired)      a flame pill for a small "new" style tag
@@ -186,24 +186,9 @@
     return html`<span class=${'voice-pill' + (live ? ' is-live' : '')}><${Voice} type="pill" on=${!!live} stream=${live && mic ? mic.stream : null}>${children}<//></span>`;
   }
 
-  /* BotAvatar: the library's plush fabric shading, bodies by feature, all in flame; paused holds it still.
-     headphones, jumpEvery (seconds between idle hops) and interactive (eyes that follow the pointer) go
-     straight through, as the package ships them, and so does what the office's COO wears and does:
-     glasses, bowTie, hat and accessoryColor, a held pose ({yaw, pitch, roll}, while it walks), turn, speed
-     and jumpHeight. Left out, each keeps the package's own default */
-  function Bot({type, feature, state, size, seed, face, label, id, className, paused, headphones, jumpEvery, interactive,
-    glasses, bowTie, hat, accessoryColor, pose, turn, speed, jumpHeight}) {
-    useSettled();
-    const th = M.useResolvedTheme();
-    const fx = FX();
-    const body = type || BOTS[feature] || 'clover';
-    if (!fx) return M.parts.Bot ? html`<${M.parts.Bot} type=${body} state=${state} size=${size} seed=${seed} label=${label} id=${id} glasses=${glasses} bowTie=${bowTie} paused=${!!paused}/>` : null;
-    return html`<${fx.BotAvatar} type=${body} state=${state || 'default'} size=${size || 28} seed=${seed || 0} face=${face || 'eyes'} color=${FLAME} theme=${th} paused=${!!paused} headphones=${!!headphones}
-      jumpEvery=${jumpEvery == null ? undefined : jumpEvery} interactive=${interactive == null ? undefined : !!interactive}
-      glasses=${glasses || undefined} bowTie=${bowTie == null ? undefined : !!bowTie} hat=${hat || undefined} accessoryColor=${accessoryColor || undefined}
-      pose=${pose || undefined} turn=${turn == null ? undefined : turn} speed=${speed == null ? undefined : speed} jumpHeight=${jumpHeight == null ? undefined : jumpHeight}
-      id=${id} className=${className} aria-label=${label || 'm360'}/>`;
-  }
+  /* v40: the robot is retired. The design (design/m360-os-v7.html) has one character, the live mark (M.mark), so
+     every place that still asks for a bot gets nothing and lays out without it */
+  function Bot() { return null; }
 
   /* BellToggle from React Bits; its count badge is drawn only where a count is passed, so a plain
      switch carries no hidden digits */

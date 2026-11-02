@@ -5,7 +5,8 @@ window.FX carries thinking-orbs, border-beam, voice-glow, bot-avatars and React 
 v36.2 retired metal-fx: its chromatic text drew numbers as misaligned coloured ghosts, so the bundle no
 longer carries it and M.fx.Metal, MetalText and MetalBadge draw a plain button, plain text and a flame pill. The thinking line draws the orb on a canvas with a state read from its label; a flame card
 and a hot fold carry the v7 flame line on their top edge (the border beam is retired); Ask wraps its input in the voice beam, lit while the mic is live
-and travelling while the answer is on its way, with a bot avatar beside every answer ; the notifications pill is
+and travelling while the answer is on its way; v40 retires the robot (M.fx.Bot draws nothing, the design's one character is
+the live mark); the notifications pill is
 the bell, ringing on a press with its label unfurling; reduced motion drops the beam and keeps the plain
 controls; on the phone the orb screen draws the listening orb and the voice beam.
 
@@ -128,12 +129,11 @@ def test(h):
     p.wait_for_function('() => document.querySelector("#fx-bell .bell-toggle__digit").textContent === "9+"')
     check(True, 'a count past nine reads 9+')
 
-    # ---- the bot: a drawn canvas with a name ----
-    bot = p.evaluate('() => { const b = document.getElementById("fx-bot"); return [b.tagName, b.getAttribute("role"), b.getAttribute("aria-label")]; }')
-    check(bot[0] == 'CANVAS' and bot[1] == 'img', 'the bot is a drawn canvas image: %r' % bot)
+    # ---- v40: the robot is retired; M.fx.Bot draws nothing, working or not ----
+    check(p.evaluate('() => document.getElementById("fx-bot") === null'), 'the bot draws nothing')
     p.evaluate(SCRATCH, {'count': 12, 'bot': 'working'})
     p.wait_for_timeout(200)
-    check(bool(p.evaluate('() => document.getElementById("fx-bot").getAttribute("aria-label")')), 'the working bot carries a label')
+    check(p.evaluate('() => document.getElementById("fx-bot") === null'), 'nor while it works')
 
     # ---- Home: nothing on the page is drawn in metal; the sidebar foot is the design's three rows ----
     check(p.evaluate('() => document.querySelectorAll(".metal-fx-root, canvas.metal-fx-canvas, .metal-badge-host").length') == 0, 'no metal anywhere on Home')
@@ -142,7 +142,7 @@ def test(h):
     # v31: the thought is decorative, so it no longer carries a beam (one moving thing per view)
     check(not p.evaluate('() => document.getElementById("quote-card").parentElement.hasAttribute("data-beam")'), 'the thought sits still, without a beam')
 
-    # ---- Ask: the voice beam under the input, the droid in the dock and the panel head, metal on Send ----
+    # ---- Ask: the voice beam under the input, no robot anywhere, Send stays plain ----
     p.evaluate(FAKE_SR)
     p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()
     p.wait_for_selector('#buddy-input')
@@ -157,12 +157,10 @@ def test(h):
     p.wait_for_function('() => { const w = document.querySelector("#buddy-input").closest("[data-voice-beam]"); return w && w.hasAttribute("data-active"); }')
     check(True, 'the beam is active while the mic is live')
     check(p.evaluate('() => !!document.querySelector(".panel-composer .voice-pill.is-live")'), 'the Talk button records inside the voice pill')
-    check(p.evaluate('() => !!document.querySelector("#buddy-dock .voice-pill.is-live")'), 'the character glows in the dock while it listens')
     p.get_by_role('button', name='Listening, tap to stop').first.click()
     p.wait_for_selector('.buddy-bubble #buddy-answer', timeout=20000)
-    check(p.evaluate('() => [...document.querySelectorAll(".panel-head canvas")].some(c => c.getAttribute("aria-label") === "m360")'), 'the droid sits in the panel head, named m360')
-    check(p.locator('.panel-body canvas').count() == 0, 'the answers carry no repeated avatar')
-    check(p.evaluate('() => [...document.querySelectorAll("#buddy-dock canvas")].some(c => c.getAttribute("aria-label") === "m360")'), 'the droid lives in the dock')
+    check(p.locator('.panel-head canvas').count() == 0 and p.locator('.panel-body canvas').count() == 0, 'no robot in the sheet head or the answers')
+    check(p.evaluate('() => document.querySelectorAll("canvas[aria-label=\\"m360\\"], #buddy-dock canvas").length') == 0, 'no robot anywhere on the page')
     p.keyboard.press('Escape')
 
     # ---- reduced motion: the beam and the metal stand down, the controls stay ----
@@ -172,13 +170,16 @@ def test(h):
     still = p.evaluate('() => [document.getElementById("fx-hot").parentElement.hasAttribute("data-beam"), !!document.getElementById("fx-btn").closest(".metal-fx-root"), !!document.querySelector("#fx-scratch .thinking-line .vorb"), !!document.getElementById("fx-btn")]')
     check(still == [False, False, True, True], 'reduced motion: no beam, no metal, the plain sphere, the button itself: %r' % still)
 
-    # ---- the phone: the orb screen draws the listening orb and the voice beam ----
+    # ---- the phone: the Ask button's m360 AI row opens the sheet; Talk draws the listening orb and the voice beam ----
     ctx = TM.phone_ctx(h)
     m = TM.open_page(h, ctx, 'founder', '#home', seed=True)
     m.wait_for_function('() => !!M.buddy')
-    m.wait_for_selector('.buddy-home.orb-home .dock-char canvas')
-    check(m.locator('.buddy-home.orb-home .dock-char canvas').count() == 1, 'the phone dock carries the droid')
-    m.locator('.buddy-home.orb-home').click()
+    m.evaluate(FAKE_SR)
+    check(m.locator('#buddy-dock canvas').count() == 0, 'no droid on the phone')
+    m.locator('#tbAsk').click()
+    m.locator('.pal-item[data-k="a-ai"]').click()
+    m.wait_for_selector('#orb-screen')
+    m.locator('#orb-screen .panel-talk-big').click()
     m.wait_for_selector('#orb-screen .orb-big.is-live canvas')
     check(m.evaluate('() => document.querySelector("#orb-screen .orb-big canvas").getAttribute("aria-label")') == 'listening', 'the big orb listens')
     check(m.evaluate('() => !!document.querySelector("#orb-screen [data-voice-beam][data-active]")'), 'the voice beam lights the bottom of the screen')
