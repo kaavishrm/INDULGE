@@ -266,7 +266,7 @@ def test(h):
             check(dk['b'] <= comp['y'] - 8, 'the dock clears the chat composer: %r %r' % (dk, comp))
         p.goto(h.url('founder', '#home'))
         h.ready(p)
-        p.locator('.bellbtn').first.click()
+        p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-inbox\"]').click()
         p.wait_for_selector('.drawer', timeout=8000)
         p.wait_for_timeout(700)
         dr = p.evaluate(RECT, '.drawer')

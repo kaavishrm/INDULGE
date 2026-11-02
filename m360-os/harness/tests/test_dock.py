@@ -326,9 +326,14 @@ def test(h):
     check(dk['r'] <= 1280 - 480 - 16 + 1, 'the dock sits beside an open drawer: %r' % dk)
     p.keyboard.press('Escape'); p.wait_for_function('() => !document.querySelector(".drawer")')
     p.keyboard.press('Control+k')
-    p.wait_for_selector('.pal-scrim')
-    check(not p.locator('#buddy-dock').is_visible(), 'the palette has the screen to itself')
+    # v40: Cmd K grows the island at the top of the canvas into the Ask bar; the dock stays clear of it
+    p.wait_for_selector('#island.cmd #pal-input')
+    p.wait_for_timeout(900)
+    isl = rect(p, '#island')
+    dk = rect(p, '#buddy-dock .buddy-home') if p.locator('#buddy-dock .buddy-home').count() else None
+    check(isl and isl['t'] <= 16 and (not dk or isl['b'] <= dk['t'] or isl['r'] <= dk['l']), 'the Ask bar sits at the top, clear of the dock: %r %r' % (isl, dk))
     p.keyboard.press('Escape')
+    p.wait_for_function('() => !document.querySelector("#island.cmd")')
     # the chat composer: the dock sits above it
     h.go(p, 'founder', hash='#chat')
     if p.locator('.chat-composer').count():

@@ -50,18 +50,18 @@ def part(h):
     h.go(p, 'founder', hash='#home', width=1280)
     p.wait_for_selector('#side-map')
     p.keyboard.press('Control+k')
-    p.wait_for_selector('.pal input')
-    p.fill('.pal input', 'what')
-    p.wait_for_selector('.pal:has-text("What\'s in m360")')
+    p.wait_for_selector('#pal-input')
+    p.fill('#pal-input', 'what')
+    p.wait_for_selector('#pal-list:has-text("What\'s in m360")')
     p.keyboard.press('Escape')
-    # phone: the More sheet lists it
+    # phone: the menu lists it
     h.go(p, 'founder', hash='#home', width=390)
     p.wait_for_selector('.tabbar')
-    p.locator('.tabbar .tab-item:has-text("More")').click()
-    # v40: More opens the full screen glass menu
-    p.wait_for_selector('.pmenu:has-text("What\'s here")')
+    p.locator('#menuBtn').click()
+    # v40: the capsule's menu button opens the full screen glass menu
+    p.wait_for_selector('#menu.open:has-text("What\'s here")')
     p.keyboard.press('Escape')
-    p.wait_for_function('() => !document.querySelector(".pmenu")')
+    p.wait_for_function('() => !document.querySelector("#menu.open")')
     h.go(p, 'founder', hash='#map', width=390)
     p.wait_for_selector('#map')
     p.wait_for_timeout(300)

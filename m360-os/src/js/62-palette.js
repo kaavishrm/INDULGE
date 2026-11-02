@@ -46,7 +46,9 @@
   }
 
   /* actions and pages: the palette's own rows; entities come from the search index */
-  function buildItems(ctx, query, closeThen) {
+  /* v40: the sidebar's New menu, the inbox and m360 AI live here as rows; with nothing typed these lead */
+  const EMPTY_ACTS = ['a-checkin', 'a-inbox', 'a-ai', 'a-newtask', 'a-followup', 'a-post', 'a-kudos', 'a-leave', 'a-project', 'a-pitch'];
+  function buildItems(ctx, query, closeThen, ask) {
     const q = norm(query).split(/\s+/).filter(Boolean);
     const out = [];
     const go = (fn, group, label, icon, sub, key) => out.push({key, group, label, icon, sub, run: () => closeThen(fn)});
@@ -55,26 +57,31 @@
     /* actions */
     const a = M.att.dayStatus(ctx, ctx.uid, td);
     const checked = a.status === 'office' || a.status === 'wfh';
+    const unread = M.inbox && M.inbox.unread ? M.inbox.unread(ctx) : 0;
     const acts = [
-      [checked && !a.out ? 'Check out' : 'Check in', 'today', () => M.intend('#home', 'checkin')],
-      ['New task', 'tasks', () => M.intend('#tasks', 'newtask')],
-      ['New follow-up', 'bell', () => M.intend('#prospects', 'capture')],
-      ['Post an update', 'feed', () => M.intend('#feed', 'post')],
-      ['Give kudos', 'scores', () => M.intend('#feed', 'kudos')],
-      ['Request leave', 'leave', () => M.nav('#leave')],
-      ['Start a focus session', 'timer', () => M.focus && M.focus.open()],
-      ['Slow breathing, five minutes', 'breath', () => M.breathe && M.breathe.open('slow')],
-      ['Show me around', 'send', () => window.dispatchEvent(new CustomEvent('m360:tour'))],
-      ['Inbox', 'bell', () => window.dispatchEvent(new CustomEvent('m360:inbox'))],
-      ['Keyboard shortcuts', 'cmd', () => window.dispatchEvent(new CustomEvent('m360:keys'))],
-      [M.theme.resolved() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', M.theme.resolved() === 'dark' ? 'sun' : 'moon', () => M.theme.set(M.theme.resolved() === 'dark' ? 'light' : 'dark')],
-      [M.sound.on() ? 'Turn sounds off' : 'Turn sounds on', 'play', () => M.sound.set(!M.sound.on())],
-      [M.haptic.on() ? 'Turn phone nudges off' : 'Turn phone nudges on', 'play', () => M.haptic.set(!M.haptic.on())]
-    ];
-    if (window.M360_STANDALONE) acts.push(['Sign out', 'out', () => window.M360_API('logout').then(() => location.reload(), () => location.reload())]);
+      [checked && !a.out ? 'Check out' : 'Check in', 'today', () => M.intend('#home', 'checkin'), 'a-checkin'],
+      ['Inbox', 'bell', () => window.dispatchEvent(new CustomEvent('m360:inbox')), 'a-inbox', unread ? unread + ' new' : 'all caught up'],
+      ask ? ['m360 AI', 'mic', () => ask(''), 'a-ai', 'ask anything, or hand out work'] : null,
+      ['New task', 'tasks', () => window.dispatchEvent(new CustomEvent('m360:newtask')), 'a-newtask', 'for you or anyone'],
+      ['New follow-up', 'bell', () => M.intend('#prospects', 'capture'), 'a-followup', 'someone you are talking to'],
+      ['Post an update', 'feed', () => M.intend('#feed', 'post'), 'a-post', 'an update or a win, on the feed'],
+      ['Give kudos', 'scores', () => M.intend('#feed', 'kudos'), 'a-kudos', 'thank someone'],
+      ['Request leave', 'leave', () => M.nav('#leave'), 'a-leave', 'days off'],
+      ['New project', 'projects', () => M.intend('#projects', 'project'), 'a-project', 'with a template'],
+      ctx.isFounder ? ['New pitch', 'pitches', () => M.intend('#pitches', 'pitch'), 'a-pitch', 'into the pipeline'] : null,
+      ['Start a focus session', 'timer', () => M.focus && M.focus.open(), 'a-focus'],
+      ['Slow breathing, five minutes', 'breath', () => M.breathe && M.breathe.open('slow'), 'a-breathe'],
+      ['Show me around', 'send', () => window.dispatchEvent(new CustomEvent('m360:tour')), 'a-tour'],
+      ['Keyboard shortcuts', 'cmd', () => window.dispatchEvent(new CustomEvent('m360:keys')), 'a-keys'],
+      [M.theme.resolved() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', M.theme.resolved() === 'dark' ? 'sun' : 'moon', () => M.theme.set(M.theme.resolved() === 'dark' ? 'light' : 'dark'), 'a-theme'],
+      [M.sound.on() ? 'Turn sounds off' : 'Turn sounds on', 'play', () => M.sound.set(!M.sound.on()), 'a-sound'],
+      [M.haptic.on() ? 'Turn phone nudges off' : 'Turn phone nudges on', 'play', () => M.haptic.set(!M.haptic.on()), 'a-haptic']
+    ].filter(Boolean);
+    if (window.M360_STANDALONE) acts.push(['Sign out', 'out', () => window.M360_API('logout').then(() => location.reload(), () => location.reload()), 'a-signout']);
     /* the agent's registry: what it can run straight away, with nothing to fill in */
-    if (M.agent && M.agent.commandsFor) M.agent.commandsFor(ctx).forEach(c => acts.push([c.label, 'send', () => runCommand(ctx, c)]));
-    acts.forEach(([label, icon, fn], i) => { if (!q.length ? i < 5 : matches(q, label)) go(fn, 'actions', label, icon, '', 'a' + i); });
+    if (M.agent && M.agent.commandsFor) M.agent.commandsFor(ctx).forEach((c, i) => acts.push([c.label, 'send', () => runCommand(ctx, c), 'c' + i]));
+    const shown = !q.length ? EMPTY_ACTS.map(k => acts.find(x => x[3] === k)).filter(Boolean) : acts.filter(x => matches(q, x[0]));
+    shown.forEach(([label, icon, fn, key, sub]) => go(fn, 'actions', label, icon, sub || '', key));
     /* "Spoke to Meera at Swisse, talk after the 16th": the line logs in the viewer's own Prospects, with no model call */
     if (q.length && M.prospects && M.prospects.read && M.prospects.isCapture && M.agent && M.agent.capture && !ctx.viewAs) {
       let r = null;
@@ -269,9 +276,11 @@
     const log = M.search ? M.search.useLog(ctx, q) : null;
     const remoteHits = M.search && M.search.useBaseHits ? M.search.useBaseHits(q) : null;
     const closeThen = fn => { onClose(); setTimeout(fn, 20); };
+    /* m360 AI: the buddy's pop-up when it is here, the Ask drawer when AI is on */
+    const askAI = M.assistant && M.assistant.open ? x => M.assistant.open(x) : (M.ai.on(ctx) ? x => onAsk(x) : null);
 
     const items = useMemo(() => {
-      const own = buildItems(ctx, q, closeThen);
+      const own = buildItems(ctx, q, closeThen, askAI);
       const query = q.trim();
       const base = query ? (M.search ? M.search.hits(ctx, query, {names, log}) : localHits(ctx, query, names)) : [];
       const found = base.concat(query && remoteHits ? remoteHits : []);
@@ -294,11 +303,11 @@
         if (exact) { const at = list.findIndex(it => it.group !== 'actions' && it.group !== 'log it'); list.splice(at < 0 ? list.length : at, 0, row); }
         else list.unshift(row);
       }
-      /* empty, in the bar: suggested asks lead, then people to open */
+      /* empty, in the bar: the design's suggested asks and people, then what the New menu, the inbox and m360 AI did */
       if (!query && island) {
         const sugg = (ctx.isFounder ? SUGG_F : SUGG_M).map((x, i) => ({key: 'q' + i, group: 'try', label: x[1], icon: x[0], ask: x[1], run: () => setQ(x[1])}));
-        const ppl = ctx.activeMembers.filter(m => m.uid !== ctx.uid).slice(0, 3).map(m => ({key: 'pp' + m.uid, group: 'people', label: (names[m.uid] && names[m.uid].name) || 'Someone', sub: m.title || '', uid: m.uid, run: () => closeThen(() => M.nav('#people/' + m.uid))}));
-        return sugg.concat(ppl).concat(list.filter(it => it.group === 'actions').slice(0, 3));
+        const ppl = ctx.activeMembers.filter(m => m.uid !== ctx.uid).slice(0, 2).map(m => ({key: 'pp' + m.uid, group: 'people', label: (names[m.uid] && names[m.uid].name) || 'Someone', sub: m.title || '', uid: m.uid, run: () => closeThen(() => M.nav('#people/' + m.uid))}));
+        return sugg.concat(ppl).concat(list.filter(it => it.group === 'actions'));
       }
       return list;
     }, [q, ctx, names, log, remoteHits]);
@@ -319,38 +328,48 @@
     /* Show all leaves the bar for the Search drawer; the island steps back without closing the palette */
     useEffect(() => { if (island && showAll && M.island) M.island.close(true); }, [showAll, island]);
     /* arrows keep the chosen row in view */
-    useEffect(() => { if (!island) return; const el = document.querySelector('#pal-list .pal-item.on'); if (el && el.scrollIntoView) el.scrollIntoView({block: 'nearest'}); }, [sel, island]);
+    useEffect(() => {
+      if (!island) return;
+      const l = document.getElementById('pal-list');
+      if (!sel) { if (l) l.scrollTop = 0; return; }
+      const el = l && l.querySelector('.cbo.hi'); if (el && el.scrollIntoView) el.scrollIntoView({block: 'nearest'});
+    }, [sel, island]);
 
     if (showAll && M.parts.SearchAll) return html`<${M.parts.SearchAll} q0=${showAll.q} group0=${showAll.group} onClose=${onClose}/>`;
 
-    /* v40: inside the island, the Ask bar. One black bar; the mic when this browser can hear */
+    /* v40: inside the island, the Ask bar, markup and classes as design/m360-os-v7.html draws it (.cb, .cbr, .cbl,
+       .cbh, .cbo). The mic sits in the bar when this browser can hear, the search glyph when it cannot. The rows
+       keep the palette's hooks (pal-item, pal-group, .t, data-group) for the tests and the tour */
     if (island) {
       let lastG = '';
       const mic = M.mic && M.mic.can && M.mic.can() && M.island && M.island.listen;
+      const Ic = n => { const C = M.chrome && M.chrome.iconFor ? M.chrome.iconFor(n) : icons[n]; return C ? html`<${C}/>` : null; };
       const rowOf = (it, i) => {
-        const head = it.group !== lastG && it.group !== 'more' && it.group !== 'answer' ? html`<div class="pal-group" key=${'g' + it.group + i}>${headOf(it.group)}</div>` : null;
+        const head = it.group !== lastG && it.group !== 'more' && it.group !== 'answer' ? html`<div class="cbh pal-group" key=${'g' + it.group + i}>${headOf(it.group)}</div>` : null;
         lastG = it.group;
         const right = it.ans ? 'show' : (it.ask || it.ai) ? 'ask' : it.more ? '' : it.group === 'go to' ? 'go' : it.group === 'actions' || it.group === 'log it' ? 'run' : 'open';
+        const ini = it.uid && UI.initials ? UI.initials(it.label) : '';
         return html`<${React.Fragment} key=${it.key}>
           ${head}
-          <button type="button" role="option" aria-selected=${i === sel ? 'true' : 'false'}
-            class=${'pal-item' + (i === sel ? ' on' : '') + (it.ai ? ' ai' : '') + (it.more ? ' more' : '') + (it.ans ? ' ans' : '')} data-group=${it.group} onMouseEnter=${() => setSel(i)} onClick=${it.run}>
-            ${it.uid ? html`<span class="pal-ic r"><${UI.Avatar} id=${it.uid} size=${32}/></span>`
-              : html`<span class="pal-ic">${it.ai ? html`<span class="spark">${SPARK}</span>` : it.icon && icons[it.icon] ? html`<${icons[it.icon]}/>` : null}</span>`}
-            <span class="pal-tx"><span class="t">${it.label}</span>${it.sub ? html`<span class="sub">${it.sub}</span>` : null}</span>
-            ${right ? html`<span class="pal-rt">${right}</span>` : null}
+          <button type="button" role="option" aria-selected=${i === sel ? 'true' : 'false'} data-k=${it.key}
+            class=${'cbo pal-item' + (i === sel ? ' hi on' : '') + (it.ai ? ' ai' : '') + (it.more ? ' more' : '') + (it.ans ? ' ans' : '')} data-group=${it.group} onMouseMove=${() => { if (i !== sel) setSel(i); }} onClick=${it.run}>
+            <span class="ic">${it.uid ? html`<span class="av2">${ini}</span>` : it.ai ? Ic('mic') : it.icon ? Ic(it.icon) : null}</span>
+            <span class="tx"><b class="t">${it.label}</b>${it.sub ? html`<em class="sub">${it.sub}</em>` : null}</span>
+            <span class="rt">${right}</span>
           </button>
         <//>`;
       };
-      return html`<div class="pal pal-isl" role="dialog" aria-label="Ask m360">
-        <div class="pal-in">
-          ${mic ? html`<button type="button" class="pal-mic" aria-label="Speak" onClick=${() => M.island.listen()}><${icons.voice}/></button>` : html`<${icons.search}/>`}
-          <input ref=${inp} id="pal-input" value=${q} placeholder="Ask m360 or jump to anything" aria-label="Ask m360" autocomplete="off" spellcheck="false"
+      const MIC = M.chrome && M.chrome.icons ? M.chrome.icons.mic : icons.voice;
+      const SRCH = M.chrome && M.chrome.icons ? M.chrome.icons.search : icons.search;
+      return html`<div class="cb" role="dialog" aria-label="Ask m360">
+        <div class="cbr">
+          ${mic ? html`<button class="cbm" type="button" aria-label="Speak" onClick=${() => M.island.listen()}><${MIC}/></button>` : html`<${SRCH}/>`}
+          <input ref=${inp} id="pal-input" type="text" value=${q} placeholder="Ask m360 or jump to anything" aria-label="Ask m360" autocomplete="off" spellcheck="false"
             onInput=${e => setQ(e.target.value)} onKeyDown=${onKey}/>
-          <kbd class="pal-esc">esc</kbd>
+          <kbd class="kb cbk">esc</kbd>
         </div>
-        <div class="pal-list" id="pal-list" role="listbox">
-          ${items.length ? items.map(rowOf) : html`<div class="pal-empty">No match yet. Try a name, a client, a page or who is late.</div>`}
+        <div class="cbl" id="pal-list" role="listbox">
+          ${items.length ? items.map(rowOf) : html`<div class="cbe">No match yet. Try a name, a client, a page or who is late.</div>`}
         </div>
       </div>`;
     }

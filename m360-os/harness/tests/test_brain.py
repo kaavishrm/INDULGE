@@ -106,7 +106,7 @@ def artifact_part(h):
     h.seed_doc(p, 'data/users/u_founder/chat', {'turns': turns, 'at': 1})
     h.go(p, 'founder', hash='#home', width=1280)
     p.wait_for_selector('.buddy-home')
-    p.locator('.side-tools .iconbtn[aria-label="Ask m360"]').click()
+    p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.locator('#buddy-expand').click()
     p.wait_for_selector('.drawer:has-text("question 25")')
     p.fill('#ask-input', 'what is overdue')
@@ -116,7 +116,7 @@ def artifact_part(h):
     check(len(doc['turns']) <= 16 and doc['summary'], 'the chat should fold: %d turns, summary %r' % (len(doc['turns']), doc['summary'][:60]))
     p.keyboard.press('Escape'); p.wait_for_function('() => !document.querySelector(".drawer")')
     # no image button when the host allows none
-    p.locator('.side-tools .iconbtn[aria-label="Ask m360"]').click()
+    p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.locator('#buddy-expand').click()
     p.wait_for_selector('.drawer #ask-input')
     check(p.locator('#ask-file').count() == 0, 'no attach control without image support')
@@ -124,7 +124,7 @@ def artifact_part(h):
     # with images allowed: attach a picture, the call carries it
     h.go(p, 'founder', hash='#home', width=1280, img='1')
     p.wait_for_selector('.buddy-home')
-    p.locator('.side-tools .iconbtn[aria-label="Ask m360"]').click()
+    p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.locator('#buddy-expand').click()
     p.wait_for_selector('.drawer #ask-file', state='attached')
     p.locator('#ask-file').set_input_files({'name': 'shot.png', 'mimeType': 'image/png', 'buffer': PNG})
@@ -214,7 +214,7 @@ def standalone_part():
             out = ask_buddy(k, 'what is on my calendar')
             check('Your calendar' in out, 'a look_up round should answer from the tool: ' + out[:160])
             # an attached image reaches the model as an image block
-            k.locator('.side-tools .iconbtn[aria-label="Ask m360"]').click()
+            k.keyboard.press('Control+k'); k.locator('.pal-item[data-k=\"a-ai\"]').click()
             k.locator('#buddy-expand').click()
             k.wait_for_selector('.drawer #ask-file', state='attached')
             k.locator('#ask-file').set_input_files({'name': 'shot.png', 'mimeType': 'image/png', 'buffer': PNG})

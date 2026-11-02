@@ -18,7 +18,7 @@ R5  no "saw the nudge" unless the step rang; no "has not opened m360 today" or "
 R6  the COO: no due-tomorrow ask at 17:30 (page and server), the close counts the EOD lines live, J41
     waits for the pitch owner, the hello rides inside the first line, the away mail is for urgent cards.
 R7  mail: only an ask goes, never an automatic step and never a manager; "has not been seen" is gone.
-R8  the bell swings only when a row that speaks arrives: never on the first snapshot or a silent row.
+R8  the island tells an inbox row only when one that speaks arrives: never on the first snapshot or a silent row.
 R9  the inbox: flags list silently, Kaavish gets no flag about his own sign-off, a review row goes to the
     reviewer of record alone, a COO move its DM carries lists silently.
 R10 a COO line with no ask rings nothing in chat; a person's DM still does.
@@ -65,7 +65,7 @@ ROWS = [
     ('R5', 'no read receipts or presence in a manager line'),
     ('R6', 'the COO asks less and counts right'),
     ('R7', 'mail is for asks only'),
-    ('R8', 'the bell swings only for a row that speaks'),
+    ('R8', 'the island tells only a row that speaks'),
     ('R9', 'the inbox lists silently what is not news'),
     ('R10', 'COO lines with no ask ring nothing in chat'),
     ('R11', 'PM bubbles are quiet, name nobody away, and wait for arrival'),
@@ -571,9 +571,9 @@ def test(h):
           text: i.plain(u => M.coo && M.coo.isCoo(u) ? M.coo.title(M.lastCtx) : u)}))''')}
 
     def bell_settled():
-        # the bell's badge shows the unread count of the whole list, and React has run its effects since
-        p.wait_for_function('''() => { const n = M.inbox.unread(M.lastCtx); const b = document.querySelector('.bellbtn .badge');
-          return n > 0 ? !!b && b.textContent === String(Math.min(99, n)) : !b; }''')
+        # v40: no bell; the inbox has loaded and React has run its effects since (its news goes to the island)
+        p.wait_for_function('() => !!M.lastCtx && (!M.inbox.loaded || M.inbox.loaded(M.lastCtx))')
+        p.wait_for_timeout(300)
         p.evaluate(FRAMES)
 
     coo_room = 'dm.' + '.'.join(sorted([M3, COO]))
@@ -632,7 +632,7 @@ def test(h):
         go(p, 'founder')
         bell_settled()
         loud0 = p.evaluate('() => M.inbox.loud ? M.inbox.loud(M.lastCtx) : -1')
-        check('R8', loud0 >= 1 and p.evaluate('() => window.__bell') == 0, 'the first full snapshot holds %d unread rows that speak, and the bell stays still: %d swings' % (loud0, p.evaluate('() => window.__bell')))
+        check('R8', loud0 >= 1 and p.evaluate('() => window.__notices.filter(n => String(n.key || "").startsWith("inbox:")).length') == 0, 'the first full snapshot holds %d unread rows that speak, and the island stays quiet: %d inbox news' % (loud0, p.evaluate('() => window.__notices.filter(n => String(n.key || "").startsWith("inbox:")).length')))
         n0 = p.evaluate('() => M.inbox.unread(M.lastCtx)')
         # a silent row lands: Aanya signs off another task (a founder flag)
         seed('tasks/t_sil', {'title': 'Nykaa deck v2', 'owner': M3, 'by': M2, 'project': 'p1', 'status': 'done', 'due': wed, 'doneAt': ms(10, 58), 'approvedBy': M2, 'approvedAt': ms(10, 58),
@@ -640,12 +640,12 @@ def test(h):
         p.wait_for_function('n => M.inbox.unread(M.lastCtx) > n', arg=n0)
         bell_settled()
         sil = items().get('flag:signed:t_sil')
-        check('R8', sil and sil['silent'] and p.evaluate('() => window.__bell') == 0 and p.evaluate('() => M.inbox.loud(M.lastCtx)') == loud0,
-              'a silent row lands (a sign-off flag): the bell stays still and the loud count holds: %r, %d swings' % (sil, p.evaluate('() => window.__bell')))
+        check('R8', sil and sil['silent'] and p.evaluate('() => window.__notices.filter(n => String(n.key || "").startsWith("inbox:")).length') == 0 and p.evaluate('() => M.inbox.loud(M.lastCtx)') == loud0,
+              'a silent row lands (a sign-off flag): the island stays quiet and the loud count holds: %r, %d inbox news' % (sil, p.evaluate('() => window.__notices.filter(n => String(n.key || "").startsWith("inbox:")).length')))
         # a row that speaks lands: kudos from Aanya
         seed('kudos/' + M2, {'given': [{'id': 'k2', 'to': F, 'why': 'Saved the Swisse shoot', 'at': ms(10, 59)}]})
-        p.wait_for_function('() => window.__bell > 0', timeout=10000)
-        check('R8', p.evaluate('() => M.inbox.loud(M.lastCtx)') == loud0 + 1, 'a row that speaks lands (kudos): the loud count rises and the bell swings')
+        p.wait_for_function('() => window.__notices.filter(n => String(n.key || "").startsWith("inbox:")).length > 0', timeout=10000)
+        check('R8', p.evaluate('() => M.inbox.loud(M.lastCtx)') == loud0 + 1, 'a row that speaks lands (kudos): the loud count rises and the island tells it')
     section('R8', r8)
 
     def r9_founder():

@@ -135,17 +135,16 @@ def test(h):
     p.wait_for_timeout(200)
     check(bool(p.evaluate('() => document.getElementById("fx-bot").getAttribute("aria-label")')), 'the working bot carries a label')
 
-    # ---- Home: nothing on the page is drawn in metal; the New button keeps the sidebar's full width ----
+    # ---- Home: nothing on the page is drawn in metal; the sidebar foot is the design's three rows ----
     check(p.evaluate('() => document.querySelectorAll(".metal-fx-root, canvas.metal-fx-canvas, .metal-badge-host").length') == 0, 'no metal anywhere on Home')
-    # v40: New is the sidebar's first row (an ink round button with its name beside it)
-    neww = p.evaluate('() => { const b = document.querySelector(".sidebar .new-trigger"); const w = b && b.closest(".sb-new"); if (!b || !w) return null; return [Math.round(b.getBoundingClientRect().width), Math.round(w.getBoundingClientRect().width)]; }')
-    check(neww and abs(neww[0] - neww[1]) <= 2, 'the New button fills the sidebar row as before: %r' % neww)
+    foot = p.evaluate('() => [...document.querySelectorAll("#side .sfoot > .nv")].map(b => b.id || b.className)')
+    check(len(foot) == 3 and foot[0] == 'sAsk' and foot[1] == 'sTog' and 'side-foot' in foot[2], 'the sidebar foot is Ask m360, Expand and the profile: %r' % foot)
     # v31: the thought is decorative, so it no longer carries a beam (one moving thing per view)
     check(not p.evaluate('() => document.getElementById("quote-card").parentElement.hasAttribute("data-beam")'), 'the thought sits still, without a beam')
 
     # ---- Ask: the voice beam under the input, the droid in the dock and the panel head, metal on Send ----
     p.evaluate(FAKE_SR)
-    p.locator('.iconbtn[aria-label="Ask m360"]').first.click()
+    p.keyboard.press('Control+k'); p.locator('.pal-item[data-k="a-ai"]').click()
     p.wait_for_selector('#buddy-input')
     check(p.evaluate('() => !!document.querySelector("#buddy-input").closest("[data-voice-beam]")'), 'the input sits inside the voice beam')
     ASK_METAL = '() => { const b = document.querySelector("#buddy-send"); return !!(b && b.closest(".metal-fx-root")); }'

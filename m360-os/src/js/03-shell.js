@@ -75,7 +75,8 @@
       /* what the m360 COO does, read only (the founder runs it from HQ) */
       {k: 'coo', label: 'COO', route: 'coo', member: true}]},
     hq: {label: 'HQ', icon: 'command', page: 'HQ', founder: true, tabs: [
-      {k: 'brief', label: 'Intelligence', route: 'hq'}, {k: 'dashboard', label: 'Dashboard', route: 'command'},
+      /* v40: HQ opens on Command (40-command.js); the brief and the rest sit under its "more from HQ" (55-hq.js) */
+      {k: 'brief', label: 'Command', route: 'hq'},
       {k: 'coo', label: 'COO', route: 'coo'}, {k: 'office', label: 'Office', route: 'office'},
       {k: 'hiring', label: 'Hiring', route: 'hiring'}]},
     admin: {label: 'Admin', icon: 'desk', page: 'Admin', founder: true},
@@ -139,7 +140,7 @@
       case 'handbook': return {s: 'me', t: 'handbook', id};
       case 'hiring': return isFounder ? {s: 'hq', t: 'hiring', id} : {s: 'me', t: 'hiring', id};
       case 'hq': return isFounder ? {s: 'hq', t: 'brief'} : {s: 'home'};
-      case 'command': return isFounder ? {s: 'hq', t: 'dashboard'} : {s: 'home'};
+      case 'command': case 'dashboard': return isFounder ? {s: 'hq', t: 'brief'} : {s: 'home'};
       /* the m360 COO: the founder's tab under HQ, the charter under Me for everyone else */
       case 'coo': return isFounder ? {s: 'hq', t: 'coo'} : {s: 'me', t: 'coo'};
       /* the virtual office: the founder's under HQ, the team's under Vibe */
@@ -204,57 +205,6 @@
     </nav>`;
   };
 
-  /* ---------- the New menu: every create action in one place ---------- */
-  function NewMenu({onClose, onTask, onAsk}) {
-    const ctx = M.useCtx();
-    /* phones: a bottom sheet like More, Inbox and Ask, in reach of a thumb; the sheet closes itself */
-    const phone = M.usePhone();
-    const ref = React.useRef(null);
-    const [pos, setPos] = React.useState(null);
-    React.useLayoutEffect(() => {
-      if (phone) return;
-      const t = ref.current && ref.current.parentElement.querySelector('.new-trigger');
-      if (!t) return;
-      const r = t.getBoundingClientRect();
-      const w = Math.min(300, window.innerWidth - 32);
-      /* v40: from the glass sidebar the menu opens beside it, level with the button */
-      const side = t.closest('.sidebar');
-      if (side) { const sr = side.getBoundingClientRect(); setPos({top: Math.max(12, Math.min(r.top, window.innerHeight - 440)), left: sr.right + 12, width: w}); return; }
-      setPos({top: r.bottom + 8, left: Math.max(16, Math.min(r.left, window.innerWidth - w - 16)), width: w});
-    }, [phone]);
-    React.useLayoutEffect(() => {
-      if (phone) return undefined;
-      const away = e => { if (ref.current && !ref.current.contains(e.target) && !e.target.closest('.new-trigger')) onClose(); };
-      const esc = e => { if (e.key === 'Escape') onClose(); };
-      document.addEventListener('pointerdown', away);
-      document.addEventListener('keydown', esc);
-      return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc); };
-    }, [phone]);
-    const run = fn => () => { onClose(); fn(); };
-    const items = [
-      {k: 'task', label: 'Task', sub: 'for you or anyone', icon: 'tasks', go: onTask},
-      /* a private follow-up: how the founder reaches Prospects on the phone, where Accounts sits under More */
-      {k: 'followup', label: 'Follow-up', sub: 'someone you are talking to', icon: 'bell', go: () => M.intend('#prospects', 'capture')},
-      {k: 'post', label: 'Update or win', sub: 'on the feed', icon: 'feed', go: () => M.intend('#feed', 'post')},
-      {k: 'kudos', label: 'Kudos', sub: 'thank someone', icon: 'scores', go: () => M.intend('#feed', 'kudos')},
-      {k: 'leave', label: 'Leave request', sub: 'days off', icon: 'leave', go: () => M.nav('#leave')},
-      {k: 'project', label: 'Project', sub: 'with a template', icon: 'projects', go: () => M.intend('#projects', 'project')},
-      ctx.isFounder ? {k: 'pitch', label: 'Pitch', sub: 'into the pipeline', icon: 'pitches', go: () => M.intend('#pitches', 'pitch')} : null,
-      {k: 'ask', label: 'Ask m360', sub: 'anything, or hand out work', mark: true, go: onAsk}
-    ].filter(Boolean);
-    /* the AI keeps its spark; the paper plane is the Chat tab's alone */
-    const list = items.map(it => html`<button key=${it.k} type="button" role="menuitem" class="newmenu-item" onClick=${run(it.go)}>
-        ${it.mark ? html`<span class="spark" aria-hidden="true" style=${{width: '20px', flex: 'none', textAlign: 'center', fontSize: '16px'}}>\u2726</span>` : html`<${M.icons[it.icon]}/>`}<span class="grow"><b>${it.label}</b><span>${it.sub}</span></span>
-      </button>`);
-    if (phone) return html`<${UI.Drawer} open=${true} onClose=${onClose} title="New">
-      <div class="newmenu newmenu-sheet" ref=${ref} role="menu" aria-label="New">${list}</div>
-    <//>`;
-    return html`<div class="newmenu" ref=${ref} role="menu" aria-label="New"
-      style=${pos || {visibility: 'hidden'}}>
-      ${list}
-    </div>`;
-  }
-
   /* ---------- banners above the page: lock, alert, preview ---------- */
   /* everyone but the owner sees the lock line while settings.locked is on (v39: admins are locked too) */
   function LockBanner() {
@@ -306,47 +256,94 @@
   }
 
   /* ---------- shell ---------- */
-  /* v40: the v7 frame. A glass sidebar 12px from the edges (slim 80px icons, 248px with names, [ toggles,
-     remembered per browser), the live mark at its top, the island at the top of the canvas for everything the
-     OS says, and on a phone a glass capsule, a glass tab bar with a black lens and a full screen menu.
-     Ids and classes the tests and the tour point at stay on the new parts (sidebar, side-item, side-tools,
-     bellbtn, new-trigger, side-foot, topbar, tabbar, tab-item) */
+  /* v40: the v7 frame, markup and classes as design/m360-os-v7.html draws them. A glass sidebar (aside.side,
+     slim 80px icons, 248px with names, [ toggles it, remembered per browser): the live mark at its top, the
+     pages in labelled groups with a black pill under the open one, a flame tick and flame badges, and a foot of
+     exactly Ask m360 with its key, Expand or Collapse, and the profile. On a phone a glass capsule (the mark,
+     the page pill, the menu button), the jump list of the page's tabs, a full screen menu, and a glass tab bar
+     with a black lens and the round Ask button. Hooks the tests and other modules read ride along as extra
+     classes and ids (sidebar, side-item, side-foot, side-map, topbar, tab-item) */
   const LiveMark = props => (M.parts.LiveMark ? html`<${M.parts.LiveMark} ...${props}/>` : html`<${M.Mark} width="76px"/>`);
-  const panelIcon = () => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3.5"/><path d="M9.5 4.5v15"/></svg>`;
-  const SPARK = '✦';
+  const DI = k => (M.chrome && M.chrome.icons && M.chrome.icons[k]) || M.icons[k] || M.icons.today;
+  const Ico = ({k}) => { const C = DI(k); return html`<${C}/>`; };
+  /* each place in the design's own icon set */
+  const SEC_IC = {hq: 'command', admin: 'desk', books: 'handbook', home: 'today', work: 'tasks', accounts: 'clients', chat: 'voice', workspace: 'week',
+    base: 'people', radar: 'pitches', web: 'search', vibe: 'feed', break: 'leave', me: 'hiring', map: 'projects'};
+  const Bd = ({n, cls}) => n > 0 ? html`<b class=${'bd' + (cls ? ' ' + cls : '')}>${n > 99 ? '99' : n}</b>` : null;
+  const two = n => ('0' + n).slice(-2);
+  /* Command's sections (40-command.js ids) for the capsule's picker, in the design's words */
+  const CMD_SECS = [['c-need', 'needs you'], ['c-nums', 'numbers'], ['c-att', 'attendance'], ['c-flg', 'flags'], ['c-biz', 'business'], ['c-team', 'team'], ['c-cli', 'clients']];
 
-  /* the full screen menu on a phone: every place, grouped, staggering in */
-  function PhoneMenu({groups, active, badges, onGo, onClose}) {
+  /* the groups the sidebar and the menu list, in the design's order: founder, work, team, then help */
+  function navGroups(ctx) {
+    const g = [];
+    if (ctx.isFounder) g.push({g: 'founder', items: ctx.isOwner ? ['hq', 'admin', 'books'] : ['hq', 'admin']});
+    g.push({g: 'work', items: ['home', 'work', 'accounts', 'chat', 'workspace', 'base', 'radar', 'web']});
+    g.push({g: 'team', items: ['vibe', 'break', 'me']});
+    g.push({g: 'help', items: ['map']});
+    return g;
+  }
+
+  /* a part that fades in and out: in the page from the moment it opens until its fade has run after it closes,
+     so nothing hidden lingers for a screen reader or a test to find */
+  function useShown(open, ms) {
+    const [mounted, setMounted] = React.useState(open);
     const [on, setOn] = React.useState(false);
-    const gone = React.useRef(false);
-    const close = React.useCallback(() => { if (gone.current) return; gone.current = true; setOn(false); setTimeout(onClose, M.reduced() ? 0 : 300); }, [onClose]);
     React.useEffect(() => {
+      if (open) {
+        setMounted(true);
+        const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)));
+        return () => cancelAnimationFrame(r);
+      }
+      setOn(false);
+      const t = setTimeout(() => setMounted(false), M.reduced && M.reduced() ? 0 : ms);
+      return () => clearTimeout(t);
+    }, [open]);
+    return [mounted, on];
+  }
+
+  /* the full screen menu on a phone (design .menu): every place, grouped, staggering in */
+  function Menu({open, groups, active, badges, onGo, onClose}) {
+    const [mounted, on] = useShown(open, 420);
+    React.useEffect(() => {
+      if (!open) return undefined;
       document.documentElement.classList.add('mn-open');
-      const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)));
-      const f = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+      const f = e => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
       window.addEventListener('keydown', f);
-      return () => { cancelAnimationFrame(r); document.documentElement.classList.remove('mn-open'); window.removeEventListener('keydown', f); };
-    }, []);
+      return () => { document.documentElement.classList.remove('mn-open'); window.removeEventListener('keydown', f); };
+    }, [open]);
+    if (!mounted) return null;
     let j = 0;
-    return html`<div class=${'pmenu' + (on ? ' open' : '')} id="pmenu" role="dialog" aria-modal="true" aria-label="Menu">
-      <div class="pmenu-top"><span class="pm"><${LiveMark}/></span>
-        <button type="button" class="shx" aria-label="Close menu" onClick=${close}><${M.icons.x}/></button></div>
-      <div class="pmenu-list">
-        ${groups.map(g => html`<div key=${g.g || 'top'}>${g.g ? html`<div class="grp">${g.g}</div>` : null}
-          ${g.items.map(k => { const s = SECTIONS[k]; const jj = j++; return html`<button key=${k} type="button" class=${'mi' + (active === k ? ' on' : '')} style=${{'--j': jj}}
-            aria-current=${active === k ? 'page' : null} onClick=${() => { onGo(k); close(); }}>
-            <${M.icons[s.icon]}/><span>${s.label}</span><${Badge} n=${badges[k] || 0}/></button>`; })}
-        </div>`)}
+    return html`<div class=${'menu' + (on ? ' open' : '')} id="menu" aria-hidden=${open ? 'false' : 'true'} role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="menu-top"><span class="cap"><b>M360 OS</b></span><button class="cap lnkb" id="menuClose" type="button" onClick=${onClose}>CLOSE</button></div>
+      <div class="menu-list" id="menuList">
+        ${groups.map(g => html`<${React.Fragment} key=${g.g}>
+          <div class="grp">${g.g}</div>
+          ${g.items.map(k => { const s = SECTIONS[k]; const jj = j++; return html`<button key=${k} type="button" class=${'nv' + (active === k ? ' on' : '')} data-k=${k} style=${{'--j': jj}}
+            aria-current=${active === k ? 'page' : null} onClick=${() => { onGo(k); setTimeout(onClose, 180); }}>
+            <${Ico} k=${SEC_IC[k]}/><span class="nl">${s.label}</span><${Bd} n=${badges[k] || 0}/></button>`; })}
+        <//>`)}
       </div>
+    </div>`;
+  }
+
+  /* the capsule's jump list (design .jump): the page's tabs with their flame numbers */
+  function Jump({open, tabs, at, onGo}) {
+    const [mounted, on] = useShown(open, 520);
+    if (!mounted) return html`<div class="jump lg" id="jump" aria-hidden="true"></div>`;
+    return html`<div class=${'jump lg' + (on ? ' open' : '')} id="jump" aria-hidden=${open ? 'false' : 'true'}>
+      ${tabs.map((t, i) => html`<button key=${t.k} type="button" data-s=${t.k} class=${i === at ? 'on' : ''} onClick=${() => onGo(t)}><i>${two(i + 1)}</i>${t.label}</button>`)}
     </div>`;
   }
 
   M.Shell = function Shell() {
     const ctx = M.useCtx();
     const route = M.useRoute();
-    const [moreOpen, setMoreOpen] = React.useState(false);
+    const [menuOpen, setMenuOpen] = React.useState(false);
+    const [jumpOpen, setJumpOpen] = React.useState(false);
+    /* Command's sections as the page scrolls: which are drawn, and the one under the reading line */
+    const [cmdAt, setCmdAt] = React.useState({id: '', ids: []});
     const [askOpen, setAskOpen] = React.useState(false);
-    const [newOpen, setNewOpen] = React.useState(false);
     const [newTask, setNewTask] = React.useState(false);
     const [palOpen, setPalOpen] = React.useState(false);
     const [inboxOpen, setInboxOpen] = React.useState(false);
@@ -367,6 +364,8 @@
     }, []);
     React.useEffect(() => { if (!palOpen && isl && isl.isCmd()) isl.close(); }, [palOpen]);
     React.useEffect(() => (M.chrome ? M.chrome.sb.on(setSbx) : undefined), []);
+    /* the jump list folds away when the page scrolls, the way the design's does */
+    React.useEffect(() => { if (M.chrome && M.chrome.fx.onScrollClose) M.chrome.fx.onScrollClose(() => setJumpOpen(false)); }, []);
 
     React.useEffect(() => {
       if (!route.page) M.nav(ctx.isFounder ? '#hq' : '#home');
@@ -380,7 +379,7 @@
       const on = e => {
         if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k') { e.preventDefault(); toggleBar(); return; }
         if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
-        if (document.querySelector('.drawer, .pal, .breathe, .pmenu, [data-hotkeys]')) return;
+        if (document.querySelector('.drawer, .pal, #island.cmd, .breathe, .menu.open, [data-hotkeys]')) return;
         const k = e.key;
         if (g && Date.now() - g < 900) {
           g = 0;
@@ -402,8 +401,9 @@
       const wide = e => { setAskInitial((e && e.detail && e.detail.initial) || ''); setAskOpen(true); };
       const inbox = () => setInboxOpen(true);
       const keys = () => setKeysOpen(true);
-      window.addEventListener('m360:ask', open); window.addEventListener('m360:askwide', wide); window.addEventListener('m360:inbox', inbox); window.addEventListener('m360:keys', keys);
-      return () => { window.removeEventListener('keydown', on); window.removeEventListener('m360:ask', open); window.removeEventListener('m360:askwide', wide); window.removeEventListener('m360:inbox', inbox); window.removeEventListener('m360:keys', keys); };
+      const task = () => setNewTask(true);
+      window.addEventListener('m360:ask', open); window.addEventListener('m360:askwide', wide); window.addEventListener('m360:inbox', inbox); window.addEventListener('m360:keys', keys); window.addEventListener('m360:newtask', task);
+      return () => { window.removeEventListener('keydown', on); window.removeEventListener('m360:ask', open); window.removeEventListener('m360:askwide', wide); window.removeEventListener('m360:inbox', inbox); window.removeEventListener('m360:keys', keys); window.removeEventListener('m360:newtask', task); };
     }, []);
 
     /* v39: an open inbox or search holds one history entry, so the phone's back button closes it and leaves the page as it is */
@@ -433,22 +433,12 @@
     }, []);
 
     const r = resolve(route.page, route.id, ctx.isFounder, ctx.isOwner);
+    /* Command is the page: HQ's first view (40-command.js) */
+    const onCmd = r.s === 'hq' && (r.t || 'brief') === 'brief' && !!M.pages.Command;
     const sec = SECTIONS[r.s] || SECTIONS.home;
     const Page = M.pages[sec.page];
     const b = M.badges(ctx);
-    /* the bell swings when a row that speaks arrives (silent rows only list), and never for the first full
-       snapshot of what was already there: the count is taken once every collection has arrived */
-    const loudReady = !!(M.inbox && M.inbox.loaded && M.inbox.loaded(ctx));
-    const loud = loudReady && M.inbox.loud ? M.inbox.loud(ctx) : 0;
-    const loudWas = React.useRef(null);
-    React.useEffect(() => {
-      if (!loudReady) return;
-      const was = loudWas.current;
-      loudWas.current = {uid: ctx.uid, n: loud};
-      if (!was || was.uid !== ctx.uid) return;
-      if (loud > was.n && M.fx && M.fx.ring) document.querySelectorAll('.bellbtn svg').forEach(el => M.fx.ring(el, {amplitude: 14, passes: 4, duration: 640}));
-    }, [loud, loudReady, ctx.uid]);
-    const go = k => { setMoreOpen(false); M.nav('#' + k); };
+    const go = k => { setMenuOpen(false); setJumpOpen(false); M.nav('#' + k); };
 
     /* the mark's mood follows the day: alert at four or more things waiting, calm at none */
     const waiting = ctx.isFounder ? (b.hq || 0) + (b.admin || 0) : (ctx.flags || []).filter(f => f.uid === ctx.uid && f.severity !== 'low').length;
@@ -461,100 +451,99 @@
       if (whereWas.current !== where) {
         /* a new section opens at its top; a tab inside the same section keeps the place */
         if (whereWas.current.split('/')[0] !== r.s) window.scrollTo(0, 0);
-        whereWas.current = where; if (M.mark && M.chrome && M.chrome.phone()) M.mark.nod();
+        whereWas.current = where; setJumpOpen(false); if (M.mark && M.chrome && M.chrome.phone()) M.mark.nod();
       }
     });
     React.useEffect(() => {
       const f = () => { if (M.chrome) M.chrome.tb.place(tabRef.current, true); };
       window.addEventListener('resize', f);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(f);
       return () => window.removeEventListener('resize', f);
     }, []);
 
-    const mainKeys = ['home', 'chat', 'work', 'accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me'];
-    const founderKeys = ctx.isFounder ? (ctx.isOwner ? ['hq', 'books', 'admin'] : ['hq', 'admin']) : [];
+    React.useEffect(() => {
+      if (!onCmd) { if (cmdAt.ids.length) setCmdAt({id: '', ids: []}); return undefined; }
+      let tk = false;
+      const spy = () => {
+        tk = false;
+        const els = CMD_SECS.map(x => document.getElementById(x[0])).filter(Boolean);
+        if (!els.length) return;
+        const line = M.chrome && M.chrome.phone() ? 110 : window.innerHeight * 0.32;
+        let id = els[0].id;
+        els.forEach(e => { if (e.getBoundingClientRect().top - line <= 0) id = e.id; });
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) id = els[els.length - 1].id;
+        if (lockSec.current) id = lockSec.current;
+        const ids = els.map(e => e.id);
+        setCmdAt(was => (was.id === id && was.ids.join() === ids.join() ? was : {id, ids}));
+      };
+      const on = () => { if (!tk) { tk = true; requestAnimationFrame(spy); } };
+      spy(); const t = setTimeout(spy, 500), t2 = setTimeout(spy, 1500);
+      window.addEventListener('scroll', on, {passive: true}); window.addEventListener('resize', on);
+      return () => { clearTimeout(t); clearTimeout(t2); window.removeEventListener('scroll', on); window.removeEventListener('resize', on); };
+    }, [onCmd]);
+    const lockSec = React.useRef('');
+    /* the jump list glides to a section, the way the design's goTo does */
+    const goSec = id => {
+      const el = document.getElementById(id); if (!el) return;
+      lockSec.current = id; setCmdAt(was => ({id, ids: was.ids}));
+      const off = M.chrome && M.chrome.phone() ? 80 : 28, y = el.getBoundingClientRect().top + window.scrollY - off;
+      const done = () => { lockSec.current = ''; };
+      if (M.chrome) M.chrome.glide(y, done); else { window.scrollTo(0, y); done(); }
+    };
+
+    const groups = navGroups(ctx);
+    const home = () => { if (M.mark) M.mark.spin(); if (M.chrome) M.chrome.glide(0); else window.scrollTo(0, 0); };
     let j = 0;
     const item = k => {
       const s = SECTIONS[k];
       const on = r.s === k;
-      /* with names showing, the open section lists its tabs under it; slim, the page's own tab row does */
-      const subs = on && sbx ? visibleTabs(ctx, k, b) : [];
       const jj = j++;
-      return html`<${React.Fragment} key=${k}>
-        <button type="button" data-k=${k} data-t=${s.label} style=${{'--j': jj}} aria-current=${on ? 'page' : null}
-          class=${'nv side-item' + (on ? ' on active' : '') + (s.founder ? ' founder' : '')} title=${sbx && M.map ? M.map.blurbOf(k) : ''} onClick=${() => go(k)}>
-          <${M.icons[s.icon]}/><span class="nl grow">${s.label}</span><${Badge} n=${b[k] || 0}/>
-        </button>
-        ${subs.length > 1 ? html`<div class="side-subs">
-          ${subs.map(t => html`<button key=${t.k} type="button" class=${'side-sub' + (r.t === t.k ? ' active' : '')} title=${M.map ? M.map.blurbOf(k, t.k) : ''}
-            onClick=${() => { setMoreOpen(false); M.nav('#' + t.route); }}>
-            <span class="grow">${t.label}</span><${Badge} n=${b[t.k] || 0}/></button>`)}
-        </div>` : null}
-      <//>`;
+      return html`<button key=${k} type="button" data-k=${k} data-t=${s.label} style=${{'--j': jj}} aria-current=${on ? 'page' : null} id=${k === 'map' ? 'side-map' : null}
+        class=${'nv side-item' + (on ? ' on active' : '')} onClick=${() => go(k)}>
+        <${Ico} k=${SEC_IC[k]}/><span class="nl">${s.label}</span><${Bd} n=${b[k] || 0}/>
+      </button>`;
     };
-    const newMenu = where2 => newOpen === where2 ? html`<${NewMenu} onClose=${() => setNewOpen(false)}
-      onTask=${() => setNewTask(true)} onAsk=${() => askAt('')}/>` : null;
 
-    /* phone tabs: the four places each role opens most, then More and the round Ask button */
+    /* phone tabs: the four places each role opens most, then the round Ask button */
     const tabKeys = ctx.isFounder ? ['hq', 'home', 'work', 'chat'] : ['home', 'work', 'chat', 'vibe'];
-    const allKeys = mainKeys.concat(founderKeys).concat(['map']);
-    const moreKeys = allKeys.filter(k => tabKeys.indexOf(k) < 0);
-    const moreBadge = moreKeys.reduce((n, k) => n + (b[k] || 0), 0);
-    const moreOn = moreKeys.indexOf(r.s) >= 0;
-    const ti = tabKeys.indexOf(r.s) >= 0 ? tabKeys.indexOf(r.s) : (moreOn ? tabKeys.length : -1);
-    const menuGroups = [{g: '', items: mainKeys}].concat(founderKeys.length ? [{g: 'founder', items: founderKeys}] : []).concat([{g: 'help', items: ['map']}]);
-    const meName = html`<${UI.Name} id=${ctx.uid} fallback="You"/>`;
-    const meSub = [(ctx.member && ctx.member.empId) || '', (ctx.member && ctx.member.title) || ''].filter(Boolean).join(' · ');
-    const mod = M.isMac ? '⌘K' : 'Ctrl K';
+    const ti = tabKeys.indexOf(r.s);
+    /* the capsule's pill: the open tab of this page with its flame number, the jump list holds the others */
+    const tabs = visibleTabs(ctx, r.s, b);
+    const tIdx = tabs.length > 1 ? tabs.findIndex(t => t.k === r.t) : -1;
+    const cmdSecs = onCmd ? CMD_SECS.filter(x => cmdAt.ids.indexOf(x[0]) >= 0) : [];
+    const ci = onCmd && cmdSecs.length ? Math.max(0, cmdSecs.findIndex(x => x[0] === cmdAt.id)) : -1;
+    const wl = ci >= 0 ? cmdSecs[ci][1] : tIdx >= 0 ? tabs[tIdx].label : sec.label;
+    const meName = (meProf && meProf.name) || (ctx.members && ctx.members[ctx.uid] && ctx.members[ctx.uid].name) || 'You';
+    const meSub = [(ctx.member && ctx.member.empId) || '', (ctx.member && ctx.member.title) || ''].filter(Boolean).join(', ');
 
     return html`<div class=${'app' + (sbx ? ' is-sbx' : '')}>
-      <aside class="sidebar" id="side" ref=${sideRef} aria-label="Pages">
-        <button type="button" class="sbt" aria-label="m360, back to top" onClick=${() => { if (M.mark) M.mark.spin(); if (M.chrome) M.chrome.glide(0); else window.scrollTo(0, 0); }}><${LiveMark}/></button>
-        <div class="new-wrap sb-new">
-          <button type="button" class="nv sbt-new new-trigger" data-t="New" data-kb="n" aria-label="New" aria-expanded=${newOpen === 'side' ? 'true' : 'false'}
-            onClick=${() => setNewOpen(x => x === 'side' ? false : 'side')}><span class="sb-plus"><${M.icons.plus}/></span><span class="nl">New</span></button>
-          ${newMenu('side')}
-        </div>
-        <nav class="snav side-scroll"><span class="sp sp-h"></span><span class="sp sp-a"></span><i class="sb-here"></i>
-          ${mainKeys.map(item)}
-          ${founderKeys.length ? html`<div class="sgl side-group"><span>founder</span></div>` : null}
-          ${founderKeys.map(item)}
-          <div class="sgl side-group"><span>help</span></div>
-          <button type="button" data-k="map" data-t="What's here" style=${{'--j': j++}} aria-current=${r.s === 'map' ? 'page' : null}
-            class=${'nv side-item side-map' + (r.s === 'map' ? ' on active' : '')} id="side-map" title="Every place in m360, in one line each" onClick=${() => go('map')}>
-            <${M.icons.map}/><span class="nl grow">What's here</span>
-          </button>
+      <aside class="side sidebar" id="side" ref=${sideRef} aria-label="Main">
+        <div class="sbt"><${LiveMark} id="lmS" onGo=${home}/></div>
+        <nav class="snav" id="snav" aria-label="Pages">
+          <span class="sp sp-h" aria-hidden="true"></span><span class="sp sp-a" aria-hidden="true"></span><span class="here" aria-hidden="true"></span>
+          ${groups.map(g => html`<${React.Fragment} key=${g.g}><div class="sgl"><span>${g.g}</span></div>${g.items.map(item)}<//>`)}
         </nav>
         <div class="sfoot">
           ${M.parts.FocusPill ? html`<${M.parts.FocusPill}/>` : null}
-          <div class="side-tools">
-            <button type="button" class="nv iconbtn bellbtn" aria-label="Inbox" data-t="Inbox" data-kb="i" style=${{'--j': j++}} onClick=${() => setInboxOpen(true)}>
-              <${M.icons.bell}/><span class="nl">Inbox</span><${Badge} n=${b.inbox || 0}/></button>
-            <button type="button" class="nv iconbtn sb-ai" aria-label="Ask m360" data-t="m360 AI" style=${{'--j': j++}} onClick=${() => askAt('')}>
-              <span class="sb-spark" aria-hidden="true">${SPARK}</span><span class="nl">m360 AI</span></button>
-          </div>
-          <button type="button" class="nv side-ask" id="sAsk" data-t="Ask m360" data-kb=${mod} style=${{'--j': j++}} onClick=${e => openBar(e.currentTarget)}>
-            <${M.icons.search}/><span class="nl">Ask m360</span><kbd class="sb-kb">${mod}</kbd></button>
-          <button type="button" class="nv" id="sTog" data-t=${sbx ? 'Collapse' : 'Expand'} data-kb="[" aria-expanded=${sbx ? 'true' : 'false'} style=${{'--j': j++}}
-            onClick=${() => { if (M.chrome) M.chrome.sb.toggle(); }}>${panelIcon()}<span class="nl">${sbx ? 'Collapse' : 'Expand'}</span></button>
-          <button type="button" class="nv side-foot" data-t=${(meProf && meProf.name) || 'Me'} style=${{'--j': j++}} onClick=${() => go('me')}>
-            <${UI.Avatar} id=${ctx.uid} size=${24}/>
-            <span class="nl"><span class="nm">${meName}</span><small class="ti num">${meSub}</small></span>
+          <button class="nv" id="sAsk" type="button" data-t="Ask m360" style=${{'--j': j++}} onClick=${e => openBar(e.currentTarget)}>
+            <${Ico} k="mic"/><span class="nl">Ask m360</span><kbd class="kb nl"><${Ico} k="cmdkey"/>K</kbd></button>
+          <button class="nv" id="sTog" type="button" data-t=${sbx ? 'Collapse' : 'Expand'} aria-expanded=${sbx ? 'true' : 'false'} style=${{'--j': j++}}
+            onClick=${() => { if (M.chrome) M.chrome.sb.toggle(); }}><${Ico} k="panel"/><span class="nl">${sbx ? 'Collapse' : 'Expand'}</span></button>
+          <button class="nv side-foot" type="button" data-t=${meName} style=${{'--j': j++}} onClick=${() => go('me')}>
+            <${UI.Avatar} id=${ctx.uid} size=${22}/><span class="nl"><span class="nm"><${UI.Name} id=${ctx.uid} fallback="You"/></span>${meSub ? html`<small>${meSub}</small>` : null}</span>
           </button>
         </div>
       </aside>
 
-      <header class="topbar pbar lgx" id="pbar">
-        <button type="button" class="pm" aria-label="m360, back to top" onClick=${() => { if (M.mark) M.mark.spin(); if (M.chrome) M.chrome.glide(0); else window.scrollTo(0, 0); }}><${LiveMark}/></button>
-        <button type="button" class="where" aria-haspopup="dialog" aria-expanded=${moreOpen ? 'true' : 'false'} onClick=${() => setMoreOpen(true)}>
-          <span>${sec.label}</span><${M.icons.chevD}/></button>
-        ${M.parts.FocusPill ? html`<${M.parts.FocusPill} compact=${true}/>` : null}
-        <div class="new-wrap">
-          <button type="button" class="iconbtn new-trigger" aria-label="New" aria-expanded=${newOpen === 'top' ? 'true' : 'false'} onClick=${() => setNewOpen(x => x === 'top' ? false : 'top')}><${M.icons.plus}/></button>
-          ${newMenu('top')}
-        </div>
-        <button type="button" class="iconbtn bellbtn" aria-label="Inbox" onClick=${() => setInboxOpen(true)}><${M.icons.bell}/><${Badge} n=${b.inbox || 0}/></button>
-        <button type="button" class="mbtn" onClick=${() => go('me')} aria-label="Me"><${UI.Avatar} id=${ctx.uid} size=${32}/></button>
+      <header class="pbar lg topbar" id="pbar">
+        <span class="pm"><${LiveMark} id="lmP" onGo=${home}/></span>
+        <button class="where" id="where" type="button" aria-haspopup="true" aria-expanded=${jumpOpen || menuOpen ? 'true' : 'false'}
+          onClick=${() => { if (ci >= 0) setJumpOpen(x => !x); else setMenuOpen(true); }}>
+          ${ci >= 0 ? html`<i class="wi">${two(ci + 1)}</i>` : null}<span class="wl">${wl}</span><${Ico} k="chev"/></button>
+        <button class="mbtn" id="menuBtn" type="button" aria-label="Menu" aria-controls="menu" aria-expanded=${menuOpen ? 'true' : 'false'}
+          onClick=${() => { setJumpOpen(false); setMenuOpen(true); }}><span class="burger"><i></i><i></i></span></button>
       </header>
+      <${Jump} open=${jumpOpen && ci >= 0} tabs=${cmdSecs.map(x => ({k: x[0], label: x[1]}))} at=${ci} onGo=${t => { setJumpOpen(false); goSec(t.k); }}/>
 
       <main class="main" id="main">
         <div key=${r.s} class=${'content view' + (['work', 'accounts', 'hq'].indexOf(r.s) >= 0 ? ' wide' : '')}>
@@ -567,20 +556,17 @@
 
       ${M.parts.Buddy ? html`<${M.parts.Buddy}/>` : null}
 
-      <nav class="tabbar" id="tabbar" ref=${tabRef} aria-label="Tabs" style=${{'--tn': tabKeys.length + 1, '--ti': Math.max(0, ti)}} data-mark=${ti >= 0 ? '1' : '0'}>
-        <div class="tbg lgx"><span class="tb-lens" aria-hidden="true"></span>
-          ${tabKeys.map(k => html`<button key=${k} type="button" aria-current=${r.s === k ? 'page' : null}
-            class=${'tab-item ptab' + (r.s === k ? ' active' : '')} onClick=${() => { M.haptic.buzz('tick'); go(k); }}>
-            <${M.icons[SECTIONS[k].icon]}/><span>${SECTIONS[k].label}</span><${Badge} n=${b[k] || 0}/>
-          </button>`)}
-          <button type="button" class=${'tab-item ptab' + (moreOn ? ' active' : '')} aria-haspopup="dialog" onClick=${() => { M.haptic.buzz('tick'); setMoreOpen(true); }}>
-            <${M.icons.more}/><span>More</span>${moreBadge > 0 ? html`<i class="tdot" aria-label=${moreBadge + ' waiting'}></i>` : null}
-          </button>
-        </div>
-        <button type="button" class="tb-ask lgx" aria-label="Ask m360" onClick=${e => openBar(e.currentTarget)}><${M.icons.search}/></button>
-      </nav>
+      <${Menu} open=${menuOpen} groups=${groups} active=${r.s} badges=${b} onGo=${go} onClose=${() => setMenuOpen(false)}/>
 
-      ${moreOpen ? html`<${PhoneMenu} groups=${menuGroups} active=${r.s} badges=${b} onGo=${go} onClose=${() => setMoreOpen(false)}/>` : null}
+      <nav class="tabbar" id="tabbar" ref=${tabRef} aria-label="Tabs" style=${{'--tn': tabKeys.length, '--ti': Math.max(0, ti)}} data-mark=${ti >= 0 ? '1' : '0'}>
+        <div class="tbg lg" id="tb"><span class="lens" aria-hidden="true"></span>
+          ${tabKeys.map(k => html`<button key=${k} type="button" aria-current=${r.s === k ? 'page' : null}
+            class=${'tab tab-item' + (r.s === k ? ' on active' : '')} onClick=${() => { M.haptic.buzz('tick'); go(k); }}>
+            <${Ico} k=${SEC_IC[k]}/><span>${SECTIONS[k].label}</span><${Bd} n=${b[k] || 0} cls="tbd"/>
+          </button>`)}
+        </div>
+        <button class="tb-ask lg" id="tbAsk" type="button" aria-label="Ask m360" onClick=${e => openBar(e.currentTarget)}><${Ico} k="mic"/></button>
+      </nav>
 
       ${askOpen && M.parts.Ask ? html`<${M.parts.Ask} initial=${askInitial} onClose=${() => { setAskOpen(false); setAskInitial(''); }}/>` : null}
       ${palOpen && M.parts.Palette ? (isl && window.ReactDOM && window.ReactDOM.createPortal
@@ -601,13 +587,11 @@
       ${M.parts.PmWatch ? html`<${M.parts.PmWatch}/>` : null}
       ${M.parts.LiveWatch ? html`<${M.parts.LiveWatch}/>` : null}
       <${NewerBuild}/>
-      ${M.parts.Notices ? html`<${M.parts.Notices}/>` : null}
       ${M.parts.MusicDock ? html`<${M.parts.MusicDock}/>` : null}
       ${newTask && M.parts.TaskDrawer ? html`<${M.parts.TaskDrawer} taskId=${null} defaults=${{owner: ctx.uid}} onClose=${() => setNewTask(false)}/>` : null}
       <${M.ToastHost}/>
     </div>`;
   };
-
   /* the server has a newer build than this tab: one line at the top, with a reload */
   function NewerBuild() {
     const [b, setB] = React.useState(window.M360_NEWER || '');
