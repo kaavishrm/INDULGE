@@ -170,27 +170,21 @@
     const names = useNames(ctx, list.map(m => m.uid));
     return html`<${React.Fragment}>
       <${UI.PageHead} micro="team" title="Crew"/>
-      ${list.length ? html`<div class="grid2" id="people-grid">
+      ${list.length ? html`<div class="ppl" id="people-grid">
         ${list.map(m => {
           const st = statusOf(ctx, m.uid, today);
           const line = [m.title, m.pod].filter(Boolean).join(' · ');
           const city = String(docOf(ctx, 'me', m.uid).city || '').trim();
           const fresh = isNewHire(ctx, m.uid);
-          const card = html`<div class="card clickable">
-              <div class="row nowrap">
-                <${UI.Avatar} id=${m.uid} size=${40}/>
-                <div class="grow">
-                  <div class="row between nowrap"><b class="grow">${nameIn(names, m.uid)}</b><${UI.Pill} kind=${st.kind}>${st.label}<//></div>
-                  ${said(ctx, m.uid) ? html`<div class="small person-status">${said(ctx, m.uid)}</div>` : null}
-                  <div class="tiny num sub">${m.empId || ''}</div>
-                  ${line ? html`<div class="small sub">${line}</div>` : null}
-                  ${city ? html`<div class="tiny sub person-city">${city}</div>` : null}
-                </div>
-              </div>
-            </div>`;
-          /* a new hire's card carries the beam, so the team sees who to welcome */
-          return html`<button key=${m.uid} type="button" class="rowbtn" onClick=${() => M.nav('#people/' + m.uid)}>
-            ${fresh ? html`<${M.fx.Beam}>${card}<//>` : card}
+          /* v7 (design B1 .ppl/.pp): the face, the name, the role, the state pill. A new hire's card carries
+             the flame top line, so the team sees who to welcome */
+          return html`<button key=${m.uid} type="button" class=${'card pp' + (fresh ? ' flame' : '')} onClick=${() => M.nav('#people/' + m.uid)}>
+            <${UI.Avatar} id=${m.uid} size=${48}/>
+            <div class="who-n">${nameIn(names, m.uid)}</div>
+            ${line ? html`<div class="mut sm">${line}</div>` : null}
+            <div class="soft sm num">${m.empId || ''}${city ? html`<span class="person-city">${m.empId ? ' · ' : ''}${city}</span>` : null}</div>
+            ${said(ctx, m.uid) ? html`<div class="sm person-status">${said(ctx, m.uid)}</div>` : null}
+            <${UI.Pill} kind=${st.kind}>${st.label}<//>
           </button>`;
         })}
       </div>` : html`<${UI.Card}><${UI.Empty} text="Nobody on the roster yet."/><//>`}

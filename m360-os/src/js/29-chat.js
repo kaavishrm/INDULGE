@@ -302,7 +302,7 @@
       const prev = msgs[i - 1];
       const cont = prev && prev.by === m.by && m.at - prev.at < 5 * 60000;
       rows.push(html`<div key=${m.id} class=${'chat-msg' + (cont ? ' cont' : '') + (m.by === uid ? ' mine' : '') + (mentionsMe(m, ctx, nameOf(uid)) ? ' hot' : '')}>
-        ${cont ? html`<span class="chat-gap"/>` : html`<${UI.Avatar} id=${m.by} size=${30}/>`}
+        ${cont ? html`<span class="chat-gap"/>` : html`<${UI.Avatar} id=${m.by} size=${32}/>`}
         <div class="grow" style=${{minWidth: 0}}>
           ${cont ? null : html`<div class="row nowrap" style=${{gap: '8px', alignItems: 'baseline'}}><span style=${{fontWeight: 500}}>${nameOf(m.by)}</span>${isBot(m.by) ? html`<span class="pill coo-pill">bot</span>` : null}<span class="tiny ink62 num">${U.hhmm ? U.hhmm(new Date(m.at)) : new Date(m.at).toLocaleTimeString()}</span></div>`}
           ${m.text ? html`<div class="chat-text"><${Rich} text=${m.text} names=${names}/>${m.edited ? html` <span class="tiny ink62">(edited)</span>` : null}${m.ask ? html` <span class="tiny ink62 chat-ask">${m.via === 'voice' ? 'asked by voice' : 'asked through m360'}</span>` : null}</div>` : null}
