@@ -1,5 +1,6 @@
-/* module: tour. The onboarding walk the cursor buddy gives a new person: where everything lives, said out
-   loud and pointed at, section by section. One script for everyone, a few extra stops for the founder.
+/* module: tour. The onboarding walk m360 gives a new person: where everything lives, said out loud and
+   ringed in flame (the live mark looks at it), section by section. v40: the stops point at the v7 shell,
+   the sidebar on a desk and the tab bar on a phone. One script for everyone, a few extra stops for the founder.
    Done once per person (kept in their private state doc), replayable any time from Me or the palette. */
 'use strict';
 (function () {
@@ -13,11 +14,11 @@
       say: 'At seven in the evening, write your EOD line. What shipped, what is next, what is blocked. Three lines, thirty seconds, and Kaavish reads every one.'},
     {go: '#home', sel: '.sidebar .new-trigger, .topbar .new-trigger', title: 'New',
       say: 'New makes anything. A task, a post, kudos for someone, a project.'},
-    {go: '#home', sel: '.side-ask, .topbar .iconbtn[aria-label="Search"]', title: 'Search',
-      say: 'Search finds anything. A client, a contact, a task, a handbook page. Command K opens it from anywhere.'},
+    {go: '#home', sel: '#sAsk, .tb-ask', title: 'Ask m360',
+      say: 'Ask m360 finds anything and answers from live data. A client, a contact, a task, a handbook page, who is in. Command K or the slash key opens it from anywhere.'},
     {go: '#home', sel: '.bellbtn', title: 'Inbox',
       say: 'Your inbox. Tasks handed to you, mentions, kudos and decisions land here.'},
-    {go: '#home', sel: '.side-tools .iconbtn[aria-label="Focus timer"], .quick-btn[data-k="focus"]', title: 'Focus',
+    {go: '#home', sel: '.quick-btn[data-k="focus"]', title: 'Focus',
       say: 'Focus runs a timer on one task and banks the deep work. Points come from finished work, streaks and kudos.'},
     {go: '#chat', sel: '#chat-input, #chat-list', title: 'Chat',
       say: 'Chat. Rooms for the team, and direct messages that only the two of you see. At a name to pull someone in, at everyone for the whole team.'},
@@ -47,8 +48,8 @@
       say: 'HQ. The intelligence brief reads every check in, task and pitch, and tells you who is slipping and which client needs love.'},
     {go: '#admin', founder: true, sel: '.main h1, .main .card', title: 'Admin',
       say: 'Admin. Invite people by email, the keys, the backups, and every change anyone ever made.'},
-    {go: null, sel: '.buddy-home', title: 'Your buddy',
-      say: 'And that is me. Hold Control and Option and just talk, or tap here and type. Ask where anything is, or tell me to do it, and I will take you there.'}
+    {go: null, sel: '.sb-ai, .tb-ask', title: 'm360 AI',
+      say: 'And that is m360 AI. Hold Control and Option and just talk, or tap here and type. Ask where anything is, or tell it what to do, and it takes you there.'}
   ];
 
   const stateDoc = ctx => ctx && ctx.priv && ctx.priv.state;
