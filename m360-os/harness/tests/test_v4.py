@@ -48,6 +48,7 @@ def t(h):
     p.evaluate('M.theme.set("light")')
 
     # ---- HQ: tape, heatmap, reviews on the founder ----
+    p.evaluate('() => sessionStorage.setItem("m360.hqmore", "1")')  # v40: HQ opens on Command; the brief, the tape and the setup sit under "more from HQ"
     h.go(p, 'founder', hash='#hq', width=1280, online='u_m1')
     p.wait_for_selector('#tape')
     check(p.locator('#tape .tape-row').count() >= 1, 'tape is empty')
