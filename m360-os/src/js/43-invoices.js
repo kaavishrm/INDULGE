@@ -420,26 +420,32 @@
     const open = id ? all.find(i => i.id === id) : null;
     if (id && open) return html`<${InvoiceView} inv=${open} onBack=${() => M.nav('#invoices')}/>`;
     const fys = Array.from(new Set(all.map(i => i.fy))).sort().reverse();
-    const list = all.filter(i => (fy === 'all' || i.fy === fy)).filter(i => {
+    const inFilter = (i, f) => {
       const st = b.status(i, today);
-      if (filter === 'all') return true;
-      if (filter === 'open') return ['sent', 'overdue', 'part'].includes(st);
-      if (filter === 'overdue') return st === 'overdue' || (st === 'part' && i.due < today);
-      return st === filter;
-    });
+      if (f === 'all') return true;
+      if (f === 'open') return ['sent', 'overdue', 'part'].includes(st);
+      if (f === 'overdue') return st === 'overdue' || (st === 'part' && i.due < today);
+      return st === f;
+    };
+    const inYear = all.filter(i => (fy === 'all' || i.fy === fy));
+    const list = inYear.filter(i => inFilter(i, filter));
+    const counts = {};
+    FILTERS.forEach(o => { counts[o.v] = inYear.filter(i => inFilter(i, o.v)).length; });
     const sum = list.reduce((s, i) => s + (i.currency === 'INR' || !i.currency ? b.totals(i).balance : b.totals(i).balance * (b.num(i.fx) || 0)), 0);
     const noClients = !Object.keys(ctx.coll.clients.map).length;
-    return html`<div class="stack" style=${{gap: '16px'}}>
-      <${UI.PageHead} micro=${list.length + (list.length === 1 ? ' invoice' : ' invoices') + (filter === 'open' || filter === 'overdue' ? ', ' + U.inr(sum) + ' outstanding' : '')} title="Invoices">
+    const Chips = M.parts.FoChips || UI.Seg;
+    const late = counts.overdue > 0;
+    return html`<div class="stack" style=${{gap: '24px'}}>
+      <${UI.SectionHead} label="invoices" pill=${list.length + (list.length === 1 ? ' invoice' : ' invoices') + (filter === 'open' || filter === 'overdue' ? ', ' + U.inr(sum) + ' outstanding' : '')}>
         <${UI.Btn} id="inv-new" disabled=${noClients} onClick=${() => setDraft(fresh(ctx, ''))}><${icons.plus}/>New invoice<//>
       <//>
-      ${(filter === 'open' || filter === 'overdue') && list.length && M.fx ? html`<div class="row nowrap fx-headline" id="inv-outstanding"><span class="micro">${filter === 'overdue' ? 'overdue' : 'outstanding'}</span><${MetalNum} size=${30} weight=${600} color=${filter === 'overdue' ? M.fx.FLAME : undefined}>${U.inr(sum)}<//></div>` : null}
+      ${(filter === 'open' || filter === 'overdue') && list.length ? html`<div class="kpis k3" id="inv-outstanding">
+        <div class=${'kp' + (filter === 'overdue' || late ? ' hot' : '')}><div class="kl"><span class="cap">${filter === 'overdue' ? 'overdue' : 'outstanding'}</span></div>
+          <div class="kv"><${UI.BigNum} value=${U.inr(sum)} money=${true}/></div><div class="kn">${list.length + (list.length === 1 ? ' invoice' : ' invoices')}</div></div>
+      </div>` : null}
       ${noClients ? html`<div class="card small">Add a client under Accounts first; the invoice takes its legal name, address and currency from the client's billing profile under Setup.</div>` : null}
-      <div class="row between">
-        <${UI.Seg} sm=${true} options=${FILTERS} value=${filter} onChange=${setFilter} ariaLabel="Which invoices"/>
-        ${fys.length > 1 ? html`<${UI.Seg} sm=${true} options=${[{v: 'all', label: 'All years'}].concat(fys.map(x => ({v: x, label: 'FY ' + x})))} value=${fy} onChange=${setFy} ariaLabel="Financial year"/>` : null}
-      </div>
-      <${UI.Card} id="inv-list">
+      <${UI.Band} tone="warm"><${UI.Card} id="inv-list" title="the list" action=${fys.length > 1 ? html`<${UI.Seg} sm=${true} options=${[{v: 'all', label: 'All years'}].concat(fys.map(x => ({v: x, label: 'FY ' + x})))} value=${fy} onChange=${setFy} ariaLabel="Financial year"/>` : null}>
+        <${Chips} sm=${true} options=${FILTERS.map(o => ({...o, n: counts[o.v], hot: o.v === 'overdue' && counts.overdue > 0}))} value=${filter} onChange=${setFilter} ariaLabel="Which invoices"/>
         ${list.length ? html`<div class="tbl-wrap"><table class="tbl">
           <thead><tr><th>number</th><th>client</th><th>date</th><th>due</th><th class="num">total</th><th class="num">balance</th><th>status</th></tr></thead>
           <tbody>${list.map(i => { const st = b.status(i, today), t = b.totals(i); return html`<tr key=${i.id} class="inv-row" style=${{cursor: 'pointer'}} onClick=${() => M.nav('#invoices/' + i.id)}>
@@ -452,7 +458,7 @@
             <td data-label="status"><${StatusTag} st=${st}/></td>
           </tr>`; })}</tbody>
         </table></div>` : html`<${UI.Empty} text=${filter === 'all' ? 'No invoices yet. Press New invoice, or set a retainer under Setup and the first of the month drafts it for you.' : 'Nothing here.'}/>`}
-      <//>
+      <//><//>
       ${draft ? html`<${Builder} inv=${draft} onClose=${() => setDraft(null)} onSaved=${nid => { setDraft(null); M.nav('#invoices/' + nid); }}/>` : null}
     </div>`;
   }

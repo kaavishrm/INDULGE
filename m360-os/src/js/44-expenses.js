@@ -7,7 +7,6 @@
 (function () {
   const {html, React, U, UI, icons} = M;
   /* a number in metal (metal-fx MetalText) */
-  const MetalNum = ({children, size, weight, color}) => html`<span class="fx-num"><${M.fx.MetalText} size=${size} weight=${weight} color=${color}>${children}<//></span>`;
   const {useState, useEffect, useMemo, useRef} = React;
 
   const CATS = ['Salaries', 'Rent', 'Software and tools', 'Freelancers', 'Production', 'Travel', 'Meals and client', 'Marketing', 'Professional fees', 'Bank and taxes', 'Equipment', 'Other'];
@@ -663,8 +662,8 @@
       const r = await ctx.downloads.save({filename: 'expenses-' + month + '.csv', data: lines.join('\n')});
       M.toast(r && r.status === 'delivered' ? 'Sent' : 'Downloaded');
     };
-    return html`<div class="stack" style=${{gap: '16px'}}>
-      <${UI.PageHead} micro=${monthLabel(month) + ', ' + U.inr(total) + (gst ? ', GST paid ' + U.inr(gst) : '')} title="Expenses">
+    return html`<div class="stack" style=${{gap: '24px'}}>
+      <${UI.SectionHead} label="expenses" pill=${monthLabel(month) + ', ' + U.inr(total) + (gst ? ', GST paid ' + U.inr(gst) : '')}>
         <${UI.Btn} kind="sec" id="exp-import" onClick=${() => setImporting(true)}><${icons.upload}/>Upload a bank statement<//>
         <${UI.Btn} id="exp-new" onClick=${() => setOpen({})}><${icons.plus}/>New expense<//>
       <//>
@@ -677,13 +676,13 @@
         </div>
         ${ctx.downloads && list.length ? html`<${UI.Btn} kind="sec" sm=${true} id="exp-csv" onClick=${csv}>Download the month<//>` : null}
       </div>
-      <${UI.Card} id="exp-list" title=${phone ? undefined : 'The sheet'} action=${phone ? undefined : html`<div class="row" style=${{gap: '8px'}}><span class="tiny ink62">Tab, Enter and the arrows move. Paste rows from Excel or Sheets.</span>${dirtyN ? html`<${UI.Pill} kind="flame-o">${dirtyN} unsaved<//>` : null}</div>`}>
+      <${UI.Band} tone="warm"><${UI.Card} id="exp-list" title=${phone ? undefined : 'The sheet'} action=${phone ? undefined : html`<div class="row" style=${{gap: '8px'}}><span class="tiny ink62">Tab, Enter and the arrows move. Paste rows from Excel or Sheets.</span>${dirtyN ? html`<${UI.Pill} kind="flame-o">${dirtyN} unsaved<//>` : null}</div>`}>
         <${Sheet} key=${month} month=${month} saved=${list} vendors=${vendors} onDirty=${setDirtyN}/>
-      <//>
+      <//><//>
       <div class="grid2">
         <${UI.Card} title="By category" id="exp-cats">
           ${cats.length ? cats.map(c => html`<div class="listrow" key=${c}><span class="grow">${c}</span><span class="num" style=${{fontWeight: 500}}>${U.inr(byCat[c])}</span></div>`) : html`<${UI.Empty} text="Nothing saved this month yet. Salaries land here from a closed payroll run; rent and tools can repeat every month."/>`}
-          ${cats.length ? html`<div class="listrow"><b class="grow">Total</b>${M.fx ? html`<${MetalNum} size=${22} weight=${600}>${U.inr(Object.values(byCat).reduce((s, v) => s + v, 0))}<//>` : html`<b class="num">${U.inr(Object.values(byCat).reduce((s, v) => s + v, 0))}</b>`}</div>` : null}
+          ${cats.length ? html`<div class="listrow"><b class="grow">Total</b><b class="num">${U.inr(Object.values(byCat).reduce((s, v) => s + v, 0))}</b></div>` : null}
         <//>
         <${UI.Card} title="Three ways in">
           <div class="listrow"><span class="grow small"><b>Type it.</b> The sheet above takes rows straight in. Tab moves right, Enter moves down, Escape puts a cell back.</span></div>

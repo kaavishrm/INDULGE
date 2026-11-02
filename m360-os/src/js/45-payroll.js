@@ -10,7 +10,6 @@
 (function () {
   const {html, React, U, UI, icons} = M;
   /* a number in metal (metal-fx MetalText) */
-  const MetalNum = ({children, size, weight, color}) => html`<span class="fx-num"><${M.fx.MetalText} size=${size} weight=${weight} color=${color}>${children}<//></span>`;
   const {useState} = React;
 
   const EARN = [['basic', 'Basic'], ['hra', 'House rent allowance'], ['special', 'Special allowance'], ['allowances', 'Other allowances']];
@@ -206,7 +205,7 @@
         <//>
         <div class="listrow" style=${{borderBottom: 0}}>
           <span class="grow small">gross <span class="num">${inr(m.gross)}</span> · deductions <span class="num">${inr(m.deductions)}</span></span>
-          <b class="row nowrap" style=${{gap: '6px'}}>net <span class="num" id="pay-net">${M.fx ? html`<${MetalNum} size=${20} weight=${600}>${inr(m.net)}<//>` : inr(m.net)}</span></b>
+          <b class="row nowrap" style=${{gap: '6px'}}>net <span class="num" id="pay-net">${inr(m.net)}</span></b>
         </div>
         <${UI.Field} label="bank">
           <div class="stack tight">
@@ -355,7 +354,7 @@
           </tr>`;
         })}</tbody>
       </table></div>
-      <div class="small ink62" id="pay-totals" style=${{marginTop: '10px'}}>gross <span class="num">${inr(t.gross)}</span> · deductions <span class="num">${inr(t.deductions)}</span> · net ${M.fx ? html`<${MetalNum} size=${20} weight=${600}>${inr(t.net)}<//>` : html`<b class="num">${inr(t.net)}</b>`} · <span class="num">${rows.length}</span> people${paidRows.length ? html` · paid <span class="num">${inr(paidRows.reduce((s, r) => s + netOf(r.row), 0))}</span>` : null}</div>
+      <div class="small ink62" id="pay-totals" style=${{marginTop: '10px'}}>gross <span class="num">${inr(t.gross)}</span> · deductions <span class="num">${inr(t.deductions)}</span> · net <b class="num">${inr(t.net)}</b> · <span class="num">${rows.length}</span> people${paidRows.length ? html` · paid <span class="num">${inr(paidRows.reduce((s, r) => s + netOf(r.row), 0))}</span>` : null}</div>
       ${policy.employerCost ? html`<div class="small ink62" id="pay-cost" style=${{marginTop: '4px'}}>cost to company this month <b class="num">${inr(t.cost)}</b>${policy.pf ? html` · PF employer <span class="num">${inr(t.pf)}</span>` : null}${policy.esi ? html` · ESI employer <span class="num">${inr(t.esi)}</span>` : null}${policy.gratuity ? html` · gratuity <span class="num">${inr(t.gratuity)}</span>` : null}${policy.insurance ? html` · insurance <span class="num">${inr(t.insurance)}</span>` : null}</div>` : null}
       <div class="row" style=${{marginTop: '12px'}}>
         ${unpaid.length ? html`<span id="pay-all"><${UI.ConfirmBtn} kind="flame" sm=${false} onConfirm=${() => pay(unpaid.map(r => r.uid))}>Pay everyone, ${inr(unpaidNet)}<//></span>` : null}
@@ -482,8 +481,9 @@
     const [edit, setEdit] = useState(null);
     if (!ctx.isOwner) return html`<${UI.Empty} text="Payroll is the owner's alone."/>`;
     const policy = policyOf(ctx);
-    return html`<div class="stack" style=${{gap: '18px'}} id="pay-page">
-      <${MonthCard} month=${month} setMonth=${setMonth} policy=${policy} onEdit=${setEdit}/>
+    return html`<div class="stack" style=${{gap: '24px'}} id="pay-page">
+      <${UI.SectionHead} label="payroll" pill=${monthName(month)}/>
+      <${UI.Band} tone="warm"><${MonthCard} month=${month} setMonth=${setMonth} policy=${policy} onEdit=${setEdit}/><//>
       <${PayCard} policy=${policy} onEdit=${setEdit}/>
       <${Payslips} month=${month} policy=${policy} id=${okMonth(id) ? null : id}/>
       ${edit ? html`<${PayDrawer} uid=${edit} policy=${policy} onClose=${() => setEdit(null)}/>` : null}
