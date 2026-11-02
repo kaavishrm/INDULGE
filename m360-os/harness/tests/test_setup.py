@@ -124,11 +124,17 @@ def t(h):
     check(p.locator('#my-projects').count() == 1 and p.locator('#buzz').count() == 1, 'home cards missing')
 
     # ---- sidebar sub-pages and section tabs ----
+    # v40: with the sidebar expanded (its names showing) it lists the open section's tabs and the page's row
+    # hides; slim, the page shows its own tab row
     h.go(p, 'm1', hash='#work', width=1280)
+    check(p.locator('.tabs.section-tabs').is_visible(), 'section tabs hidden on desktop with a slim sidebar')
+    p.keyboard.press('[')
+    p.wait_for_selector('.side-sub:has-text("Projects")')
     check(not p.locator('.tabs.section-tabs').is_visible(), 'section tabs visible on desktop')
     p.locator('.side-sub', has_text='Projects').click()
     p.wait_for_function("() => location.hash === '#projects'")
     p.wait_for_selector('.side-sub.active:has-text("Projects")')
+    p.keyboard.press('[')
     h.go(p, 'm1', hash='#work', width=390)
     check(p.locator('.tabs.section-tabs').is_visible(), 'section tabs hidden on phone')
 

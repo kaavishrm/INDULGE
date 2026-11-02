@@ -1,4 +1,4 @@
-/* m360 OS shell: gates, five simple sections, founder HQ, the buddy in its dock. */
+/* m360 OS shell: gates, the sections, founder HQ, the v7 frame (glass sidebar, island, phone capsule and tab bar), the buddy in its dock. */
 'use strict';
 (function () {
   const {html, React, U, UI} = M;
@@ -217,6 +217,9 @@
       if (!t) return;
       const r = t.getBoundingClientRect();
       const w = Math.min(300, window.innerWidth - 32);
+      /* v40: from the glass sidebar the menu opens beside it, level with the button */
+      const side = t.closest('.sidebar');
+      if (side) { const sr = side.getBoundingClientRect(); setPos({top: Math.max(12, Math.min(r.top, window.innerHeight - 440)), left: sr.right + 12, width: w}); return; }
       setPos({top: r.bottom + 8, left: Math.max(16, Math.min(r.left, window.innerWidth - w - 16)), width: w});
     }, [phone]);
     React.useLayoutEffect(() => {
@@ -303,6 +306,41 @@
   }
 
   /* ---------- shell ---------- */
+  /* v40: the v7 frame. A glass sidebar 12px from the edges (slim 80px icons, 248px with names, [ toggles,
+     remembered per browser), the live mark at its top, the island at the top of the canvas for everything the
+     OS says, and on a phone a glass capsule, a glass tab bar with a black lens and a full screen menu.
+     Ids and classes the tests and the tour point at stay on the new parts (sidebar, side-item, side-tools,
+     bellbtn, new-trigger, side-foot, topbar, tabbar, tab-item) */
+  const LiveMark = props => (M.parts.LiveMark ? html`<${M.parts.LiveMark} ...${props}/>` : html`<${M.Mark} width="76px"/>`);
+  const panelIcon = () => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3.5"/><path d="M9.5 4.5v15"/></svg>`;
+  const SPARK = '✦';
+
+  /* the full screen menu on a phone: every place, grouped, staggering in */
+  function PhoneMenu({groups, active, badges, onGo, onClose}) {
+    const [on, setOn] = React.useState(false);
+    const gone = React.useRef(false);
+    const close = React.useCallback(() => { if (gone.current) return; gone.current = true; setOn(false); setTimeout(onClose, M.reduced() ? 0 : 300); }, [onClose]);
+    React.useEffect(() => {
+      document.documentElement.classList.add('mn-open');
+      const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)));
+      const f = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+      window.addEventListener('keydown', f);
+      return () => { cancelAnimationFrame(r); document.documentElement.classList.remove('mn-open'); window.removeEventListener('keydown', f); };
+    }, []);
+    let j = 0;
+    return html`<div class=${'pmenu' + (on ? ' open' : '')} id="pmenu" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="pmenu-top"><span class="pm"><${LiveMark}/></span>
+        <button type="button" class="shx" aria-label="Close menu" onClick=${close}><${M.icons.x}/></button></div>
+      <div class="pmenu-list">
+        ${groups.map(g => html`<div key=${g.g || 'top'}>${g.g ? html`<div class="grp">${g.g}</div>` : null}
+          ${g.items.map(k => { const s = SECTIONS[k]; const jj = j++; return html`<button key=${k} type="button" class=${'mi' + (active === k ? ' on' : '')} style=${{'--j': jj}}
+            aria-current=${active === k ? 'page' : null} onClick=${() => { onGo(k); close(); }}>
+            <${M.icons[s.icon]}/><span>${s.label}</span><${Badge} n=${badges[k] || 0}/></button>`; })}
+        </div>`)}
+      </div>
+    </div>`;
+  }
+
   M.Shell = function Shell() {
     const ctx = M.useCtx();
     const route = M.useRoute();
@@ -314,22 +352,35 @@
     const [inboxOpen, setInboxOpen] = React.useState(false);
     const [keysOpen, setKeysOpen] = React.useState(false);
     const [askInitial, setAskInitial] = React.useState('');
-    const theme = M.useTheme();
+    const [sbx, setSbx] = React.useState(() => document.documentElement.classList.contains('sbx'));
+    const sideRef = React.useRef(null), tabRef = React.useRef(null);
+    const meProf = M.useProfiles(ctx.uid ? [ctx.uid] : [])[ctx.uid];
     const askAt = initial => { if (M.assistant && M.assistant.open) M.assistant.open(initial || ''); else { setAskInitial(initial || ''); setAskOpen(true); } };
+    /* the Ask bar: the island grows into it when the island is here, the palette opens as before when not */
+    const isl = M.island;
+    const openBar = from => { if (isl) isl.cmd('', from); else setPalOpen(true); };
+    const toggleBar = () => { if (isl) { if (isl.isCmd()) isl.close(); else isl.cmd(''); } else setPalOpen(x => !x); };
+    React.useEffect(() => {
+      if (!isl) return undefined;
+      isl.onCmd(open => setPalOpen(!!open));
+      return () => isl.onCmd(null);
+    }, []);
+    React.useEffect(() => { if (!palOpen && isl && isl.isCmd()) isl.close(); }, [palOpen]);
+    React.useEffect(() => (M.chrome ? M.chrome.sb.on(setSbx) : undefined), []);
 
     React.useEffect(() => {
       if (!route.page) M.nav(ctx.isFounder ? '#hq' : '#home');
       else if (!ctx.isFounder && ['command', 'desk', 'hq', 'admin'].indexOf(route.page) >= 0) M.nav('#home');
     }, [route.page, ctx.isFounder]);
 
-    /* keys: Cmd K for the palette; single letters when nothing is focused */
+    /* keys: Cmd K and / for the Ask bar; single letters when nothing is focused ([ lives with the sidebar) */
     React.useEffect(() => {
       let g = 0;
       const typing = e => { const t = e.target; return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); };
       const on = e => {
-        if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k') { e.preventDefault(); setPalOpen(x => !x); return; }
+        if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k') { e.preventDefault(); toggleBar(); return; }
         if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
-        if (document.querySelector('.drawer, .pal, .breathe, [data-hotkeys]')) return;
+        if (document.querySelector('.drawer, .pal, .breathe, .pmenu, [data-hotkeys]')) return;
         const k = e.key;
         if (g && Date.now() - g < 900) {
           g = 0;
@@ -338,7 +389,7 @@
           return;
         }
         if (k === 'g') { g = Date.now(); return; }
-        if (k === '/') { e.preventDefault(); setPalOpen(true); }
+        if (k === '/') { e.preventDefault(); openBar(); }
         else if (k === 'n') { e.preventDefault(); setNewTask(true); }
         else if (k === 'i') { e.preventDefault(); setInboxOpen(true); }
         else if (k === 'f') { e.preventDefault(); M.focus && M.focus.open(); }
@@ -399,16 +450,39 @@
     }, [loud, loudReady, ctx.uid]);
     const go = k => { setMoreOpen(false); M.nav('#' + k); };
 
+    /* the mark's mood follows the day: alert at four or more things waiting, calm at none */
+    const waiting = ctx.isFounder ? (b.hq || 0) + (b.admin || 0) : (ctx.flags || []).filter(f => f.uid === ctx.uid && f.severity !== 'low').length;
+    React.useEffect(() => { if (M.mark) M.mark.mood(waiting); }, [waiting]);
+    /* the pill slides to the page, the lens to the tab; the mark nods when the page changes */
+    const where = r.s + '/' + (r.t || '');
+    const whereWas = React.useRef(where);
+    React.useEffect(() => {
+      if (M.chrome) { M.chrome.sb.mount(sideRef.current); M.chrome.sb.place(false); M.chrome.tb.place(tabRef.current); }
+      if (whereWas.current !== where) {
+        /* a new section opens at its top; a tab inside the same section keeps the place */
+        if (whereWas.current.split('/')[0] !== r.s) window.scrollTo(0, 0);
+        whereWas.current = where; if (M.mark && M.chrome && M.chrome.phone()) M.mark.nod();
+      }
+    });
+    React.useEffect(() => {
+      const f = () => { if (M.chrome) M.chrome.tb.place(tabRef.current, true); };
+      window.addEventListener('resize', f);
+      return () => window.removeEventListener('resize', f);
+    }, []);
+
     const mainKeys = ['home', 'chat', 'work', 'accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me'];
     const founderKeys = ctx.isFounder ? (ctx.isOwner ? ['hq', 'books', 'admin'] : ['hq', 'admin']) : [];
+    let j = 0;
     const item = k => {
       const s = SECTIONS[k];
-      /* the open section lists its tabs; Me always does for members, so Leave and the Handbook are never hidden */
-      const subs = (r.s === k || (k === 'me' && !ctx.isFounder)) ? visibleTabs(ctx, k, b) : [];
+      const on = r.s === k;
+      /* with names showing, the open section lists its tabs under it; slim, the page's own tab row does */
+      const subs = on && sbx ? visibleTabs(ctx, k, b) : [];
+      const jj = j++;
       return html`<${React.Fragment} key=${k}>
-        <button type="button"
-          class=${'side-item' + (r.s === k ? ' active' : '') + (s.founder ? ' founder' : '')} title=${M.map ? M.map.blurbOf(k) : ''} onClick=${() => go(k)}>
-          <${M.icons[s.icon]}/><span class="grow">${s.label}</span><${Badge} n=${b[k] || 0}/>
+        <button type="button" data-k=${k} data-t=${s.label} style=${{'--j': jj}} aria-current=${on ? 'page' : null}
+          class=${'nv side-item' + (on ? ' on active' : '') + (s.founder ? ' founder' : '')} title=${sbx && M.map ? M.map.blurbOf(k) : ''} onClick=${() => go(k)}>
+          <${M.icons[s.icon]}/><span class="nl grow">${s.label}</span><${Badge} n=${b[k] || 0}/>
         </button>
         ${subs.length > 1 ? html`<div class="side-subs">
           ${subs.map(t => html`<button key=${t.k} type="button" class=${'side-sub' + (r.t === t.k ? ' active' : '')} title=${M.map ? M.map.blurbOf(k, t.k) : ''}
@@ -417,66 +491,72 @@
         </div>` : null}
       <//>`;
     };
-    const newMenu = where => newOpen === where ? html`<${NewMenu} onClose=${() => setNewOpen(false)}
+    const newMenu = where2 => newOpen === where2 ? html`<${NewMenu} onClose=${() => setNewOpen(false)}
       onTask=${() => setNewTask(true)} onAsk=${() => askAt('')}/>` : null;
 
-    const tabKeys = ctx.isFounder ? ['home', 'chat', 'hq', 'work'] : ['home', 'chat', 'work', 'accounts', 'me'];
-    const moreKeys = (ctx.isFounder ? (ctx.isOwner ? ['accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me', 'books', 'admin'] : ['accounts', 'workspace', 'base', 'radar', 'web', 'vibe', 'break', 'me', 'admin']) : ['workspace', 'base', 'radar', 'web', 'break']).concat(['map']);
+    /* phone tabs: the four places each role opens most, then More and the round Ask button */
+    const tabKeys = ctx.isFounder ? ['hq', 'home', 'work', 'chat'] : ['home', 'work', 'chat', 'vibe'];
+    const allKeys = mainKeys.concat(founderKeys).concat(['map']);
+    const moreKeys = allKeys.filter(k => tabKeys.indexOf(k) < 0);
     const moreBadge = moreKeys.reduce((n, k) => n + (b[k] || 0), 0);
+    const moreOn = moreKeys.indexOf(r.s) >= 0;
+    const ti = tabKeys.indexOf(r.s) >= 0 ? tabKeys.indexOf(r.s) : (moreOn ? tabKeys.length : -1);
+    const menuGroups = [{g: '', items: mainKeys}].concat(founderKeys.length ? [{g: 'founder', items: founderKeys}] : []).concat([{g: 'help', items: ['map']}]);
+    const meName = html`<${UI.Name} id=${ctx.uid} fallback="You"/>`;
+    const meSub = [(ctx.member && ctx.member.empId) || '', (ctx.member && ctx.member.title) || ''].filter(Boolean).join(' · ');
+    const mod = M.isMac ? '⌘K' : 'Ctrl K';
 
-    return html`<div class="app">
-      <aside class="sidebar">
-        <div class="side-head"><${M.Mark} width="84px"/><span class="os">os</span></div>
-        <div class="side-actions">
-          <div class="new-wrap">
-            <${M.fx.Metal} kind="ink" className="new-metal"><button type="button" class="btn new-trigger" aria-expanded=${newOpen === 'side' ? 'true' : 'false'}
-              onClick=${() => setNewOpen(x => x === 'side' ? false : 'side')}><${M.icons.plus}/>New</button><//>
-            ${newMenu('side')}
-          </div>
-          <button type="button" class="side-ask" onClick=${() => setPalOpen(true)}>
-            <${M.icons.search}/><span class="grow">Search</span><span class="kbd">${M.isMac ? '\u2318K' : 'Ctrl K'}</span>
-          </button>
+    return html`<div class=${'app' + (sbx ? ' is-sbx' : '')}>
+      <aside class="sidebar" id="side" ref=${sideRef} aria-label="Pages">
+        <button type="button" class="sbt" aria-label="m360, back to top" onClick=${() => { if (M.mark) M.mark.spin(); if (M.chrome) M.chrome.glide(0); else window.scrollTo(0, 0); }}><${LiveMark}/></button>
+        <div class="new-wrap sb-new">
+          <button type="button" class="nv sbt-new new-trigger" data-t="New" data-kb="n" aria-label="New" aria-expanded=${newOpen === 'side' ? 'true' : 'false'}
+            onClick=${() => setNewOpen(x => x === 'side' ? false : 'side')}><span class="sb-plus"><${M.icons.plus}/></span><span class="nl">New</span></button>
+          ${newMenu('side')}
         </div>
-        <div class="side-tools">
-          <button type="button" class="iconbtn bellbtn" aria-label="Inbox" title="Inbox (i)" onClick=${() => setInboxOpen(true)}><${M.icons.bell}/><${Badge} n=${b.inbox || 0}/></button>
-          <button type="button" class="iconbtn" aria-label="Focus timer" title="Focus (f)" onClick=${() => M.focus && M.focus.open()}><${M.icons.timer}/></button>
-          <button type="button" class="iconbtn" aria-label="Ask m360" title="Ask m360" onClick=${() => askAt('')}><span class="flame-t" aria-hidden="true" style=${{fontSize: '16px'}}>\u2726</span></button>
-          <button type="button" class="iconbtn" aria-label=${'Theme: ' + theme} title="Theme" onClick=${() => M.toast('Theme: ' + M.theme.cycle())}>${M.theme.resolved() === 'dark' ? html`<${M.icons.sun}/>` : html`<${M.icons.moon}/>`}</button>
-        </div>
-        ${M.parts.FocusPill ? html`<${M.parts.FocusPill}/>` : null}
-        <nav class="side-scroll">
+        <nav class="snav side-scroll"><span class="sp sp-h"></span><span class="sp sp-a"></span><i class="sb-here"></i>
           ${mainKeys.map(item)}
-          ${founderKeys.length ? html`<div class="side-group micro plain">founder</div>` : null}
+          ${founderKeys.length ? html`<div class="sgl side-group"><span>founder</span></div>` : null}
           ${founderKeys.map(item)}
-          <button type="button" class=${'side-item side-map' + (r.s === 'map' ? ' active' : '')} id="side-map" title="Every place in m360, in one line each" onClick=${() => go('map')}>
-            <${M.icons.map}/><span class="grow">What's here</span>
+          <div class="sgl side-group"><span>help</span></div>
+          <button type="button" data-k="map" data-t="What's here" style=${{'--j': j++}} aria-current=${r.s === 'map' ? 'page' : null}
+            class=${'nv side-item side-map' + (r.s === 'map' ? ' on active' : '')} id="side-map" title="Every place in m360, in one line each" onClick=${() => go('map')}>
+            <${M.icons.map}/><span class="nl grow">What's here</span>
           </button>
         </nav>
-        <button type="button" class="side-foot rowbtn" style=${{borderRadius: 0}} onClick=${() => go('me')}>
-          <${UI.Avatar} id=${ctx.uid} size=${36}/>
-          <div class="grow">
-            <div class="nm"><${UI.Name} id=${ctx.uid} fallback="You"/></div>
-            <div class="ti num">${(ctx.member && ctx.member.empId) || ''}${ctx.member && ctx.member.title ? ' · ' + ctx.member.title : ''}</div>
+        <div class="sfoot">
+          ${M.parts.FocusPill ? html`<${M.parts.FocusPill}/>` : null}
+          <div class="side-tools">
+            <button type="button" class="nv iconbtn bellbtn" aria-label="Inbox" data-t="Inbox" data-kb="i" style=${{'--j': j++}} onClick=${() => setInboxOpen(true)}>
+              <${M.icons.bell}/><span class="nl">Inbox</span><${Badge} n=${b.inbox || 0}/></button>
+            <button type="button" class="nv iconbtn sb-ai" aria-label="Ask m360" data-t="m360 AI" style=${{'--j': j++}} onClick=${() => askAt('')}>
+              <span class="sb-spark" aria-hidden="true">${SPARK}</span><span class="nl">m360 AI</span></button>
           </div>
-        </button>
+          <button type="button" class="nv side-ask" id="sAsk" data-t="Ask m360" data-kb=${mod} style=${{'--j': j++}} onClick=${e => openBar(e.currentTarget)}>
+            <${M.icons.search}/><span class="nl">Ask m360</span><kbd class="sb-kb">${mod}</kbd></button>
+          <button type="button" class="nv" id="sTog" data-t=${sbx ? 'Collapse' : 'Expand'} data-kb="[" aria-expanded=${sbx ? 'true' : 'false'} style=${{'--j': j++}}
+            onClick=${() => { if (M.chrome) M.chrome.sb.toggle(); }}>${panelIcon()}<span class="nl">${sbx ? 'Collapse' : 'Expand'}</span></button>
+          <button type="button" class="nv side-foot" data-t=${(meProf && meProf.name) || 'Me'} style=${{'--j': j++}} onClick=${() => go('me')}>
+            <${UI.Avatar} id=${ctx.uid} size=${24}/>
+            <span class="nl"><span class="nm">${meName}</span><small class="ti num">${meSub}</small></span>
+          </button>
+        </div>
       </aside>
 
-      <div class="topbar">
-        <${M.Mark} width="66px"/>
-        <div class="row nowrap" style=${{gap: '8px'}}>
-          ${M.parts.FocusPill ? html`<${M.parts.FocusPill} compact=${true}/>` : null}
-          <button type="button" class="iconbtn bellbtn" aria-label="Inbox" onClick=${() => setInboxOpen(true)}><${M.icons.bell}/><${Badge} n=${b.inbox || 0}/></button>
-          <button type="button" class="iconbtn" aria-label="Search" onClick=${() => setPalOpen(true)}><${M.icons.search}/></button>
-          <div class="new-wrap">
-            <button type="button" class="iconbtn new-trigger dark" aria-label="New" onClick=${() => setNewOpen(x => x === 'top' ? false : 'top')}><${M.icons.plus}/></button>
-            ${newMenu('top')}
-          </div>
-          <button type="button" class="rowbtn" style=${{width: 'auto'}} onClick=${() => go('me')} aria-label="Me">
-            <${UI.Avatar} id=${ctx.uid} size=${34}/></button>
+      <header class="topbar pbar lgx" id="pbar">
+        <button type="button" class="pm" aria-label="m360, back to top" onClick=${() => { if (M.mark) M.mark.spin(); if (M.chrome) M.chrome.glide(0); else window.scrollTo(0, 0); }}><${LiveMark}/></button>
+        <button type="button" class="where" aria-haspopup="dialog" aria-expanded=${moreOpen ? 'true' : 'false'} onClick=${() => setMoreOpen(true)}>
+          <span>${sec.label}</span><${M.icons.chevD}/></button>
+        ${M.parts.FocusPill ? html`<${M.parts.FocusPill} compact=${true}/>` : null}
+        <div class="new-wrap">
+          <button type="button" class="iconbtn new-trigger" aria-label="New" aria-expanded=${newOpen === 'top' ? 'true' : 'false'} onClick=${() => setNewOpen(x => x === 'top' ? false : 'top')}><${M.icons.plus}/></button>
+          ${newMenu('top')}
         </div>
-      </div>
+        <button type="button" class="iconbtn bellbtn" aria-label="Inbox" onClick=${() => setInboxOpen(true)}><${M.icons.bell}/><${Badge} n=${b.inbox || 0}/></button>
+        <button type="button" class="mbtn" onClick=${() => go('me')} aria-label="Me"><${UI.Avatar} id=${ctx.uid} size=${32}/></button>
+      </header>
 
-      <main class="main">
+      <main class="main" id="main">
         <div key=${r.s} class=${'content view' + (['work', 'accounts', 'hq'].indexOf(r.s) >= 0 ? ' wide' : '')}>
           <${PreviewBar}/>
           <${AlertBanner}/>
@@ -487,22 +567,25 @@
 
       ${M.parts.Buddy ? html`<${M.parts.Buddy}/>` : null}
 
-      <nav class="tabbar" style=${{'--tn': tabKeys.length + (moreKeys.length ? 1 : 0), '--ti': Math.max(0, tabKeys.indexOf(r.s) >= 0 ? tabKeys.indexOf(r.s) : (moreKeys.indexOf(r.s) >= 0 ? tabKeys.length : -1))}} data-mark=${tabKeys.indexOf(r.s) >= 0 || moreKeys.indexOf(r.s) >= 0 ? '1' : '0'}>
-        ${tabKeys.map(k => html`<button key=${k} type="button"
-          class=${'tab-item' + (r.s === k ? ' active' : '')} onClick=${() => { M.haptic.buzz('tick'); go(k); }}>
-          <${M.icons[SECTIONS[k].icon]}/><span>${SECTIONS[k].label}</span><${Badge} n=${b[k] || 0}/>
-        </button>`)}
-        ${moreKeys.length ? html`<button type="button" class=${'tab-item' + (moreKeys.indexOf(r.s) >= 0 ? ' active' : '')} onClick=${() => { M.haptic.buzz('tick'); setMoreOpen(true); }}>
-          <${M.icons.more}/><span>More</span><${Badge} n=${moreBadge}/>
-        </button>` : null}
+      <nav class="tabbar" id="tabbar" ref=${tabRef} aria-label="Tabs" style=${{'--tn': tabKeys.length + 1, '--ti': Math.max(0, ti)}} data-mark=${ti >= 0 ? '1' : '0'}>
+        <div class="tbg lgx"><span class="tb-lens" aria-hidden="true"></span>
+          ${tabKeys.map(k => html`<button key=${k} type="button" aria-current=${r.s === k ? 'page' : null}
+            class=${'tab-item ptab' + (r.s === k ? ' active' : '')} onClick=${() => { M.haptic.buzz('tick'); go(k); }}>
+            <${M.icons[SECTIONS[k].icon]}/><span>${SECTIONS[k].label}</span><${Badge} n=${b[k] || 0}/>
+          </button>`)}
+          <button type="button" class=${'tab-item ptab' + (moreOn ? ' active' : '')} aria-haspopup="dialog" onClick=${() => { M.haptic.buzz('tick'); setMoreOpen(true); }}>
+            <${M.icons.more}/><span>More</span>${moreBadge > 0 ? html`<i class="tdot" aria-label=${moreBadge + ' waiting'}></i>` : null}
+          </button>
+        </div>
+        <button type="button" class="tb-ask lgx" aria-label="Ask m360" onClick=${e => openBar(e.currentTarget)}><${M.icons.search}/></button>
       </nav>
 
-      <${UI.Drawer} open=${moreOpen} onClose=${() => setMoreOpen(false)} title="More">
-        <div class="stack tight">${moreKeys.map(item)}</div>
-      <//>
+      ${moreOpen ? html`<${PhoneMenu} groups=${menuGroups} active=${r.s} badges=${b} onGo=${go} onClose=${() => setMoreOpen(false)}/>` : null}
 
       ${askOpen && M.parts.Ask ? html`<${M.parts.Ask} initial=${askInitial} onClose=${() => { setAskOpen(false); setAskInitial(''); }}/>` : null}
-      ${palOpen && M.parts.Palette ? html`<${M.parts.Palette} onClose=${() => setPalOpen(false)} onAsk=${q => askAt(q)}/>` : null}
+      ${palOpen && M.parts.Palette ? (isl && window.ReactDOM && window.ReactDOM.createPortal
+        ? window.ReactDOM.createPortal(html`<${M.parts.Palette} island=${true} onClose=${() => setPalOpen(false)} onAsk=${q => askAt(q)}/>`, isl.slot())
+        : html`<${M.parts.Palette} onClose=${() => setPalOpen(false)} onAsk=${q => askAt(q)}/>`) : null}
       ${inboxOpen && M.parts.Inbox ? html`<${M.parts.Inbox} onClose=${() => setInboxOpen(false)}/>` : null}
       ${keysOpen ? html`<${Keys} onClose=${() => setKeysOpen(false)}/>` : null}
       ${M.parts.FocusHost ? html`<${M.parts.FocusHost}/>` : null}
@@ -516,6 +599,7 @@
       ${M.parts.ChatWatch ? html`<${M.parts.ChatWatch}/>` : null}
       ${M.parts.InboxWatch ? html`<${M.parts.InboxWatch}/>` : null}
       ${M.parts.PmWatch ? html`<${M.parts.PmWatch}/>` : null}
+      ${M.parts.LiveWatch ? html`<${M.parts.LiveWatch}/>` : null}
       <${NewerBuild}/>
       ${M.parts.Notices ? html`<${M.parts.Notices}/>` : null}
       ${M.parts.MusicDock ? html`<${M.parts.MusicDock}/>` : null}
@@ -542,11 +626,12 @@
   M.SectionHero = function SectionHero({color, micro, title, sub, children, right}) {
     const phone = M.usePhone();
     const mk = M.map && !phone && title !== 'What\'s in m360' ? M.map.keyFor(title) : '';
-    return html`<header class=${'hero section-hero' + (color === 'ink' ? ' ink' : '')} style=${{padding: phone ? '16px 18px' : '24px 26px 22px'}}>
+    /* v40: size and padding come from the CSS (48px title, flame full stop; 36px on a phone) */
+    return html`<header class=${'hero section-hero' + (color === 'ink' ? ' ink' : '')}>
       <div class="row between" style=${{alignItems: 'flex-start'}}>
         <div class="grow">
           ${micro ? html`<${UI.Micro}>${micro}<//>` : null}
-          <h1 class="hi" style=${{fontSize: 'clamp(30px,4vw,46px)'}}>${title}</h1>
+          <h1 class="hi">${title}</h1>
           ${sub && !phone ? html`<div class="sub" style=${{marginTop: '10px', maxWidth: '60ch'}}>${sub}</div>` : null}
           ${mk ? html`<button type="button" class="linky tiny hero-map" onClick=${() => M.nav('#map/' + mk)}>What's in ${title}</button>` : null}
         </div>

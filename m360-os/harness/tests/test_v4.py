@@ -124,7 +124,8 @@ def t(h):
     p.locator('.lens').get_by_role('button', name='45 min').click()
     p.get_by_role('button', name='Start 45 minutes').click()
     p.wait_for_selector('#focus-pill')
-    p.locator('.side-tools').get_by_role('button', name='Focus timer').click()
+    # v40: the sidebar keeps Inbox and m360 AI; the focus timer opens from its key (and the Home quick button)
+    p.keyboard.press('f')
     p.get_by_role('button', name='Done early').click()
     p.wait_for_function('() => (((window.__db.get("me/u_m1") || {}).focus || {}).sessions || []).length === 1')
     p.wait_for_function('() => !document.querySelector(".drawer")')
@@ -221,8 +222,10 @@ def t(h):
     # ---- phone ----
     h.go(p, 'm1', hash='#home', width=390)
     p.wait_for_selector('.topbar .bellbtn')
-    p.locator('.topbar').get_by_role('button', name='Search').click()
+    # v40: on a phone the round Ask button by the tab bar opens the Ask bar in the island
+    p.locator('.tabbar .tb-ask').click()
     p.wait_for_selector('#pal-input')
+    p.wait_for_timeout(900)  # the island springs to its width
     box = p.locator('.pal').bounding_box()
     check(box['x'] >= 0 and box['x'] + box['width'] <= 390, 'palette off screen')
     p.keyboard.press('Escape')

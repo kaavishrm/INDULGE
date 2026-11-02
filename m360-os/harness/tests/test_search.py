@@ -263,7 +263,8 @@ def t(h):
     # ---- 390: the search drawer fits, no sideways scroll ----
     h.go(p, 'm1', hash='#home', width=390)
     p.wait_for_selector('.topbar .bellbtn')
-    p.locator('.topbar').get_by_role('button', name='Search').click()
+    # v40: on a phone the round Ask button by the tab bar opens the Ask bar in the island
+    p.locator('.tabbar .tb-ask').click()
     p.wait_for_selector('#pal-input')
     p.fill('#pal-input', 'swisse')
     p.wait_for_selector('.pal-item.more')

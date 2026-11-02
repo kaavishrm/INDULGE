@@ -138,9 +138,18 @@ M.boot = async function boot() {
 /* ---------- toasts ---------- */
 const toastListeners = new Set();
 let toastSeq = 0;
+/* v40: every toast lands in the island (02-z-chrome.js): a white check, or the flame mark when it needs a
+   look. A build without the island (an isolated module build) keeps the old row at the bottom */
+const islandUp = () => !!(M.island && M.island.toast);
 M.toast = (msg, isErr) => {
+  if (islandUp()) { M.island.toast(String(msg), !!isErr); return; }
   const t = {id: ++toastSeq, msg: String(msg), err: !!isErr};
   toastListeners.forEach(fn => fn(t));
+};
+/* a confirmation with a way back: the island's UNDO, or a plain toast where there is no island */
+M.undoToast = (msg, caption, undoFn) => {
+  if (M.island && M.island.confirm) { M.island.confirm(String(msg), caption || 'done', undoFn); return; }
+  M.toast(msg);
 };
 M.ToastHost = function ToastHost() {
   const [items, setItems] = React.useState([]);
@@ -153,6 +162,7 @@ M.ToastHost = function ToastHost() {
     toastListeners.add(on);
     return () => toastListeners.delete(on);
   }, []);
+  if (islandUp()) return null;
   return html`<div class="toasts" aria-live="polite">
     ${items.map(t => html`<div key=${t.id} class=${'toast' + (t.err ? ' err' : '') + (t.msg.indexOf('\n') >= 0 ? ' multi' : '')}>${t.msg}</div>`)}
   </div>`;

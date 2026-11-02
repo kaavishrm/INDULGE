@@ -24,7 +24,8 @@ import test_motion as TM  # noqa: E402
 
 SCRATCH = '''(props) => {
   let root = document.getElementById('fx-scratch');
-  if (!root) { root = document.createElement('div'); root.id = 'fx-scratch'; document.body.appendChild(root); }
+  /* v40: the glass sidebar is fixed over the left edge, so the scratch sits clear of it */
+  if (!root) { root = document.createElement('div'); root.id = 'fx-scratch'; root.style.paddingLeft = '140px'; document.body.appendChild(root); }
   if (!window.__fxRoot) window.__fxRoot = ReactDOM.createRoot(root);
   window.__fxRoot.render(M.html`<div>
     <${M.Thinking} label="Looking at your screen"/>
@@ -136,7 +137,8 @@ def test(h):
 
     # ---- Home: nothing on the page is drawn in metal; the New button keeps the sidebar's full width ----
     check(p.evaluate('() => document.querySelectorAll(".metal-fx-root, canvas.metal-fx-canvas, .metal-badge-host").length') == 0, 'no metal anywhere on Home')
-    neww = p.evaluate('() => { const b = document.querySelector(".sidebar .btn.new-trigger"); const s = b && b.closest(".sidebar"); if (!b || !s) return null; const pad = parseFloat(getComputedStyle(b.closest(".metal-host").parentElement).paddingLeft) || 0; return [Math.round(b.getBoundingClientRect().width), Math.round(b.closest(".metal-host").parentElement.getBoundingClientRect().width - 2 * pad)]; }')
+    # v40: New is the sidebar's first row (an ink round button with its name beside it)
+    neww = p.evaluate('() => { const b = document.querySelector(".sidebar .new-trigger"); const w = b && b.closest(".sb-new"); if (!b || !w) return null; return [Math.round(b.getBoundingClientRect().width), Math.round(w.getBoundingClientRect().width)]; }')
     check(neww and abs(neww[0] - neww[1]) <= 2, 'the New button fills the sidebar row as before: %r' % neww)
     # v31: the thought is decorative, so it no longer carries a beam (one moving thing per view)
     check(not p.evaluate('() => document.getElementById("quote-card").parentElement.hasAttribute("data-beam")'), 'the thought sits still, without a beam')

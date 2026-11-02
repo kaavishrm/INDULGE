@@ -58,8 +58,10 @@ def part(h):
     h.go(p, 'founder', hash='#home', width=390)
     p.wait_for_selector('.tabbar')
     p.locator('.tabbar .tab-item:has-text("More")').click()
-    p.wait_for_selector('.drawer:has-text("What\'s here")')
+    # v40: More opens the full screen glass menu
+    p.wait_for_selector('.pmenu:has-text("What\'s here")')
     p.keyboard.press('Escape')
+    p.wait_for_function('() => !document.querySelector(".pmenu")')
     h.go(p, 'founder', hash='#map', width=390)
     p.wait_for_selector('#map')
     p.wait_for_timeout(300)

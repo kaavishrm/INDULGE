@@ -1,4 +1,5 @@
-/* module: notices. Small cards in the top right corner, the way a phone shows a message: who, and a line
+/* module: notices. Small black cards that drop from the island at the top of the canvas (v40), the way a
+   phone shows a message: who, and a line
    of what, unless previews are off (Me, Prefs), in which case only who. A tap opens the thing. They stack,
    they slide away after a few seconds, and when the tab is hidden the same notice goes out of the page:
    in the m360 desktop app as its own card over every other window (black, the flame logo, our type; see
@@ -75,14 +76,15 @@
     useEffect(() => { const un = M.notices.on(setItems); setItems(list); return un; }, []);
     if (!items.length) return null;
     const previews = M.notices.previews();
-    /* black in both themes, the flame logo in a circle (the person's face tucked on it when a person sent
-       it), the title and the line; a thin flame line runs down the notice's life. As compact as a phone's
-       banner, so it covers as little of the page under it as it can */
+    /* v40: island notices. Black in both themes, dropping from the island at the top of the canvas: the
+       person's face when a person sent it, the flame news dot when the OS did, the title and the line; a
+       thin flame line runs down the notice's life. They stack, a tap goes to the thing */
     return html`<div class="notices" id="notices" aria-live="polite">
       ${items.map(n => html`<div key=${n.id} class=${'notice' + (n.bot ? ' is-bot' : '')} data-key=${n.key || ''} role="status" style=${{'--life': (n.life || LIFE) + 'ms'}}>
         <button type="button" class="notice-body" onClick=${() => { M.notices.dismiss(n.id); if (n.href) M.nav(n.href); }}>
           ${n.bot && M.fx && M.fx.Bot ? html`<span class="notice-logo notice-bot" aria-hidden="true"><${M.fx.Bot} type="pill" size=${30} label="bot"/></span>`
-            : html`<span class="notice-logo" aria-hidden="true"><${M.Mark} width="23px"/>${n.who ? html`<span class="notice-who"><${UI.Avatar} id=${n.who} size=${16}/></span>` : null}</span>`}
+            : n.who ? html`<span class="notice-logo notice-face" aria-hidden="true"><${UI.Avatar} id=${n.who} size=${32}/></span>`
+            : html`<span class="notice-logo notice-ev" aria-hidden="true"><i></i></span>`}
           <span class="grow" style=${{minWidth: 0}}>
             <span class="notice-title">${n.title}</span>
             <span class="notice-text">${previews ? (n.body || '') : (n.hidden || 'New message')}</span>
