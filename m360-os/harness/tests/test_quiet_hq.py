@@ -106,6 +106,7 @@ def test(h):
     h.seed_doc(p, 'leavedec/' + M3, {'d': {'L1': {'status': 'approved', 'by': F, 'at': at(mon, 18, 30)}}})
 
     # ---- HQ at 1280 ----
+    p.evaluate('() => sessionStorage.setItem("m360.hqmore", "1")')  # v40: HQ opens on Command; the brief, the tape and the setup sit under "more from HQ"
     p.goto(h.url('founder', '#hq', seed=True))
     h.ready(p)
     p.wait_for_selector('#quiet-board #qb-u_m1')
@@ -172,6 +173,7 @@ def test(h):
     check(True, 'a row opens the person')
 
     # ---- the AI knows ----
+    p.evaluate('() => sessionStorage.setItem("m360.hqmore", "1")')  # v40: HQ opens on Command; the brief, the tape and the setup sit under "more from HQ"
     p.goto(h.url('founder', '#hq', seed=True))
     h.ready(p)
     p.wait_for_selector('#quiet-board #qb-u_m1')
@@ -229,6 +231,7 @@ def test(h):
 
     # ---- phone, 390 wide ----
     p.set_viewport_size({'width': 390, 'height': 844})
+    p.evaluate('() => sessionStorage.setItem("m360.hqmore", "1")')  # v40: HQ opens on Command; the brief, the tape and the setup sit under "more from HQ"
     p.goto(h.url('founder', '#hq', seed=True))
     h.ready(p)
     p.wait_for_selector('#fold-quiet')

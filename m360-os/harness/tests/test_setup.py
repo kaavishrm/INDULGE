@@ -24,6 +24,8 @@ def t(h):
         return p.evaluate('window.__db.get("settings/app")')
 
     p = h.session('founder', width=1280, hash='#hq', reset=True, seed=True, geo=GEO)
+    # v40: HQ opens on Command; the checklist sits under "more from HQ", which stays open for the session
+    p.click('#hq-more')
     p.wait_for_selector('#setup-card')
     card = p.inner_text('#setup-card')
     check('Get m360 ready' in card and '1 of 6 done' in card, 'setup card: ' + card[:200])

@@ -1,7 +1,9 @@
-/* module: buddy. The m360 buddy lives in the dock, bottom right: a small flame droid that idles, looks
-   at your pointer, naps when you have been away, hops when something new is for you, and wears its
-   headphones while it listens. Click it and the panel grows out of it (57-panel.js); hold it, or hold
-   Ctrl + Option anywhere, and talk, and let go to send. Conversation mode keeps listening after each
+/* module: buddy. m360 AI: the panel, the voice, the pointing and the tour. v40: the v7 design has no
+   character on the screen, so the dock in the corner is gone (it stays in the markup, hidden, for the
+   panel's anchor) and nothing rides the cursor. Ask m360 opens it: the sidebar's m360 AI, the Ask bar's
+   "Ask m360" row, the phone's Ask; hold Ctrl + Option anywhere and talk, and let go to send. When an
+   answer or the tour points at a control, the flame ring lands on it and the live mark looks at it.
+   The rest is as before: the panel grows at the corner (57-panel.js). Conversation mode keeps listening after each
    answer until you stop it, go quiet, or leave the tab. Claude reads a map of what is on screen plus
    your work data, answers in the panel (a short line out loud when you spoke), and the pointer flies
    out of the dock to the exact control, rings it, and, when you ask, clicks or types for you. It never
@@ -239,8 +241,9 @@
     const brief = M.cooUi && ctx.isFounder ? M.cooUi.briefOf(ctx, M.cooUi.rowsOf(coo)) : null;
     const briefDay = brief ? M.cooUi.ymdIST(brief.at) : '';
     const [briefRead, setBriefRead] = useState(() => pref('cooDigestRead', ''));
-    const ride = pref('buddyRide', '0') === '1' && !phone;
-    const showDock = pref('dockShow', '1') !== '0' && pref('dockHidden', '') !== U.todayStr();
+    /* v40: no character on the screen: nothing rides the cursor and the corner dock stays hidden */
+    const ride = false;
+    const showDock = false;
     const talkKey = pref('talkKey', 'ctrlopt');
     const pointerRef = useRef(null);
     const trailRef = useRef([]);
@@ -416,16 +419,12 @@
       return () => { cancelAnimationFrame(raf); window.removeEventListener('pointermove', move); window.removeEventListener('mousemove', move); };
     }, [phone, open, step]);
 
-    /* a flight: an arc to the spot, eased, interruptible by the next flight */
+    /* a flight: v40 has no pointer on the screen, so it lands at once (the ring and the live mark point) */
     const fly = useCallback((x, y) => new Promise(res => {
       pinned.current = true;
       pinAt.current = {x: mouse.current.x - 16, y: mouse.current.y - 14};
-      const el = pointerRef.current;
       if (flight.current) flight.current.res();
-      if (!el || reduced()) { pos.current = {x, y}; flight.current = null; res(); return; }
-      const d = Math.hypot(x - pos.current.x, y - pos.current.y);
-      el.classList.add('flying');
-      flight.current = {x0: pos.current.x, y0: pos.current.y, x1: x, y1: y, t0: performance.now(), T: Math.max(360, Math.min(900, 300 + d * .55)), arc: Math.min(70, d * .18), res};
+      pos.current = {x, y}; flight.current = null; res();
     }), []);
     const goOut = on => { outRef.current = on; setOut(on); };
     /* home again: the pointer flies back into the dock, the panel unfolds */
@@ -457,6 +456,7 @@
       if (g !== tourRun.current) return;
       const r = el.getBoundingClientRect();
       target.current = el;
+      if (M.mark && M.mark.lookAt) M.mark.lookAt(el, 2200);
       /* the ring over the panel: the panel folds to its head while it points */
       const panel = document.querySelector('.buddy-bubble.agent-pop');
       if (panel) {
@@ -1010,10 +1010,10 @@
     const digest = !introNode && briefDay && briefRead !== briefDay && M.parts.CooDigest ? html`<div class="msg panel-intro"><${M.parts.CooDigest} live=${coo} compact=${true}
       onDone=${() => { M.prefs.set('cooDigestRead', briefDay); setBriefRead(briefDay); }}/></div>` : null;
     const panelProps = {initial, intro: introNode || digest, talk, conv, onConv: () => conv ? endConv('toggle') : startConv(), onClose: () => { if (intro && intro.kind === 'welcome') M.tour.mark(ctx, 'asked'); closePanel(); },
-      onHide: () => { M.prefs.set('dockHidden', U.todayStr()); setPrefsN(n => n + 1); closePanel(); M.toast('The dock is hidden for today. The talk key and the spark still open it.'); },
       botState, folded, onUnfold: () => setFolded(false), closing, onTour: startTour, iosTap: iOS(),
       title: intro && intro.kind === 'hello' ? 'Hello' : intro && intro.kind === 'welcome' ? 'Hello' : ''};
-    const showPointer = ride ? !phone : (out || step >= 0);
+    /* v40: the pointer stays hidden; the ring and the live mark do the pointing */
+    const showPointer = false;
 
     return html`<div class="buddy-root" data-prefs=${prefsN}>
       ${ride && !phone ? html`<div ref=${el => { trailRef.current[1] = el; }} class="buddy-trail"/><div ref=${el => { trailRef.current[0] = el; }} class="buddy-trail"/>` : null}
@@ -1061,8 +1061,7 @@
     const pressed = k === 'dockShow' ? onPref(k, d) && pref('dockHidden', '') !== U.todayStr() : onPref(k, d);
     return html`<div class="row between dock-pref">
       <span>${label}</span>
-      ${M.fx.has() || M.parts.BellToggle ? html`<${M.fx.Bell} id=${id} size="sm" label=${label} offLabel=${offLabel} onLabel=${onLabel} pressed=${pressed} onChange=${v => { set(k, v ? '1' : '0'); if (extra) extra(v); }}/>`
-        : html`<${UI.Seg} sm=${true} options=${[{v: 'on', label: 'On'}, {v: 'off', label: 'Off'}]} value=${pressed ? 'on' : 'off'} ariaLabel=${label} onChange=${v => { set(k, v === 'on' ? '1' : '0'); if (extra) extra(v === 'on'); }}/>`}
+      <span id=${id}><${UI.Seg} sm=${true} options=${[{v: 'on', label: onLabel || 'On'}, {v: 'off', label: offLabel || 'Off'}]} value=${pressed ? 'on' : 'off'} ariaLabel=${label} onChange=${v => { set(k, v === 'on' ? '1' : '0'); if (extra) extra(v === 'on'); }}/></span>
     </div>`;
   }
   function DockPrefs() {
@@ -1070,10 +1069,8 @@
     const [, setN] = useState(0);
     const set = (k, v) => { M.prefs.set(k, v); setN(n => n + 1); try { window.dispatchEvent(new CustomEvent('m360:dockprefs')); } catch (e) { /* none */ } };
     if (!ctx.member) return null;
-    return html`<${UI.Card} id="dock-prefs" title="Talking to m360" action=${M.fx && M.fx.Bot ? html`<${M.fx.Bot} type="droid" size=${32} label="m360, the buddy" className="ai-bot"/>` : null}>
+    return html`<${UI.Card} id="dock-prefs" title="Talking to m360">
       <div class="stack tight">
-        <${Toggle} set=${set} id="dock-show" label="Show the buddy in the corner" k="dockShow" d="1" offLabel="Hidden" onLabel="Shown" extra=${v => { if (v) M.prefs.set('dockHidden', ''); }}/>
-        ${coarse() && !fine() ? null : html`<${Toggle} set=${set} id="dock-ride" label="Ride next to my cursor" k="buddyRide" d="0" offLabel="Stays in the dock" onLabel="Rides along"/>`}
         <${Toggle} set=${set} id="dock-speak" label="Speak answers when I talk" k="buddyVoice" d="1" offLabel="Quiet" onLabel="Speaks"/>
         <${Toggle} set=${set} id="dock-follow" label="Keep listening a moment after an answer" k="buddyFollow" d="1" offLabel="Stops after" onLabel="Listens on"/>
         <div class="row between dock-pref"><span>Talk key</span>
