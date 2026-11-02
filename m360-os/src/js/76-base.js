@@ -739,7 +739,6 @@
   }
 
   /* ---------- small parts ---------- */
-  const Mini = ({v, l, hot}) => html`<span class="chipline"><b class=${'num' + (hot ? ' flame-t' : '')}><${M.fx.MetalText} size=${15} weight=${700} color=${hot ? M.fx.FLAME : undefined}>${String(v)}<//></b> ${l}</span>`;
   const Chip = ({on, onClick, children, id}) => html`<button type="button" id=${id} class=${'chip' + (on ? ' on' : '')} aria-pressed=${!!on} onClick=${onClick}>${children}</button>`;
   const Initials = ({name, size}) => html`<span class="bs-av" style=${size ? {width: size + 'px', height: size + 'px'} : null} aria-hidden="true">${initials(name)}</span>`;
   const StagePill = ({stage}) => stage ? html`<${UI.Pill} kind=${STAGE_PILL[stage]}>${stage}<//>` : null;
@@ -1366,11 +1365,11 @@
       <//>` : null}
       ${summary ? html`<${UI.Card} title="Imported" id="import-summary" flame=${true}>
         <div class="grid4 two bs-sum">
-          <div class="kpi"><span class="v num"><${M.fx.MetalText} size=${30} weight=${600}>${String(summary.added)}<//></span><span class="l">new people</span></div>
+          <div class="kpi"><span class="v num">${summary.added}</span><span class="l">new people</span></div>
           <div class="kpi"><span class="v num">${summary.updated}</span><span class="l">updated</span></div>
           <div class="kpi"><span class="v num">${summary.unchanged}</span><span class="l">unchanged</span></div>
-          <div class="kpi"><span class="v num"><${M.fx.MetalText} size=${30} weight=${600}>${String(summary.orgsNew)}<//></span><span class="l">new companies</span></div>
-          <div class="kpi"><span class="v num"><${M.fx.MetalText} size=${30} weight=${600}>${String(summary.mapped)}<//></span><span class="l">mapped to clients</span></div>
+          <div class="kpi"><span class="v num">${summary.orgsNew}</span><span class="l">new companies</span></div>
+          <div class="kpi"><span class="v num">${summary.mapped}</span><span class="l">mapped to clients</span></div>
           <div class="kpi"><span class="v num">${summary.skipped.length}</span><span class="l">skipped</span></div>
         </div>
         ${summary.skipped.length ? html`<div class="small ink62" style=${{marginTop: '12px'}}>Skipped: ${summary.skipped.slice(0, 12).map(s => 'row ' + s.row + ' (' + s.reason + ')').join(', ')}</div>` : null}
@@ -1393,16 +1392,15 @@
     const t = tab || 'people';
     const st = useStats();
     useAutoMap(ctx);
-    return html`<div class="stack" style=${{gap: '20px'}}>
+    /* v40: the design's page head (a label, the title with its flame stop, the lede with the live numbers) */
+    return html`<div class="sect">
       <${M.SectionHero} micro="the database" title="Base" sub="Everyone we know, who we know them through, and what we do with them.">
-        <div class="row" style=${{gap: '8px'}}>
-          <${Mini} v=${st.people} l="people"/>
-          <${Mini} v=${st.companies} l="companies"/>
-          <${Mini} v=${st.mapped} l="mapped to clients"/>
-        </div>
+        <p class="lede"><span class="lede-n"><b class="num">${st.people}</b> people, <b class="num">${st.companies}</b> companies, <b class="num">${st.mapped}</b> mapped to clients.</span></p>
       <//>
       <${M.SectionTabs} section="base" active=${t}/>
-      ${t === 'companies' ? html`<${Companies} id=${id}/>` : t === 'import' ? html`<${Import}/>` : html`<${People} id=${id}/>`}
+      <div class="sect-body">
+        ${t === 'companies' ? html`<${Companies} id=${id}/>` : t === 'import' ? html`<${Import}/>` : html`<${People} id=${id}/>`}
+      </div>
     </div>`;
   }
 

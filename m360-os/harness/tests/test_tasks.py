@@ -75,7 +75,7 @@ def test(h):
         'archived': False, 'by': 'u_founder', 'created': now})
     page.wait_for_timeout(250)
 
-    assert page.inner_text('.pgt').strip() == 'My tasks'
+    assert page.inner_text('.pgt').strip().lower() == 'my tasks'  # v40: the section head sets it in lowercase
     assert page.locator('.colm').count() == 4, 'four columns'
     heads = [t.strip() for t in page.locator('.col-head').all_inner_texts()]
     assert len(heads) == 4 and all('0' in t for t in heads), heads

@@ -86,14 +86,14 @@
   };
 
   /* ---------- founder metrics bar ---------- */
-  /* the founder's figures; one headline is cast in metal and the rest stay plain; members never get this bar */
-  function Tile({id, v, l, flame, metal}) {
+  /* the founder's figures as the design's number tiles: a rule on top (flame when it needs you), the number, the label;
+     members never get this bar */
+  function Tile({id, v, l, flame}) {
     const nil = v == null;
-    return html`<${UI.Card} id=${id}><div class="kpi">
-      <div class=${'v num' + (flame ? ' flame-t' : '') + (nil ? ' nil' : '')}>${nil ? 'not yet'
-        : metal ? html`<${M.fx.MetalText} key=${String(v)} size=${26} weight=${600} color=${flame ? 'var(--flame)' : undefined}>${String(v)}<//>` : String(v)}</div>
+    return html`<div id=${id} class=${'kpi' + (flame ? ' hot' : '')}>
       <div class="l">${l}</div>
-    </div><//>`;
+      <div class=${'v num' + (flame ? ' flame-t' : '') + (nil ? ' nil' : '')}>${nil ? 'not yet' : String(v)}</div>
+    </div>`;
   }
 
   function MetricsBar({m}) {
@@ -101,17 +101,15 @@
     const od = m.overdue.length;
     return html`<${React.Fragment}>
       <div class="kpi-rail">
-        ${m.money ? html`<${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline" metal=${true}/>` : null}
+        ${m.money ? html`<${Tile} id="kpi-weighted" v=${U.inr(m.weighted)} l="weighted pipeline"/>` : null}
         <${Tile} id="kpi-open" v=${inPlay} l=${inPlay === 1 ? 'pitch in play' : 'pitches in play'}/>
         <${Tile} id="kpi-win" v=${m.winRate90 == null ? null : m.winRate90 + '%'} l="win rate, 90 days"/>
         <${Tile} id="kpi-overdue" v=${od} l=${od === 1 ? 'next step overdue' : 'next steps overdue'} flame=${od > 0}/>
       </div>
-      <${UI.Card} title="Count by stage" id="stage-counts">
-        <div class="row stage-counts">
-          ${STAGES.map(s => html`<span key=${s.v} class=${'stage-count' + (m.byStage[s.v].count ? '' : ' sub')}>
-            ${s.label} <span class="num">${m.byStage[s.v].count}</span></span>`)}
-        </div>
-      <//>
+      <div class="row stage-counts" id="stage-counts">
+        ${STAGES.map(s => html`<span key=${s.v} class=${'pill stage-count' + (m.byStage[s.v].count ? ' warm' : '')}>
+          ${s.label} <b class="num">${m.byStage[s.v].count}</b></span>`)}
+      </div>
     <//>`;
   }
 
@@ -134,22 +132,22 @@
     const od = isOverdue(p, today);
     const value = founder ? valueOf(fe) : 0;
     const won = stageOf(p).v === 'won';
-    const card = html`<button type="button" class="tcard" style=${{fontWeight: 300}} data-pitch=${p.id}
+    /* v40: the design's card (B1 .tk); the pitch whose next step is most overdue carries the flame line, one card only */
+    return html`<button type="button" class=${'tcard tk' + (beam ? ' due' : '')} data-pitch=${p.id}
       aria-label=${'Open ' + (p.brand || 'pitch')} onClick=${() => onOpen(p.id)}>
-      ${won ? html`<span class="row between nowrap"><span class="t">${p.brand || 'Untitled'}</span><${M.fx.MetalBadge}>won<//></span>` : html`<span class="t">${p.brand || 'Untitled'}</span>`}
-      ${p.category ? html`<span class="small sub">${p.category}</span>` : null}
-      <span class="row between nowrap">
-        <span class="row nowrap"><${UI.Avatar} id=${p.owner} size=${22}/><span class="tiny num sub">${daysText(days)}</span></span>
-        ${value > 0 ? html`<span class="small num">${U.inr(value)}</span>` : null}
-      </span>
-      ${(p.next || p.nextDate) ? html`<span class="row between nowrap">
-        <span class="small grow" style=${{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>${p.next || 'Next step'}</span>
-        ${p.nextDate ? html`<span class=${'tiny num' + (od ? ' flame-t' : ' sub')}>${U.fmtDay(p.nextDate)}</span>` : null}
+      <span class="t tk-t">${p.brand || 'Untitled'}</span>
+      ${p.category || won || value > 0 ? html`<span class="tk-m">
+        ${won ? html`<${UI.Pill} kind="ink">won<//>` : null}
+        ${p.category ? html`<${UI.Pill} kind="warm">${p.category}<//>` : null}
+        ${value > 0 ? html`<${UI.Pill}>${U.inr(value)}<//>` : null}
       </span>` : null}
+      ${(p.next || p.nextDate) ? html`<span class="tk-o">
+        <span class="grow tk-n">${p.next || 'Next step'}</span>
+        ${p.nextDate ? html`<span class=${'tn' + (od ? ' flt flame-t' : '')}>${U.fmtDay(p.nextDate)}</span>` : null}
+      </span>` : null}
+      <span class="tk-o"><${UI.Avatar} id=${p.owner} size=${22}/><span class="grow">${daysText(days)}</span></span>
       <${SendLine} p=${p}/>
     </button>`;
-    /* the pitch whose next step is most overdue carries the beam, one card only */
-    return beam ? html`<${M.fx.Beam} radius=${14}>${card}<//>` : card;
   }
 
   function Board({ctx, all, fin, onOpen}) {
@@ -167,16 +165,16 @@
       const x = col.getBoundingClientRect().left - wrap.getBoundingClientRect().left + wrap.scrollLeft;
       if (x > wrap.clientWidth * 0.5) wrap.scrollTo({left: x - 6, behavior: 'auto'});
     }, [filled]);
-    return html`<${UI.Card}><div class="board-wrap" ref=${wrapRef}><div class="board">
+    return html`<div class="board-wrap board pboard" ref=${wrapRef}>
       ${STAGES.map(s => {
         const list = all.filter(p => stageOf(p).v === s.v).sort(sortCol);
-        /* an empty stage folds to its heading and count */
-        return html`<div class=${'colm' + (list.length ? '' : ' empty')} key=${s.v} data-stage=${s.v}>
-          <div class="col-head"><span>${s.label}</span><span class="num">${list.length}</span></div>
-          ${list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${hasMoney(ctx)} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)}
+        return html`<div class=${'colm col' + (list.length ? '' : ' empty')} key=${s.v} data-stage=${s.v}>
+          <div class="col-head col-h"><span>${s.label}</span><span class="num">${list.length}</span></div>
+          ${list.length ? list.map(p => html`<${PitchCard} key=${p.id} p=${p} fe=${fin[p.id]} founder=${hasMoney(ctx)} today=${today} now=${now} onOpen=${onOpen} beam=${p.id === hottest}/>`)
+            : html`<div class="col-e">Nothing here</div>`}
         </div>`;
       })}
-    </div></div><//>`;
+    </div>`;
   }
 
   /* ---------- drawer ---------- */
@@ -335,7 +333,7 @@
       ${actions}
       <${UI.Btn} disabled=${!canSave} onClick=${save}>${isNew ? 'Create pitch' : 'Save'}<//>
     <//>`;
-    const stagePill = pitch ? (won ? html`<span class="pill ink metal-pill"><${M.fx.MetalBadge}>${stageOf(pitch).label}<//></span>` : html`<${UI.Pill} kind=${stageOf(pitch).v === 'lost' ? 'flame' : undefined}>${stageOf(pitch).label}<//>`) : null;
+    const stagePill = pitch ? (won ? html`<${UI.Pill} kind="ink">${stageOf(pitch).label}<//>` : html`<${UI.Pill} kind=${stageOf(pitch).v === 'lost' ? 'flame' : undefined}>${stageOf(pitch).label}<//>`) : null;
     const stageProb = stageOf({stage: f.stage}).prob;
 
     return html`<${UI.Drawer} open=${true} onClose=${onClose} title=${isNew ? 'New pitch' : 'Pitch'} head=${stagePill} footer=${footer}>

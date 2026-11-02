@@ -707,9 +707,8 @@
     const hotId = ids.find(x => health(ctx, x).level === 'risk') || ids.find(x => health(ctx, x).level === 'watch') || null;
 
     return html`<div class="stack" style=${{gap: '18px'}}>
-      <${UI.PageHead} micro="client brains" title="Clients">
-        <${M.fx.Bot} feature="clients" size=${40} label="m360, client brains" className="ai-bot"/>
-        <${UI.Btn} id="client-new" onClick=${() => setOpen('new')}>New client<//>
+      <${UI.PageHead} micro=${allIds.length + (allIds.length === 1 ? ' client' : ' clients')} title="Clients">
+        <${UI.Btn} id="client-new" onClick=${() => setOpen('new')}><${M.icons.plus}/>New client<//>
       <//>
       <div class="row between" style=${{gap: '10px'}}>
         <label class="talk-search grow">
@@ -726,33 +725,33 @@
           const s = sh[id];
           const h = health(ctx, id);
           const fresh = c.created && Date.now() - c.created < 21 * 86400000;
-          const card = html`<button type="button" class="card rowbtn" key=${id} data-client=${id} onClick=${() => setOpen(id)}
-            style=${{cursor: 'pointer'}}>
-            <div class="row between nowrap">
-              <span class="cl-title grow"><${Logo} id=${id} client=${c} sm=${true}/><span class="nm">${c.name}</span></span>
-              ${fresh ? html`<${M.fx.MetalBadge}>new<//>` : null}
+          /* v40: the design's client card (B1 .card.cl-c); the one client most in need of a look carries the flame line */
+          return html`<button type="button" class=${'card lift cl-c rowbtn' + (id === hotId ? ' due' : '')} key=${id} data-client=${id} onClick=${() => setOpen(id)}>
+            <div class="cl-top">
+              <${Logo} id=${id} client=${c} sm=${true}/>
+              <h3 class="grow">${c.name}</h3>
+            </div>
+            <div class="cl-pills">
+              ${fresh ? html`<${UI.Pill} kind="ink">new<//>` : null}
               <span class="pill" data-kind=${kindOf(ctx, id)}>${kindOf(ctx, id) === 'project' ? 'project' : 'retainer'}</span>
               <${UI.Pill} kind=${STATUS_PILL[c.status]}>${c.status || 'live'}<//>
+              <span class=${'pill ' + HEALTH[h.level].pill} title=${h.why} data-health=${h.level}>${HEALTH[h.level].label}</span>
             </div>
-            <div class="row small ink62" style=${{marginTop: '8px'}}>
+            <div class="cl-line">
+              ${c.owner ? html`<${UI.Avatar} id=${c.owner} size=${22}/>` : null}
               ${c.industry ? html`<span>${c.industry}</span>` : null}
               ${c.pod ? html`<span>${c.pod}</span>` : null}
-              ${c.owner ? html`<${UI.Avatar} id=${c.owner} size=${22}/>` : null}
               <span class="num">${openTaskCount(ctx, id)} open tasks</span>
+              <span class=${'num' + (comp.filled < comp.total ? ' flt' : '')}>${comp.filled} of ${comp.total} fields</span>
             </div>
-            <div class="row" style=${{marginTop: '10px'}}>
-              <span class=${'pill ' + HEALTH[h.level].pill} title=${h.why} data-health=${h.level}>${HEALTH[h.level].label}</span>
-              <span class=${'small num' + (comp.filled < comp.total ? ' flame-t' : '')}>${comp.filled} of ${comp.total} fields</span>
-              <span class="tiny ink62">updated ${c.updated ? U.timeAgo(c.updated) : 'never'}</span>
-            </div>
-            ${s && s.kind === 'project' ? html`<div class="row small" style=${{marginTop: '8px'}}>
-              <span class="num" style=${{fontWeight: 500}}>${U.inr(s.fee)}</span><span class="ink62">project fee${projEnd(ctx, id)}</span>
-            </div>` : s ? html`<div class="row small" style=${{marginTop: '8px'}}>
-              <span class="num" style=${{fontWeight: 500}}>${U.inr(s.monthly)}</span>
-              <span class="ink62 num">${s.share}% of monthly revenue</span>
+            ${s && s.kind === 'project' ? html`<div class="cl-line">
+              <b class="num">${U.inr(s.fee)}</b><span>project fee${projEnd(ctx, id)}</span>
+            </div>` : s ? html`<div class="cl-line">
+              <b class="num">${U.inr(s.monthly)}</b>
+              <span class="num">${s.share}% of monthly revenue</span>
             </div>` : null}
+            <div class="cl-line"><span class="soft">updated ${c.updated ? U.timeAgo(c.updated) : 'never'}</span></div>
           </button>`;
-          return id === hotId ? html`<${M.fx.Beam} key=${id}>${card}<//>` : card;
         })}
       </div>` : html`<${UI.Card}><${UI.Empty} text=${q.trim() || kf !== 'all' ? 'No client matches.' : 'No clients yet.'}/><//>`}
       ${open === 'new' ? html`<${NewClient} onClose=${close} onAdd=${sd => { setSeed(sd); setOpen('add'); }} onOpen=${x => { setOpen(x); }}/>`

@@ -367,7 +367,7 @@
         <${UI.Check} label="Mine" checked=${mine} onChange=${setMine}/>
       </div>
       ${!ctx.coll.talks.ready ? html`<${UI.Empty} text="Loading."/>`
-        : shown.length ? html`<div class="talk-list">${shown.map(t => html`<${Row} key=${t.id} ctx=${ctx} t=${t} today=${today} onOpen=${setOpen} onLog=${setLogFor}/>`)}</div>`
+        : shown.length ? html`<div class="card talk-list">${shown.map(t => html`<${Row} key=${t.id} ctx=${ctx} t=${t} today=${today} onOpen=${setOpen} onLog=${setLogFor}/>`)}</div>`
         : html`<${UI.Card}><${UI.Empty} text=${q.trim() ? 'Nobody matches "' + q.trim() + '".' : f === 'due' ? 'No follow-ups due. Add the next person above.' : 'Nobody here yet. Add the first person above.'}/><//>`}
       ${pros && !ctx.viewAs ? html`<div class="row tiny sub" style=${{gap: '10px'}}>
         <span>${pros === 1 ? '1 person in your private prospects is' : pros + ' people in your private prospects are'} not on this list yet.</span>

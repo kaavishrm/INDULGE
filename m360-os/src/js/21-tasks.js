@@ -13,7 +13,6 @@
   const PRIORITIES = [{v: 'low', label: 'Low'}, {v: 'normal', label: 'Normal'}, {v: 'high', label: 'High'}];
   const WHO = [{v: 'mine', label: 'Mine'}, {v: 'all', label: 'Everyone'}];
   const DONE_WINDOW_MS = 14 * 86400000;
-  const SEL_STYLE = {flex: '1 1 160px', maxWidth: '260px'};
 
   /* ---------- pure helpers ---------- */
   const isOverdue = (task, todayYmd) =>
@@ -242,29 +241,25 @@
       if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 6) { down.current = null; onDrag(task, e, d.el); }
     };
     const onUp = () => { down.current = null; };
-    const card = html`<button type="button" class="tcard" data-task=${task.id} onClick=${() => onOpen(task.id)}
+    /* v40: the design's task card (B1 .tk): the title, the facts as small pills, the owner. The most overdue
+       card on the board carries the flame line on its top edge, one card only */
+    return html`<button type="button" class=${'tcard tk' + (beam ? ' due' : '')} data-task=${task.id} onClick=${() => onOpen(task.id)}
       onPointerDown=${onDown} onPointerMove=${onMove} onPointerUp=${onUp} onPointerCancel=${onUp}>
-      <div class="row between nowrap" style=${{gap: '6px', alignItems: 'flex-start'}}>
-        <div class="t grow">${task.title || 'Untitled'}</div>
+      <div class="tk-h">
+        <div class="t tk-t">${task.title || 'Untitled'}</div>
         ${onDrag ? html`<span class="grip" aria-label="Drag" onPointerDown=${e => { e.stopPropagation(); onDrag(task, e, e.currentTarget.closest('.tcard')); }}><${icons.grip}/></span>` : null}
       </div>
-      ${(pName || cName) ? html`<div class="row" style=${{gap: '6px', overflow: 'hidden'}}>
+      <div class="tk-m">
         ${pName ? html`<${UI.Pill} kind="warm">${pName}<//>` : null}
         ${cName ? html`<${UI.Pill} kind="warm">${cName}<//>` : null}
-      </div>` : null}
-      <div class="row between nowrap" style=${{gap: '6px'}}>
-        <div class="row grow" style=${{gap: '6px'}}>
-          ${task.due ? html`<${UI.Pill} kind=${overdue ? 'flame' : undefined}>${overdue ? 'overdue ' : 'due '}${dueLabel(task.due)}<//>` : null}
-          ${task.priority === 'high' ? html`<${UI.Pill} kind="flame">high<//>` : null}
-          ${rev > 0 ? html`<${UI.Pill} kind="flame-o">${rev} rev<//>` : null}
-          ${task.shown20 ? html`<${UI.Pill}>20% shown<//>` : null}
-          ${sc.total > 0 ? html`<${UI.Pill} kind=${sc.done === sc.total ? 'ink' : undefined}>${sc.done} of ${sc.total}<//>` : null}
-        </div>
-        ${task.owner ? html`<${UI.Avatar} id=${task.owner} size=${22}/>` : null}
+        ${task.due ? html`<${UI.Pill} kind=${overdue ? 'flame' : undefined}>${overdue ? 'overdue ' : 'due '}${dueLabel(task.due)}<//>` : null}
+        ${task.priority === 'high' ? html`<${UI.Pill} kind="flame">high<//>` : null}
+        ${rev > 0 ? html`<${UI.Pill} kind="flame-o">${rev} rev<//>` : null}
+        ${task.shown20 ? html`<${UI.Pill}>20% shown<//>` : null}
+        ${sc.total > 0 ? html`<${UI.Pill} kind=${sc.done === sc.total ? 'ink' : undefined}>${sc.done} of ${sc.total}<//>` : null}
       </div>
+      ${task.owner ? html`<div class="tk-o"><${UI.Avatar} id=${task.owner} size=${22}/><span class="grow"><${UI.Name} id=${task.owner}/></span></div>` : null}
     </button>`;
-    /* the most overdue card on the board carries the beam, one card only */
-    return beam ? html`<${M.fx.Beam} radius=${14}>${card}<//>` : card;
   }
 
   /* ---------- drawer ---------- */
@@ -610,21 +605,19 @@
       <//>
       <div class="row between task-filters">
         <${UI.Seg} options=${WHO} value=${who} onChange=${setWho} ariaLabel="Whose tasks"/>
-        <div class="row grow" style=${{justifyContent: 'flex-end'}}>
-          <div style=${SEL_STYLE}><${UI.Select} id="task-filter-project" ariaLabel="Project" value=${proj} onChange=${setProj} options=${projOpts}/></div>
-          <div style=${SEL_STYLE}><${UI.Select} id="task-filter-client" ariaLabel="Client" value=${client} onChange=${setClient} options=${clientOpts}/></div>
+        <div class="row" style=${{justifyContent: 'flex-end', gap: '8px'}}>
+          <${UI.Select} id="task-filter-project" ariaLabel="Project" value=${proj} onChange=${setProj} options=${projOpts}/>
+          <${UI.Select} id="task-filter-client" ariaLabel="Client" value=${client} onChange=${setClient} options=${clientOpts}/>
         </div>
       </div>
-      <${UI.Card}>
-        <div class="board-wrap"><div class="board">
-          ${cols.map(c => html`<div key=${c.v} class=${'colm' + (over === c.v ? ' over' : '')} data-status=${c.v}>
-            <div class="col-head"><span>${c.label}</span><span class="num">${c.list.length}</span></div>
-            ${c.list.length
-              ? c.list.map(t => html`<${TaskCard} key=${t.id} task=${t} projects=${projects} clients=${clients} today=${today} onOpen=${openTask} onDrag=${onDrag} beam=${t.id === hottest}/>`)
-              : html`<div style=${{padding: '2px 6px 6px'}}><${UI.Empty} text="Nothing here."/></div>`}
-          </div>`)}
-        </div></div>
-      <//>
+      <div class="board-wrap board">
+        ${cols.map(c => html`<div key=${c.v} class=${'colm col' + (over === c.v ? ' over' : '')} data-status=${c.v}>
+          <div class="col-head col-h"><span>${c.label}</span><span class="num">${c.list.length}</span></div>
+          ${c.list.length
+            ? c.list.map(t => html`<${TaskCard} key=${t.id} task=${t} projects=${projects} clients=${clients} today=${today} onOpen=${openTask} onDrag=${onDrag} beam=${t.id === hottest}/>`)
+            : html`<div class="col-e">Nothing here.</div>`}
+        </div>`)}
+      </div>
       ${drawer ? html`<${TaskDrawer} key=${drawer.id || 'new'} taskId=${drawer.id} onClose=${closeDrawer}
         defaults=${{project: proj, client, owner: ctx.uid, due: dueDefault}}/>` : null}
     <//>`;
