@@ -14,7 +14,7 @@ has not checked in (step 2 reached m2 at 11:45), has overdue work and work m2 se
 - The person page's bot log for the chain, never for someone outside it.
 - Admin: the founder's card with the switch, the kinds, the ladder strip and the audit.
 - Me: the manager's "Your bot" (held on, kinds, wait, voice with a live preview), the report's view.
-- A bot notice carries the pill face.
+- A bot notice lands in the island.
 - Effects and design: chip text differs from its ground in both themes; the bot canvas is the CSS size
   times the device pixel ratio at dsf 3 and at 3840 wide; on a phone the chips wrap at 44px targets.
 - Light 1280 and dark 390@3x: no sideways scroll, no text under 11px, no console errors.
@@ -205,7 +205,7 @@ def test(h):
         pg.wait_for_function('k => !document.querySelector(".pm-menu") && document.activeElement && document.activeElement.getAttribute("data-k") === k', arg=kn)
         check(True, '%s: the menu takes the focus and Escape gives it back to the chip' % label)
         # the inbox: the bot's lines with the pill face, nothing of it bubbles on its own
-        tap('.bellbtn:visible')
+        pg.keyboard.press('Control+k'); tap('.pal-item[data-k="a-inbox"]')
         pg.wait_for_selector('.drawer .inbox-item')
         check(pg.locator('.drawer .inbox-bot').count() >= 1, '%s: the inbox carries the bot\'s lines' % label)
         silent = ev('M.inbox.items(ctx).filter(i => i.kind === "pm" || i.id.startsWith("team:")).every(i => i.silent)')
@@ -255,7 +255,7 @@ def test(h):
         # a bot notice
         be('m3')
         pg.evaluate('() => M.notices.push({key: "pm:demo", title: "Aanya\'s bot", body: "3 things from Aanya\'s bot", bot: true, life: 60000})')
-        pg.wait_for_selector('.notice.is-bot .notice-bot')
+        pg.wait_for_selector('#island[data-key="pm:demo"] .news')
         shot('pm-notice')
 
     scene('light-1280', 1280, 900, False, 1)

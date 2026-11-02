@@ -81,11 +81,13 @@ def t(h):
     h.go(p, 'm1', hash='#home', width=1280)
     check(p.locator('#setup-card').count() == 0, 'member sees setup')
 
-    # ---- New menu ----
+    # ---- New: the sidebar's New menu lives in the Ask bar (v40), its rows under actions ----
+    NEWK = {'Kudos': 'a-kudos', 'Task': 'a-newtask', 'Project': 'a-project', 'Pitch': 'a-pitch', 'Leave request': 'a-leave'}
+
     def new(label):
-        p.locator('.sidebar .new-trigger').click()
-        p.wait_for_selector('.newmenu')
-        p.locator('.newmenu').get_by_role('menuitem', name=label).click()
+        p.keyboard.press('Control+k')
+        p.wait_for_selector('#pal-input')
+        p.locator('.pal-item[data-k="%s"]' % NEWK[label]).click()
 
     new('Kudos')
     p.wait_for_selector('.drawer:has-text("Give kudos")')
@@ -100,21 +102,23 @@ def t(h):
     p.wait_for_selector('.drawer:has-text("New project")')
     check(p.evaluate('location.hash') == '#projects', 'project intent hash')
     h.go(p, 'm1', hash='#home', width=1280)
-    p.locator('.sidebar .new-trigger').click()
-    check(p.locator('.newmenu').get_by_role('menuitem', name='Pitch').count() == 0, 'member sees New pitch')
+    p.keyboard.press('Control+k')
+    p.wait_for_selector('.pal-item[data-k="a-newtask"]')
+    check(p.locator('.pal-item[data-k="a-pitch"]').count() == 0, 'member sees New pitch')
     p.keyboard.press('Escape')
-    p.wait_for_function("() => !document.querySelector('.newmenu')")
+    p.wait_for_function("() => !document.querySelector('#island.cmd')")
     h.go(p, 'founder', hash='#hq', width=1280)
     new('Pitch')
     p.wait_for_selector('.drawer:has-text("New pitch")')
 
-    # phone: the + in the top bar opens the same menu inside the screen
+    # phone: the round Ask button opens the same rows inside the screen
     h.go(p, 'm1', hash='#home', width=390)
-    p.locator('.topbar .new-trigger').click()
-    p.wait_for_selector('.newmenu')
-    box = p.locator('.newmenu').bounding_box()
-    check(box['x'] >= 0 and box['x'] + box['width'] <= 390, 'menu off screen %r' % box)
-    p.locator('.newmenu').get_by_role('menuitem', name='Leave request').click()
+    p.locator('.tabbar .tb-ask').click()
+    p.wait_for_selector('.pal-item[data-k="a-leave"]')
+    p.wait_for_timeout(900)
+    box = p.locator('#island .cb').bounding_box()
+    check(box['x'] >= 0 and box['x'] + box['width'] <= 390, 'Ask bar off screen %r' % box)
+    p.locator('.pal-item[data-k="a-leave"]').click()
     p.wait_for_function("() => location.hash === '#leave'")
 
     # ---- quick actions on Home ----
@@ -125,17 +129,16 @@ def t(h):
     check(p.locator('#my-week .wk-day').count() == 6, 'week strip days')
     check(p.locator('#my-projects').count() == 1 and p.locator('#buzz').count() == 1, 'home cards missing')
 
-    # ---- sidebar sub-pages and section tabs ----
-    # v40: with the sidebar expanded (its names showing) it lists the open section's tabs and the page's row
-    # hides; slim, the page shows its own tab row
+    # ---- the sidebar lists sections only; the page shows its own tab row at every width (v40, the design's nav) ----
     h.go(p, 'm1', hash='#work', width=1280)
     check(p.locator('.tabs.section-tabs').is_visible(), 'section tabs hidden on desktop with a slim sidebar')
     p.keyboard.press('[')
-    p.wait_for_selector('.side-sub:has-text("Projects")')
-    check(not p.locator('.tabs.section-tabs').is_visible(), 'section tabs visible on desktop')
-    p.locator('.side-sub', has_text='Projects').click()
+    p.wait_for_function("() => document.documentElement.classList.contains('sbx')")
+    check(p.locator('.tabs.section-tabs').is_visible(), 'section tabs hidden on desktop with the names showing')
+    check(p.locator('#side .snav .side-sub').count() == 0, 'the sidebar lists sub-pages the design does not have')
+    p.locator('.tabs.section-tabs .tab', has_text='Projects').click()
     p.wait_for_function("() => location.hash === '#projects'")
-    p.wait_for_selector('.side-sub.active:has-text("Projects")')
+    p.wait_for_selector('#side .nv.on[data-k="work"]')
     p.keyboard.press('[')
     h.go(p, 'm1', hash='#work', width=390)
     check(p.locator('.tabs.section-tabs').is_visible(), 'section tabs hidden on phone')

@@ -117,20 +117,20 @@ def test(h):
     p.get_by_label('Message previews').get_by_role('tab', name='Hide').click()
     check(p.evaluate('() => M.notices.previews()') is False, 'previews off')
     p.evaluate('() => M.notices.push({key: "t1", who: "u_m1", title: "Durvesh", body: "the deck is with you", href: "#chat"})')
-    p.wait_for_selector('#notices .notice')
-    nt = p.inner_text('#notices .notice')
+    p.wait_for_selector('#island[data-key="t1"] .news')
+    nt = p.locator('#island .news').text_content()
     check('Durvesh' in nt and 'deck' not in nt and 'New message' in nt, 'a notice with previews off shows who only, got %r' % nt)
     p.get_by_label('Message previews').get_by_role('tab', name='Show').click()
     p.evaluate('() => M.notices.push({key: "t2", who: "u_m1", title: "Durvesh", body: "second line", href: "#chat"})')
-    p.wait_for_selector('#notices .notice:has-text("second line")')
-    check(p.locator('#notices .notice').count() == 2, 'notices stack')
-    p.locator('#notices .notice:has-text("second line") .notice-x').click()
-    p.wait_for_function('() => document.querySelectorAll("#notices .notice").length === 1')
+    # v40: the island tells one at a time; the second waits behind the first
+    check(p.evaluate('() => M.notices.list().map(n => n.key)') == ['t1', 't2'] and p.evaluate('() => M.island.waiting()') == ['t2'], 'the second notice queues behind the first')
+    p.evaluate('() => M.notices.dismiss(M.notices.list().find(n => n.key === "t2").id)')
+    p.wait_for_function('() => M.notices.list().length === 1 && M.island.waiting().length === 0')
     p.get_by_label('Room notices').get_by_role('tab', name='On').click()
     check(p.evaluate('() => M.rooms.noticeAll()') is True, 'room notices on')
     p.get_by_label('Room notices').get_by_role('tab', name='Off').click()
     # they slide away on their own
-    p.wait_for_function('() => !document.querySelector("#notices")', timeout=9000)
+    p.wait_for_function('() => !M.notices.list().length && !document.querySelector("#island.show")', timeout=9000)
     errs = [e for e in h.errors() if 'AudioContext' not in str(e) and 'play()' not in str(e) and 'net::' not in str(e) and 'spotify' not in str(e).lower() and 'youtube' not in str(e).lower()]
     check(not errs, 'console errors: %r' % errs[:3])
     return fails

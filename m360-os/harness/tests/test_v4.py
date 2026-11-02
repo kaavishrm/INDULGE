@@ -26,7 +26,7 @@ def t(h):
     p = h.session('founder', width=1280, hash='#home', reset=True, seed=True)
     seed(h, p)
     h.go(p, 'founder', hash='#home', width=1280, online='u_m1')
-    p.wait_for_selector('.side-tools')
+    p.wait_for_selector('#sAsk')
 
     # ---- palette: find a task, run an action ----
     p.keyboard.press('Control+k')
@@ -83,9 +83,15 @@ def t(h):
     t1 = doc(p, 'tasks/t1')
     check(t1.get('revisions') == 1 and t1.get('sentBackNote') == 'Tighten the opening line', 'send back %r' % {k: t1.get(k) for k in ('revisions', 'sentBackNote')})
 
-    # ---- inbox: m1 sees the send back and the approval, then reading clears the badge ----
+    # ---- inbox: m1 sees the send back and the approval, then reading clears the count ----
+    # v40: the inbox is a row in the Ask bar, its count in the row's line
     h.go(p, 'm1', hash='#home', width=1280)
-    p.wait_for_selector('.bellbtn .badge')
+    p.wait_for_function('() => M.inbox.unread(M.lastCtx) > 0')
+    p.keyboard.press('Control+k')
+    p.wait_for_selector('.pal-item[data-k="a-inbox"]')
+    check(' new' in p.locator('.pal-item[data-k="a-inbox"]').text_content(), 'the Ask bar inbox row carries the count')
+    p.keyboard.press('Escape')
+    p.wait_for_function('() => !document.querySelector("#island.cmd")')
     p.keyboard.press('i')
     p.wait_for_selector('.drawer:has-text("Inbox")')
     body = p.inner_text('.drawer')
@@ -93,7 +99,7 @@ def t(h):
     check('approved Lock the shot list' in body, 'inbox missing approval')
     check('gave you kudos' in body, 'inbox missing kudos')
     p.keyboard.press('Escape')
-    p.wait_for_function('() => !document.querySelector(".bellbtn .badge")')
+    p.wait_for_function('() => M.inbox.unread(M.lastCtx) === 0')
     check(doc(p, 'me/u_m1').get('inboxSeen'), 'inboxSeen not written')
 
     # ---- mentions in a comment ----
@@ -222,12 +228,12 @@ def t(h):
 
     # ---- phone ----
     h.go(p, 'm1', hash='#home', width=390)
-    p.wait_for_selector('.topbar .bellbtn')
+    p.wait_for_selector('.topbar #menuBtn')
     # v40: on a phone the round Ask button by the tab bar opens the Ask bar in the island
     p.locator('.tabbar .tb-ask').click()
     p.wait_for_selector('#pal-input')
     p.wait_for_timeout(900)  # the island springs to its width
-    box = p.locator('.pal').bounding_box()
+    box = p.locator('#island .cb').bounding_box()
     check(box['x'] >= 0 and box['x'] + box['width'] <= 390, 'palette off screen')
     p.keyboard.press('Escape')
     ov = p.evaluate('() => document.documentElement.scrollWidth - document.documentElement.clientWidth')

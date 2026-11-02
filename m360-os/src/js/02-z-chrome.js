@@ -119,12 +119,53 @@
     };
   })();
 
-  /* the mark as a part: render it, then it joins the character. Its markup is the constant above */
-  function LiveMark({className}) {
+  /* the mark as a part: render it, then it joins the character. Its markup is the constant above. With onGo
+     it is the design's link (a.lm, href #top): a tap spins it and glides to the top */
+  function LiveMark({className, id, label, onGo}) {
     const ref = useRef(null);
     useEffect(() => { if (ref.current && !ref.current.firstChild) ref.current.innerHTML = LIVE; MK.scan(); }, []);
+    if (onGo) return html`<a class=${'lm' + (className ? ' ' + className : '')} id=${id} href="#top" aria-label=${label || 'm360 OS home'} ref=${ref}
+      onClick=${e => { e.preventDefault(); onGo(); }}></a>`;
     return html`<span class=${'lm' + (className ? ' ' + className : '')} ref=${ref} aria-hidden="true"></span>`;
   }
+
+  /* ---------- the design's own icon set (design/chrome.js IR and design/m360-os-v7.html), 24px, stroke 1.7 ---------- */
+  const IR = {
+    today: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
+    feed: '<path d="M4 5.5h16v10H9l-5 3.5z"/>',
+    tasks: '<rect x="3.5" y="4" width="5" height="16" rx="1.6"/><rect x="10" y="4" width="5" height="11" rx="1.6"/><rect x="16.5" y="4" width="4" height="7" rx="1.6"/>',
+    projects: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/>',
+    pitches: '<path d="M3.5 17.5l5.5-6 4 4 7.5-9"/><path d="M15.5 6.5h5v5"/>',
+    week: '<rect x="3.5" y="5" width="17" height="15" rx="2.4"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>',
+    handbook: '<path d="M5 4.5h10.5a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3z"/><path d="M5 16.5a3 3 0 0 1 3-3h10.5"/>',
+    clients: '<rect x="3.5" y="7" width="17" height="12.5" rx="2.4"/><path d="M9 7V5.2A1.7 1.7 0 0 1 10.7 3.5h2.6A1.7 1.7 0 0 1 15 5.2V7M3.5 12.5h17"/>',
+    people: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><circle cx="17.2" cy="9.5" r="2.4"/><path d="M16 14.2a4.8 4.8 0 0 1 5 5.3"/>',
+    leave: '<path d="M4 19.5h16M6.5 19.5c0-5 2.5-9.5 5.5-12.5 3 3 5.5 7.5 5.5 12.5"/><path d="M12 7v12.5"/>',
+    desk: '<path d="M3.5 9.5h17v10h-17z"/><path d="M7.5 9.5V6.5a4.5 4.5 0 0 1 9 0v3"/>',
+    command: '<rect x="3.5" y="4" width="17" height="12" rx="2.2"/><path d="M8 20h8M12 16v4M7 12l2.5-3 2.5 2 3-4"/>',
+    scores: '<path d="M7 20.5h10M12 16.5v4"/><path d="M6.5 3.5h11v5.5a5.5 5.5 0 0 1-11 0z"/><path d="M6.5 6H3.5a2.5 2.5 0 0 0 2.5 4M17.5 6h3a2.5 2.5 0 0 1-2.5 4"/>',
+    hiring: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="M17 4.5l1 1 2-2"/>',
+    voice: '<path d="M4 6.5h16v9H10l-4 3.5v-3.5H4z"/><path d="M8 11h8"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+    mic: '<rect x="9" y="3" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3"/>',
+    cmdkey: '<path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/>',
+    panel: '<rect x="3.5" y="4.5" width="17" height="15" rx="3.5"/><path d="M9.5 4.5v15"/>',
+    chev: '<path d="M6.5 9.5l5.5 5.5 5.5-5.5"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  const SVG = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  /* the paths are this file's constants, set on the svg once it is drawn (never user text) */
+  const DI = d => function Icon() {
+    const r = useRef(null);
+    React.useLayoutEffect(() => { if (r.current && r.current.innerHTML !== d) r.current.innerHTML = d; }, []);
+    return html`<svg ref=${r} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>`;
+  };
+  const DICONS = {};
+  Object.keys(IR).forEach(k => { DICONS[k] = DI(IR[k]); });
+  /* an app icon name in the design's set where the design has one; anything else keeps the app's own */
+  const ICON_OF = {today: 'today', home: 'today', feed: 'feed', tasks: 'tasks', review: 'tasks', projects: 'projects', pitches: 'pitches', week: 'week', cal: 'week', calendar: 'week',
+    handbook: 'handbook', clients: 'clients', people: 'people', leave: 'leave', desk: 'desk', command: 'command', scores: 'scores', trophy: 'scores', hiring: 'hiring', voice: 'voice', search: 'search', x: 'x', chevD: 'chev'};
+  const iconFor = name => (ICON_OF[name] && DICONS[ICON_OF[name]]) || (M.icons && M.icons[name]) || null;
 
   /* ---------- glide, flash, showAt: an answer takes you there and rings the thing in flame ---------- */
   function glide(y, done) {
@@ -160,7 +201,9 @@
   const ISL = (function () {
     let isl = null, isIn = null, slotEl = null, meas = null, its = [], mode = '', onTap = null, acts = {};
     const queue = [], tq = [];
-    let shownAt = 0, kind = '', cmdFn = null;
+    let shownAt = 0, kind = '', cmdFn = null, curKey = '';
+    /* the keys of news showing or waiting: the same thing is told once */
+    const newsKeys = new Set();
     const subs = new Set();
     function el() {
       if (isl) return;
@@ -204,6 +247,8 @@
     function open(h, opt) {
       el(); const o = opt || {}; const w = o.w || W(), hh = o.h || 72, r = o.r || 36;
       kind = o.kind || ''; shownAt = Date.now();
+      if (curKey && curKey !== (o.key || '')) newsKeys.delete(curKey);
+      curKey = o.key || ''; isl.setAttribute('data-key', curKey);
       docEl.classList.add('isl-on');
       if (isOpen() && mode !== 'cmd') { clr(); swapI(h, o.cls, o.cb); shape(w, hh, r); return; }
       if (mode === 'cmd') { isl.classList.remove('cmd'); mode = ''; if (cmdFn) cmdFn(false); emit(); }
@@ -217,16 +262,18 @@
       clr(); if (!busy()) return;
       const wasCmd = mode === 'cmd';
       isl.classList.remove('open'); isl.classList.add('closing'); pill(); mode = ''; onTap = null; acts = {}; kind = '';
+      if (curKey) { newsKeys.delete(curKey); curKey = ''; isl.setAttribute('data-key', ''); }
       if (wasCmd) { const a = document.activeElement; if (a && a.blur && isl.contains(a)) a.blur(); if (cmdFn && !quiet) cmdFn(false); emit(); }
       later(() => {
         isl.classList.remove('show', 'closing', 'cmd'); isIn.innerHTML = ''; isIn.className = 'is-in'; docEl.classList.remove('isl-on');
-        if (tq.length) { const t = tq.shift(); setTimeout(t, 120); } else if (queue.length && !sheetOpen()) { const q = queue.shift(); setTimeout(q, 350); }
+        if (tq.length) { const t = tq.shift(); setTimeout(t, 120); } else if (queue.length && !sheetOpen()) { const q = queue.shift(); setTimeout(() => { if (busy()) queue.unshift(q); else q(); }, 350); }
       }, 460);
       MK.think(false);
     }
     const sheetOpen = () => docEl.classList.contains('gs-open') || docEl.classList.contains('mn-open') || !!document.querySelector('.drawer');
     /* queued news waits for an open sheet to close, then comes in */
     const flush = () => { if (queue.length && !busy() && !sheetOpen()) { const q = queue.shift(); q(); } };
+    const waiting = () => queue.map(q => q.key).filter(Boolean);
     setInterval(flush, 900);
     /* a glass sheet opening: the mark looks at it; closing lets the news through */
     addEventListener('m360:sheet', e => {
@@ -268,14 +315,26 @@
       if (busy() && mode === 'cmd') { tq.push(run); return; }
       run();
     }
-    /* live news: queued behind whatever the island is saying and behind an open sheet. A tap goes to it */
-    function notify(text, cap, tap, look) {
+    /* live news: queued behind whatever the island is saying and behind an open sheet. A tap goes to it.
+       opt: {key (told once while it shows or waits), ms (how long it stays)} */
+    function notify(text, cap, tap, look, opt) {
       el();
+      const o = opt || {}, key = o.key ? String(o.key) : '';
+      if (key && newsKeys.has(key)) return;
+      if (key) newsKeys.add(key);
       const run = () => {
-        acts = {}; open(EV + TX(text, cap), {kind: 'news', cls: 'news'}); onTap = tap || null; later(close, 4200); MK.pop();
+        acts = {}; open(EV + TX(text, cap), {kind: 'news', cls: 'news', key}); onTap = tap || null; later(close, o.ms || 3200); MK.pop();
         if (look) setTimeout(() => MK.lookAt(look, 1800), 200);
       };
-      if (busy() || sheetOpen()) queue.push(() => { if (busy()) queue.unshift(run); else run(); }); else run();
+      run.key = key;
+      if (busy() || sheetOpen()) queue.push(run); else run();
+    }
+    /* news taken back before it is told, or closed while it shows */
+    function drop(key) {
+      if (!key) return;
+      for (let i = queue.length - 1; i >= 0; i--) if (queue[i].key === key) queue.splice(i, 1);
+      newsKeys.delete(key);
+      if (curKey === key && busy() && kind === 'news') close();
     }
     /* voice: 'listening' | 'heard' | 'thinking' | 'answer'. SHOW runs onShow */
     const WV = calm => '<span class="is-wave' + (calm ? ' calm' : '') + '"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i></span>';
@@ -292,7 +351,7 @@
     /* the Ask bar frame: the island grows into a 600px bar out of the field you clicked. The bar's content is
        the palette, drawn by the shell into slot() */
     function cmdDims() {
-      const list = slotEl && $q('.pal-list', slotEl);
+      const list = slotEl && $q('.cbl', slotEl);
       const lh = list ? list.scrollHeight : 56, cap = phone() ? Math.round(window.innerHeight * 0.56) : 392;
       return [W(600), 64 + Math.min(lh, cap), 28];
     }
@@ -307,11 +366,13 @@
       open('', {from: r && r.width ? {left: r.left, top: r.top, width: r.width, height: r.height} : null, w: W(600), h: 120, r: 28, cb: startIt, size: cmdDims, kind: 'cmd'});
     }
     document.addEventListener('pointerdown', e => {
-      if (mode === 'cmd' && isl && !isl.contains(e.target) && !(e.target.closest && e.target.closest('.c-askf, #sAsk, .tb-ask, .side-ask, .drawer, .buddy-bubble'))) close();
+      if (mode === 'cmd' && isl && !isl.contains(e.target) && !(e.target.closest && e.target.closest('.c-askf, #sAsk, .tb-ask, .drawer, .buddy-bubble'))) close();
     });
     addEventListener('resize', () => { if (!busy()) return; if (mode === 'cmd') fit(); else if (isOpen()) shape(W(isl.offsetWidth), isl.offsetHeight, parseFloat(isl.style.borderRadius) || 36); });
     return {
-      open, close, toast, confirm: confirmIsl, notify, voice, cmd, fit,
+      open, close, toast, confirm: confirmIsl, notify, drop, voice, cmd, fit,
+      /* the key of the news showing, and the keys waiting behind it */
+      showing: () => (busy() && kind === 'news' ? curKey : ''), waiting,
       slot() { el(); return slotEl; },
       isCmd: () => mode === 'cmd',
       busy,
@@ -385,15 +446,15 @@
     function showTip(el) {
       if (!tip || !side) return;
       if (docEl.classList.contains('sbx') || phone()) { hideTip(); return; }
-      const r = el.getBoundingClientRect(), s = side.getBoundingClientRect(), bd = $q('.badge', el), kb = el.getAttribute('data-kb');
-      tip.innerHTML = esc(el.getAttribute('data-t') || '') + (kb ? '<kbd class="sb-kb">' + esc(kb) + '</kbd>' : '') + (bd ? '<b class="tip-bd">' + esc(bd.textContent) + '</b>' : '');
+      const r = el.getBoundingClientRect(), s = side.getBoundingClientRect(), bd = $q('.bd', el), kb = $q('.kb', el);
+      tip.innerHTML = esc(el.getAttribute('data-t') || '') + (kb ? '<kbd class="kb">' + kb.innerHTML + '</kbd>' : '') + (bd && !bd.hidden ? '<b class="bd">' + esc(bd.textContent) + '</b>' : '');
       tip.style.setProperty('--tx', (s.right + 10) + 'px'); tip.style.setProperty('--ty', (r.top + r.height / 2 - 15) + 'px');
       if (!tipOn) { tip.style.transition = 'none'; tip.getBoundingClientRect(); tip.style.transition = ''; }
       tip.classList.add('on'); tipOn = true;
     }
     function mount(el) {
       if (!el || el === side) return;
-      side = el; snav = $q('.snav', el); spa = $q('.sp-a', el); sph = $q('.sp-h', el); here = $q('.sb-here', el);
+      side = el; snav = $q('.snav', el); spa = $q('.sp-a', el); sph = $q('.sp-h', el); here = $q('.here', el);
       tip = $q('#tip');
       if (!tip) { tip = document.createElement('div'); tip.id = 'tip'; tip.className = 'tip'; tip.setAttribute('aria-hidden', 'true'); document.body.appendChild(tip); }
       snav.addEventListener('pointerover', e => {
@@ -402,8 +463,8 @@
         sph.style.opacity = b.classList.contains('on') ? '0' : '1'; showTip(b);
       });
       snav.addEventListener('pointerleave', () => { sph.style.opacity = '0'; hideTip(); });
-      side.addEventListener('pointerover', e => { const b = e.target.closest('.sfoot .nv, .sbt-new'); if (b) showTip(b); });
-      side.addEventListener('pointerout', e => { const b = e.target.closest('.sfoot .nv, .sbt-new'); if (b && !(e.relatedTarget && b.contains(e.relatedTarget))) hideTip(); });
+      side.addEventListener('pointerover', e => { const b = e.target.closest('.sfoot .nv'); if (b) showTip(b); });
+      side.addEventListener('pointerout', e => { const b = e.target.closest('.sfoot .nv'); if (b && !(e.relatedTarget && b.contains(e.relatedTarget))) hideTip(); });
       side.addEventListener('focusin', e => { const b = e.target.closest('.nv'); if (b && e.target.matches(':focus-visible')) showTip(b); });
       side.addEventListener('focusout', hideTip);
       snav.addEventListener('scroll', () => { hideTip(); ovf(); }, {passive: true});
@@ -425,7 +486,7 @@
   const TB = {
     place(nav, snap) {
       if (!nav) return;
-      const a = $q('.tab-item.active', nav), lens = $q('.tb-lens', nav);
+      const a = $q('.tab.on', nav), lens = $q('.lens', nav);
       if (!lens) return;
       if (!a || !a.offsetWidth) { lens.style.opacity = '0'; return; }
       lens.style.opacity = '1';
@@ -438,6 +499,7 @@
   };
 
   /* ---------- scroll frame: glass over a dark band, the tab bar folds on the way down ---------- */
+  let jumpClose = null;
   const FX = (function () {
     let ticking = false, lastY = 0;
     function frame() {
@@ -447,10 +509,10 @@
         const r = dark.getBoundingClientRect();
         if (side) side.classList.toggle('dk', r.top < vh - 60 && r.bottom > 60);
         if (pbar) pbar.classList.toggle('dk', r.top < 64 && r.bottom > 8);
-        if (tabbar) $qa('.lgx', tabbar).forEach(g => g.classList.toggle('dk', r.top < vh - 20 && r.bottom > vh - 70));
+        if (tabbar) tabbar.classList.toggle('dk', r.top < vh - 20 && r.bottom > vh - 70);
       } else {
         if (side) side.classList.remove('dk'); if (pbar) pbar.classList.remove('dk');
-        if (tabbar) $qa('.lgx', tabbar).forEach(g => g.classList.remove('dk'));
+        if (tabbar) tabbar.classList.remove('dk');
       }
       if (tabbar) {
         if (y > lastY + 6 && y > 240) tabbar.classList.add('min');
@@ -458,9 +520,9 @@
       }
       lastY = y;
     }
-    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }, {passive: true});
+    addEventListener('scroll', () => { if (jumpClose) jumpClose(); if (!ticking) { ticking = true; requestAnimationFrame(frame); } }, {passive: true});
     addEventListener('resize', () => frame());
-    return {frame};
+    return {frame, onScrollClose(f) { jumpClose = f; }};
   })();
 
   /* [ toggles the sidebar; Escape closes the Ask bar from anywhere in it */
@@ -469,7 +531,7 @@
     if (k === 'Escape' && ISL.isCmd()) { ISL.close(); return; }
     const typing = /INPUT|TEXTAREA|SELECT/.test(tg.tagName || '') || tg.isContentEditable;
     if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (k === '[' && !phone() && !document.querySelector('.drawer, .pmenu, [data-hotkeys]')) { e.preventDefault(); SB.toggle(); }
+    if (k === '[' && !phone() && !document.querySelector('.drawer, .menu.open, [data-hotkeys]')) { e.preventDefault(); SB.toggle(); }
   });
 
   /* ---------- live news: the team as it happens, into the island ----------
@@ -532,14 +594,16 @@
       /* a name not known yet: the news waits for the profile, the next pass tells it */
       if (fresh.some(e => e.uid && !nm(e.uid))) return;
       fresh.forEach(e => { seen.current[e.k] = 1; });
-      fresh.slice(0, 3).reverse().forEach(e => ISL.notify(e.text, e.cap, () => M.nav(e.go)));
+      fresh.slice(0, 3).reverse().forEach(e => ISL.notify(e.text, e.cap, () => M.nav(e.go), null, {key: 'live:' + e.k}));
     }, [ctx, profs]);
     return null;
   }
 
   M.mark = MK;
   M.island = Object.assign(ISL, {listen});
-  M.chrome = {glide, glideTo, flash, showAt, sb: SB, tb: TB, fx: FX, phone, LIVE};
+  /* events(ctx, nm): the live news the island tells (check ins and outs, EOD lines, leave and join asks, pulses,
+     posts), newest first, the viewer's own left out; Command's LIVE line reads the same list */
+  M.chrome = {glide, glideTo, flash, showAt, sb: SB, tb: TB, fx: FX, phone, LIVE, IR, SVG, icons: DICONS, iconFor, events};
   M.parts.LiveMark = LiveMark;
   M.parts.LiveWatch = LiveWatch;
 })();

@@ -78,7 +78,7 @@ def mock_part(h):
     p.wait_for_selector('.buddy-home')
     check(p.locator('#buddy-dock .buddy-home[aria-label="Ask m360"]').count() == 1, 'the dock is the Ask m360 button')
     # the sidebar spark opens the pop-up at the dock, with the same thread
-    p.locator('.side-tools .iconbtn[aria-label="Ask m360"]').click()
+    p.keyboard.press('Control+k'); p.locator('.pal-item[data-k=\"a-ai\"]').click()
     p.wait_for_selector('.buddy-bubble:has-text("what is overdue")', timeout=8000)
     p.keyboard.press('Escape'); p.wait_for_function('() => !document.querySelector(".buddy-bubble")')
     # the pop-up stays where it opened while the mouse moves around
@@ -109,24 +109,21 @@ def mock_part(h):
     check(p.evaluate('() => localStorage.getItem("m360.tourSeen")') is None, 'a walk must not mark the tour as seen')
     h.go(p, 'founder', hash='#home', width=1280)
     p.wait_for_selector('.buddy-home')
-    # it does things: "open new" presses the New button (a menu appears); a Delete control is only pointed at
+    # it does things: "open new" presses a New button (a sheet opens); a Delete control is only pointed at
     p.evaluate('''() => { window.__spoken = []; M.speech.say = async t => { window.__spoken.push(t); return true; };
       const b = document.createElement('button'); b.textContent = 'Delete this'; b.id = 'risky-btn'; b.onclick = () => { window.__riskyClicked = true; };
-      document.querySelector('.main').prepend(b); }''')
+      document.querySelector('.main').prepend(b);
+      const n = document.createElement('button'); n.textContent = 'New'; n.id = 'new-btn'; n.onclick = () => window.dispatchEvent(new CustomEvent('m360:newtask'));
+      document.querySelector('.main').prepend(n); }''')
     p.locator('.buddy-home').click(); p.wait_for_selector('#buddy-input')
     # "open ..." at the start of a sentence is the agent's own grammar (a screen), so the press is asked for in other words
+    # v40: the sidebar has no New button (New lives in the Ask bar), so the page gets one: the buddy presses it
     p.fill('#buddy-input', 'click to open new'); p.keyboard.press('Enter')
     p.wait_for_selector('.buddy-bubble:has-text("Opened New")', timeout=20000)
-    check(p.locator('.new-menu, .new-wrap [role="menu"], .new-wrap .menu').count() >= 1 or p.evaluate('() => !!document.querySelector(".new-trigger[aria-expanded=\'true\']")'), 'the New menu should be open after the buddy pressed it')
+    check(p.locator('.drawer:has-text("New task")').count() == 1, 'the New task sheet should be open after the buddy pressed New')
     check(p.locator('.buddy-bubble:has-text("pressed New")').count() == 1, 'the bubble should log the press')
     p.keyboard.press('Escape'); p.keyboard.press('Escape')
-    # its own Escape press closes the menu, never the buddy
-    p.locator('.sidebar .new-trigger').click(); p.wait_for_selector('.new-trigger[aria-expanded="true"]')
-    p.locator('.buddy-home').click(); p.wait_for_selector('#buddy-input')
-    p.fill('#buddy-input', 'close this'); p.keyboard.press('Enter')
-    p.wait_for_selector('.buddy-bubble:has-text("Closed it")', timeout=20000)
-    check(p.locator('.new-trigger[aria-expanded="true"]').count() == 0, 'press_key Escape should close the menu')
-    check(p.locator('.buddy-bubble #buddy-answer').count() == 1, 'the buddy must survive its own Escape')
+    p.wait_for_function('() => !document.querySelector(".drawer")')
     p.keyboard.press('Escape')
     p.locator('.buddy-home').click(); p.wait_for_selector('#buddy-input')
     p.fill('#buddy-input', 'press delete'); p.keyboard.press('Enter')
@@ -257,6 +254,7 @@ def standalone_part():
             f.get_by_role('button', name='Set up the workspace').click()
             f.wait_for_selector('.sidebar')
             f.wait_for_function('() => location.hash === "#hq"', timeout=20000)
+            f.click('#hq-more')  # v40: HQ opens on Command; the checklist sits under "more from HQ"
             f.wait_for_selector('#setup-card')
             f.wait_for_timeout(500)
             api = lambda a, body=None: f.evaluate('([a, b]) => window.M360_API(a, b || {}).then(r => ({ok: true, r}), e => ({ok: false, status: e.status, code: e.code}))', [a, body or {}])
