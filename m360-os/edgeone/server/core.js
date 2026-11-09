@@ -785,6 +785,11 @@ export function createApp({store, env = {}}) {
 
   /* ---------- actions ---------- */
   const actions = {
+    /* v50.2: how this instance reached its store (cloud-functions/api/m360.js), for the owner */
+    async storestatus(v) {
+      if (!v || (await levelOf(v.uid)) < LEVEL.owner) throw new HttpError(403, 'invalid_argument');
+      return {store: globalThis.__m360store || null};
+    },
     async me(v) {
       const [owner, app] = await Promise.all([ownerUid(), appSettings()]);
       const joinOpen = app.joinPolicy !== 'invite';
