@@ -113,14 +113,21 @@ export function hybridStore(primary, legacy) {
       if (await isDone()) return {done: true};
       const t0 = Date.now();
       const have = new Set(((await primary.list({})).blobs || []).map(x => x.key));
-      const old = ((await legacy.list({}).catch(() => ({blobs: []}))).blobs || []).map(x => x.key).filter(k => !have.has(k));
-      let copied = 0;
-      for (const k of old) {
-        if (Date.now() - t0 > (budgetMs || 5000)) break;
-        const v = await legacy.get(k, {type: 'text'}).catch(() => null);
-        if (v != null) { await primary.set(k, v, {onlyIfNew: true}).catch(() => {}); copied++; }
+      /* the documents and people first, the old versions and caches next, the backup copies last */
+      const rank = k => (/^(d|p|s|w|e|o|x|ks|c|k|sec|l|fm|dv)\//.test(k) ? 0 : /^bk\//.test(k) ? 2 : 1);
+      const old = ((await legacy.list({}).catch(() => ({blobs: []}))).blobs || []).map(x => x.key).filter(k => !have.has(k))
+        .sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : 1));
+      let copied = 0, i = 0;
+      /* sixteen at a time, until the budget is spent */
+      while (i < old.length && Date.now() - t0 < (budgetMs || 5000)) {
+        const batch = old.slice(i, i + 16);
+        i += batch.length;
+        await Promise.all(batch.map(async k => {
+          const v = await legacy.get(k, {type: 'text'}).catch(() => null);
+          if (v != null) { await primary.set(k, v, {onlyIfNew: true}).catch(() => {}); copied++; }
+        }));
       }
-      const left = old.length - copied;
+      const left = old.length - i;
       if (!left) { await primary.set(DONE, JSON.stringify({at: Date.now()})); done = true; }
       return {done: !left, copied, left};
     }
