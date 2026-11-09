@@ -28,8 +28,11 @@ export async function onRequest(context) {
     };
     store = edge;
     const url = env.M360_STORE_URL || STORE_URL, anon = env.M360_STORE_ANON || STORE_ANON;
-    const key = env.M360_STORE_KEY || await ownKey(edge, {url, anon}).catch(() => '');
-    if (key) store = hybridStore(supabaseStore({url, anon, key}), edge);
+    /* what happened is kept for the owner's storestatus (core.js) */
+    const info = globalThis.__m360store = {mode: 'edge', at: Date.now(), error: null};
+    let key = env.M360_STORE_KEY || '';
+    if (!key) { try { key = await ownKey(edge, {url, anon, info}); } catch (e) { info.error = String((e && e.stack) || e).slice(0, 400); } }
+    if (key) { store = hybridStore(supabaseStore({url, anon, key}), edge); info.mode = 'supabase'; }
     app = createApp({store, env});
   }
   /* the move: a few seconds of copying per request, one at a time per instance, until it is done */

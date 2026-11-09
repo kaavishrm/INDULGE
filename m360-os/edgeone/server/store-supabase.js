@@ -135,16 +135,21 @@ const sha256hex = async s => {
   const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)));
   return Array.from(d, b => b.toString(16).padStart(2, '0')).join('');
 };
-export async function ownKey(edge, {url, anon, fetch: f}) {
+export async function ownKey(edge, {url, anon, fetch: f, info}) {
+  const note = (k, v) => { if (info) info[k] = v; };
   const doFetch = (...a) => (f || fetch)(...a);
   const P = 'ks/m360store~';
   const claim = async k => {
     const r = await doFetch(String(url).replace(/\/+$/, '') + '/rest/v1/rpc/m360_claim', {method: 'POST',
       headers: {apikey: anon, authorization: 'Bearer ' + anon, 'content-type': 'application/json'}, body: JSON.stringify({h: await sha256hex(k)})});
-    return r.ok && (await r.json().catch(() => false)) === true;
+    const body = await r.text().catch(() => '');
+    note('claim', r.status + ' ' + body.slice(0, 120));
+    return r.ok && body.trim() === 'true';
   };
   const names = async () => ((await edge.list({prefix: P}).catch(() => ({blobs: []}))).blobs || []).map(b => String(b.key).slice(P.length)).filter(Boolean).sort();
-  for (const k of await names()) if (await claim(k)) return k;
+  const found = await names();
+  note('found', found.length);
+  for (const k of found) if (await claim(k)) return k;
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   const k = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   await edge.set(P + k, '');
