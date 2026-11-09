@@ -13,7 +13,7 @@ import {supabaseStore, hybridStore, ownKey} from '../../server/store-supabase.js
 const STORE_URL = 'https://fqhmszoclzfwzttvrwng.supabase.co';
 const STORE_ANON = 'sb_publishable_8WT3XhPAsVSzzzoV4PiPAQ__0HGkBls';
 
-let app = null, store = null, moving = false, triedAt = 0;
+let app = null, store = null, triedAt = 0;
 
 export async function onRequest(context) {
   const env = (context && context.env) || {};
@@ -38,10 +38,8 @@ export async function onRequest(context) {
     if (key) { store = hybridStore(supabaseStore({url, anon, key}), edge); info.mode = 'supabase'; }
     app = createApp({store, env});
   }
-  /* the move: a few seconds of copying per request, one at a time per instance, until it is done */
-  if (store && store.migrate && !moving) {
-    moving = true;
-    try { const r = await store.migrate(3000); if (r && r.done) store.migrate = null; } catch (e) { /* the next request carries on */ } finally { moving = false; }
-  }
+  /* v50.4: the move runs from the owner's storemigrate action (core.js), in big parallel batches, never inside
+     ordinary requests, which only read through the old store until it is done */
+  globalThis.__m360migrate = store && store.migrate ? (ms => store.migrate(ms)) : null;
   return app(context.request);
 }

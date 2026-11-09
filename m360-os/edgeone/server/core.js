@@ -786,6 +786,13 @@ export function createApp({store, env = {}}) {
   /* ---------- actions ---------- */
   const actions = {
     /* v50.2: how this instance reached its store (cloud-functions/api/m360.js), for the owner */
+    /* v50.4: the owner moves the store across in big batches (cloud-functions/api/m360.js) */
+    async storemigrate(v, body) {
+      if (!v || (await levelOf(v.uid)) < LEVEL.owner) throw new HttpError(403, 'invalid_argument');
+      const run = globalThis.__m360migrate;
+      if (!run) return {done: true, note: 'nothing to move on this instance'};
+      return run(Math.max(2000, Math.min(22000, Number(body && body.ms) || 20000)));
+    },
     async storestatus(v) {
       if (!v || (await levelOf(v.uid)) < LEVEL.owner) throw new HttpError(403, 'invalid_argument');
       return {store: globalThis.__m360store || null};
