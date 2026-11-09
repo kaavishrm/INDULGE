@@ -13,11 +13,14 @@ import {supabaseStore, hybridStore, ownKey} from '../../server/store-supabase.js
 const STORE_URL = 'https://fqhmszoclzfwzttvrwng.supabase.co';
 const STORE_ANON = 'sb_publishable_8WT3XhPAsVSzzzoV4PiPAQ__0HGkBls';
 
-let app = null, store = null, moving = false;
+let app = null, store = null, moving = false, triedAt = 0;
 
 export async function onRequest(context) {
   const env = (context && context.env) || {};
+  /* an instance that came up on the old store alone tries Supabase again every half minute */
+  if (app && globalThis.__m360store && globalThis.__m360store.mode === 'edge' && Date.now() - triedAt > 30000) app = null;
   if (!app) {
+    triedAt = Date.now();
     const blob = getStore({name: 'm360', consistency: 'strong'});
     const edge = {
       get: (key, opts) => blob.get(key, opts),
