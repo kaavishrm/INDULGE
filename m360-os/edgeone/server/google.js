@@ -81,8 +81,8 @@ const summary = m => ({
   inbox: (m.labelIds || []).includes('INBOX'), labels: m.labelIds || []
 });
 
-/* an RFC 822 message, base64url, for the send endpoint */
-function mime({from, to, cc, subject, text, inReplyTo}) {
+/* an RFC 822 message, base64url, for the send endpoint; with html it is text and html together (v52) */
+function mime({from, to, cc, subject, text, html, inReplyTo}) {
   const lines = [];
   if (from) lines.push('From: ' + from);
   lines.push('To: ' + to);
@@ -90,10 +90,12 @@ function mime({from, to, cc, subject, text, inReplyTo}) {
   lines.push('Subject: =?UTF-8?B?' + b64Encode(subject || '') + '?=');
   if (inReplyTo) { lines.push('In-Reply-To: ' + inReplyTo); lines.push('References: ' + inReplyTo); }
   lines.push('MIME-Version: 1.0');
-  lines.push('Content-Type: text/plain; charset="UTF-8"');
-  lines.push('Content-Transfer-Encoding: base64');
-  lines.push('');
-  lines.push(b64Encode(text || ''));
+  const part = (type, body) => ['Content-Type: ' + type + '; charset="UTF-8"', 'Content-Transfer-Encoding: base64', '', b64Encode(body || '')];
+  if (html) {
+    const b = 'm360-' + Math.random().toString(36).slice(2);
+    lines.push('Content-Type: multipart/alternative; boundary="' + b + '"', '');
+    lines.push('--' + b, ...part('text/plain', text), '--' + b, ...part('text/html', html), '--' + b + '--');
+  } else lines.push(...part('text/plain', text));
   return b64url(lines.join('\r\n'));
 }
 
@@ -386,6 +388,21 @@ export function googleActions(h) {
   function canWriteDrive(t) { return !!(t && t.refresh && String(t.scope || '').split(/\s+/).indexOf(DRIVE_FILE) >= 0); }
   async function driveWriter(uid) { const t = await getJ(tokKey(uid)).catch(() => null); return canWriteDrive(t); }
 
+  /* v52: the OS's own emails (reset codes, sign-in links, invites) go out from this person's Gmail when there is
+     no Resend key. gmail.modify, asked for since the first Google sign-in, covers sending */
+  async function gmailFrom(uid) {
+    const t = uid ? await getJ(tokKey(uid)).catch(() => null) : null;
+    if (!t || !t.refresh) return null;
+    const sc = String(t.scope || '');
+    if (sc && !/gmail\.(modify|send|compose)|mail\.google\.com/.test(sc)) return null;
+    return t.email || '';
+  }
+  async function sendAs(uid, {to, cc, subject, text, html}) {
+    const from = await gmailFrom(uid);
+    const raw = mime({from: from ? 'm360 OS <' + from + '>' : '', to, cc, subject, text, html});
+    return gapi(uid, GM + '/messages/send', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({raw})});
+  }
+
   /* gapi and the endpoints are shared with the books (mail mining); the token and the writer check with the Drive backups */
-  return {actions, googleCallback, gapi, accessToken, driveWriter, GM, DRIVE};
+  return {actions, googleCallback, gapi, accessToken, driveWriter, gmailFrom, sendAs, GM, DRIVE};
 }

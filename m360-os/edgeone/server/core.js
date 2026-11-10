@@ -563,11 +563,16 @@ export function createApp({store, env = {}}) {
     } catch (x) { /* the log never blocks the action it records */ }
   }
 
+  let google = null;   /* set below, once the Google module is built; mail reaches it (v52) */
   async function aiKey() { if (env.ANTHROPIC_API_KEY) return env.ANTHROPIC_API_KEY; const x = await getJ('x/ai'); return x && x.key; }
   async function mailConf() {
     if (env.RESEND_API_KEY) return {key: env.RESEND_API_KEY, from: env.MAIL_FROM || 'm360 OS <onboarding@resend.dev>'};
     const x = await getJ('x/mail');
-    return x && x.key ? x : null;
+    if (x && x.key) return x;
+    /* no Resend key: the founder's connected Gmail sends instead (v52) */
+    const owner = await ownerUid();
+    const from = owner && google ? await google.gmailFrom(owner).catch(() => null) : null;
+    return from != null ? {via: 'gmail', uid: owner, from: from ? 'm360 OS <' + from + '>' : 'm360 OS'} : null;
   }
   /* one email through Resend; false when mail is not set up, throws when Resend refuses */
   /* every mail wears the mark: an image when the site address is known, the wordmark in text otherwise */
@@ -584,6 +589,11 @@ export function createApp({store, env = {}}) {
     const c = await mailConf();
     if (!c) return false;
     const cc = (opts && Array.isArray(opts.cc) ? opts.cc : []).filter(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(x)));
+    if (c.via === 'gmail') {
+      try { await google.sendAs(c.uid, {to, cc: cc.join(', '), subject, text, html: brandMail(htmlBody, base)}); }
+      catch (e) { throw new HttpError(502, 'mail_failed', (e && e.message) || 'Gmail did not send it'); }
+      return true;
+    }
     const r = await (env.fetch || fetch)('https://api.resend.com/emails', {
       method: 'POST', headers: {'content-type': 'application/json', authorization: 'Bearer ' + c.key},
       body: JSON.stringify(Object.assign({from: c.from, to: [to], subject, text, html: brandMail(htmlBody, base)}, cc.length ? {cc} : {})),
@@ -1098,7 +1108,7 @@ export function createApp({store, env = {}}) {
     async mailstatus(v) {
       if (!v || (await levelOf(v.uid)) < LEVEL.admin) throw new HttpError(403, 'invalid_argument');
       const c = await mailConf();
-      return {on: !!c, from: c ? c.from : '', env: !!env.RESEND_API_KEY};
+      return {on: !!c, from: c ? c.from : '', env: !!env.RESEND_API_KEY, via: c && c.via === 'gmail' ? 'gmail' : (c ? 'resend' : '')};
     },
     async mailkey(v, body) {
       if (!v || (await levelOf(v.uid)) < LEVEL.admin) throw new HttpError(403, 'invalid_argument');
@@ -1488,7 +1498,7 @@ export function createApp({store, env = {}}) {
   const holiday = holidayNotice({getJ, docKey, appSettings, ownerUid, sendMail, writeAs, ymdIST, env});
   /* radar actions (news, awards, watch) live in radar.js and share the store helpers */
   Object.assign(actions, radarActions({store, env, getJ, putJ, listAll, levelOf, ownerUid, LEVEL, HttpError, docKey, isObj, stampKey}));
-  const google = googleActions({store, env, getJ, putJ, levelOf, LEVEL, HttpError, log, rand, docKey, hooks});
+  google = googleActions({store, env, getJ, putJ, levelOf, LEVEL, HttpError, log, rand, docKey, hooks});
   Object.assign(actions, google.actions);
   /* security: the second factor, the throttle, the breach check, the new-device mail, the log */
   const sec = securityActions({store, env, getJ, putJ, ownerUid, levelOf, LEVEL, HttpError, log, sendMail, rand});
