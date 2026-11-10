@@ -30,6 +30,7 @@ export function supabaseStore({url, anon, key, fetch: f}) {
   }
   return {
     kind: 'supabase',
+    slow: true,
     async get(k, opts) {
       const r = await call('?select=value&key=eq.' + enc(k), {headers: {accept: 'application/json'}});
       const rows = await r.json();
@@ -94,6 +95,7 @@ export function hybridStore(primary, legacy) {
   };
   const store = {
     kind: 'hybrid',
+    slow: true,
     /* the whole prefix in one go, once the move is done; before that the caller reads key by key */
     async getPrefix(prefix) { return (await isDone()) && primary.getPrefix ? primary.getPrefix(prefix) : null; },
     async get(k, opts) {

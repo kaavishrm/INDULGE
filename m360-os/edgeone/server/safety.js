@@ -626,14 +626,18 @@ export function safetyActions(h) {
 
   /* upkeep: at most one look per request. The Drive pass runs first (it frees room), then today's backup once a day */
   let upkeepDay = '', upkeepBusy = false, upkeepNext = 0;
-  hooks.upkeep = async function upkeep() {
+  hooks.upkeep = async function upkeep(o) {
+    const heavy = !o || o.heavy !== false;
     const now = Date.now(), ymd = ymdIST(now);
     if (upkeepBusy) return;
     upkeepBusy = true;
     try {
       await trimCaches().catch(() => {});
       await liveFlush().catch(() => {});
-      await drivePass().catch(() => {});
+      if (!heavy) return;
+      /* a slow store does one heavy thing a call: today's backup while it is missing, else a day to Drive */
+      const due = upkeepDay !== ymd && now >= upkeepNext && !(await readIndex()).days.includes(ymd);
+      if (!store.slow || !due) await drivePass().catch(() => {});
       if (upkeepDay === ymd || now < upkeepNext) return;
       const index = await readIndex();
       if (!index.days.includes(ymd)) {
@@ -806,7 +810,7 @@ export function safetyActions(h) {
     },
     async backups(v) {
       await admin(v);
-      await hooks.upkeep().catch(() => {});
+      await hooks.upkeep({heavy: !store.slow}).catch(() => {});
       const index = await readIndex();
       const days = [];
       await eachChunk(index.days, async ymd => { const m = await dayManifest(ymd); if (m) days.push(m); });
