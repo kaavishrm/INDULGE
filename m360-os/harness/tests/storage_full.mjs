@@ -319,5 +319,20 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   check(k3 === '', 'a stranger with its own store is refused once the key is taken');
 }
 
+/* 10: a slow store (v50.7): an ordinary request leaves today's backup alone, the scheduled tick makes it */
+{
+  const legacy = memStore(1e9), primary = memStore(1e9);
+  seed(legacy, 1, false);
+  const store = hybridStore(primary, legacy);
+  for (let i = 0; i < 10; i++) { const r = await store.migrate(5000); if (r.done) break; }
+  const app = createApp({store, env: {}});
+  const today = ymd(Date.now());
+  await call(app, 'me');
+  const before = !!primary.data.get('bk/' + today + '/index');
+  await call(app, 'tick');
+  const after = !!primary.data.get('bk/' + today + '/index');
+  check(!before && after, 'on a slow store the backup waits for the tick: before ' + before + ', after ' + after);
+}
+
 console.log(fails ? 'FAIL ' + fails : 'PASS');
 process.exit(fails ? 1 : 0);

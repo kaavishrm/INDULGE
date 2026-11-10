@@ -1556,7 +1556,9 @@ export function createApp({store, env = {}}) {
          3 seconds anyway, so the next ordinary request runs the passes (v37) */
       const quiet = AI_ACTIONS.has(a);
       /* once a day: the backup and the trash and backup pruning (safety.js); never fails a request */
-      if (hooks.upkeep && !quiet) await hooks.upkeep().catch(() => {});
+      /* v50.7: on a store far from the function (store.slow, Supabase) the heavy part, today's backup and the Drive
+         days, rides the scheduled tick alone; an ordinary request only sends the live log */
+      if (hooks.upkeep && !quiet) await hooks.upkeep({heavy: a === 'tick' || !store.slow}).catch(() => {});
       /* the day before a holiday, once: the announcement and the mails */
       if (!quiet) await holiday().catch(() => {});
       /* the books' pass: retainer drafts on the billing day, reminder steps when auto-chase is on */
