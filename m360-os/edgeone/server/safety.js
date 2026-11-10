@@ -145,6 +145,19 @@ export function safetyActions(h) {
   async function readEverything() {
     const colls = {}, bad = [];
     let bytes = 0;
+    /* v50.5: a store that can hand over a whole prefix does it in a call or two */
+    const all = store.getPrefix ? await store.getPrefix('d/').catch(() => null) : null;
+    if (all) {
+      for (const {key, value} of all) {
+        const s = segs(pathOfKey(key));
+        if (s.length < 2 || s.length % 2 !== 0) continue;
+        let data;
+        try { data = JSON.parse(String(value)); } catch (e) { bad.push(key); continue; }
+        bytes += String(value).length;
+        (colls[s.slice(0, -1).join('/')] = colls[s.slice(0, -1).join('/')] || {})[s[s.length - 1]] = data;
+      }
+      return {colls, bad, bytes};
+    }
     const blobs = (await listAll('d/')).filter(b => { const s = segs(pathOfKey(b.key)); return s.length >= 2 && s.length % 2 === 0; });
     await eachChunk(blobs, async b => {
       const s = segs(pathOfKey(b.key)), coll = s.slice(0, -1).join('/'), id = s[s.length - 1];
