@@ -17,6 +17,13 @@ let app = null, store = null, triedAt = 0;
 
 export async function onRequest(context) {
   const env = (context && context.env) || {};
+  /* v50.6: the body is read before anything slow (setting up the store on a cold instance), which otherwise left
+     the platform's request stream unreadable: "bad json" on the first request an instance served */
+  let request = context.request;
+  if (request.method === 'POST') {
+    const text = await request.text();
+    request = new Request(request.url, {method: 'POST', headers: request.headers, body: text});
+  }
   /* an instance that came up on the old store alone tries Supabase again every half minute */
   if (app && globalThis.__m360store && globalThis.__m360store.mode === 'edge' && Date.now() - triedAt > 30000) app = null;
   if (!app) {
@@ -41,5 +48,5 @@ export async function onRequest(context) {
   /* v50.4: the move runs from the owner's storemigrate action (core.js), in big parallel batches, never inside
      ordinary requests, which only read through the old store until it is done */
   globalThis.__m360migrate = store && store.migrate ? (ms => store.migrate(ms)) : null;
-  return app(context.request);
+  return app(request);
 }
