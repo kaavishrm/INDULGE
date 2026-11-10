@@ -10,8 +10,12 @@ import {getStore} from '@edgeone/pages-blob';
 import {createApp} from '../../server/core.js';
 import {supabaseStore, hybridStore, ownKey} from '../../server/store-supabase.js';
 
-const STORE_URL = 'https://fqhmszoclzfwzttvrwng.supabase.co';
-const STORE_ANON = 'sb_publishable_8WT3XhPAsVSzzzoV4PiPAQ__0HGkBls';
+/* v51: Singapore, next to EdgeOne's functions (Mumbai, the first home, was 60 to 70 ms a call away and made
+   saves take 9 to 22 seconds). Mumbai stays as the read-through until everything written there is across */
+const STORE_URL = 'https://xpjsympknbjcplwqrfdu.supabase.co';
+const STORE_ANON = 'sb_publishable_zY79eW_3GUNfNy7qfyd-Fw_REbxuxSq';
+const OLD_URL = 'https://fqhmszoclzfwzttvrwng.supabase.co';
+const OLD_ANON = 'sb_publishable_8WT3XhPAsVSzzzoV4PiPAQ__0HGkBls';
 
 let app = null, store = null, triedAt = 0;
 
@@ -42,7 +46,11 @@ export async function onRequest(context) {
     const info = globalThis.__m360store = {mode: 'edge', at: Date.now(), error: null};
     let key = env.M360_STORE_KEY || '';
     if (!key) { try { key = await ownKey(edge, {url, anon, info}); } catch (e) { info.error = String((e && e.stack) || e).slice(0, 400); } }
-    if (key) { store = hybridStore(supabaseStore({url, anon, key}), edge); info.mode = 'supabase'; }
+    if (key) {
+      const old = env.M360_STORE_URL ? edge : supabaseStore({url: OLD_URL, anon: OLD_ANON, key});
+      store = hybridStore(supabaseStore({url, anon, key}), old);
+      info.mode = 'supabase';
+    }
     app = createApp({store, env});
   }
   /* v50.4: the move runs from the owner's storemigrate action (core.js), in big parallel batches, never inside
