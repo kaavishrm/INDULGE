@@ -63,7 +63,7 @@ const AI_MODELS = {quick: 'claude-haiku-5-5', default: 'claude-opus-5-5', comple
 /* a model the account cannot reach (404) gets one more try on the tier's fallback (aicall.js) */
 const AI_FALLBACK = {quick: 'claude-sonnet-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
 /* v37: actions that wait on the model skip the background passes, so the model gets the whole 27 seconds */
-const AI_ACTIONS = new Set(['ai', 'aicheck', 'booksmine', 'bookstatement', 'bookscategorize', 'bookparties']);
+const AI_ACTIONS = new Set(['ai', 'aicheck', 'booksmine', 'bookstatement', 'bookscategorize', 'bookparties', 'storemigrate', 'storestatus']);
 const AI_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const AI_IMAGE_MAX = 2200000;   /* base64 characters per image, about 1.6 MB */
 const AI_DAILY_MAX = 600;        /* model turns one person gets in a day */

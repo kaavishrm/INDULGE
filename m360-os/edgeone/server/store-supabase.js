@@ -49,6 +49,22 @@ export function supabaseStore({url, anon, key, fetch: f}) {
     async delete(k) {
       await call('?key=eq.' + enc(k), {method: 'DELETE', headers: {prefer: 'return=minimal'}});
     },
+    /* every key and value under a prefix, a thousand rows a call (v50.5): one call where a key at a time took
+       hundreds */
+    async getPrefix(prefix) {
+      const out = [];
+      let after = '';
+      for (let page = 0; page < 1000; page++) {
+        let q = '?select=key,value&order=key.asc&limit=1000';
+        if (prefix) q += '&key=like.' + enc(likeEsc(prefix) + '*');
+        if (after) q += '&key=gt.' + enc(after);
+        const rows = await (await call(q, {headers: {accept: 'application/json'}})).json();
+        for (const row of rows) out.push({key: row.key, value: row.value});
+        if (rows.length < 1000) break;
+        after = rows[rows.length - 1].key;
+      }
+      return out;
+    },
     async list(opts) {
       const p = (opts && opts.prefix) || '';
       const out = [];
@@ -78,6 +94,8 @@ export function hybridStore(primary, legacy) {
   };
   const store = {
     kind: 'hybrid',
+    /* the whole prefix in one go, once the move is done; before that the caller reads key by key */
+    async getPrefix(prefix) { return (await isDone()) && primary.getPrefix ? primary.getPrefix(prefix) : null; },
     async get(k, opts) {
       const v = await primary.get(k, opts);
       if (v != null || await isDone()) return v;
