@@ -77,6 +77,8 @@ function fakeGoogle(opts) {
 
 const UID = 'u_owner123456', TOK = 'tok1234567890abc';
 const IST = 330 * 60000;
+/* v53: the passes ride the page's 3 second poll (sync) and the tick, so the tests drive them with sync */
+const POLL = {tags: {}, lazy: []};
 const ymd = ms => new Date(ms + IST).toISOString().slice(0, 10);
 const DAY = 86400000;
 const BIG = 'x'.repeat(20000);
@@ -124,6 +126,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   check(!(await store.set('probe', 'y'.repeat(2000)).then(() => true, () => false)), 'the seeded store is full (a 2 KB write is refused)');
   const app = createApp({store, env: {}});
   const r = await call(app, 'write', {op: 'merge', path: 'me/' + UID, data: {note: 'hello'}});
+  await call(app, 'sync', POLL);   /* v53: the upkeep rides the page's poll, never the save itself */
   check(r.status === 200 && !r.j.error, 'without Drive, a save still goes through: ' + JSON.stringify(r).slice(0, 140));
   check(localDays(store).filter(d => d !== ymd(Date.now())).length === 45, 'without Drive, all 45 old days are still here: ' + localDays(store).length);
   check(!store.data.has('a/contacts'), 'the oversized collection cache is gone (it is only a copy)');
@@ -137,7 +140,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   store.data.set('d/contacts~p1', JSON.stringify({rows: {r: BIG.repeat(110)}}));
   store.cap = store.used() + 500;
   const app = createApp({store, env: {}});
-  await call(app, 'me');
+  await call(app, 'sync', POLL);
   const today = ymd(Date.now());
   check(![...store.data.keys()].some(k => k.startsWith('bk/' + today + '/')), 'a day that cannot fit leaves no parts behind');
   check(localDays(store).length === 45, 'and every old day is still here: ' + localDays(store).length);
@@ -152,10 +155,11 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   const app = createApp({store, env: {fetch: gg.fetch}});
   const r = await call(app, 'write', {op: 'merge', path: 'me/' + UID, data: {note: 'hello'}});
   check(r.status === 200, 'with Drive, the first save goes through (' + r.status + ')');
+  await call(app, 'sync', POLL);
   const up = () => gg.files.filter(f => /^m360-backup-/.test(f.name)).map(f => f.name.slice(12, 22)).sort();
   const oldest = ymd(Date.now() - 45 * DAY);
   check(up()[0] === oldest, 'the oldest day went first: ' + up()[0]);
-  for (let i = 0; i < 60; i++) await call(app, 'me');
+  for (let i = 0; i < 60; i++) await call(app, 'sync', POLL);
   const sent = up();
   check(sent.length === 46, 'every day, today included, is on Drive: ' + sent.length);
   const keep = localDays(store);
@@ -175,7 +179,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   seed(store, 10, true);
   const gg = fakeGoogle({short: true});
   const app = createApp({store, env: {fetch: gg.fetch}});
-  for (let i = 0; i < 5; i++) await call(app, 'me');
+  for (let i = 0; i < 5; i++) await call(app, 'sync', POLL);
   check(localDays(store).length === 11, 'short uploads: all 10 old days and today stay here: ' + localDays(store).length);
   const b = await call(app, 'backups');
   check(b.j.drive && /did not reach Drive whole/.test(b.j.drive.error || ''), 'and Backups says why: ' + (b.j.drive && b.j.drive.error));
@@ -210,7 +214,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   check(here.length + sent.filter(d => !here.includes(d)).length === 45, 'no day is lost: here plus on Drive is all 45');
   const after = await call(app, 'write', {op: 'merge', path: 'me/' + UID, data: {note: 'saved'}});
   check(after.status === 200, 'and saves work again (' + after.status + ')');
-  for (let i = 0; i < 60; i++) await call(app, 'me');
+  for (let i = 0; i < 60; i++) await call(app, 'sync', POLL);
   check(localDays(store).length <= 3 && gg.files.filter(f => /^m360-backup-/.test(f.name)).length >= 45, 'the Drive pass then moves the rest: ' + localDays(store).length + ' here');
 }
 
@@ -232,10 +236,10 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   seed(store, 2, true);
   const gg = fakeGoogle();
   const app = createApp({store, env: {fetch: gg.fetch}});
-  await call(app, 'me');
+  await call(app, 'sync', POLL);
   for (const n of ['one', 'two', 'three']) await call(app, 'write', {op: 'merge', path: 'me/' + UID, data: {note: n}});
   await call(app, 'write', {op: 'delete', path: 'tasks/t3'});
-  await call(app, 'me');
+  await call(app, 'sync', POLL);
   const live = gg.files.filter(f => /^m360-live-/.test(f.name));
   const lines = [];
   for (const f of live) (await gunzip(f.body)).trim().split('\n').forEach(l => lines.push(JSON.parse(l)));
@@ -265,7 +269,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   seed(store, 12, true);
   const gg = fakeGoogle();
   const a1 = createApp({store, env: {fetch: gg.fetch}}), a2 = createApp({store, env: {fetch: gg.fetch}});
-  for (let i = 0; i < 20; i++) await Promise.all([call(a1, 'me'), call(a2, 'me')]);
+  for (let i = 0; i < 20; i++) await Promise.all([call(a1, 'sync', POLL), call(a2, 'sync', POLL)]);
   const names = gg.files.filter(f => /^m360-backup-/.test(f.name)).map(f => f.name);
   check(names.length === new Set(names).size && names.length === 13, 'each day went up once: ' + names.length + ' files, ' + new Set(names).size + ' days');
 }
@@ -319,7 +323,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   check(k3 === '', 'a stranger with its own store is refused once the key is taken');
 }
 
-/* 10: a slow store (v50.7): an ordinary request leaves today's backup alone, the scheduled tick makes it */
+/* 10: a slow store (v50.7): an ordinary poll leaves today's backup alone, the scheduled tick makes it */
 {
   const legacy = memStore(1e9), primary = memStore(1e9);
   seed(legacy, 1, false);
@@ -327,7 +331,7 @@ const gunzip = async u8 => new TextDecoder().decode(await new Response(new Blob(
   for (let i = 0; i < 10; i++) { const r = await store.migrate(5000); if (r.done) break; }
   const app = createApp({store, env: {}});
   const today = ymd(Date.now());
-  await call(app, 'me');
+  await call(app, 'sync', POLL);
   const before = !!primary.data.get('bk/' + today + '/index');
   await call(app, 'tick');
   const after = !!primary.data.get('bk/' + today + '/index');

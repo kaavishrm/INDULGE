@@ -439,14 +439,16 @@ export function safetyActions(h) {
   const JQ = 'jq/';
   let liveOn = {at: 0, ok: false};
   let liveState = {sent: 0, last: 0, at: 0, error: null};
-  let liveBusy = false, liveNext = 0;
+  let liveBusy = false, liveNext = 0, liveSeq = 0;
   const liveReady = async () => {
     if (Date.now() - liveOn.at > 60000) liveOn = {at: Date.now(), ok: !!(await driveUid().catch(() => null))};
     return liveOn.ok;
   };
   hooks.afterWrite = async e => {
     if (!(await liveReady())) return;
-    await store.set(JQ + String(e.at).padStart(15, '0') + '~' + rand(), JSON.stringify(e));
+    /* v53: saves now finish within a millisecond of each other on one instance; the count keeps their order */
+    liveSeq = (liveSeq + 1) % 1e9;
+    await store.set(JQ + String(e.at).padStart(15, '0') + '~' + String(liveSeq).padStart(9, '0') + rand(), JSON.stringify(e));
   };
   async function liveFlush() {
     if (liveBusy || Date.now() < liveNext) return liveState;
