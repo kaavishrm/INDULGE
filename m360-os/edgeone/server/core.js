@@ -63,6 +63,7 @@ const AI_MODELS = {quick: 'claude-haiku-5-5', default: 'claude-opus-5-5', comple
 /* a model the account cannot reach (404) gets one more try on the tier's fallback (aicall.js) */
 const AI_FALLBACK = {quick: 'claude-sonnet-5-5', default: 'claude-sonnet-5-5', complex: 'claude-sonnet-5-5'};
 /* v37: actions that wait on the model skip the background passes, so the model gets the whole 27 seconds */
+const BG_ACTIONS = new Set(['sync', 'tick']);
 const AI_ACTIONS = new Set(['ai', 'aicheck', 'booksmine', 'bookstatement', 'bookscategorize', 'bookparties', 'storemigrate', 'storestatus']);
 const AI_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const AI_IMAGE_MAX = 2200000;   /* base64 characters per image, about 1.6 MB */
@@ -340,7 +341,15 @@ export function createApp({store, env = {}}) {
     if (now - (s.last || s.at || 0) > LAST_SEEN_MS) await putJ('s/' + tok, {...s, last: now}).catch(() => {});
     return {uid: s.uid, token: tok};
   }
-  async function ownerUid() { const o = await getJ('o/owner'); return o && o.uid; }
+  /* v53: the owner is set once and almost never changes; this instance keeps it for a minute (it read it up to
+     four times a request, each a trip to the database) */
+  let ownerMemo = {at: 0, uid: null};
+  async function ownerUid() {
+    if (ownerMemo.uid && Date.now() - ownerMemo.at < 60000) return ownerMemo.uid;
+    const o = await getJ('o/owner');
+    ownerMemo = {at: Date.now(), uid: (o && o.uid) || null};
+    return ownerMemo.uid;
+  }
   async function levelOf(uid) {
     if (!uid) return -1;
     const [owner, team] = await Promise.all([ownerUid(), getJ(docKey('roster/team'))]);
@@ -1005,10 +1014,13 @@ export function createApp({store, env = {}}) {
           /* nothing is erased outright: safety.js keeps a copy in the trash first */
           if (hooks.beforeDelete) await hooks.beforeDelete(key, path, v.uid).catch(() => {});
           await store.delete(key).catch(() => {});
-          await bumpMarker(s.slice(0, -1).join('/'), s[s.length - 1], null).catch(() => {});
-          /* the live log (safety.js): every change also goes to Drive within seconds */
-          if (hooks.afterWrite) await hooks.afterWrite({at: Date.now(), uid: v.uid, op: 'delete', path, doc: null}).catch(() => {});
-          await log(v.uid, 'delete', path, '');
+          /* the marker, the live log line (safety.js: every change also goes to Drive within seconds) and the
+             activity log go together (v53) */
+          await Promise.all([
+            bumpMarker(s.slice(0, -1).join('/'), s[s.length - 1], null).catch(() => {}),
+            hooks.afterWrite ? hooks.afterWrite({at: Date.now(), uid: v.uid, op: 'delete', path, doc: null}).catch(() => {}) : null,
+            log(v.uid, 'delete', path, '')
+          ]);
           return {ok: true, doc: null};
         }
         /* a page's activity stamp (me/<self>.act, times only, see M.stamp) and its personal manager's told
@@ -1030,11 +1042,18 @@ export function createApp({store, env = {}}) {
         const str = JSON.stringify(next);
         if (str.length > MAX_DOC) throw new HttpError(400, 'invalid_argument', 'document over 256 KiB');
         /* every move is backed up: safety.js keeps the version being replaced */
-        if (hooks.beforeWrite && !quietWrite) await hooks.beforeWrite(key, path, v.uid, cur).catch(() => {});
-        await store.set(key, str);
-        await bumpMarker(s.slice(0, -1).join('/'), s[s.length - 1], digest([str])).catch(() => {});
-        if (!quietWrite && hooks.afterWrite) await hooks.afterWrite({at: Date.now(), uid: v.uid, op: done, path, doc: next}).catch(() => {});
-        if (!quietWrite) await log(v.uid, done, path, summarize(path, data));
+        /* v53: with the old version already read, keeping it and the save go together; otherwise the hook reads it
+           first, so the save waits */
+        const keep = hooks.beforeWrite && !quietWrite ? () => hooks.beforeWrite(key, path, v.uid, cur).catch(() => {}) : null;
+        if (keep && cur == null) await keep();
+        await Promise.all([store.set(key, str), keep && cur != null ? keep() : null]);
+        /* v53: the change marker, the live log line and the activity log are independent of each other: they go
+           together, so a save waits for the slowest of them alone */
+        await Promise.all([
+          bumpMarker(s.slice(0, -1).join('/'), s[s.length - 1], digest([str])).catch(() => {}),
+          !quietWrite && hooks.afterWrite ? hooks.afterWrite({at: Date.now(), uid: v.uid, op: done, path, doc: next}).catch(() => {}) : null,
+          !quietWrite ? log(v.uid, done, path, summarize(path, data)) : null
+        ]);
         /* someone taken off the roster is signed out of every device at once */
         if (path === 'roster/team') {
           const was = (cur && cur.members) || {}, now = (next && next.members) || {};
@@ -1564,7 +1583,10 @@ export function createApp({store, env = {}}) {
       const v = await viewer(request);
       /* the passes below share the request's 30 seconds. A model call needs all of them, and the page polls every
          3 seconds anyway, so the next ordinary request runs the passes (v37) */
-      const quiet = AI_ACTIONS.has(a);
+      /* v53: the passes ride the page's background poll (sync, every 3 seconds) and the scheduled tick alone. A
+         click (a save, a sign-in, a page load) no longer waits behind the backup, the books, the mails and the COO,
+         which made every click take about 3 seconds */
+      const quiet = AI_ACTIONS.has(a) || !BG_ACTIONS.has(a);
       /* once a day: the backup and the trash and backup pruning (safety.js); never fails a request */
       /* v50.7: on a store far from the function (store.slow, Supabase) the heavy part, today's backup and the Drive
          days, rides the scheduled tick alone; an ordinary request only sends the live log */
