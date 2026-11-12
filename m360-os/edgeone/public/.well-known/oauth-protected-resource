@@ -1,0 +1,13 @@
+{
+ "resource": "https://m360os-wx9u1bqs.edgeone.dev/api/mcp",
+ "authorization_servers": [
+  "https://m360os-wx9u1bqs.edgeone.dev"
+ ],
+ "bearer_methods_supported": [
+  "header"
+ ],
+ "scopes_supported": [
+  "m360"
+ ],
+ "resource_name": "m360 OS"
+}

@@ -44,6 +44,7 @@ import {cooDesk, COO_UID} from './coo.js';
 import {officeActions} from './office.js';
 import {askModel, statusOf, cleanReason, AI_BUDGET_MS} from './aicall.js';
 import {mcpDesk} from './mcp.js';
+import {oauthDesk} from './oauth.js';
 
 const LEVEL = {view: 0, interact: 1, admin: 2, owner: 3};
 const SESSION_DAYS = 180;
@@ -1549,7 +1550,9 @@ export function createApp({store, env = {}}) {
     call: (a, v, body, req) => actions[a](v, body, req), books: books.view, stampKey});
   Object.assign(actions, coo.actions);
   /* v55: the Claude connector, Kaavish's own Claude reading and changing the OS as him (mcp.js) */
-  const mcp = mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actions, LEVEL, levelOf, HttpError, rand, log});
+  /* v55.1: Claude signs in with OAuth (oauth.js): Kaavish allows it once on this site, no secret in the link */
+  const oauth = oauthDesk({getJ, putJ, store, viewer, ownerUid, rand, log, env});
+  const mcp = mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actions, LEVEL, levelOf, HttpError, rand, log, oauth});
   Object.assign(actions, mcp.actions);
 
   const json = (obj, status = 200, extra = {}) => new Response(JSON.stringify(obj), {
@@ -1623,5 +1626,6 @@ export function createApp({store, env = {}}) {
   handle.file = request => files.fileGet(request, viewer);
   handle.browse = request => browse(request, viewer);
   handle.mcp = request => mcp.handle(request);
+  handle.oauth = request => oauth.handle(request);
   return handle;
 }

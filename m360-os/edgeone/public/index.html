@@ -5766,7 +5766,7 @@ html.gs-open.ai-behind .buddy-bubble.agent-pop{z-index:59}
 @media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
 @keyframes o3-emote-in{from{scale:.7} to{scale:1}}
 </style>
-<script>window.M360_BUILD = "a9edd84+.261112-1355"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "cfbd9ad+.261112-1502"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -55726,9 +55726,10 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
 
 /* ==== 94-claude.js ==== */
 /* module: Claude (v55). Kaavish runs the OS from his own Claude, on his own plan, with no API key.
-   The server speaks MCP at /api/mcp (edgeone/server/mcp.js); the link to it carries a key only the owner makes.
+   The server speaks MCP at /api/mcp (edgeone/server/mcp.js). Claude signs in on this site with OAuth (oauth.js),
+   the owner presses Allow once; a key link (v55) stays for apps that cannot sign in.
    Two parts, both for the owner alone:
-     M.parts.ClaudeCard  Admin: make the connector link, copy it once, the three steps in Claude, turn it off
+     M.parts.ClaudeCard  Admin: the address to paste in Claude, the three steps, Disconnect, and the key link
      M.parts.ClaudeBar   HQ: type what you want done, and Claude opens with it written, ready to act on the OS
    Members never see either; the server refuses the key actions to anyone but the owner. */
 'use strict';
@@ -55763,28 +55764,38 @@ M.MARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1448 422\"
       try { await api('mcpoff'); setFresh(''); await load(); M.toast('Claude is disconnected'); }
       catch (e) { M.toast('That did not work. Try again in a moment.', true); }
     };
-    const copy = () => navigator.clipboard.writeText(fresh).then(() => M.toast('Link copied'), () => M.toast('Copy is blocked here. Select the link and copy it.', true));
+    const addr = location.origin + '/api/mcp';
+    const copyText = (t, msg) => navigator.clipboard.writeText(t).then(() => M.toast(msg), () => M.toast('Copy is blocked here. Select it and copy it.', true));
+    /* v55.1: Claude signs in on this site (OAuth); the address it needs is the plain one */
     return html`<${UI.Card} id="claude-card" title="Claude connector">
-      <p class="small ink62" style=${{marginTop: 0}}>Run the OS from your own Claude, on your plan, with no API key. Claude reads and changes everything as you: tasks, clients, projects, the feed. Only you can make this link.</p>
+      <p class="small ink62" style=${{marginTop: 0}}>Run the OS from your own Claude, on your plan, with no API key. Claude reads and changes everything as you: tasks, clients, projects, the feed. Only you can connect it.</p>
       ${st === null ? html`<${M.Thinking} label="Checking" state="connecting"/>` : html`<div class="stack" style=${{gap: '10px'}}>
-        <div class="row between small"><span>Status</span><span id="claude-state">${st.on
-          ? html`<${UI.Pill} kind="ink">connected<//> <span class="tiny ink62">${st.used ? 'last used ' + U.timeAgo(st.used) : 'not used yet'}</span>`
-          : html`<${UI.Pill} kind="warm">off<//>`}</span></div>
-        ${fresh ? html`<div class="stack" style=${{gap: '8px'}} id="claude-fresh">
-          <div class="small">Your link. It shows once, so copy it now. Anyone with it can change the OS as you.</div>
-          <input class="input num" id="claude-link" readonly value=${fresh} onFocus=${e => e.target.select()} aria-label="Connector link"/>
-          <div class="row" style=${{gap: '8px'}}><${UI.Btn} sm=${true} id="claude-copy" onClick=${copy}>Copy link<//></div>
+        <div class="row between small"><span>Status</span><span id="claude-state">${st.signedIn
+          ? html`<${UI.Pill} kind="ink">connected<//>`
+          : st.key ? html`<${UI.Pill} kind="ink">key link on<//>` : html`<${UI.Pill} kind="warm">off<//>`}</span></div>
+        <div class="stack" style=${{gap: '8px'}} id="claude-steps">
+          <input class="input num" id="claude-addr" readonly value=${addr} onFocus=${e => e.target.select()} aria-label="Connector address"/>
+          <div class="row" style=${{gap: '8px'}}><${UI.Btn} sm=${true} id="claude-copy-addr" onClick=${() => copyText(addr, 'Address copied')}>Copy address<//></div>
           <ol class="small" style=${{margin: '4px 0 0 18px', padding: 0}}>
-            <li>In Claude, open Settings, Connectors, Add custom connector.</li>
-            <li>Name it m360 OS and paste the link. Leave the advanced settings empty.</li>
+            <li>In Claude, open Settings, Connectors, Add custom connector. Name it m360 OS and paste the address.</li>
+            <li>Press Connect. This site opens and asks you to allow it. Press Allow.</li>
             <li>Turn it on in a chat from the tools menu, or use the bar on HQ.</li>
           </ol>
-        </div>` : null}
-        <div class="row" style=${{gap: '8px', flexWrap: 'wrap'}}>
-          <${UI.Btn} kind=${st.on ? 'sec' : undefined} sm=${true} id="claude-make" disabled=${busy} onClick=${make}>${st.on ? 'Make a new link' : 'Make the link'}<//>
-          ${st.on ? html`<${UI.ConfirmBtn} onConfirm=${off}>Disconnect Claude<//>` : null}
+          <div class="tiny ink62">Use the same browser you are signed in to here.</div>
         </div>
-        ${st.on ? html`<div class="tiny ink62">A new link stops the old one at once.</div>` : null}
+        ${st.on ? html`<div class="row" style=${{gap: '8px'}}><${UI.ConfirmBtn} onConfirm=${off}>Disconnect Claude<//></div>` : null}
+        <details id="claude-keyfold" open=${!!fresh}>
+          <summary class="small" style=${{cursor: 'pointer'}}>Key link, for apps that cannot sign in</summary>
+          <div class="stack" style=${{gap: '8px', marginTop: '8px'}}>
+            ${fresh ? html`<div class="stack" style=${{gap: '8px'}} id="claude-fresh">
+              <div class="small">It shows once. Anyone with it can change the OS as you.</div>
+              <input class="input num" id="claude-link" readonly value=${fresh} onFocus=${e => e.target.select()} aria-label="Key link"/>
+              <div class="row" style=${{gap: '8px'}}><${UI.Btn} sm=${true} id="claude-copy" onClick=${() => copyText(fresh, 'Link copied')}>Copy link<//></div>
+            </div>` : null}
+            <div class="row" style=${{gap: '8px'}}><${UI.Btn} kind="sec" sm=${true} id="claude-make" disabled=${busy} onClick=${make}>${st.key ? 'Make a new key link' : 'Make a key link'}<//></div>
+            ${st.key ? html`<div class="tiny ink62">A new key link stops the old one at once.</div>` : null}
+          </div>
+        </details>
       </div>`}
     <//>`;
   }

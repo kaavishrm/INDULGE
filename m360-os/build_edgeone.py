@@ -141,6 +141,24 @@ def write_three():
     return 'vendor/' + name, 'sha384-' + base64.b64encode(hashlib.sha384(body).digest()).decode('ascii')
 
 
+def write_well_known():
+    """v55.1: the Claude connector's sign-in documents (edgeone/server/oauth.js answers the same from a function).
+    The site answers any unknown address with the app page, which Claude read as a broken sign-in service; these
+    static copies, for PUBLIC_URL, make sure the standard addresses answer with JSON whatever the routing does."""
+    s = PUBLIC_URL
+    meta = {'issuer': s, 'authorization_endpoint': s + '/api/oauth/authorize', 'token_endpoint': s + '/api/oauth/token',
+            'registration_endpoint': s + '/api/oauth/register', 'response_types_supported': ['code'],
+            'grant_types_supported': ['authorization_code', 'refresh_token'], 'code_challenge_methods_supported': ['S256'],
+            'token_endpoint_auth_methods_supported': ['none'], 'scopes_supported': ['m360']}
+    res = {'resource': s + '/api/mcp', 'authorization_servers': [s], 'bearer_methods_supported': ['header'],
+           'scopes_supported': ['m360'], 'resource_name': 'm360 OS'}
+    wk = os.path.join(PUB, '.well-known')
+    os.makedirs(wk, exist_ok=True)
+    for name, doc in (('oauth-authorization-server', meta), ('openid-configuration', meta), ('oauth-protected-resource', res)):
+        with open(os.path.join(wk, name), 'w') as f:
+            json.dump(doc, f, indent=1)
+            f.write('\n')
+
 def write_headers(doc, three_src=None):
     """edgeone.json carries the headers the platform answers with; the page's CSP hashes come from this build.
     The three.js file gets one immutable entry of its own, and the entries of older three files go."""
@@ -164,6 +182,11 @@ def write_headers(doc, three_src=None):
         out.append({'source': '/' + three_src, 'headers': [{'key': 'Cache-Control', 'value': 'public, max-age=31536000, immutable'}]})
     if not any(h['source'] == '/*' for h in out):
         out.append({'source': '/*', 'headers': list(SEC_HEADERS)})
+    # v55.1: the Claude connector's sign-in documents are JSON any client may read
+    if not any(h['source'] == '/.well-known/*' for h in out):
+        out.insert(next(i for i, h in enumerate(out) if h['source'] == '/*'), {'source': '/.well-known/*', 'headers': [
+            {'key': 'Content-Type', 'value': 'application/json'}, {'key': 'Access-Control-Allow-Origin', 'value': '*'},
+            {'key': 'Cache-Control', 'value': 'no-cache'}]})
     cfg['headers'] = out
     with open(cfg_path, 'w', encoding='utf-8') as f:
         json.dump(cfg, f, indent=2)
@@ -221,6 +244,7 @@ def main():
                              {'src': 'icon.svg', 'sizes': 'any', 'type': 'image/svg+xml', 'purpose': 'any'}]}, f)
     with open(os.path.join(PUB, 'sw.js'), 'w') as f:
         f.write(SW.replace('__BUILD__', build))
+    write_well_known()
     # the pinned UMD builds are committed under edgeone/public/vendor; refresh them from the harness copy when present
     for name in ('react.js', 'react-dom.js', 'htm.js'):
         src = os.path.join(ROOT, 'harness', 'vendor', name)

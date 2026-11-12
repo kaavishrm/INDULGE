@@ -40,7 +40,7 @@ const TOOLS = [
     inputSchema: {type: 'object', properties: {from: {type: 'string'}, to: {type: 'string'}}, required: ['from']}}
 ];
 
-export function mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actions, LEVEL, levelOf, HttpError, rand, log}) {
+export function mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actions, LEVEL, levelOf, HttpError, rand, log, oauth}) {
   const KEY = 'o/mcp';
 
   /* the owner's side, from Admin: make (or replace) the key, see whether one is set, turn it off */
@@ -55,22 +55,28 @@ export function mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actio
     async mcpstatus(v) {
       if (!v || (await levelOf(v.uid)) < LEVEL.owner) throw new HttpError(403, 'invalid_argument');
       const c = await getJ(KEY).catch(() => null);
-      return {on: !!(c && c.h), at: (c && c.at) || null, used: (c && c.used) || null};
+      const signed = oauth ? (((await store.list({prefix: 'or/'}).catch(() => ({blobs: []}))) || {}).blobs || []).length : 0;
+      return {on: !!(c && c.h) || signed > 0, key: !!(c && c.h), signedIn: signed > 0, at: (c && c.at) || null, used: (c && c.used) || null};
     },
     async mcpoff(v) {
       if (!v || (await levelOf(v.uid)) < LEVEL.owner) throw new HttpError(403, 'invalid_argument');
       await store.delete(KEY).catch(() => {});
+      /* v55.1: every sign-in Claude holds ends too */
+      if (oauth) await oauth.revokeAll().catch(() => {});
       await log(v.uid, 'mcpoff', '', 'Claude connector turned off');
       return {on: false};
     }
   };
 
-  /* the key from ?k= or Authorization: Bearer; the owner when it matches, nobody otherwise */
+  /* v55.1: a token from the OAuth sign-in (oauth.js); else the key from ?k= or Authorization: Bearer (v55);
+     the owner when either matches, nobody otherwise */
   async function who(request) {
     let k = '';
     try { k = new URL(request.url).searchParams.get('k') || ''; } catch (e) { k = ''; }
     const auth = String(request.headers.get('authorization') || '');
-    if (!k && /^Bearer\s+/i.test(auth)) k = auth.replace(/^Bearer\s+/i, '').trim();
+    const tok = /^Bearer\s+/i.test(auth) ? auth.replace(/^Bearer\s+/i, '').trim() : '';
+    if (tok && oauth) { const o = await oauth.bearer(tok); if (o) return o; }
+    if (!k) k = tok;
     if (!/^[a-z0-9]{20,80}$/.test(k)) return null;
     const c = await getJ(KEY).catch(() => null);
     if (!c || !c.h || c.h !== await sha256hex(k)) return null;
@@ -175,9 +181,16 @@ export function mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actio
     const json = (obj, status = 200) => new Response(obj == null ? null : JSON.stringify(obj), {status,
       headers: {'content-type': 'application/json', 'cache-control': 'no-store'}});
     /* no stream to open: an MCP client that asks for one with a GET is told so */
+    if (request.method === 'OPTIONS') return new Response(null, {status: 204, headers: {'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'authorization, content-type, mcp-protocol-version, mcp-session-id'}});
     if (request.method !== 'POST') return json({error: 'POST only'}, 405);
     const v = await who(request);
-    if (!v) return json({jsonrpc: '2.0', id: null, error: {code: -32001, message: 'This connector link is not valid. Make a new one in Admin on the team site.'}}, 401);
+    if (!v) {
+      /* v55.1: the 401 tells Claude where to sign in (RFC 9728) */
+      const site = oauth ? oauth.siteOf(request) : '';
+      return new Response(JSON.stringify({jsonrpc: '2.0', id: null, error: {code: -32001, message: 'Sign in to m360 OS to use this connector.'}}), {status: 401,
+        headers: {'content-type': 'application/json', 'cache-control': 'no-store',
+          'www-authenticate': 'Bearer realm="m360 OS", resource_metadata="' + site + '/api/oauth/protected-resource"'}});
+    }
     let body;
     try { body = JSON.parse(await request.text()); } catch (e) { return json({jsonrpc: '2.0', id: null, error: {code: -32700, message: 'bad json'}}, 400); }
     if (Array.isArray(body)) {
