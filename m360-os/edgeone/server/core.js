@@ -43,6 +43,7 @@ import {pmDesk} from './pm.js';
 import {cooDesk, COO_UID} from './coo.js';
 import {officeActions} from './office.js';
 import {askModel, statusOf, cleanReason, AI_BUDGET_MS} from './aicall.js';
+import {mcpDesk} from './mcp.js';
 
 const LEVEL = {view: 0, interact: 1, admin: 2, owner: 3};
 const SESSION_DAYS = 180;
@@ -1547,6 +1548,9 @@ export function createApp({store, env = {}}) {
     mailOn: async () => !!(await mailConf()), aiKey, gapi: google.gapi, ymdIST, env, log, levelOf, LEVEL, HttpError, models: AI_MODELS,
     call: (a, v, body, req) => actions[a](v, body, req), books: books.view, stampKey});
   Object.assign(actions, coo.actions);
+  /* v55: the Claude connector, Kaavish's own Claude reading and changing the OS as him (mcp.js) */
+  const mcp = mcpDesk({getJ, putJ, store, inventory, readColl, ownerUid, actions, LEVEL, levelOf, HttpError, rand, log});
+  Object.assign(actions, mcp.actions);
 
   const json = (obj, status = 200, extra = {}) => new Response(JSON.stringify(obj), {
     status, headers: {'content-type': 'application/json', 'cache-control': 'no-store', ...extra}
@@ -1618,5 +1622,6 @@ export function createApp({store, env = {}}) {
   handle.google = request => google.googleCallback(request);
   handle.file = request => files.fileGet(request, viewer);
   handle.browse = request => browse(request, viewer);
+  handle.mcp = request => mcp.handle(request);
   return handle;
 }

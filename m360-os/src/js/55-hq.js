@@ -268,6 +268,7 @@
       const Cmd = M.pages.Command;
       return html`<div class="hq7">
         ${M.parts.CooRunner ? html`<${M.parts.CooRunner}/>` : null}
+        ${M.parts.ClaudeBar ? html`<${M.parts.ClaudeBar}/>` : null}
         ${Cmd ? html`<${Cmd}/>` : null}
         <section class="c-more" id="hq-rest">
           <div class="c-mrow">

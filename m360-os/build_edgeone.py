@@ -5,7 +5,7 @@
   edgeone/public/vendor/*.js       pinned React, ReactDOM and htm (no CDN at runtime)
   edgeone/server/rules.js          the access rules, from capabilities.json
   edgeone/server/seed.js           the first-run workspace, from seed/seed.json
-  edgeone/cloud-functions/api/m360.js   the one API function (hand-written, not generated)
+  edgeone/cloud-functions/api/m360.js   the one API function (hand-written, not generated; its store comes from server/boot.js)
 """
 import json
 import re
