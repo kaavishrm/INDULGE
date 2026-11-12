@@ -18,9 +18,14 @@ const STORE_ANON = 'sb_publishable_zY79eW_3GUNfNy7qfyd-Fw_REbxuxSq';
 const OLD_URL = 'https://fqhmszoclzfwzttvrwng.supabase.co';
 const OLD_ANON = 'sb_publishable_8WT3XhPAsVSzzzoV4PiPAQ__0HGkBls';
 
+/* v55.2: the site's public address, for what a function must name without a browser in front of it (the Claude
+   connector's sign-in documents); env M360_PUBLIC_URL wins. build_edgeone.py's PUBLIC_URL is the same address */
+const PUBLIC_URL = 'https://m360os-wx9u1bqs.edgeone.dev';
+
 let app = null, store = null, triedAt = 0;
 
-export async function appFor(env) {
+export async function appFor(env0) {
+  const env = {M360_PUBLIC_URL: PUBLIC_URL, ...(env0 || {})};
   /* an instance that came up on the old store alone tries Supabase again every half minute */
   if (app && globalThis.__m360store && globalThis.__m360store.mode === 'edge' && Date.now() - triedAt > 30000) app = null;
   if (!app) {
