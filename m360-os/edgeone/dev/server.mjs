@@ -411,6 +411,17 @@ http.createServer(async (req, res) => {
     res.end(Buffer.from(await out.arrayBuffer()));
     return;
   }
+  if (url.pathname === '/api/mcp') {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    const request = new Request(url, {method: req.method, headers: req.headers, body: req.method === 'POST' ? Buffer.concat(chunks) : undefined});
+    const out = await app.mcp(request);
+    const headers = {};
+    out.headers.forEach((v, k) => { headers[k] = v; });
+    res.writeHead(out.status, headers);
+    res.end(Buffer.from(await out.arrayBuffer()));
+    return;
+  }
   if (url.pathname === '/api/m360') {
     const chunks = [];
     for await (const c of req) chunks.push(c);

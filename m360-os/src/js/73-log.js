@@ -21,7 +21,7 @@
     invite: 'sent an invite', uninvite: 'took an invite back', rename: 'changed a name', setemail: 'changed an email',
     aikey: 'changed the AI key', aicheck: 'checked the AI key', mailkey: 'changed the mail key', googlekey: 'changed the Google key',
     google: 'changed the Google link', gmail: 'sent an email', gcal: 'added a meeting', file: 'added a file',
-    voicebox: 'changed the voice box', voicekey: 'changed the voice key'};
+    voicebox: 'changed the voice box', voicekey: 'changed the voice key', mcpkey: 'made a Claude connector link', mcpoff: 'disconnected Claude'};
   /* a person's id inside a server summary ("u_5r6d...: 0 devices") */
   const UID_RE = /\b(u_[a-z0-9]{6,})\b/g;
   const named = (text, profs) => String(text || '').replace(UID_RE, m => (profs[m] && profs[m].name) || 'someone');
