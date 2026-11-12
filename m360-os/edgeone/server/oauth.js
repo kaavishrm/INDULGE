@@ -33,6 +33,9 @@ export function oauthDesk({getJ, putJ, store, viewer, ownerUid, rand, log, env})
     const host = String(request.headers.get('host') || '');
     if (/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) || /^(localhost|127\.0\.0\.1)$/.test(u.hostname)) return 'http://' + (host || u.host);
     if (/^[a-z0-9.-]+(:\d+)?$/i.test(host) && !/qcloudteo\.com$/i.test(host)) return 'https://' + host;
+    /* v55.2: on EdgeOne a function sees only the platform's internal address (…qcloudteo.com) with no forwarded
+       host, and Claude cannot sign in there: the site's public address (server/boot.js) answers instead */
+    if (env && env.M360_PUBLIC_URL) return String(env.M360_PUBLIC_URL).replace(/\/+$/, '');
     return u.origin;
   }
   const meta = site => ({
