@@ -285,18 +285,31 @@ M.makeWrites = (db, uidGetter) => {
     M.toast('That change looked wrong and was not saved: ' + why + '.', true);
     return Promise.reject({code: 'refused', message: why});
   };
+  /* v54: on the team site a save shows on the page at once, so the click is done there and then; the server copy
+     follows in the background. A save that fails there is undone on the page and named in a toast. These keep
+     waiting for the server, because their screens act on the answer: the money, HR, the roster, settings, access,
+     leave decisions and chat (its own buffer builds on each confirmed line) */
+  const CAREFUL = /^(books|invoices|expenses|payroll|hr|statements|roster|settings|access|leavedec|chat)\//;
+  const lost = e => { M.toast(WRITE_MSG[e && e.code] || 'A change did not save and was undone. Try it again.', true); };
+  const fast = (op, p) => !CAREFUL.test(p) && typeof db.shows === 'function' && db.shows(p, op);
+  const go = (op, p, run) => {
+    if (!fast(op, p)) return queued(p, run).catch(fail);
+    /* the data layer keeps the order per document, so the page-side queue is skipped */
+    run().catch(lost);
+    return Promise.resolve();
+  };
   const writer = log => ({
-    set: (p, d) => check('set', p, d) || queued(p, () => db.doc(p).set(d).then(r => { log('set', p, d); return r; })).catch(fail),
-    update: (p, d) => check('update', p, d) || queued(p, () => db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(fail),
+    set: (p, d) => check('set', p, d) || go('set', p, () => db.doc(p).set(d).then(r => { log('set', p, d); return r; })),
+    update: (p, d) => check('update', p, d) || go('update', p, () => db.doc(p).update(d).then(r => { log('update', p, d); return r; })),
     /* merge-or-create. The server does it in one locked step where it can (v38: two people creating the same
        document at once used to overwrite each other); elsewhere update first, set when the document is missing */
-    merge: (p, d) => check('merge', p, d) || queued(p, () => (typeof db.doc(p).merge === 'function' ? db.doc(p).merge(d).then(r => { log('update', p, d); return r; }) : db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(e => {
+    merge: (p, d) => check('merge', p, d) || go('merge', p, () => (typeof db.doc(p).merge === 'function' ? db.doc(p).merge(d).then(r => { log('update', p, d); return r; }) : db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(e => {
       /* only a missing document is created; any other refusal (too large, malformed) is never turned into an overwrite */
       if (e && (e.code === 'not_found' || (e.code === 'invalid_argument' && /missing/i.test(String(e.message || ''))))) return db.doc(p).set(d).then(r => { log('set', p, d); return r; });
       throw e;
-    })).catch(fail)
+    }))
   });
-  const W = {...writer(log), del: p => queued(p, () => db.doc(p).delete().then(r => { log('delete', p); return r; })).catch(fail)};
+  const W = {...writer(log), del: p => go('delete', p, () => db.doc(p).delete().then(r => { log('delete', p); return r; }))};
   /* the bot's own hand (M.coo): its writes log under the bot and never stamp the founder's activity. quiet
      skips the log line too (its live feed); note replaces the summary ("coo J12 <actId>"). No delete: the bot
      never removes anything */

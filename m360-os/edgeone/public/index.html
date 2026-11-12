@@ -5766,7 +5766,7 @@ html.gs-open.ai-behind .buddy-bubble.agent-pop{z-index:59}
 @media (prefers-reduced-motion:no-preference){ .o3-layer > .o3-emote{animation:o3-emote-in .35s var(--ease) both} }
 @keyframes o3-emote-in{from{scale:.7} to{scale:1}}
 </style>
-<script>window.M360_BUILD = "98dcfa6+.261111-1356"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
+<script>window.M360_BUILD = "eb154ec+.261112-0952"; window.M360_3D_SRC = "vendor/three.92287d45.js"; window.M360_3D_SRI = "sha384-9CmMVqgd6no+mymMnUEosvNELUQCik7EBJNeBNZTkeerVlw0wzE9SGjUQswxiS20";</script><script>
 /* m360 OS standalone runtime: gives the page the same window.claude contract it has on claude.ai
    (db, user, room, sample, downloads, permissions), backed by the EdgeOne function at /api/m360. */
 (function () {
@@ -5780,11 +5780,19 @@ html.gs-open.ai-behind .buddy-bubble.agent-pop{z-index:59}
   const API = '/api/m360' + QS;
   /* actions the sign-in screen calls before anyone is signed in: a 401 from these is an answer, never a lost session */
   const OPEN = new Set(['me', 'setup', 'signup', 'login', 'accept', 'invited', 'magic', 'pw', 'pw2', 'reset', 'resetpw']);
+  /* v54: a save shows on the page at once and goes to the server behind it. Any other action waits for the saves
+     still on their way first, so the server never acts on a copy older than the one the page shows */
+  const outstanding = new Set();
+  const NO_WAIT = new Set(['write', 'sync', 'snapshot', 'me', 'presence']);
   async function call(a, body) {
+    if (!NO_WAIT.has(a) && outstanding.size) await Promise.all(Array.from(outstanding));
+    const text = JSON.stringify(Object.assign({a}, body || {}));
     let r;
     try {
+      /* a save goes out with keepalive, so closing the tab right after a click still lands it (the platform caps a
+         keepalive body at 64 KB) */
       r = await fetch(API, {method: 'POST', credentials: 'same-origin', headers: {'content-type': 'application/json'},
-        body: JSON.stringify(Object.assign({a}, body || {}))});
+        body: text, keepalive: a === 'write' && text.length < 60000});
     } catch (e) { throw {code: 'unavailable', message: 'offline'}; }
     let j = {};
     try { j = await r.json(); } catch (e) { j = {}; }
@@ -5926,39 +5934,70 @@ html.gs-open.ai-behind .buddy-bubble.agent-pop{z-index:59}
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 
+  /* v54: per document, the saves still on their way. base is the last copy the server confirmed, ops the changes
+     after it, in the order they were made; run sends them one after another. The page shows base with every op
+     applied, so a second click on the same document shows at once and lands after the first */
+  const pend = {};
+  const applyOp = (doc, op, data) => op === 'delete' ? undefined : op === 'set' ? clone(data) : merge(doc === undefined ? {} : doc, clone(data));
+  /* does a save to this path show on the page the moment it is made */
+  function shows(path, op) {
+    const s = segs(path);
+    if (!loaded || !s.length || s.length % 2) return false;
+    const coll = s.slice(0, -1).join('/');
+    if (LAZY.has(coll) && !wanted.has(coll)) return false;
+    if (op === 'update') { const c = colls[coll]; return !!(c && c.docs[s[s.length - 1]] !== undefined); }
+    return true;
+  }
   async function write(op, path, data) {
     const s = segs(path);
     if (!s.length || s.length % 2) throw {code: 'invalid_argument', message: 'document path needs an even number of segments'};
-    await whenLoaded();
+    if (!loaded) await whenLoaded();
     const coll = s.slice(0, -1).join('/'), id = s[s.length - 1];
-    if (LAZY.has(coll) && !wanted.has(coll)) {
-      const r = await call('write', {op, path, data: op === 'delete' ? undefined : data}).catch(e => { if (e && e.status === 401) kick(); throw e; });
-      return r;
-    }
+    const send = () => call('write', {op, path, data: op === 'delete' ? undefined : data});
+    if (LAZY.has(coll) && !wanted.has(coll)) return send().catch(e => { if (e && e.status === 401) kick(); throw e; });
     const c = colls[coll] || (colls[coll] = {v: '', docs: {}, tags: {}, complete: !LAZY.has(coll)});
-    const before = c.docs[id];
-    if (op === 'update' && before === undefined) throw {code: 'invalid_argument', message: 'update on missing document'};
+    if (op === 'update' && c.docs[id] === undefined) throw {code: 'invalid_argument', message: 'update on missing document'};
     /* merge (v38): update, or create when missing, in one step on the server, so two pages creating the same
        document at once both land */
-    /* optimistic: the page sees its own write at once */
-    if (op === 'delete') delete c.docs[id];
-    else c.docs[id] = op === 'update' || op === 'merge' ? merge(before === undefined ? {} : before, clone(data)) : clone(data);
+    const p = pend[path] || (pend[path] = {base: c.docs[id], ops: [], run: Promise.resolve()});
+    const mine = {op, data: op === 'delete' ? undefined : clone(data)};
+    p.ops.push(mine);
+    /* the page sees its own save at once, before any await */
+    const shown = applyOp(c.docs[id], op, data);
+    if (shown === undefined) delete c.docs[id]; else c.docs[id] = shown;
     notifyColl(coll);
     inflight[coll] = (inflight[coll] || 0) + 1;
-    try {
-      const r = await call('write', {op, path, data: op === 'delete' ? undefined : data});
+    /* once the server answers: the confirmed copy with the saves still on their way on top. An unchanged result
+       keeps its object, so nothing re-renders for it */
+    const settle = failed => {
       inflight[coll]--;
-      if (op !== 'delete' && r.doc) c.docs[id] = r.doc;
+      p.ops.splice(p.ops.indexOf(mine), 1);
+      let d = p.base;
+      for (const o of p.ops) d = applyOp(d, o.op, o.data);
+      if (!p.ops.length && pend[path] === p) delete pend[path];
+      const cur = c.docs[id];
+      if (failed || JSON.stringify(d) !== JSON.stringify(cur)) {
+        if (d === undefined) delete c.docs[id]; else c.docs[id] = d;
+        notifyColl(coll);
+      }
+    };
+    const job = p.run.then(send).then(r => {
+      p.base = op === 'delete' ? undefined : (r && r.doc) ? r.doc : applyOp(p.base, op, data);
       /* the tag of this doc is unknown until the next sync brings it, so only this doc is asked for again */
       c.v = ''; if (op === 'delete') delete c.tags[id]; else c.tags[id] = '';
+      settle(false);
       setTimeout(sync, 400);
-    } catch (e) {
-      inflight[coll]--;
-      if (before === undefined) delete c.docs[id]; else c.docs[id] = before;
-      notifyColl(coll);
+      return r;
+    }, e => {
+      settle(true);
       if (e && e.status === 401) kick();
       throw e;
-    }
+    });
+    p.run = job.catch(() => {});
+    const done = p.run;
+    outstanding.add(done);
+    done.then(() => outstanding.delete(done));
+    return job;
   }
 
   function docRef(path) {
@@ -5992,7 +6031,7 @@ html.gs-open.ai-behind .buddy-bubble.agent-pop{z-index:59}
       }
     };
   }
-  const db = Object.freeze({doc: docRef, collection: collRef});
+  const db = Object.freeze({doc: docRef, collection: collRef, shows});
 
   /* ---------- user: names live on the server, avatars are drawn here ---------- */
   const GREYS = ['#0E0E0E', '#3A3A3A', '#5A5A5A', '#6E6E6E', '#7A7A7A', '#8A8A8A', '#9A9A9A'];
@@ -7813,18 +7852,31 @@ M.makeWrites = (db, uidGetter) => {
     M.toast('That change looked wrong and was not saved: ' + why + '.', true);
     return Promise.reject({code: 'refused', message: why});
   };
+  /* v54: on the team site a save shows on the page at once, so the click is done there and then; the server copy
+     follows in the background. A save that fails there is undone on the page and named in a toast. These keep
+     waiting for the server, because their screens act on the answer: the money, HR, the roster, settings, access,
+     leave decisions and chat (its own buffer builds on each confirmed line) */
+  const CAREFUL = /^(books|invoices|expenses|payroll|hr|statements|roster|settings|access|leavedec|chat)\//;
+  const lost = e => { M.toast(WRITE_MSG[e && e.code] || 'A change did not save and was undone. Try it again.', true); };
+  const fast = (op, p) => !CAREFUL.test(p) && typeof db.shows === 'function' && db.shows(p, op);
+  const go = (op, p, run) => {
+    if (!fast(op, p)) return queued(p, run).catch(fail);
+    /* the data layer keeps the order per document, so the page-side queue is skipped */
+    run().catch(lost);
+    return Promise.resolve();
+  };
   const writer = log => ({
-    set: (p, d) => check('set', p, d) || queued(p, () => db.doc(p).set(d).then(r => { log('set', p, d); return r; })).catch(fail),
-    update: (p, d) => check('update', p, d) || queued(p, () => db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(fail),
+    set: (p, d) => check('set', p, d) || go('set', p, () => db.doc(p).set(d).then(r => { log('set', p, d); return r; })),
+    update: (p, d) => check('update', p, d) || go('update', p, () => db.doc(p).update(d).then(r => { log('update', p, d); return r; })),
     /* merge-or-create. The server does it in one locked step where it can (v38: two people creating the same
        document at once used to overwrite each other); elsewhere update first, set when the document is missing */
-    merge: (p, d) => check('merge', p, d) || queued(p, () => (typeof db.doc(p).merge === 'function' ? db.doc(p).merge(d).then(r => { log('update', p, d); return r; }) : db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(e => {
+    merge: (p, d) => check('merge', p, d) || go('merge', p, () => (typeof db.doc(p).merge === 'function' ? db.doc(p).merge(d).then(r => { log('update', p, d); return r; }) : db.doc(p).update(d).then(r => { log('update', p, d); return r; })).catch(e => {
       /* only a missing document is created; any other refusal (too large, malformed) is never turned into an overwrite */
       if (e && (e.code === 'not_found' || (e.code === 'invalid_argument' && /missing/i.test(String(e.message || ''))))) return db.doc(p).set(d).then(r => { log('set', p, d); return r; });
       throw e;
-    })).catch(fail)
+    }))
   });
-  const W = {...writer(log), del: p => queued(p, () => db.doc(p).delete().then(r => { log('delete', p); return r; })).catch(fail)};
+  const W = {...writer(log), del: p => go('delete', p, () => db.doc(p).delete().then(r => { log('delete', p); return r; }))};
   /* the bot's own hand (M.coo): its writes log under the bot and never stamp the founder's activity. quiet
      skips the log line too (its live feed); note replaces the summary ("coo J12 <actId>"). No delete: the bot
      never removes anything */
