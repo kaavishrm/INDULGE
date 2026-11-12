@@ -11,11 +11,19 @@
   const API = '/api/m360' + QS;
   /* actions the sign-in screen calls before anyone is signed in: a 401 from these is an answer, never a lost session */
   const OPEN = new Set(['me', 'setup', 'signup', 'login', 'accept', 'invited', 'magic', 'pw', 'pw2', 'reset', 'resetpw']);
+  /* v54: a save shows on the page at once and goes to the server behind it. Any other action waits for the saves
+     still on their way first, so the server never acts on a copy older than the one the page shows */
+  const outstanding = new Set();
+  const NO_WAIT = new Set(['write', 'sync', 'snapshot', 'me', 'presence']);
   async function call(a, body) {
+    if (!NO_WAIT.has(a) && outstanding.size) await Promise.all(Array.from(outstanding));
+    const text = JSON.stringify(Object.assign({a}, body || {}));
     let r;
     try {
+      /* a save goes out with keepalive, so closing the tab right after a click still lands it (the platform caps a
+         keepalive body at 64 KB) */
       r = await fetch(API, {method: 'POST', credentials: 'same-origin', headers: {'content-type': 'application/json'},
-        body: JSON.stringify(Object.assign({a}, body || {}))});
+        body: text, keepalive: a === 'write' && text.length < 60000});
     } catch (e) { throw {code: 'unavailable', message: 'offline'}; }
     let j = {};
     try { j = await r.json(); } catch (e) { j = {}; }
@@ -157,39 +165,70 @@
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 
+  /* v54: per document, the saves still on their way. base is the last copy the server confirmed, ops the changes
+     after it, in the order they were made; run sends them one after another. The page shows base with every op
+     applied, so a second click on the same document shows at once and lands after the first */
+  const pend = {};
+  const applyOp = (doc, op, data) => op === 'delete' ? undefined : op === 'set' ? clone(data) : merge(doc === undefined ? {} : doc, clone(data));
+  /* does a save to this path show on the page the moment it is made */
+  function shows(path, op) {
+    const s = segs(path);
+    if (!loaded || !s.length || s.length % 2) return false;
+    const coll = s.slice(0, -1).join('/');
+    if (LAZY.has(coll) && !wanted.has(coll)) return false;
+    if (op === 'update') { const c = colls[coll]; return !!(c && c.docs[s[s.length - 1]] !== undefined); }
+    return true;
+  }
   async function write(op, path, data) {
     const s = segs(path);
     if (!s.length || s.length % 2) throw {code: 'invalid_argument', message: 'document path needs an even number of segments'};
-    await whenLoaded();
+    if (!loaded) await whenLoaded();
     const coll = s.slice(0, -1).join('/'), id = s[s.length - 1];
-    if (LAZY.has(coll) && !wanted.has(coll)) {
-      const r = await call('write', {op, path, data: op === 'delete' ? undefined : data}).catch(e => { if (e && e.status === 401) kick(); throw e; });
-      return r;
-    }
+    const send = () => call('write', {op, path, data: op === 'delete' ? undefined : data});
+    if (LAZY.has(coll) && !wanted.has(coll)) return send().catch(e => { if (e && e.status === 401) kick(); throw e; });
     const c = colls[coll] || (colls[coll] = {v: '', docs: {}, tags: {}, complete: !LAZY.has(coll)});
-    const before = c.docs[id];
-    if (op === 'update' && before === undefined) throw {code: 'invalid_argument', message: 'update on missing document'};
+    if (op === 'update' && c.docs[id] === undefined) throw {code: 'invalid_argument', message: 'update on missing document'};
     /* merge (v38): update, or create when missing, in one step on the server, so two pages creating the same
        document at once both land */
-    /* optimistic: the page sees its own write at once */
-    if (op === 'delete') delete c.docs[id];
-    else c.docs[id] = op === 'update' || op === 'merge' ? merge(before === undefined ? {} : before, clone(data)) : clone(data);
+    const p = pend[path] || (pend[path] = {base: c.docs[id], ops: [], run: Promise.resolve()});
+    const mine = {op, data: op === 'delete' ? undefined : clone(data)};
+    p.ops.push(mine);
+    /* the page sees its own save at once, before any await */
+    const shown = applyOp(c.docs[id], op, data);
+    if (shown === undefined) delete c.docs[id]; else c.docs[id] = shown;
     notifyColl(coll);
     inflight[coll] = (inflight[coll] || 0) + 1;
-    try {
-      const r = await call('write', {op, path, data: op === 'delete' ? undefined : data});
+    /* once the server answers: the confirmed copy with the saves still on their way on top. An unchanged result
+       keeps its object, so nothing re-renders for it */
+    const settle = failed => {
       inflight[coll]--;
-      if (op !== 'delete' && r.doc) c.docs[id] = r.doc;
+      p.ops.splice(p.ops.indexOf(mine), 1);
+      let d = p.base;
+      for (const o of p.ops) d = applyOp(d, o.op, o.data);
+      if (!p.ops.length && pend[path] === p) delete pend[path];
+      const cur = c.docs[id];
+      if (failed || JSON.stringify(d) !== JSON.stringify(cur)) {
+        if (d === undefined) delete c.docs[id]; else c.docs[id] = d;
+        notifyColl(coll);
+      }
+    };
+    const job = p.run.then(send).then(r => {
+      p.base = op === 'delete' ? undefined : (r && r.doc) ? r.doc : applyOp(p.base, op, data);
       /* the tag of this doc is unknown until the next sync brings it, so only this doc is asked for again */
       c.v = ''; if (op === 'delete') delete c.tags[id]; else c.tags[id] = '';
+      settle(false);
       setTimeout(sync, 400);
-    } catch (e) {
-      inflight[coll]--;
-      if (before === undefined) delete c.docs[id]; else c.docs[id] = before;
-      notifyColl(coll);
+      return r;
+    }, e => {
+      settle(true);
       if (e && e.status === 401) kick();
       throw e;
-    }
+    });
+    p.run = job.catch(() => {});
+    const done = p.run;
+    outstanding.add(done);
+    done.then(() => outstanding.delete(done));
+    return job;
   }
 
   function docRef(path) {
@@ -223,7 +262,7 @@
       }
     };
   }
-  const db = Object.freeze({doc: docRef, collection: collRef});
+  const db = Object.freeze({doc: docRef, collection: collRef, shows});
 
   /* ---------- user: names live on the server, avatars are drawn here ---------- */
   const GREYS = ['#0E0E0E', '#3A3A3A', '#5A5A5A', '#6E6E6E', '#7A7A7A', '#8A8A8A', '#9A9A9A'];
